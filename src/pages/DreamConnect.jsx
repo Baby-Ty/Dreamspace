@@ -331,7 +331,11 @@ const DreamConnect = () => {
 
       {/* Preview Dreams Modal */}
       {showPreviewModal && previewUser && (
-        <PreviewDreamsModal user={previewUser} onClose={() => { setShowPreviewModal(false); setPreviewUser(null); }} />
+        <PreviewDreamsModal 
+          user={previewUser} 
+          onClose={() => { setShowPreviewModal(false); setPreviewUser(null); }}
+          onConnect={(user) => { setShowPreviewModal(false); handleConnectRequest(user); }}
+        />
       )}
     </div>
   );
@@ -350,7 +354,13 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
   const limitedCategories = categoriesToShow.slice(0, 3);
   const remainingCount = Math.max(0, categoriesToShow.length - limitedCategories.length);
   return (
-    <div className="rounded-2xl border bg-white shadow-sm hover:shadow-md transition p-5 flex flex-col">
+    <div
+      className="rounded-2xl border bg-white shadow-sm hover:shadow-md transition p-5 flex flex-col cursor-pointer"
+      onClick={() => onPreview()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPreview(); } }}
+    >
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3 min-w-0">
           <img
@@ -372,14 +382,14 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
         <div className="flex items-center gap-2">
           <span className="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Match {matchPercent}%</span>
           <div className="relative">
-            <button onClick={() => setMenuOpen(v=>!v)} className="p-1 rounded hover:bg-gray-100">
+            <button onClick={(e) => { e.stopPropagation(); setMenuOpen(v=>!v); }} className="p-1 rounded hover:bg-gray-100">
               <MoreVertical className="w-4 h-4 text-gray-500" />
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-1 w-44 bg-white border rounded-lg shadow-lg z-10 text-sm">
-                <button className="w-full text-left px-3 py-2 hover:bg-gray-50">Message on Teams</button>
-                <button className="w-full text-left px-3 py-2 hover:bg-gray-50">Follow</button>
-                <button className="w-full text-left px-3 py-2 hover:bg-gray-50">Hide suggestions</button>
+                <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={(e)=>e.stopPropagation()}>Message on Teams</button>
+                <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={(e)=>e.stopPropagation()}>Follow</button>
+                <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={(e)=>e.stopPropagation()}>Hide suggestions</button>
               </div>
             )}
           </div>
@@ -410,14 +420,14 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
 
       <div className="flex flex-col sm:flex-row gap-2 mt-auto">
         <button
-          onClick={onConnect}
+          onClick={(e) => { e.stopPropagation(); onConnect(); }}
           className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm"
         >
           <Users className="w-4 h-4 mr-2" />
           <span>Connect</span>
         </button>
         <button
-          onClick={onPreview}
+          onClick={(e) => { e.stopPropagation(); onPreview(); }}
           className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all text-sm"
         >
           Preview Dreams
@@ -428,7 +438,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
 };
 
 // Modal for previewing a user's profile summary and a grid of sample dreams
-const PreviewDreamsModal = ({ user, onClose }) => {
+const PreviewDreamsModal = ({ user, onClose, onConnect }) => {
   const makeBio = () => {
     const categories = user.dreamCategories?.slice(0, 3).join(', ');
     return `Based in ${user.office}. Focused on ${categories || 'personal growth'} this year.`;
@@ -504,6 +514,17 @@ const PreviewDreamsModal = ({ user, onClose }) => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Connect CTA */}
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={() => onConnect(user)}
+              className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Connect
+            </button>
           </div>
         </div>
       </div>
