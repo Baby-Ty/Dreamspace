@@ -57,18 +57,18 @@ const DreamBook = () => {
 
   // Mock inspiration data (images intentionally left blank)
   const mockDreams = [
-    { id: 1, title: 'Backpack Through Patagonia', category: 'Travel & Adventure', owner: 'Maya', status: 'Active', image: '' },
-    { id: 2, title: 'Read a Book a Month', category: 'Learning & Education', owner: 'James', status: 'Active', image: '' },
-    { id: 3, title: 'Get Fit — Gym 3x a Week', category: 'Health & Fitness', owner: 'Alex', status: 'Active', image: '' },
-    { id: 4, title: 'Launch a Photography Portfolio', category: 'Creative Projects', owner: 'Sofia', status: 'Active', image: '' },
-    { id: 5, title: 'Finish My Degree', category: 'Career Growth', owner: 'Ethan', status: 'Active', image: '' },
-    { id: 6, title: 'Cycle Across a Country', category: 'Travel & Adventure', owner: 'Aiden', status: 'Active', image: '' },
-    { id: 7, title: 'Master Public Speaking', category: 'Personal Development', owner: 'Olivia', status: 'Active', image: '' },
-    { id: 8, title: 'Learn to Cook 10 Signature Dishes', category: 'Lifestyle & Skills', owner: 'Lucas', status: 'Active', image: '' },
-    { id: 9, title: 'Volunteer for a Community Project', category: 'Community & Giving', owner: 'Aisha', status: 'Completed', image: '' },
-    { id: 10, title: 'Run a Half Marathon', category: 'Health & Fitness', owner: 'David', status: 'Completed', image: '' },
-    { id: 11, title: 'Learn a New Language', category: 'Learning & Education', owner: 'Kenji', status: 'Active', image: '' },
-    { id: 12, title: 'Spend a Month Working from a New Country', category: 'Travel & Adventure', owner: 'Rachel', status: 'Active', image: '' }
+    { id: 1, title: 'Backpack Through Patagonia', category: 'Travel & Adventure', owner: 'Maya', status: 'Active', image: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1200&q=60&auto=format&fit=crop' },
+    { id: 2, title: 'Read a Book a Month', category: 'Learning & Education', owner: 'James', status: 'Active', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=60&auto=format&fit=crop' },
+    { id: 3, title: 'Get Fit — Gym 3x a Week', category: 'Health & Fitness', owner: 'Alex', status: 'Active', image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&q=60&auto=format&fit=crop' },
+    { id: 4, title: 'Launch a Photography Portfolio', category: 'Creative Projects', owner: 'Sofia', status: 'Active', image: 'https://images.unsplash.com/photo-1504208434309-cb69f4fe52b0?w=1200&q=60&auto=format&fit=crop' },
+    { id: 5, title: 'Finish My Degree', category: 'Career Growth', owner: 'Ethan', status: 'Active', image: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&q=60&auto=format&fit=crop' },
+    { id: 6, title: 'Cycle Across a Country', category: 'Travel & Adventure', owner: 'Aiden', status: 'Active', image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=1200&q=60&auto=format&fit=crop' },
+    { id: 7, title: 'Master Public Speaking', category: 'Personal Development', owner: 'Olivia', status: 'Active', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=1200&q=60&auto=format&fit=crop' },
+    { id: 8, title: 'Learn to Cook 10 Signature Dishes', category: 'Lifestyle & Skills', owner: 'Lucas', status: 'Active', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&q=60&auto=format&fit=crop' },
+    { id: 9, title: 'Volunteer for a Community Project', category: 'Community & Giving', owner: 'Aisha', status: 'Completed', image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=1200&q=60&auto=format&fit=crop' },
+    { id: 10, title: 'Run a Half Marathon', category: 'Health & Fitness', owner: 'David', status: 'Completed', image: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=1200&q=60&auto=format&fit=crop' },
+    { id: 11, title: 'Learn a New Language', category: 'Learning & Education', owner: 'Kenji', status: 'Active', image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=60&auto=format&fit=crop' },
+    { id: 12, title: 'Spend a Month Working from a New Country', category: 'Travel & Adventure', owner: 'Rachel', status: 'Active', image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=60&auto=format&fit=crop' }
   ];
 
   const inspirationCategories = [
@@ -141,17 +141,8 @@ const DreamBook = () => {
   const [inspirationError, setInspirationError] = useState('');
 
   const fetchUnsplashForTitle = async (title, fallbackCategory) => {
-    const accessKey = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
-    const query = title || fallbackCategory || 'inspiration';
-    if (!accessKey) return '';
-    try {
-      const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&client_id=${accessKey}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      return data?.results?.[0]?.urls?.regular || '';
-    } catch (e) {
-      return '';
-    }
+    // Disabled remote fetching for demo reliability on Pages. We ship static images above.
+    return '';
   };
 
   const loadInspirationImages = async () => {
