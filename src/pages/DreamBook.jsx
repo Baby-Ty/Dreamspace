@@ -808,19 +808,32 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
 };
 
 const DreamCard = ({ dream, onEdit, onDelete, onView }) => {
+  const handleCardKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onView();
+    }
+  };
+
   return (
-    <div className="relative flex flex-col h-full">
+    <div
+      className="relative flex flex-col h-full cursor-pointer select-none"
+      onClick={onView}
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleCardKey}
+    >
       {/* Top-right icon buttons */}
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         <button
-          onClick={onEdit}
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
           title="Edit"
           className="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <Pencil className="w-4 h-4 text-gray-700" />
         </button>
         <button
-          onClick={onDelete}
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
           title="Delete"
           className="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
@@ -866,7 +879,7 @@ const DreamCard = ({ dream, onEdit, onDelete, onView }) => {
         {/* Footer with primary action */}
         <div className="mt-auto pt-4">
           <button
-            onClick={onView}
+            onClick={(e) => { e.stopPropagation(); onView(); }}
             className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             View Details

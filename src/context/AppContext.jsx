@@ -32,7 +32,48 @@ const initialState = {
   allUsers: allUsers,
   dreamCategories: dreamCategories,
   scoringRules: scoringRules,
-  weeklyGoals: [],
+  weeklyGoals: [
+    {
+      id: 1001,
+      title: 'Hit the gym 3 times',
+      description: 'Two strength sessions and one cardio day',
+      dreamId: 1,
+      dreamTitle: 'Stick to a Gym Routine',
+      dreamCategory: 'Health',
+      completed: true,
+      createdAt: '2024-01-22T09:00:00Z'
+    },
+    {
+      id: 1002,
+      title: 'Read 50 pages',
+      description: 'Chip away at this month’s book',
+      dreamId: 3,
+      dreamTitle: 'Read a Book a Month',
+      dreamCategory: 'Learning',
+      completed: false,
+      createdAt: '2024-01-22T09:05:00Z'
+    },
+    {
+      id: 1003,
+      title: 'Price flights to Peru',
+      description: 'Compare Cape Town ↔ Lima options and note prices',
+      dreamId: 2,
+      dreamTitle: 'Visit Machu Picchu',
+      dreamCategory: 'Travel',
+      completed: false,
+      createdAt: '2024-01-22T09:10:00Z'
+    },
+    {
+      id: 1004,
+      title: 'Join Mothership mailing list',
+      description: 'Get alerts for upcoming shows in Austin',
+      dreamId: 4,
+      dreamTitle: 'See a Comedy Show at the Mothership',
+      dreamCategory: 'Travel',
+      completed: false,
+      createdAt: '2024-01-22T09:15:00Z'
+    }
+  ],
   scoringHistory: [
     {
       id: 1,

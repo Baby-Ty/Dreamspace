@@ -9,25 +9,21 @@ export const currentUser = {
   dreamBook: [
     {
       id: 1,
-      title: "Learn Portuguese",
-      category: "Learning",
-      description: "I want to become fluent in Portuguese to better connect with our Brazilian clients and explore the culture.",
-      progress: 35,
-      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&h=200&fit=crop",
+      title: "Stick to a Gym Routine",
+      category: "Health",
+      description: "Maintain a consistent routine: 3× strength and 2× cardio each week.",
+      progress: 30,
+      image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=300&h=200&fit=crop",
       milestones: [
-        { id: 1, text: "Complete basic grammar course", completed: true, createdAt: "2024-01-10T10:00:00Z" },
-        { id: 2, text: "Practice conversation with native speaker", completed: true, createdAt: "2024-01-15T10:00:00Z" },
-        { id: 3, text: "Watch Portuguese movies without subtitles", completed: false, createdAt: "2024-01-20T10:00:00Z" },
-        { id: 4, text: "Pass intermediate level exam", completed: false, createdAt: "2024-01-25T10:00:00Z" }
+        { id: 1, text: "Plan weekly split (Push/Pull/Legs + cardio)", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+        { id: 2, text: "Set schedule and alarms", completed: false, createdAt: "2024-01-07T10:00:00Z" },
+        { id: 3, text: "Track workouts for 4 straight weeks", completed: false, createdAt: "2024-01-10T10:00:00Z" }
       ],
       notes: [
-        { id: 1, text: "Had a great conversation with Maria from the Brazil office today. Feeling more confident!", timestamp: "2024-01-22T14:30:00Z" },
-        { id: 2, text: "Struggling with verb conjugations but making progress with vocabulary.", timestamp: "2024-01-18T09:15:00Z" }
+        { id: 1, text: "Signed up at the new gym near the office.", timestamp: "2024-01-06T12:00:00Z" }
       ],
       history: [
-        { id: 1, type: "progress", action: "Progress updated to 35%", timestamp: "2024-01-22T14:35:00Z", oldValue: 30, newValue: 35 },
-        { id: 2, type: "milestone", action: "Completed milestone: \"Practice conversation with native speaker\"", timestamp: "2024-01-21T16:20:00Z" },
-        { id: 3, type: "note", action: "Added new note", timestamp: "2024-01-18T09:15:00Z" }
+        { id: 1, type: "progress", action: "Progress updated to 30%", timestamp: "2024-01-10T09:00:00Z", oldValue: 15, newValue: 30 }
       ]
     },
     {
@@ -44,7 +40,7 @@ export const currentUser = {
         { id: 4, text: "Buy hiking gear", completed: false, createdAt: "2024-01-12T10:00:00Z" }
       ],
       notes: [
-        { id: 1, text: "Found out the best time to visit is during dry season (May to September). Planning for June 2024.", timestamp: "2024-01-15T11:00:00Z" }
+        { id: 1, text: "Best time is dry season (May to September). Planning for June 2024.", timestamp: "2024-01-15T11:00:00Z" }
       ],
       history: [
         { id: 1, type: "milestone", action: "Completed milestone: \"Research best time to visit\"", timestamp: "2024-01-15T11:05:00Z" },
@@ -53,28 +49,57 @@ export const currentUser = {
     },
     {
       id: 3,
-      title: "Complete a Marathon",
-      category: "Health",
-      description: "Train for and complete the Two Oceans Marathon in Cape Town.",
-      progress: 60,
-      image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=300&h=200&fit=crop",
+      title: "Read a Book a Month",
+      category: "Learning",
+      description: "Finish one book every month and keep short notes or highlights.",
+      progress: 10,
+      image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&h=200&fit=crop",
       milestones: [
-        { id: 1, text: "Run 5km without stopping", completed: true, createdAt: "2024-01-01T10:00:00Z" },
-        { id: 2, text: "Run 10km without stopping", completed: true, createdAt: "2024-01-05T10:00:00Z" },
-        { id: 3, text: "Run half marathon (21km)", completed: true, createdAt: "2024-01-15T10:00:00Z" },
-        { id: 4, text: "Complete 30km training run", completed: false, createdAt: "2024-01-20T10:00:00Z" },
-        { id: 5, text: "Register for Two Oceans Marathon", completed: false, createdAt: "2024-01-25T10:00:00Z" }
+        { id: 1, text: "Draft reading list (12 books)", completed: false, createdAt: "2024-01-03T10:00:00Z" },
+        { id: 2, text: "Set daily 20-minute reading block", completed: true, createdAt: "2024-01-04T10:00:00Z" },
+        { id: 3, text: "Finish first book", completed: false, createdAt: "2024-01-20T10:00:00Z" }
       ],
       notes: [
-        { id: 1, text: "Completed my first half marathon today! Feeling strong and ready for the next phase of training.", timestamp: "2024-01-20T17:30:00Z" },
-        { id: 2, text: "Had to take a rest day due to minor knee pain. Icing and stretching more.", timestamp: "2024-01-18T19:00:00Z" },
-        { id: 3, text: "New running shoes are working great. Much better support for longer distances.", timestamp: "2024-01-16T08:30:00Z" }
+        { id: 1, text: "Try alternating fiction and non-fiction.", timestamp: "2024-01-04T12:00:00Z" }
       ],
       history: [
-        { id: 1, type: "progress", action: "Progress updated to 60%", timestamp: "2024-01-20T17:35:00Z", oldValue: 55, newValue: 60 },
-        { id: 2, type: "milestone", action: "Completed milestone: \"Run half marathon (21km)\"", timestamp: "2024-01-20T17:32:00Z" },
-        { id: 3, type: "note", action: "Added new note", timestamp: "2024-01-18T19:00:00Z" },
-        { id: 4, type: "milestone", action: "Completed milestone: \"Run 10km without stopping\"", timestamp: "2024-01-15T08:45:00Z" }
+        { id: 1, type: "progress", action: "Progress updated to 10%", timestamp: "2024-01-07T09:00:00Z", oldValue: 0, newValue: 10 }
+      ]
+    },
+    {
+      id: 4,
+      title: "See a Comedy Show at the Mothership",
+      category: "Travel",
+      description: "Get tickets and attend a live show at Comedy Mothership in Austin, TX.",
+      progress: 0,
+      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&h=200&fit=crop",
+      milestones: [
+        { id: 1, text: "Pick dates to visit Austin", completed: false, createdAt: "2024-01-08T10:00:00Z" },
+        { id: 2, text: "Set ticket alerts / join mailing list", completed: false, createdAt: "2024-01-09T10:00:00Z" },
+        { id: 3, text: "Buy tickets and book flights", completed: false, createdAt: "2024-01-15T10:00:00Z" }
+      ],
+      notes: [],
+      history: []
+    },
+    {
+      id: 5,
+      title: "YC Application – Fall 2025",
+      category: "Career",
+      description: "Prepare and submit the application for Y Combinator Fall 2025 batch.",
+      progress: 100,
+      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=300&h=200&fit=crop",
+      milestones: [
+        { id: 1, text: "Draft application answers", completed: true, createdAt: "2024-01-18T10:00:00Z" },
+        { id: 2, text: "Record team video (1 minute)", completed: true, createdAt: "2024-01-20T10:00:00Z" },
+        { id: 3, text: "Collect metrics and traction", completed: true, createdAt: "2024-01-22T10:00:00Z" },
+        { id: 4, text: "Submit application", completed: true, createdAt: "2024-01-25T10:00:00Z" }
+      ],
+      notes: [
+        { id: 1, text: "Submitted! Waiting to hear back.", timestamp: "2024-01-25T12:00:00Z" }
+      ],
+      history: [
+        { id: 1, type: "progress", action: "Progress updated to 100%", timestamp: "2024-01-25T12:05:00Z", oldValue: 90, newValue: 100 },
+        { id: 2, type: "milestone", action: "Completed milestone: \"Submit application\"", timestamp: "2024-01-25T12:00:00Z" }
       ]
     }
   ],
@@ -112,7 +137,7 @@ export const allUsers = [
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     dreamCategories: ["Learning", "Travel", "Health"],
     score: 47,
-    dreamsCount: 3,
+    dreamsCount: 4,
     connectsCount: 1
   },
   {
