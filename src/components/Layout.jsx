@@ -10,7 +10,8 @@ import {
   X,
   LogOut,
   Star,
-  Calendar
+  Calendar,
+  Briefcase
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import SaveStatus from './SaveStatus';
@@ -25,6 +26,7 @@ const Layout = ({ children }) => {
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Week Ahead', href: '/dreams-week-ahead', icon: Calendar },
     { name: 'Dream Connect', href: '/dream-connect', icon: Users },
+    { name: 'Career Book', href: '/career-book', icon: Briefcase },
     { name: 'Scorecard', href: '/scorecard', icon: Trophy },
     { name: 'Admin', href: '/admin', icon: Settings },
   ];

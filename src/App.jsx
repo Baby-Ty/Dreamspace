@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import DreamBook from './pages/DreamBook';
 import DreamsWeekAhead from './pages/DreamsWeekAhead';
 import DreamConnect from './pages/DreamConnect';
+import CareerBook from './pages/CareerBook';
 import Scorecard from './pages/Scorecard';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -25,6 +26,7 @@ function AppContent() {
           <Route path="/dream-book" element={<DreamBook />} />
           <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
           <Route path="/dream-connect" element={<DreamConnect />} />
+          <Route path="/career-book" element={<CareerBook />} />
           <Route path="/scorecard" element={<Scorecard />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>

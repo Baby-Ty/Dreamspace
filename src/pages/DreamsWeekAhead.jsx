@@ -227,28 +227,28 @@ const DreamsWeekAhead = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 space-y-3 sm:space-y-4">
       {/* Enhanced Header (collapses when a week is selected) */}
-      <div className={`bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-xl shadow-sm border border-white/50 transition-all duration-500 ${activeWeek ? 'p-2 sm:p-2' : 'p-3 sm:p-4'}`}>
+      <div className={`bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-xl shadow-sm border border-white/50 transition-all duration-500 ${activeWeek ? 'px-3 py-2' : 'px-3 py-2'}`}>
         {!activeWeek ? (
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center space-x-2 mb-2">
-              <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg shadow-lg">
-                <Calendar className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
                 Dreams Week Ahead
               </h1>
             </div>
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
               <p className="text-base text-gray-700 font-medium mb-1">{dailyQuote}</p>
-              <p className="text-sm text-gray-600">Plan your weekly goals by selecting a month and week</p>
+              <p className="text-xs text-gray-500">Plan your weekly goals by selecting a month and week</p>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-center space-x-2">
-            <div className="p-1.5 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg shadow">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Calendar className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-lg font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">Dreams Week Ahead</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-1">Dreams Week Ahead</h1>
           </div>
         )}
       </div>

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter } from 'lucide-react';
+import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter, Settings } from 'lucide-react';
 import { allUsers, offices, dreamCategories } from '../data/mockData';
+import UserManagementModal from '../components/UserManagementModal';
 
 const AdminDashboard = () => {
   const [anonymizeNames, setAnonymizeNames] = useState(false);
   const [selectedOffice, setSelectedOffice] = useState('all');
   const [viewMode, setViewMode] = useState('overview'); // 'overview' or 'users'
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // Calculate stats
   const totalUsers = allUsers.length;
@@ -49,16 +52,26 @@ const AdminDashboard = () => {
     return `${local[0]}***@${domain}`;
   };
 
+  const handleOpenUserModal = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const handleCloseUserModal = () => {
+    setSelectedUser(null);
+    setShowUserModal(false);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-2xl p-4 sm:p-6 shadow-sm border border-white/50">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-          <div className="space-y-2">
-            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-xl px-3 py-2 shadow-sm border border-white/50">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <div className="flex flex-col justify-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-1">
               Admin Dashboard 📊
             </h1>
-            <p className="text-lg text-gray-700 font-medium">
+            <p className="text-xs text-gray-500">
               Monitor Dreams Program engagement and user activity across the organization.
             </p>
           </div>
@@ -99,6 +112,7 @@ const AdminDashboard = () => {
           topConnectors={topConnectors}
           lowEngagementUsers={lowEngagementUsers}
           anonymizeName={anonymizeName}
+          onOpenUserModal={handleOpenUserModal}
         />
       ) : (
         <UsersMode
@@ -107,6 +121,15 @@ const AdminDashboard = () => {
           setSelectedOffice={setSelectedOffice}
           anonymizeName={anonymizeName}
           anonymizeEmail={anonymizeEmail}
+          onOpenUserModal={handleOpenUserModal}
+        />
+      )}
+
+      {/* User Management Modal */}
+      {showUserModal && selectedUser && (
+        <UserManagementModal
+          user={selectedUser}
+          onClose={handleCloseUserModal}
         />
       )}
     </div>
@@ -119,7 +142,8 @@ const OverviewMode = ({
   categoryStats, 
   topConnectors, 
   lowEngagementUsers,
-  anonymizeName 
+  anonymizeName,
+  onOpenUserModal 
 }) => {
   return (
     <div className="space-y-8">
@@ -214,7 +238,11 @@ const OverviewMode = ({
           </h3>
           <div className="space-y-4">
             {topConnectors.map((user, index) => (
-              <div key={user.id} className="flex items-center justify-between">
+              <div 
+                key={user.id} 
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => onOpenUserModal(user)}
+              >
                 <div className="flex items-center space-x-3">
                   <span className="text-sm font-medium text-gray-500 w-6">
                     #{index + 1}
@@ -260,11 +288,18 @@ const OverviewMode = ({
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {lowEngagementUsers.slice(0, 6).map((user) => (
-                  <div key={user.id} className="flex items-center space-x-2 text-sm">
+                  <div 
+                    key={user.id} 
+                    className="flex items-center space-x-2 text-sm p-2 rounded-lg hover:bg-red-100 cursor-pointer transition-colors"
+                    onClick={() => onOpenUserModal(user)}
+                  >
                     <img
                       src={user.avatar}
                       alt={user.name}
                       className="w-6 h-6 rounded-full"
+                      onError={(e) => {
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=100`;
+                      }}
                     />
                     <span className="text-red-900">{anonymizeName(user.name)}</span>
                     <span className="text-red-600">({user.score} pts)</span>
@@ -289,7 +324,8 @@ const UsersMode = ({
   selectedOffice, 
   setSelectedOffice, 
   anonymizeName, 
-  anonymizeEmail 
+  anonymizeEmail,
+  onOpenUserModal 
 }) => {
   return (
     <div className="space-y-6">
@@ -339,6 +375,9 @@ const UsersMode = ({
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Categories
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -404,6 +443,15 @@ const UsersMode = ({
                         </span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => onOpenUserModal(user)}
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Manage
+                    </button>
                   </td>
                 </tr>
               ))}

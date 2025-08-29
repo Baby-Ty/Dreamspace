@@ -22,7 +22,9 @@ const actionTypes = {
   ADD_SCORING_ENTRY: 'ADD_SCORING_ENTRY',
   LOAD_PERSISTED_DATA: 'LOAD_PERSISTED_DATA',
   LOGIN: 'LOGIN',
-  LOGOUT: 'LOGOUT'
+  LOGOUT: 'LOGOUT',
+  UPDATE_CAREER_GOAL: 'UPDATE_CAREER_GOAL',
+  UPDATE_DEVELOPMENT_PLAN: 'UPDATE_DEVELOPMENT_PLAN'
 };
 
 // Initial state
@@ -264,6 +266,30 @@ const appReducer = (state, action) => {
         isAuthenticated: false
       };
 
+    case actionTypes.UPDATE_CAREER_GOAL:
+      const updatedCareerGoals = state.currentUser.careerGoals.map(goal =>
+        goal.id === action.payload.id ? action.payload : goal
+      );
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerGoals: updatedCareerGoals
+        }
+      };
+
+    case actionTypes.UPDATE_DEVELOPMENT_PLAN:
+      const updatedDevelopmentPlan = state.currentUser.developmentPlan.map(item =>
+        item.id === action.payload.id ? action.payload : item
+      );
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          developmentPlan: updatedDevelopmentPlan
+        }
+      };
+
     default:
       return state;
   }
@@ -307,6 +333,14 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const persistedData = loadFromLocalStorage();
     if (persistedData) {
+      // Migrate old data structure to include career fields if they don't exist
+      if (persistedData.currentUser && !persistedData.currentUser.careerGoals) {
+        persistedData.currentUser.careerGoals = initialUserData.careerGoals;
+      }
+      if (persistedData.currentUser && !persistedData.currentUser.developmentPlan) {
+        persistedData.currentUser.developmentPlan = initialUserData.developmentPlan;
+      }
+      
       dispatch({
         type: actionTypes.LOAD_PERSISTED_DATA,
         payload: persistedData
@@ -474,6 +508,27 @@ export const AppProvider = ({ children }) => {
 
     logout: () => {
       dispatch({ type: actionTypes.LOGOUT });
+    },
+
+    updateCareerGoal: (goal) => {
+      dispatch({ type: actionTypes.UPDATE_CAREER_GOAL, payload: goal });
+    },
+
+    updateDevelopmentPlan: (item) => {
+      dispatch({ type: actionTypes.UPDATE_DEVELOPMENT_PLAN, payload: item });
+    },
+
+    updateCareerProgress: (itemId, newProgress, type) => {
+      const collection = type === 'goal' ? state.currentUser.careerGoals : state.currentUser.developmentPlan;
+      const item = collection.find(item => item.id === itemId);
+      if (item) {
+        const updatedItem = { ...item, progress: newProgress };
+        if (type === 'goal') {
+          dispatch({ type: actionTypes.UPDATE_CAREER_GOAL, payload: updatedItem });
+        } else {
+          dispatch({ type: actionTypes.UPDATE_DEVELOPMENT_PLAN, payload: updatedItem });
+        }
+      }
     }
   };
 

@@ -71,11 +71,11 @@ const DreamConnect = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Compact Header with KPIs */}
-      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-2xl px-5 py-3 shadow-sm border border-white/50">
+      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-xl px-3 py-2 shadow-sm border border-white/50">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">Dream Connect 🤝</h1>
-            <p className="text-sm md:text-base text-gray-700">Find colleagues with shared dream categories and learn from each other.</p>
+          <div className="flex flex-col justify-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-1">Dream Connect 🤝</h1>
+            <p className="text-xs text-gray-500">Find colleagues with shared dream categories and learn from each other.</p>
           </div>
           <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
             <div className="bg-white rounded-xl border p-2 text-center">
