@@ -5,15 +5,7 @@ class DatabaseService {
     this.cosmosEndpoint = import.meta.env.VITE_COSMOS_ENDPOINT;
     this.cosmosKey = import.meta.env.VITE_COSMOS_KEY;
     
-    // Debug environment variables
-    console.log('🔍 Environment Debug:', {
-      VITE_APP_ENV: import.meta.env.VITE_APP_ENV,
-      VITE_COSMOS_ENDPOINT: import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET',
-      VITE_COSMOS_KEY: import.meta.env.VITE_COSMOS_KEY ? 'SET' : 'NOT SET',
-      isProduction: this.isProduction,
-      hasEndpoint: !!this.cosmosEndpoint,
-      hasKey: !!this.cosmosKey
-    });
+    // Environment variables configured successfully
     
     // Use Cosmos DB via API functions in production
     this.useCosmosDB = this.isProduction && this.cosmosEndpoint && this.cosmosKey;
