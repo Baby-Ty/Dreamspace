@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
         // For real Microsoft users, don't use mock data - create fresh profile
         // Mock data is only for demo mode
         const userData = {
-          id: Date.now(), // Generate new ID for real users
+         id: account.localAccountId || account.username,
           name: profileData.displayName,
           email: profileData.mail || profileData.userPrincipalName,
           office: determineOfficeFromProfile(profileData),
