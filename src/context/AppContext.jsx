@@ -379,7 +379,7 @@ export const AppProvider = ({ children, initialUser }) => {
   const initialStateWithUser = {
     ...initialState,
     currentUser: userToUse,
-    weeklyGoals: initialUser?.weeklyGoals || [],
+    weeklyGoals: (initialUser && initialUser.weeklyGoals) || [],
     isAuthenticated: !!initialUser
   };
 
@@ -389,25 +389,27 @@ export const AppProvider = ({ children, initialUser }) => {
   const saveTimeoutRef = useRef(null);
 
   // Load persisted data on mount
+  const userId = initialUser ? initialUser.id : null;
   useEffect(() => {
+    if (!userId) return;
+    
     const loadData = async () => {
-      if (initialUser?.id) {
-        const persistedData = await loadUserData(initialUser.id);
-        if (persistedData) {
-          // Ensure the persisted user data has all required fields
-          const migratedUser = {
-            ...createEmptyUser(initialUser),
-            ...persistedData.currentUser,
+      const persistedData = await loadUserData(userId);
+      if (persistedData) {
+        // Ensure the persisted user data has all required fields
+        const migratedUser = {
+          ...createEmptyUser(initialUser),
+          ...persistedData.currentUser,
           // Ensure arrays exist
-          dreamBook: persistedData.currentUser?.dreamBook || [],
-          careerGoals: persistedData.currentUser?.careerGoals || [],
-          developmentPlan: persistedData.currentUser?.developmentPlan || [],
-          connects: persistedData.currentUser?.connects || [],
-          dreamCategories: persistedData.currentUser?.dreamCategories || [],
+          dreamBook: (persistedData.currentUser && persistedData.currentUser.dreamBook) || [],
+          careerGoals: (persistedData.currentUser && persistedData.currentUser.careerGoals) || [],
+          developmentPlan: (persistedData.currentUser && persistedData.currentUser.developmentPlan) || [],
+          connects: (persistedData.currentUser && persistedData.currentUser.connects) || [],
+          dreamCategories: (persistedData.currentUser && persistedData.currentUser.dreamCategories) || [],
           // Ensure career profile exists with proper structure
           careerProfile: {
             ...createEmptyUser().careerProfile,
-            ...persistedData.currentUser?.careerProfile
+            ...(persistedData.currentUser && persistedData.currentUser.careerProfile)
           }
         };
         
@@ -416,14 +418,14 @@ export const AppProvider = ({ children, initialUser }) => {
           payload: {
             ...persistedData,
             currentUser: migratedUser,
-            weeklyGoals: persistedData.weeklyGoals || initialUser?.weeklyGoals || []
+            weeklyGoals: persistedData.weeklyGoals || (initialUser && initialUser.weeklyGoals) || []
           }
         });
       }
     };
     
     loadData();
-  }, [initialUser?.id]);
+  }, [userId]);
 
   // Save to localStorage whenever state changes (debounced)
   useEffect(() => {

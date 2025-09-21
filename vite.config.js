@@ -2,11 +2,16 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-// Serve from root. This works for custom domains on GitHub Pages.
-// If you deploy under a subpath in the future, override with BASE env var.
-const base = process.env.BASE || '/'
+// GitHub Pages deployment configuration
+// Since you have a custom domain (CNAME file), serve from root
+const base = '/'
 
 export default defineConfig({
   plugins: [react()],
   base,
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    target: 'esnext'
+  }
 })
