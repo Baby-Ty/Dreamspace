@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Pencil, Save, X, Upload, Trash, Search, Image, BookOpen } from 'lucide-react';
+import { Plus, Pencil, Save, X, Upload, Search, Image, BookOpen, Trash } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import StockPhotoSearch from '../components/StockPhotoSearch';
@@ -18,8 +18,7 @@ const DreamBook = () => {
     category: '',
     description: '',
     isPublic: false,
-    image: '',
-    milestonesDraft: []
+    image: ''
   });
   const editTitleRef = useRef(null);
 
@@ -210,8 +209,7 @@ const DreamBook = () => {
       category: dreamCategories?.[0] || 'Health',
       description: '',
       isPublic: false,
-      image: '',
-      milestonesDraft: []
+      image: ''
     });
   };
 
@@ -221,12 +219,7 @@ const DreamBook = () => {
         id: Date.now(),
         ...formData,
         progress: 0,
-        milestones: (formData.milestonesDraft || []).map((text, index) => ({
-          id: Date.now() + index + 1,
-          text,
-          completed: false,
-          createdAt: new Date().toISOString()
-        })),
+        milestones: [],
         notes: [],
         history: []
       };
@@ -245,8 +238,7 @@ const DreamBook = () => {
       category: '',
       description: '',
       isPublic: false,
-      image: '',
-      milestonesDraft: []
+      image: ''
     });
   };
 
@@ -258,8 +250,7 @@ const DreamBook = () => {
       category: '',
       description: '',
       isPublic: false,
-      image: '',
-      milestonesDraft: []
+      image: ''
     });
   };
 
@@ -464,7 +455,7 @@ const DreamBook = () => {
       {/* Create Dream Modal */}
       {isCreating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-professional-gray-200">
               <h3 className="text-xl font-semibold text-professional-gray-900">Add New Dream</h3>
               <button
@@ -626,20 +617,6 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
     onOpenStockPhotoSearch({ formData, setFormData });
   };
 
-  const [milestoneInput, setMilestoneInput] = React.useState('');
-
-  const addMilestoneDraft = () => {
-    const text = milestoneInput.trim();
-    if (!text) return;
-    const next = [...(formData.milestonesDraft || []), text];
-    setFormData({ ...formData, milestonesDraft: next });
-    setMilestoneInput('');
-  };
-
-  const removeMilestoneDraft = (indexToRemove) => {
-    const next = (formData.milestonesDraft || []).filter((_, idx) => idx !== indexToRemove);
-    setFormData({ ...formData, milestonesDraft: next });
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -727,47 +704,6 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
         required
       />
 
-      {/* Milestones (create only) */}
-      {!isEditing && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-professional-gray-700">Milestones</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={milestoneInput}
-              onChange={(e) => setMilestoneInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMilestoneDraft(); } }}
-              placeholder="New milestone..."
-              className="flex-1 input-field"
-            />
-            <button
-              type="button"
-              onClick={addMilestoneDraft}
-              className="px-4 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-coral transition-colors disabled:opacity-50"
-              disabled={!milestoneInput.trim()}
-            >
-              Add
-            </button>
-          </div>
-          {(formData.milestonesDraft || []).length > 0 && (
-            <ul className="space-y-2">
-              {(formData.milestonesDraft || []).map((text, idx) => (
-                <li key={`${text}-${idx}`} className="flex items-center justify-between bg-professional-gray-50 border border-professional-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <span className="text-professional-gray-800">{text}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeMilestoneDraft(idx)}
-                    className="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 rounded"
-                    aria-label="Remove milestone"
-                  >
-                    <Trash className="w-4 h-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
 
       {/* Visibility Toggle */}
       <div className="flex items-center space-x-3">
