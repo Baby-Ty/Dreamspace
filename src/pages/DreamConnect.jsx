@@ -69,60 +69,60 @@ const DreamConnect = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* Enhanced Header with KPIs */}
-      <div className="mb-10">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4">
+      {/* Compact Header with KPIs */}
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex flex-col justify-center">
-            <div className="flex items-center space-x-4 mb-3">
-              <div className="p-2 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-2xl shadow-lg">
-                <Network className="h-8 w-8 text-white" />
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="p-1.5 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-xl shadow-lg">
+                <Network className="h-6 w-6 text-white" />
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-professional-gray-900">Dream Connect</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-professional-gray-900">Dream Connect</h1>
             </div>
-            <p className="text-lg text-professional-gray-600 leading-relaxed">
+            <p className="text-base text-professional-gray-600">
               Find colleagues with shared dream categories and learn from each other.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-4 w-full lg:w-auto">
-            <div className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-4 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-10 h-10 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Users className="w-5 h-5 text-netsurit-red" />
+          <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
+            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
+              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <Users className="w-4 h-4 text-netsurit-red" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-1">Suggested</p>
-              <p className="text-xl font-bold text-professional-gray-900">{filteredConnections.length}</p>
+              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Suggested</p>
+              <p className="text-lg font-bold text-professional-gray-900">{filteredConnections.length}</p>
             </div>
-            <div className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-4 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-10 h-10 bg-gradient-to-br from-netsurit-coral/10 to-netsurit-orange/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Heart className="w-5 h-5 text-netsurit-coral" />
+            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
+              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-coral/10 to-netsurit-orange/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <Heart className="w-4 h-4 text-netsurit-coral" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-1">Your Connects</p>
-              <p className="text-xl font-bold text-professional-gray-900">{currentUser.connects.length}</p>
+              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Your Connects</p>
+              <p className="text-lg font-bold text-professional-gray-900">{currentUser.connects.length}</p>
             </div>
-            <div className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-4 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-10 h-10 bg-gradient-to-br from-netsurit-orange/10 to-netsurit-red/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <BookOpen className="w-5 h-5 text-netsurit-orange" />
+            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
+              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-orange/10 to-netsurit-red/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <BookOpen className="w-4 h-4 text-netsurit-orange" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-1">Categories</p>
-              <p className="text-xl font-bold text-professional-gray-900">{new Set(currentUser.dreamBook.map(d=>d.category)).size}</p>
+              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Categories</p>
+              <p className="text-lg font-bold text-professional-gray-900">{new Set(currentUser.dreamBook.map(d=>d.category)).size}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Enhanced Sticky Filters */}
-      <div className="sticky top-2 z-20 bg-gradient-to-b from-white via-white to-white/95 backdrop-blur-sm pt-4 pb-6 border-b border-professional-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      {/* Compact Sticky Filters */}
+      <div className="sticky top-2 z-20 bg-gradient-to-b from-white via-white to-white/95 backdrop-blur-sm pt-3 pb-4 border-b border-professional-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex flex-wrap items-center gap-2 flex-1">
-            <span className="text-sm font-semibold text-professional-gray-700 mr-2">Categories:</span>
+            <span className="text-sm font-semibold text-professional-gray-700 mr-1">Categories:</span>
             {categoryPills.map((c) => (
               <button
                 key={c}
                 onClick={() => setCategoryFilter(c)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
                   categoryFilter === c 
-                    ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white border-netsurit-red shadow-lg hover:shadow-xl transform hover:scale-105' 
-                    : 'bg-white text-professional-gray-700 border-professional-gray-300 hover:bg-professional-gray-50 hover:border-professional-gray-400 hover:shadow-md'
+                    ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white border-netsurit-red shadow-md hover:shadow-lg transform hover:scale-105' 
+                    : 'bg-white text-professional-gray-700 border-professional-gray-300 hover:bg-professional-gray-50 hover:border-professional-gray-400 hover:shadow-sm'
                 }`}
               >
                 {c}
@@ -134,7 +134,7 @@ const DreamConnect = () => {
             <select
               value={locationFilter}
               onChange={(e) => setLocationFilter(e.target.value)}
-              className="px-4 py-2 border border-professional-gray-300 rounded-xl text-sm font-medium bg-white text-professional-gray-700 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+              className="px-3 py-1.5 border border-professional-gray-300 rounded-lg text-xs font-medium bg-white text-professional-gray-700 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <option>All Locations</option>
               <option>Cape Town</option>
@@ -147,13 +147,13 @@ const DreamConnect = () => {
       </div>
 
       {/* Suggested Connections */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-8">
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-professional-gray-900 mb-1">
               Suggested Dream Connections
             </h2>
-            <p className="text-professional-gray-600">
+            <p className="text-sm text-professional-gray-600">
               {filteredConnections.length > 0 
                 ? `${filteredConnections.length} colleague${filteredConnections.length !== 1 ? 's' : ''} match${filteredConnections.length === 1 ? 'es' : ''} your interests`
                 : 'No matches found for current filters'
@@ -161,7 +161,7 @@ const DreamConnect = () => {
             </p>
           </div>
           {filteredConnections.length > 0 && (
-            <div className="text-sm text-professional-gray-500">
+            <div className="text-xs text-professional-gray-500">
               Sorted by compatibility
             </div>
           )}
@@ -186,7 +186,7 @@ const DreamConnect = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredConnections.map((user) => (
               <ConnectionCard
                 key={user.id}
@@ -202,12 +202,12 @@ const DreamConnect = () => {
 
       {/* Recent Connects */}
       <div>
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-professional-gray-900 mb-1">
               Your Recent Connects
             </h2>
-            <p className="text-professional-gray-600">
+            <p className="text-sm text-professional-gray-600">
               {currentUser.connects.length > 0 
                 ? `${currentUser.connects.length} connection${currentUser.connects.length !== 1 ? 's' : ''} made`
                 : 'Start building your dream network'
@@ -215,7 +215,7 @@ const DreamConnect = () => {
             </p>
           </div>
           {currentUser.connects.length > 0 && (
-            <div className="text-sm text-professional-gray-500">
+            <div className="text-xs text-professional-gray-500">
               Most recent first
             </div>
           )}
@@ -234,25 +234,25 @@ const DreamConnect = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {currentUser.connects.map((connect) => (
-              <div key={connect.id} className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 p-6 hover:scale-[1.02] hover:border-netsurit-red/20">
-                <div className="flex items-start space-x-4">
+              <div key={connect.id} className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-4 hover:scale-[1.01] hover:border-netsurit-red/20">
+                <div className="flex items-start space-x-3">
                   <div className="relative">
-                    <div className="w-14 h-14 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-full flex items-center justify-center ring-2 ring-white shadow-lg">
-                      <Users className="w-7 h-7 text-netsurit-red" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-full flex items-center justify-center ring-2 ring-white shadow-lg">
+                      <Users className="w-5 h-5 text-netsurit-red" />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-netsurit-coral border-2 border-white rounded-full"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-netsurit-coral border-2 border-white rounded-full"></div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-professional-gray-900 group-hover:text-netsurit-red transition-colors duration-200 truncate">
+                    <h3 className="font-bold text-base text-professional-gray-900 group-hover:text-netsurit-red transition-colors duration-200 truncate">
                       {connect.withWhom}
                     </h3>
-                    <p className="text-sm text-professional-gray-600 mt-2 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-professional-gray-600 mt-1 line-clamp-2 leading-relaxed">
                       {connect.notes}
                     </p>
-                    <div className="flex items-center gap-2 mt-3">
-                      <Calendar className="w-4 h-4 text-professional-gray-400" />
+                    <div className="flex items-center gap-2 mt-2">
+                      <Calendar className="w-3 h-3 text-professional-gray-400" />
                       <p className="text-xs text-professional-gray-500 font-medium">
                         Connected on {new Date(connect.date).toLocaleDateString('en-US', { 
                           year: 'numeric', 
@@ -267,20 +267,20 @@ const DreamConnect = () => {
                       <img
                         src={connect.selfieUrl}
                         alt="Connect selfie"
-                        className="w-16 h-16 rounded-xl object-cover shadow-lg ring-2 ring-white group-hover:ring-netsurit-red/20 transition-all duration-300"
+                        className="w-12 h-12 rounded-lg object-cover shadow-lg ring-2 ring-white group-hover:ring-netsurit-red/20 transition-all duration-300"
                       />
                     </div>
                   )}
                 </div>
                 
                 {/* Connect Actions */}
-                <div className="mt-4 pt-4 border-t border-professional-gray-100 flex gap-2">
-                  <button className="flex-1 px-4 py-2 bg-professional-gray-50 hover:bg-professional-gray-100 text-professional-gray-700 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                    <MessageCircle className="w-4 h-4" />
+                <div className="mt-3 pt-3 border-t border-professional-gray-100 flex gap-2">
+                  <button className="flex-1 px-3 py-1.5 bg-professional-gray-50 hover:bg-professional-gray-100 text-professional-gray-700 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5">
+                    <MessageCircle className="w-3 h-3" />
                     Message
                   </button>
-                  <button className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 hover:from-netsurit-red/20 hover:to-netsurit-coral/20 text-netsurit-red rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                  <button className="flex-1 px-3 py-1.5 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 hover:from-netsurit-red/20 hover:to-netsurit-coral/20 text-netsurit-red rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5">
+                    <Calendar className="w-3 h-3" />
                     Meet Again
                   </button>
                 </div>
@@ -469,7 +469,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
   
   return (
     <div
-      className="group relative rounded-2xl border border-professional-gray-200 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col cursor-pointer hover:scale-[1.02] hover:border-netsurit-red/20 overflow-hidden"
+      className="group relative rounded-xl border border-professional-gray-200 bg-white shadow-lg hover:shadow-xl transition-all duration-300 p-4 flex flex-col cursor-pointer hover:scale-[1.01] hover:border-netsurit-red/20 overflow-hidden"
       onClick={() => onPreview()}
       role="button"
       tabIndex={0}
@@ -479,42 +479,42 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-netsurit-red/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
       {/* Header Section */}
-      <div className="relative flex items-start justify-between gap-4 mb-5">
-        <div className="flex items-start gap-4 min-w-0 flex-1">
+      <div className="relative flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="relative">
             <img
               src={user.avatar}
               alt={user.name}
-              className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-lg group-hover:ring-netsurit-red/20 transition-all duration-300"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-lg group-hover:ring-netsurit-red/20 transition-all duration-300"
               onError={(e) => {
                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=100`;
               }}
             />
             {/* Online Status Indicator */}
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-netsurit-coral border-2 border-white rounded-full"></div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-netsurit-coral border-2 border-white rounded-full"></div>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-lg text-professional-gray-900 truncate group-hover:text-netsurit-red transition-colors duration-200">{user.name}</h3>
-            <p className="text-sm text-professional-gray-600 flex items-center mt-1">
-              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+            <h3 className="font-bold text-base text-professional-gray-900 truncate group-hover:text-netsurit-red transition-colors duration-200">{user.name}</h3>
+            <p className="text-xs text-professional-gray-600 flex items-center mt-0.5">
+              <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
               <span className="truncate">{user.office}</span>
             </p>
           </div>
         </div>
         
         {/* Match Badge & Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="relative">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red border border-netsurit-red/20 shadow-sm">
-              {matchPercent}% Match
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red border border-netsurit-red/20 shadow-sm">
+              {matchPercent}%
             </span>
           </div>
           <div className="relative">
             <button 
               onClick={(e) => { e.stopPropagation(); setMenuOpen(v=>!v); }} 
-              className="p-2 rounded-full hover:bg-professional-gray-100 group-hover:bg-white/50 transition-all duration-200 opacity-60 group-hover:opacity-100"
+              className="p-1.5 rounded-full hover:bg-professional-gray-100 group-hover:bg-white/50 transition-all duration-200 opacity-60 group-hover:opacity-100"
             >
-              <MoreVertical className="w-4 h-4 text-professional-gray-500" />
+              <MoreVertical className="w-3 h-3 text-professional-gray-500" />
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-professional-gray-200 rounded-xl shadow-xl z-10 text-sm overflow-hidden">
@@ -537,63 +537,60 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
       </div>
 
       {/* Categories Section */}
-      <div className="relative mb-5">
-        <div className="flex flex-wrap gap-2">
+      <div className="relative mb-3">
+        <div className="flex flex-wrap gap-1.5">
           {limitedCategories.map((category) => (
             <span 
               key={category} 
-              className="px-3 py-1 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red text-xs font-semibold rounded-full border border-netsurit-red/20 hover:from-netsurit-red/20 hover:to-netsurit-coral/20 transition-all duration-200"
+              className="px-2 py-0.5 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red text-xs font-semibold rounded-full border border-netsurit-red/20 hover:from-netsurit-red/20 hover:to-netsurit-coral/20 transition-all duration-200"
             >
               {category}
             </span>
           ))}
           {remainingCount > 0 && (
-            <span className="px-3 py-1 bg-professional-gray-100 text-professional-gray-600 text-xs font-medium rounded-full border border-professional-gray-200">
-              +{remainingCount} more
+            <span className="px-2 py-0.5 bg-professional-gray-100 text-professional-gray-600 text-xs font-medium rounded-full border border-professional-gray-200">
+              +{remainingCount}
             </span>
           )}
         </div>
       </div>
 
       {/* Stats Section */}
-      <div className="relative flex items-center justify-between text-sm mb-5">
+      <div className="relative flex items-center justify-between text-xs mb-3">
         <div className="flex items-center gap-1 text-professional-gray-600 hover:text-netsurit-red transition-colors duration-200">
-          <BookOpen className="w-4 h-4" />
+          <BookOpen className="w-3 h-3" />
           <span className="font-medium">{user.dreamsCount}</span>
-          <span className="text-xs">dreams</span>
         </div>
         <div className="flex items-center gap-1 text-professional-gray-600 hover:text-netsurit-red transition-colors duration-200">
-          <Heart className="w-4 h-4" />
+          <Heart className="w-3 h-3" />
           <span className="font-medium">{user.connectsCount}</span>
-          <span className="text-xs">connects</span>
         </div>
         <div className="flex items-center gap-1 text-professional-gray-600 hover:text-netsurit-red transition-colors duration-200">
-          <Award className="w-4 h-4" />
+          <Award className="w-3 h-3" />
           <span className="font-medium">{user.score}</span>
-          <span className="text-xs">score</span>
         </div>
       </div>
 
       {/* Recent Dream */}
       {user.latestDreamTitle && (
-        <div className="relative mb-5 p-3 bg-professional-gray-50 rounded-lg border border-professional-gray-100">
-          <p className="text-xs text-professional-gray-500 mb-1">Latest Dream:</p>
-          <p className="text-sm font-medium text-professional-gray-800 truncate">{user.latestDreamTitle}</p>
+        <div className="relative mb-3 p-2 bg-professional-gray-50 rounded-lg border border-professional-gray-100">
+          <p className="text-xs text-professional-gray-500 mb-0.5">Latest:</p>
+          <p className="text-xs font-medium text-professional-gray-800 truncate">{user.latestDreamTitle}</p>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="relative flex gap-3 mt-auto">
+      <div className="relative flex gap-2 mt-auto">
         <button
           onClick={(e) => { e.stopPropagation(); onConnect(); }}
-          className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-semibold text-sm"
+          className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-semibold text-xs"
         >
-          <Users className="w-4 h-4 mr-2" />
+          <Users className="w-3 h-3 mr-1.5" />
           <span>Connect</span>
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onPreview(); }}
-          className="px-4 py-3 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-xl hover:bg-professional-gray-50 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+          className="px-3 py-2 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-lg hover:bg-professional-gray-50 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-xs"
         >
           Preview
         </button>
