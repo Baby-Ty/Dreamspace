@@ -35,7 +35,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Build
+      - name: Debug Environment Variables
+        run: |
+          echo "=== Environment Debug ==="
+          echo "VITE_APP_ENV: production"
+          echo "VITE_COSMOS_ENDPOINT exists: ${{ secrets.VITE_COSMOS_ENDPOINT != '' }}"
+          echo "VITE_COSMOS_KEY exists: ${{ secrets.VITE_COSMOS_KEY != '' }}"
+        env:
+          VITE_APP_ENV: production
+          VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
+          VITE_COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
+          
+      - name: Build application
+        env:
+          VITE_APP_ENV: production
+          VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
+          VITE_COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
         run: npm run build
         
       - name: Setup Pages
