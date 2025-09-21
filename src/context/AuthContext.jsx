@@ -19,21 +19,40 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     
+    console.log('🔍 Auth Debug:', { 
+      accountsLength: accounts.length, 
+      inProgress, 
+      isDemoMode 
+    });
+    
+    // Don't process accounts while MSAL operations are in progress
+    if (inProgress !== 'none') {
+      console.log('⏳ MSAL operation in progress:', inProgress);
+      return;
+    }
+    
     if (accounts.length > 0) {
       const account = accounts[0];
+      console.log('👤 Found account:', account.username);
       fetchUserProfile(account);
     } else {
+      console.log('❌ No accounts found');
       setIsLoading(false);
     }
-  }, [accounts, isDemoMode]);
+  }, [accounts, isDemoMode, inProgress]);
 
   const fetchUserProfile = async (account) => {
     try {
+      console.log('🔄 Fetching user profile for:', account.username);
+      setIsLoading(true);
+      
       // Get access token for Microsoft Graph
       const response = await instance.acquireTokenSilent({
         ...loginRequest,
         account: account
       });
+      
+      console.log('✅ Token acquired successfully');
 
       // Call Microsoft Graph to get user profile
       const graphResponse = await fetch(graphConfig.graphMeEndpoint, {
@@ -88,7 +107,20 @@ export const AuthProvider = ({ children }) => {
         console.log('User authenticated:', userData, 'Role:', userRole);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('❌ Error fetching user profile:', error);
+      
+      // If token acquisition fails, try interactive login
+      if (error.name === 'InteractionRequiredAuthError') {
+        console.log('🔄 Interaction required, trying popup login...');
+        try {
+          await instance.loginPopup(loginRequest);
+          // After successful popup login, the useEffect will be triggered again
+          return;
+        } catch (popupError) {
+          console.error('❌ Popup login failed:', popupError);
+        }
+      }
+      
       // Fallback to basic account info
       const basicUser = {
         id: Date.now(),
@@ -167,10 +199,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (isDemo = false) => {
     try {
+      console.log('🔄 Login attempt:', { isDemo });
       setIsLoading(true);
       
       if (isDemo) {
         // Demo login - use Sarah Johnson's data from mockData
+        console.log('👤 Demo login');
         setIsDemoMode(true);
         setUser(currentUser);
         setUserRole('admin'); // Sarah is an admin in the demo
@@ -179,11 +213,22 @@ export const AuthProvider = ({ children }) => {
       }
       
       // Regular Microsoft login
+      console.log('🔐 Starting Microsoft login...');
       setIsDemoMode(false);
-      await instance.loginPopup(loginRequest);
+      const result = await instance.loginPopup(loginRequest);
+      console.log('✅ Login popup completed:', result);
+      
+      // The useEffect will handle the account processing
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error);
       setIsLoading(false);
+      
+      // Provide more specific error information
+      if (error.errorCode === 'user_cancelled') {
+        console.log('ℹ️ User cancelled login');
+      } else if (error.errorCode === 'popup_window_error') {
+        console.log('⚠️ Popup blocked or failed to open');
+      }
     }
   };
 
