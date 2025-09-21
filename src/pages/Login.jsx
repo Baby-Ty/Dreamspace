@@ -1,58 +1,69 @@
 import React from 'react';
 import { Star, Users, Target, BookOpen } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-const Login = ({ onLogin }) => {
+const Login = () => {
+  const { login, isLoading } = useAuth();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-professional-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <img 
+              src="/logo.png" 
+              alt="DreamSpace Logo" 
+              className="w-12 h-12 rounded-xl object-contain shadow-lg"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div className="w-12 h-12 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-xl items-center justify-center shadow-lg hidden">
               <Star className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              DreamSpace
+            <h1 className="text-3xl font-bold text-black">
+              Netsurit
             </h1>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">
             Welcome to the Dreams Program
           </h2>
-          <p className="text-gray-600 mb-8">
+          <p className="text-professional-gray-600 mb-8">
             Track your dreams, connect with colleagues, and achieve your goals together.
           </p>
         </div>
 
         {/* Features Preview */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-professional-gray-200 p-6 mb-8">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-netsurit-light-coral/20 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-netsurit-red" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Dream Book</h3>
-                <p className="text-sm text-gray-600">Document and track your personal dreams</p>
+                <h3 className="font-medium text-professional-gray-900">Dream Book</h3>
+                <p className="text-sm text-professional-gray-600">Document and track your personal dreams</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 bg-netsurit-light-coral/20 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-netsurit-red" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Dream Connect</h3>
-                <p className="text-sm text-gray-600">Connect with colleagues sharing similar dreams</p>
+                <h3 className="font-medium text-professional-gray-900">Dream Connect</h3>
+                <p className="text-sm text-professional-gray-600">Connect with colleagues sharing similar dreams</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 bg-netsurit-light-coral/20 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-netsurit-red" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Progress Tracking</h3>
-                <p className="text-sm text-gray-600">Monitor your journey and earn points</p>
+                <h3 className="font-medium text-professional-gray-900">Progress Tracking</h3>
+                <p className="text-sm text-professional-gray-600">Monitor your journey and earn points</p>
               </div>
             </div>
           </div>
@@ -61,20 +72,49 @@ const Login = ({ onLogin }) => {
         {/* Login Button */}
         <div className="space-y-4">
           <button
-            onClick={onLogin}
-            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-lg"
+            onClick={() => login(false)}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-lg disabled:opacity-50"
           >
-            <Users className="w-5 h-5 mr-2" />
-            Enter DreamSpace
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+            ) : (
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.5 12.5h-3.4v-1.1h3.4v1.1zm0-2.3h-3.4V9.1h3.4v1.1zm0-2.2h-3.4V6.9h3.4v1.1zM12 3.8L8.7 7.1l-.8-.8L12 2.2l4.1 4.1-.8.8L12 3.8zm8.1 16.3L12 12l-8.1 8.1-.8-.8L11.2 11l-8.1-8.1.8-.8L12 10.2l8.1-8.1.8.8L12.8 11l8.1 8.1-.8.8z"/>
+              </svg>
+            )}
+            Sign in with Microsoft
           </button>
           
-          <p className="text-center text-sm text-gray-500">
-            Demo mode - Click to explore as Sarah Johnson
+          <p className="text-center text-sm text-professional-gray-500">
+            Use your company Microsoft account to access DreamSpace
           </p>
         </div>
 
+        {/* Demo Login Section */}
+        <div className="mt-6 pt-6 border-t border-professional-gray-200">
+          <div className="text-center mb-4">
+            <p className="text-sm text-professional-gray-600 mb-2">
+              Want to explore the app with sample data?
+            </p>
+            <button
+              onClick={() => login(true)}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center px-4 py-3 bg-white border-2 border-netsurit-red text-netsurit-red rounded-xl hover:bg-netsurit-red hover:text-white focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium disabled:opacity-50"
+            >
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              Try Demo Account
+            </button>
+            <p className="text-xs text-professional-gray-400 mt-2">
+              Explore with Sarah Johnson's populated data
+            </p>
+          </div>
+        </div>
+
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400">
+        <div className="text-center text-xs text-professional-gray-400">
           <p>© 2025 Dreams Program</p>
         </div>
       </div>

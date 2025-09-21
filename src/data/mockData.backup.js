@@ -1,4 +1,5 @@
-// Mock data for DreamSpace application
+// Mock data for DreamSpace application - BACKUP COPY
+// Saved on: 2024-09-21
 
 export const currentUser = {
   id: 1,
@@ -110,38 +111,6 @@ export const currentUser = {
       ]
     }
   ],
-  weeklyGoals: [
-    {
-      id: 1,
-      title: "Price flights to South America",
-      description: "Compare options and note prices",
-      completed: false,
-      dreamId: 2,
-      dreamTitle: "Visit Machu Picchu",
-      dreamCategory: "Travel",
-      createdAt: "2024-09-23T10:00:00Z"
-    },
-    {
-      id: 2,
-      title: "4 training sessions with PT",
-      description: "Monday, Tuesday, Thursday, Friday",
-      completed: false,
-      dreamId: 1,
-      dreamTitle: "Stick to a Gym Routine",
-      dreamCategory: "Health",
-      createdAt: "2024-09-23T10:00:00Z"
-    },
-    {
-      id: 3,
-      title: "Read every morning for 40mins with coffee",
-      description: "Daily morning reading routine",
-      completed: false,
-      dreamId: 3,
-      dreamTitle: "Read a Book a Month",
-      dreamCategory: "Learning",
-      createdAt: "2024-09-23T10:00:00Z"
-    }
-  ],
   careerGoals: [
     {
       id: 1,
@@ -246,81 +215,45 @@ export const currentUser = {
       history: []
     }
   ],
-  careerProfile: {
-    currentRole: {
-      jobTitle: "Senior Software Developer",
-      department: "Engineering",
-      startDate: "2022-03-15",
-      location: "Cape Town, South Africa"
-    },
-    aspirations: {
-      desiredJobTitle: "Technical Lead / Engineering Manager",
-      preferredDepartment: "Engineering / Product Development",
-      interestedInRelocation: true,
-      preferredGeography: "Europe, North America, Remote"
-    },
-    preferences: {
-      wantToDo: [
-        "Lead technical architecture decisions",
-        "Mentor junior developers",
-        "Work on innovative projects",
-        "Collaborate with cross-functional teams",
-        "Drive technical strategy and vision"
-      ],
-      dontWantToDo: [
-        "Repetitive maintenance tasks",
-        "Work in isolation without team interaction",
-        "Focus solely on legacy system support",
-        "Excessive overtime or weekend work",
-        "Micromanagement responsibilities"
-      ],
-      motivators: [
-        "Learning new technologies",
-        "Solving complex problems",
-        "Making a positive impact",
-        "Recognition for good work",
-        "Career growth opportunities",
-        "Work-life balance"
-      ]
-    },
-    careerHighlights: [
+  weeklyGoals: {
+    weekNumber: 4,
+    dateRange: "Sep 23 - Sep 30",
+    year: 2025,
+    totalGoals: 3,
+    completedGoals: 0,
+    progressPercentage: 0,
+    goals: [
       {
         id: 1,
-        title: "Led Team Migration Project",
-        description: "Successfully migrated legacy systems to cloud infrastructure, improving performance by 40%",
-        date: "2023-06-15"
+        title: "Price flights to South America",
+        description: "Compare options and note prices",
+        completed: false,
+        linkedDreamId: 2,
+        linkedDreamTitle: "Visit Machu Picchu",
+        linkedDreamIcon: "✈️",
+        createdAt: "2024-09-23T10:00:00Z"
       },
       {
         id: 2,
-        title: "Mentorship Excellence Award",
-        description: "Recognized for outstanding mentorship of junior developers",
-        date: "2022-12-10"
+        title: "4 training sessions with PT",
+        description: "Monday, Tuesday, Thursday, Friday",
+        completed: false,
+        linkedDreamId: 1,
+        linkedDreamTitle: "Stick to a Gym Routine",
+        linkedDreamIcon: "💪",
+        createdAt: "2024-09-23T10:00:00Z"
       },
       {
         id: 3,
-        title: "Innovation Champion",
-        description: "Implemented automated testing framework, reducing deployment time by 60%",
-        date: "2023-03-20"
+        title: "Read every morning for 40mins with coffee",
+        description: "Daily morning reading routine",
+        completed: false,
+        linkedDreamId: 3,
+        linkedDreamTitle: "Read a Book a Month",
+        linkedDreamIcon: "📚",
+        createdAt: "2024-09-23T10:00:00Z"
       }
-    ],
-    skills: {
-      technical: [
-        { id: 1, name: "JavaScript/TypeScript", level: 90, category: "Programming" },
-        { id: 2, name: "React/Vue.js", level: 85, category: "Frontend" },
-        { id: 3, name: "Node.js", level: 80, category: "Backend" },
-        { id: 4, name: "Python", level: 75, category: "Programming" },
-        { id: 5, name: "AWS/Cloud", level: 70, category: "Infrastructure" },
-        { id: 6, name: "Docker/Kubernetes", level: 65, category: "DevOps" }
-      ],
-      soft: [
-        { id: 1, name: "Team Leadership", level: 80 },
-        { id: 2, name: "Communication", level: 85 },
-        { id: 3, name: "Problem Solving", level: 90 },
-        { id: 4, name: "Project Management", level: 75 },
-        { id: 5, name: "Mentoring", level: 80 },
-        { id: 6, name: "Public Speaking", level: 60 }
-      ]
-    }
+    ]
   },
   score: 47,
   connects: [
@@ -534,46 +467,6 @@ export const allUsers = [
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
       }
     ],
-    weeklyGoals: {
-      weekNumber: 4,
-      dateRange: "Sep 23 - Sep 30",
-      year: 2025,
-      totalGoals: 3,
-      completedGoals: 0,
-      progressPercentage: 0,
-      goals: [
-        {
-          id: 1,
-          title: "Price flights to South America",
-          description: "Compare options and note prices",
-          completed: false,
-          dreamId: 2,
-          dreamTitle: "Visit Machu Picchu",
-          dreamCategory: "Travel",
-          createdAt: "2024-09-23T10:00:00Z"
-        },
-        {
-          id: 2,
-          title: "4 training sessions with PT",
-          description: "Monday, Tuesday, Thursday, Friday",
-          completed: false,
-          dreamId: 1,
-          dreamTitle: "Stick to a Gym Routine",
-          dreamCategory: "Health",
-          createdAt: "2024-09-23T10:00:00Z"
-        },
-        {
-          id: 3,
-          title: "Read every morning for 40mins with coffee",
-          description: "Daily morning reading routine",
-          completed: false,
-          dreamId: 3,
-          dreamTitle: "Read a Book a Month",
-          dreamCategory: "Learning",
-          createdAt: "2024-09-23T10:00:00Z"
-        }
-      ]
-    },
     score: 47,
     dreamsCount: 4,
     connectsCount: 1
@@ -1264,56 +1157,4 @@ export const getCoachingAlerts = (managerId) => {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     return priorityOrder[b.priority] - priorityOrder[a.priority];
   });
-};
-
-// Weekly Goals Helper Functions
-export const getWeeklyGoals = (userId = 1) => {
-  const user = allUsers.find(u => u.id === userId) || currentUser;
-  return user.weeklyGoals || null;
-};
-
-export const updateWeeklyGoalProgress = (userId, goalId, completed) => {
-  const user = allUsers.find(u => u.id === userId);
-  if (!user || !user.weeklyGoals) return false;
-  
-  const goal = user.weeklyGoals.goals.find(g => g.id === goalId);
-  if (!goal) return false;
-  
-  goal.completed = completed;
-  
-  // Update overall progress
-  const completedCount = user.weeklyGoals.goals.filter(g => g.completed).length;
-  user.weeklyGoals.completedGoals = completedCount;
-  user.weeklyGoals.progressPercentage = Math.round((completedCount / user.weeklyGoals.totalGoals) * 100);
-  
-  return true;
-};
-
-export const addWeeklyGoal = (userId, goalData) => {
-  const user = allUsers.find(u => u.id === userId);
-  if (!user) return false;
-  
-  if (!user.weeklyGoals) {
-    user.weeklyGoals = {
-      weekNumber: 4,
-      dateRange: "Sep 23 - Sep 30",
-      year: 2025,
-      totalGoals: 0,
-      completedGoals: 0,
-      progressPercentage: 0,
-      goals: []
-    };
-  }
-  
-  const newGoal = {
-    id: user.weeklyGoals.goals.length + 1,
-    ...goalData,
-    completed: false,
-    createdAt: new Date().toISOString()
-  };
-  
-  user.weeklyGoals.goals.push(newGoal);
-  user.weeklyGoals.totalGoals = user.weeklyGoals.goals.length;
-  
-  return newGoal;
 };

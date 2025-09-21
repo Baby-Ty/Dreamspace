@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
-import { currentUser as initialUserData, allUsers, dreamCategories, scoringRules } from '../data/mockData';
+import { dreamCategories, scoringRules } from '../data/mockData';
+import databaseService from '../services/databaseService';
 
 // Create the context
 const AppContext = createContext();
@@ -24,108 +25,64 @@ const actionTypes = {
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
   UPDATE_CAREER_GOAL: 'UPDATE_CAREER_GOAL',
-  UPDATE_DEVELOPMENT_PLAN: 'UPDATE_DEVELOPMENT_PLAN'
+  UPDATE_DEVELOPMENT_PLAN: 'UPDATE_DEVELOPMENT_PLAN',
+  UPDATE_CAREER_PROFILE: 'UPDATE_CAREER_PROFILE',
+  ADD_CAREER_HIGHLIGHT: 'ADD_CAREER_HIGHLIGHT',
+  UPDATE_SKILL: 'UPDATE_SKILL',
+  ADD_SKILL: 'ADD_SKILL',
+  ADD_CAREER_GOAL: 'ADD_CAREER_GOAL',
+  ADD_DEVELOPMENT_PLAN: 'ADD_DEVELOPMENT_PLAN'
 };
+
+// Create empty user template for real users
+const createEmptyUser = (userInfo = {}) => ({
+  id: userInfo.id || null,
+  name: userInfo.name || '',
+  email: userInfo.email || '',
+  office: userInfo.office || '',
+  avatar: userInfo.avatar || '',
+  dreamBook: [],
+  careerGoals: [],
+  developmentPlan: [],
+  score: 0,
+  connects: [],
+  dreamCategories: [],
+  dreamsCount: 0,
+  connectsCount: 0,
+  careerProfile: {
+    currentRole: {
+      jobTitle: '',
+      department: '',
+      startDate: '',
+      location: ''
+    },
+    aspirations: {
+      desiredJobTitle: '',
+      preferredDepartment: '',
+      interestedInRelocation: false,
+      preferredGeography: ''
+    },
+    preferences: {
+      wantToDo: [],
+      dontWantToDo: [],
+      motivators: []
+    },
+    careerHighlights: [],
+    skills: {
+      technical: [],
+      soft: []
+    }
+  }
+});
 
 // Initial state
 const initialState = {
   isAuthenticated: false,
-  currentUser: initialUserData,
-  allUsers: allUsers,
+  currentUser: null,
   dreamCategories: dreamCategories,
   scoringRules: scoringRules,
-  weeklyGoals: [
-    {
-      id: 1001,
-      title: 'Hit the gym 3 times',
-      description: 'Two strength sessions and one cardio day',
-      dreamId: 1,
-      dreamTitle: 'Stick to a Gym Routine',
-      dreamCategory: 'Health',
-      completed: true,
-      createdAt: '2024-01-22T09:00:00Z'
-    },
-    {
-      id: 1002,
-      title: 'Read 50 pages',
-      description: 'Chip away at this month’s book',
-      dreamId: 3,
-      dreamTitle: 'Read a Book a Month',
-      dreamCategory: 'Learning',
-      completed: false,
-      createdAt: '2024-01-22T09:05:00Z'
-    },
-    {
-      id: 1003,
-      title: 'Price flights to Peru',
-      description: 'Compare Cape Town ↔ Lima options and note prices',
-      dreamId: 2,
-      dreamTitle: 'Visit Machu Picchu',
-      dreamCategory: 'Travel',
-      completed: false,
-      createdAt: '2024-01-22T09:10:00Z'
-    },
-    {
-      id: 1004,
-      title: 'Join Mothership mailing list',
-      description: 'Get alerts for upcoming shows in Austin',
-      dreamId: 4,
-      dreamTitle: 'See a Comedy Show at the Mothership',
-      dreamCategory: 'Travel',
-      completed: false,
-      createdAt: '2024-01-22T09:15:00Z'
-    }
-  ],
-  scoringHistory: [
-    {
-      id: 1,
-      type: 'dreamCompleted',
-      title: 'Completed "Learn Basic Spanish"',
-      points: scoringRules.dreamCompleted,
-      date: '2024-01-20',
-      category: 'Learning'
-    },
-    {
-      id: 2,
-      type: 'dreamConnect',
-      title: 'Dream Connect with Mike Chen',
-      points: scoringRules.dreamConnect,
-      date: '2024-01-15',
-      category: 'Connect'
-    },
-    {
-      id: 3,
-      type: 'journalEntry',
-      title: 'Updated marathon training progress',
-      points: scoringRules.journalEntry,
-      date: '2024-01-14',
-      category: 'Progress Update'
-    },
-    {
-      id: 4,
-      type: 'groupAttendance',
-      title: 'Attended Dreams Workshop',
-      points: scoringRules.groupAttendance,
-      date: '2024-01-10',
-      category: 'Workshop'
-    },
-    {
-      id: 5,
-      type: 'dreamConnect',
-      title: 'Dream Connect with Emma Wilson',
-      points: scoringRules.dreamConnect,
-      date: '2024-01-08',
-      category: 'Connect'
-    },
-    {
-      id: 6,
-      type: 'journalEntry',
-      title: 'Added new dream "Visit Japan"',
-      points: scoringRules.journalEntry,
-      date: '2024-01-05',
-      category: 'New Dream'
-    }
-  ]
+  weeklyGoals: [],
+  scoringHistory: []
 };
 
 // Reducer function
@@ -290,63 +247,183 @@ const appReducer = (state, action) => {
         }
       };
 
+    case actionTypes.UPDATE_CAREER_PROFILE:
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerProfile: {
+            ...state.currentUser.careerProfile,
+            ...action.payload
+          }
+        }
+      };
+
+    case actionTypes.ADD_CAREER_HIGHLIGHT:
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerProfile: {
+            ...state.currentUser.careerProfile,
+            careerHighlights: [...state.currentUser.careerProfile.careerHighlights, action.payload]
+          }
+        }
+      };
+
+    case actionTypes.UPDATE_SKILL:
+      const { skillType, skillIndex, skillData } = action.payload;
+      const updatedSkills = [...state.currentUser.careerProfile.skills[skillType]];
+      updatedSkills[skillIndex] = skillData;
+      
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerProfile: {
+            ...state.currentUser.careerProfile,
+            skills: {
+              ...state.currentUser.careerProfile.skills,
+              [skillType]: updatedSkills
+            }
+          }
+        }
+      };
+
+    case actionTypes.ADD_SKILL:
+      const { skillType: newSkillType, skill } = action.payload;
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerProfile: {
+            ...state.currentUser.careerProfile,
+            skills: {
+              ...state.currentUser.careerProfile.skills,
+              [newSkillType]: [...state.currentUser.careerProfile.skills[newSkillType], skill]
+            }
+          }
+        }
+      };
+
+    case actionTypes.ADD_CAREER_GOAL:
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          careerGoals: [...state.currentUser.careerGoals, action.payload]
+        }
+      };
+
+    case actionTypes.ADD_DEVELOPMENT_PLAN:
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          developmentPlan: [...state.currentUser.developmentPlan, action.payload]
+        }
+      };
+
     default:
       return state;
   }
 };
 
-// Local storage helpers
-const LOCAL_STORAGE_KEY = 'dreamspace_app_data';
-
-const saveToLocalStorage = (data) => {
+// Database helpers - now supports both localStorage and Azure Cosmos DB
+const saveUserData = async (data, userId) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-    // Notify listeners that a save occurred without relying on console overrides
-    window.dispatchEvent(new Event('dreamspace:saved'));
+    if (userId) {
+      await databaseService.saveUserData(userId, data);
+    }
   } catch (error) {
-    console.warn('❌ Could not save to localStorage:', error);
+    console.warn('❌ Could not save user data:', error);
   }
 };
 
-const loadFromLocalStorage = () => {
+const loadUserData = async (userId) => {
   try {
-    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!userId) return null;
+    
+    const savedData = await databaseService.loadUserData(userId);
     if (savedData) {
-      console.log('📦 Data loaded from localStorage');
-      return JSON.parse(savedData);
+      console.log(`📦 Data loaded for user ${userId}`);
+      return savedData;
     }
     return null;
   } catch (error) {
-    console.warn('❌ Could not load from localStorage:', error);
+    console.warn('❌ Could not load user data:', error);
     return null;
   }
 };
 
 // App Context Provider
-export const AppProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+export const AppProvider = ({ children, initialUser }) => {
+  // For real users, create empty profile. For demo users, use provided data.
+  const userToUse = initialUser ? {
+    ...createEmptyUser(initialUser),
+    // Preserve any existing data from initialUser (like from localStorage)
+    dreamBook: initialUser.dreamBook || [],
+    careerGoals: initialUser.careerGoals || [],
+    developmentPlan: initialUser.developmentPlan || [],
+    score: initialUser.score || 0,
+    connects: initialUser.connects || [],
+    dreamCategories: initialUser.dreamCategories || [],
+    dreamsCount: initialUser.dreamsCount || 0,
+    connectsCount: initialUser.connectsCount || 0,
+    careerProfile: {
+      ...createEmptyUser().careerProfile,
+      ...initialUser.careerProfile
+    }
+  } : null;
+
+  const initialStateWithUser = {
+    ...initialState,
+    currentUser: userToUse,
+    weeklyGoals: initialUser?.weeklyGoals || [],
+    isAuthenticated: !!initialUser
+  };
+
+  const [state, dispatch] = useReducer(appReducer, initialStateWithUser);
   
   // Debounced save function to avoid too many localStorage writes
   const saveTimeoutRef = useRef(null);
 
   // Load persisted data on mount
   useEffect(() => {
-    const persistedData = loadFromLocalStorage();
-    if (persistedData) {
-      // Migrate old data structure to include career fields if they don't exist
-      if (persistedData.currentUser && !persistedData.currentUser.careerGoals) {
-        persistedData.currentUser.careerGoals = initialUserData.careerGoals;
+    const loadData = async () => {
+      if (initialUser?.id) {
+        const persistedData = await loadUserData(initialUser.id);
+        if (persistedData) {
+          // Ensure the persisted user data has all required fields
+          const migratedUser = {
+            ...createEmptyUser(initialUser),
+            ...persistedData.currentUser,
+          // Ensure arrays exist
+          dreamBook: persistedData.currentUser?.dreamBook || [],
+          careerGoals: persistedData.currentUser?.careerGoals || [],
+          developmentPlan: persistedData.currentUser?.developmentPlan || [],
+          connects: persistedData.currentUser?.connects || [],
+          dreamCategories: persistedData.currentUser?.dreamCategories || [],
+          // Ensure career profile exists with proper structure
+          careerProfile: {
+            ...createEmptyUser().careerProfile,
+            ...persistedData.currentUser?.careerProfile
+          }
+        };
+        
+        dispatch({
+          type: actionTypes.LOAD_PERSISTED_DATA,
+          payload: {
+            ...persistedData,
+            currentUser: migratedUser,
+            weeklyGoals: persistedData.weeklyGoals || initialUser?.weeklyGoals || []
+          }
+        });
       }
-      if (persistedData.currentUser && !persistedData.currentUser.developmentPlan) {
-        persistedData.currentUser.developmentPlan = initialUserData.developmentPlan;
-      }
-      
-      dispatch({
-        type: actionTypes.LOAD_PERSISTED_DATA,
-        payload: persistedData
-      });
-    }
-  }, []);
+    };
+    
+    loadData();
+  }, [initialUser?.id]);
 
   // Save to localStorage whenever state changes (debounced)
   useEffect(() => {
@@ -357,15 +434,18 @@ export const AppProvider = ({ children }) => {
     
     // Set new timeout for debounced save
     saveTimeoutRef.current = setTimeout(() => {
-      // Prepare data for persistence (exclude static data)
-      const dataToSave = {
-        isAuthenticated: state.isAuthenticated,
-        currentUser: state.currentUser,
-        weeklyGoals: state.weeklyGoals,
-        scoringHistory: state.scoringHistory
-      };
-      
-      saveToLocalStorage(dataToSave);
+      // Only save if we have a user ID
+      if (state.currentUser?.id) {
+        // Prepare data for persistence (exclude static data)
+        const dataToSave = {
+          isAuthenticated: state.isAuthenticated,
+          currentUser: state.currentUser,
+          weeklyGoals: state.weeklyGoals,
+          scoringHistory: state.scoringHistory
+        };
+        
+        saveUserData(dataToSave, state.currentUser.id);
+      }
     }, 300); // 300ms debounce
     
     // Cleanup timeout on unmount
@@ -385,20 +465,6 @@ export const AppProvider = ({ children }) => {
     addDream: (dream) => {
       dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
       
-      // Add scoring entry for new dream
-      const scoringEntry = {
-        id: Date.now(),
-        type: 'journalEntry',
-        title: `Added new dream "${dream.title}"`,
-        points: state.scoringRules.journalEntry,
-        date: new Date().toISOString().split('T')[0],
-        category: 'New Dream'
-      };
-      dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
-      
-      // Update user score
-      const newScore = state.currentUser.score + state.scoringRules.journalEntry;
-      dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
     },
 
     deleteDream: (dreamId) => {
@@ -468,20 +534,6 @@ export const AppProvider = ({ children }) => {
         const updatedDream = { ...dream, progress: newProgress };
         dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
         
-        // Add scoring entry for progress update
-        const scoringEntry = {
-          id: Date.now(),
-          type: 'journalEntry',
-          title: `Updated "${dream.title}" progress to ${newProgress}%`,
-          points: state.scoringRules.journalEntry,
-          date: new Date().toISOString().split('T')[0],
-          category: 'Progress Update'
-        };
-        dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
-        
-        // Update user score
-        const newScore = state.currentUser.score + state.scoringRules.journalEntry;
-        dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
         
         // Check if dream is completed
         if (newProgress === 100 && dream.progress !== 100) {
@@ -496,7 +548,7 @@ export const AppProvider = ({ children }) => {
           dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: completionEntry });
           
           // Update user score for completion
-          const completionScore = newScore + state.scoringRules.dreamCompleted;
+          const completionScore = state.currentUser.score + state.scoringRules.dreamCompleted;
           dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: completionScore });
         }
       }
@@ -516,6 +568,30 @@ export const AppProvider = ({ children }) => {
 
     updateDevelopmentPlan: (item) => {
       dispatch({ type: actionTypes.UPDATE_DEVELOPMENT_PLAN, payload: item });
+    },
+
+    updateCareerProfile: (profileData) => {
+      dispatch({ type: actionTypes.UPDATE_CAREER_PROFILE, payload: profileData });
+    },
+
+    addCareerHighlight: (highlight) => {
+      dispatch({ type: actionTypes.ADD_CAREER_HIGHLIGHT, payload: highlight });
+    },
+
+    updateSkill: (skillType, skillIndex, skillData) => {
+      dispatch({ type: actionTypes.UPDATE_SKILL, payload: { skillType, skillIndex, skillData } });
+    },
+
+    addSkill: (skillType, skill) => {
+      dispatch({ type: actionTypes.ADD_SKILL, payload: { skillType, skill } });
+    },
+
+    addCareerGoal: (goal) => {
+      dispatch({ type: actionTypes.ADD_CAREER_GOAL, payload: goal });
+    },
+
+    addDevelopmentPlan: (plan) => {
+      dispatch({ type: actionTypes.ADD_DEVELOPMENT_PLAN, payload: plan });
     },
 
     updateCareerProgress: (itemId, newProgress, type) => {

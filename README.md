@@ -38,7 +38,6 @@ A clean and professional internal web app for Netsurit's Dreams Program, helping
 - Point tracking system:
   - Dreams completed (+10 pts)
   - Dream Connects (+5 pts)
-  - Journal entries (+2 pts)
   - Group attendance (+3 pts)
 - Achievement levels and progress visualization
 - Summary and detailed history views

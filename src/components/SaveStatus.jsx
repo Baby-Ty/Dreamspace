@@ -20,7 +20,7 @@ const SaveStatus = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-up">
+      <div className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl shadow-xl border border-white/20 flex items-center space-x-2 animate-slide-up backdrop-blur-sm">
         <Check className="w-4 h-4" />
         <span className="text-sm font-medium">Progress Saved</span>
       </div>

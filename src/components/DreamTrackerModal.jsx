@@ -11,13 +11,16 @@ import {
   Trash2,
   Clock,
   Award,
-  TrendingUp
+  TrendingUp,
+  Bookmark,
+  User,
+  MessageSquare
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
-  const { updateDreamProgress } = useApp();
-  const [activeInfoTab, setActiveInfoTab] = useState('notes');
+  const { updateDreamProgress, currentUser } = useApp();
+  const [activeTab, setActiveTab] = useState('overview');
   const [localDream, setLocalDream] = useState({
     ...dream,
     milestones: dream.milestones || [],
@@ -186,205 +189,347 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     });
   };
 
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Health': '💪',
+      'Travel': '✈️',
+      'Career': '💼',
+      'Learning': '📚',
+      'Creative': '🎨',
+      'Financial': '💰',
+      'Relationships': '👥',
+      'Adventure': '⚡',
+      'Spiritual': '🙏',
+      'Community': '🤝'
+    };
+    return icons[category] || '🎯';
+  };
+
+  const getProgressColor = (progress) => {
+    if (progress >= 80) return 'bg-netsurit-red';
+    if (progress >= 50) return 'bg-netsurit-coral';
+    if (progress >= 20) return 'bg-netsurit-orange';
+    return 'bg-professional-gray-400';
+  };
+
+  const getCompletedMilestones = () => {
+    return localDream.milestones?.filter(m => m.completed).length || 0;
+  };
+
+  const getTotalMilestones = () => {
+    return localDream.milestones?.length || 0;
+  };
+
   // Brand gradient for progress indicators (consistent across app)
-  const brandGradient = 'from-blue-500 via-indigo-500 to-purple-600';
+  const brandGradient = 'from-netsurit-red via-netsurit-coral to-netsurit-orange';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-3 z-[1000]">
-      <div className="relative bg-white rounded-xl shadow-md p-4 w-full max-w-5xl max-h-[90vh] overflow-y-auto space-y-4">
-        <div className="absolute top-4 right-4">
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-md"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Header with inline progress */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">{localDream.title}</h2>
-            <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded">{localDream.category}</span>
-            <div className="ml-auto flex items-center gap-3 min-w-[220px] w-full sm:w-auto">
-              <span className="text-lg font-extrabold text-gray-900 whitespace-nowrap">{localDream.progress}%</span>
-              <div className="w-full sm:w-48 bg-gray-200 rounded-full h-2">
-                <div
-                  className={`bg-gradient-to-r ${brandGradient} h-2 rounded-full transition-all`}
-                  style={{ width: `${localDream.progress}%` }}
-                ></div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+      <div className="relative top-10 mx-auto p-4 w-11/12 max-w-5xl">
+        <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-2xl">
+        {/* Header */}
+          <div className="bg-gradient-to-r from-netsurit-red to-netsurit-coral p-4 sm:p-5 rounded-t-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl emoji-white">{getCategoryIcon(localDream.category)}</span>
+                  <div className="text-white min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">{localDream.title}</h2>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-white/80">
+                  <span className="flex items-center space-x-1">
+                    <User className="h-4 w-4" />
+                    <span>{currentUser?.name}</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <Bookmark className="h-4 w-4" />
+                    <span>{localDream.category}</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <Target className="h-4 w-4" />
+                    <span>{localDream.progress}% complete</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center space-x-3">
             {hasChanges && (
               <button
                 onClick={handleSave}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-xl hover:bg-opacity-30 transition-all duration-200 flex items-center space-x-2 font-medium"
               >
-                <Save className="w-4 h-4" />
-                Save
+                <Save className="h-4 w-4" />
+                <span>Save Changes</span>
               </button>
             )}
-            <button
-              onClick={toggleComplete}
-              className="inline-flex items-center px-3 py-1.5 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+            <button 
+              onClick={onClose}
+                  className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
             >
-              {localDream.progress === 100 ? 'Completed' : 'Mark as Complete'}
+              <X className="w-6 h-6" />
             </button>
+              </div>
           </div>
         </div>
 
-        {/* Main body */}
-        <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr] gap-6">
-          {/* Left column: Content card */}
-          <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3">
-              {localDream.image && (
-                <img
-                  src={localDream.image}
+        {/* Progress Overview */}
+          <div className="p-4 sm:p-5">
+            <div className="bg-professional-gray-50 rounded-2xl p-4 sm:p-5 border border-professional-gray-200 shadow-inner">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <h3 className="font-bold text-professional-gray-900 text-lg">Progress Overview</h3>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <span className="text-sm font-medium text-professional-gray-600 bg-white px-3 py-1 rounded-lg">
+                {getCompletedMilestones()}/{getTotalMilestones()} milestones completed
+              </span>
+              <button
+                onClick={toggleComplete}
+                    className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg"
+              >
+                {localDream.progress === 100 ? 'Mark Incomplete' : 'Mark Complete'}
+              </button>
+            </div>
+          </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+            {/* Dream Image */}
+            <div className="flex-shrink-0">
+              {localDream.image ? (
+                <img 
+                  src={localDream.image} 
                   alt={localDream.title}
-                  className="rounded-lg w-full object-cover mb-3"
+                      className="w-20 h-20 rounded-xl object-cover shadow-lg border-2 border-white"
                 />
-              )}
-              {localDream.description && (
-                <p className="text-gray-700 text-sm leading-relaxed">{localDream.description}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Right column: Milestones (sticky) */}
-          <div className="md:pl-1">
-            <div className="sticky top-4 bg-gray-50 rounded-lg p-3 space-y-3 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-800">Milestones</h3>
-              <div className="space-y-2">
-                {localDream.milestones && localDream.milestones.length > 0 ? (
-                  localDream.milestones.map((milestone) => (
-                    <div key={milestone.id} className="group flex items-start gap-3">
-                      <button onClick={() => toggleMilestone(milestone.id)} className="mt-0.5">
-                        {milestone.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <p className={`${milestone.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>{milestone.text}</p>
-                      </div>
-                      <button
-                        onClick={() => deleteMilestone(milestone.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-400 hover:text-red-600 rounded"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm">No milestones yet.</div>
-                )}
-              </div>
-              {!isAddingMilestone ? (
-                <button
-                  onClick={() => setIsAddingMilestone(true)}
-                  className="inline-flex items-center gap-1 text-indigo-600 hover:underline text-sm mt-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Milestone
-                </button>
               ) : (
-                <div className="mt-1 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newMilestone}
-                    onChange={(e) => setNewMilestone(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') { addMilestone(); setIsAddingMilestone(false); }
-                    }}
-                    placeholder="New milestone..."
-                    className="flex-1 input-field"
-                  />
-                  <button
-                    onClick={() => { addMilestone(); setIsAddingMilestone(false); }}
-                    disabled={!newMilestone.trim()}
-                    className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md disabled:opacity-50"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => { setIsAddingMilestone(false); setNewMilestone(''); }}
-                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-md"
-                  >
-                    Cancel
-                  </button>
+                    <div className="w-20 h-20 rounded-xl bg-professional-gray-200 flex items-center justify-center shadow-lg border-2 border-white">
+                      <Target className="h-8 w-8 text-professional-gray-400" />
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Full-width Notes & History on larger screens */}
-          <div className="space-y-3 md:col-span-2 lg:col-span-2">
-            <div className="border-b">
-              <div role="tablist" className="flex gap-6">
-                <button
-                  role="tab"
-                  aria-selected={activeInfoTab === 'notes'}
-                  onClick={() => setActiveInfoTab('notes')}
-                  className={`py-2 text-sm font-medium ${activeInfoTab === 'notes' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-                >
-                  Notes
-                </button>
-                <button
-                  role="tab"
-                  aria-selected={activeInfoTab === 'history'}
-                  onClick={() => setActiveInfoTab('history')}
-                  className={`py-2 text-sm font-medium ${activeInfoTab === 'history' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-                >
-                  History
-                </button>
+            {/* Progress Info */}
+                <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-professional-gray-700">Overall Progress</span>
+                    <span className="text-lg font-bold text-netsurit-red">{localDream.progress}%</span>
               </div>
-            </div>
-            <div>
-              {activeInfoTab === 'notes' ? (
-                <div className="space-y-4">
-                  <div className="mt-1 flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') addNote(); }}
-                      placeholder="Quick add a note..."
-                      className="flex-1 input-field"
-                    />
-                    <button
-                      onClick={addNote}
-                      disabled={!newNote.trim()}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md disabled:opacity-50"
+                  <div className="w-full bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
+                <div 
+                      className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-3 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden"
+                  style={{ width: `${localDream.progress}%` }}
                     >
-                      <Plus className="w-4 h-4" />
-                      Add
-                    </button>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {localDream.notes && localDream.notes.length > 0 ? (
-                      [...localDream.notes].map((note) => (
-                        <div key={note.id} className="bg-white border border-gray-200 rounded-xl p-3">
-                          <div className="flex items-center gap-2 text-[11px] text-gray-600 mb-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>{formatDate(note.timestamp)}</span>
-                          </div>
-                          <p className="text-gray-800 text-sm whitespace-pre-wrap">{note.text}</p>
+                  <p className="text-sm text-professional-gray-600 mt-3 leading-relaxed">{localDream.description}</p>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+          <div className="border-b border-professional-gray-200 bg-professional-gray-50">
+            <nav className="flex space-x-0 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('overview')}
+                className={`flex-1 sm:flex-none py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'overview'
+                    ? 'border-netsurit-red text-netsurit-red bg-white'
+                    : 'border-transparent text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('milestones')}
+                className={`flex-1 sm:flex-none py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'milestones'
+                    ? 'border-netsurit-red text-netsurit-red bg-white'
+                    : 'border-transparent text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+              }`}
+            >
+                <span className="hidden sm:inline">Milestones</span>
+                <span className="sm:hidden">Miles</span>
+                <span className="ml-1">({getTotalMilestones()})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('notes')}
+                className={`flex-1 sm:flex-none py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'notes'
+                    ? 'border-netsurit-red text-netsurit-red bg-white'
+                    : 'border-transparent text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+              }`}
+            >
+                <span className="hidden sm:inline">Personal Notes</span>
+                <span className="sm:hidden">Notes</span>
+                <span className="ml-1">({localDream.notes?.filter(note => !note.isCoachNote).length || 0})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('coach-notes')}
+                className={`flex-1 sm:flex-none py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'coach-notes'
+                    ? 'border-netsurit-red text-netsurit-red bg-white'
+                    : 'border-transparent text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+              }`}
+            >
+                <span className="hidden sm:inline">Coach Notes</span>
+                <span className="sm:hidden">Coach</span>
+                <span className="ml-1">({localDream.notes?.filter(note => note.isCoachNote).length || 0})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+                className={`flex-1 sm:flex-none py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'history'
+                    ? 'border-netsurit-red text-netsurit-red bg-white'
+                    : 'border-transparent text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+              }`}
+            >
+              History ({localDream.history?.length || 0})
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+          <div className="p-4 sm:p-5 min-h-96">
+          {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+              {/* Dream Overview - What, Why, How */}
+              <div className="space-y-4">
+                  <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
+                    <div className="p-4 sm:p-5">
+                  <div className="flex items-center space-x-2 mb-4">
+                        <div className="w-3 h-3 bg-netsurit-red rounded-full"></div>
+                        <h4 className="font-bold text-professional-gray-900">What</h4>
+                  </div>
+                      <p className="text-professional-gray-700 leading-relaxed">
+                    {localDream.description || "This dream represents a personal goal or aspiration that you're working towards achieving."}
+                  </p>
+                </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
+                    <div className="p-4 sm:p-5">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <div className="w-3 h-3 bg-netsurit-coral rounded-full"></div>
+                        <h4 className="font-bold text-professional-gray-900">Why</h4>
+                      </div>
+                      <p className="text-professional-gray-700 leading-relaxed">
+                    {localDream.motivation || `This ${localDream.category.toLowerCase()} goal is important for your personal growth and development, contributing to overall life satisfaction and achievement.`}
+                  </p>
+                </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
+                    <div className="p-4 sm:p-5">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <div className="w-3 h-3 bg-netsurit-orange rounded-full"></div>
+                        <h4 className="font-bold text-professional-gray-900">How</h4>
+                      </div>
+                      <p className="text-professional-gray-700 leading-relaxed">
+                    {localDream.approach || `Through structured milestones and consistent progress tracking, you're pursuing this dream with ${getTotalMilestones()} defined steps towards completion.`}
+                  </p>
+                    </div>
+                </div>
+              </div>
+
+              {/* Key Stats */}
+              <div className="space-y-4">
+                  <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
+                    <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
+                      <h4 className="font-bold text-professional-gray-900 flex items-center space-x-2">
+                        <TrendingUp className="h-5 w-5 text-netsurit-red" />
+                    <span>Progress Statistics</span>
+                  </h4>
+                    </div>
+                    <div className="p-4 sm:p-5">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-professional-gray-600">Overall Progress</span>
+                      <div className="flex items-center space-x-2">
+                            <div className="w-16 bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
+                          <div 
+                                className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-3 rounded-full transition-all duration-700 ease-out shadow-lg"
+                            style={{ width: `${localDream.progress}%` }}
+                          ></div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-500">No notes yet.</div>
-                    )}
+                            <span className="font-bold text-netsurit-red">{localDream.progress}%</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                          <span className="text-sm font-medium text-professional-gray-600">Milestones Completed</span>
+                          <span className="font-bold text-professional-gray-900">{getCompletedMilestones()}/{getTotalMilestones()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                          <span className="text-sm font-medium text-professional-gray-600">Personal Notes</span>
+                          <span className="font-bold text-professional-gray-900">{localDream.notes?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                          <span className="text-sm font-medium text-professional-gray-600">Activity History</span>
+                          <span className="font-bold text-professional-gray-900">{localDream.history?.length || 0}</span>
+                        </div>
+                      </div>
                   </div>
                 </div>
-              ) : (
-                <HistoryTab history={localDream.history} formatDate={formatDate} />
-              )}
+
+                {/* Recent Activity */}
+                  <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
+                    <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
+                      <h4 className="font-bold text-professional-gray-900 flex items-center space-x-2">
+                        <Clock className="h-5 w-5 text-netsurit-red" />
+                    <span>Recent Activity</span>
+                  </h4>
+                    </div>
+                    <div className="p-4 sm:p-5">
+                  <div className="space-y-3">
+                    {localDream.history?.slice(0, 3).map((entry) => (
+                      <div key={entry.id} className="flex items-start space-x-3">
+                            <div className="w-2 h-2 bg-netsurit-coral rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="flex-1">
+                              <p className="text-sm text-professional-gray-700 font-medium">{entry.action}</p>
+                              <p className="text-xs text-professional-gray-500">
+                            {new Date(entry.timestamp).toLocaleDateString()}
+                          </p>
+                        </div>
+                          </div>
+                        )) || <p className="text-sm text-professional-gray-500 italic">No recent activity</p>}
+                      </div>
+                    </div>
+                </div>
+              </div>
             </div>
+          )}
+
+          {activeTab === 'milestones' && (
+            <MilestonesTab 
+              milestones={localDream.milestones}
+              newMilestone={newMilestone}
+              setNewMilestone={setNewMilestone}
+              onAddMilestone={addMilestone}
+              onToggleMilestone={toggleMilestone}
+              onDeleteMilestone={deleteMilestone}
+            />
+          )}
+
+          {activeTab === 'notes' && (
+            <NotesTab 
+              notes={localDream.notes?.filter(note => !note.isCoachNote) || []}
+              newNote={newNote}
+              setNewNote={setNewNote}
+              onAddNote={addNote}
+              formatDate={formatDate}
+            />
+          )}
+
+          {activeTab === 'coach-notes' && (
+            <CoachNotesTab 
+              coachNotes={localDream.notes?.filter(note => note.isCoachNote) || []}
+              formatDate={formatDate}
+            />
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryTab 
+              history={localDream.history || []}
+              formatDate={formatDate}
+            />
+          )}
           </div>
         </div>
       </div>
@@ -406,28 +551,28 @@ const MilestonesTab = ({
   const completedCount = milestones.filter(m => m.completed).length;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900">Milestones</h3>
-        <div className="text-sm text-gray-600">
+        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Milestones</h3>
+        <div className="text-sm text-professional-gray-600">
           {completedCount} of {milestones.length} completed
         </div>
       </div>
 
       {/* Add New Milestone */}
-      <div className="flex space-x-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           value={newMilestone}
           onChange={(e) => setNewMilestone(e.target.value)}
           placeholder="Add a new milestone..."
-          className="flex-1 input-field"
+          className="flex-1 px-4 py-2 border border-professional-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
           onKeyPress={(e) => e.key === 'Enter' && onAddMilestone()}
         />
         <button
           onClick={onAddMilestone}
           disabled={!newMilestone.trim()}
-          className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           <Plus className="w-4 h-4" />
           <span>Add</span>
@@ -437,18 +582,18 @@ const MilestonesTab = ({
       {/* Milestones List */}
       <div className="space-y-3">
         {milestones.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>No milestones yet. Add your first milestone above!</p>
+          <div className="text-center py-12">
+            <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
+            <p className="text-professional-gray-500">No milestones yet. Add your first milestone above!</p>
           </div>
         ) : (
           milestones.map((milestone) => (
             <div
               key={milestone.id}
-              className={`flex items-center space-x-4 p-4 rounded-xl border-2 transition-all ${
+              className={`flex items-center space-x-4 p-4 rounded-2xl border-2 shadow-lg transition-all duration-300 ${
                 milestone.completed
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
+                  ? 'bg-professional-gray-50 border-professional-gray-300'
+                  : 'bg-white border-professional-gray-200 hover:border-professional-gray-300 hover:shadow-xl'
               }`}
             >
               <button
@@ -456,17 +601,17 @@ const MilestonesTab = ({
                 className="flex-shrink-0"
               >
                 {milestone.completed ? (
-                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  <CheckCircle2 className="w-6 h-6 text-professional-gray-600" />
                 ) : (
-                  <Circle className="w-6 h-6 text-gray-400 hover:text-gray-600" />
+                  <Circle className="w-6 h-6 text-professional-gray-400 hover:text-professional-gray-600 transition-colors duration-200" />
                 )}
               </button>
               
               <div className="flex-1">
                 <p className={`font-medium ${
                   milestone.completed 
-                    ? 'text-green-800 line-through' 
-                    : 'text-gray-900'
+                    ? 'text-professional-gray-700 line-through' 
+                    : 'text-professional-gray-900'
                 }`}>
                   {milestone.text}
                 </p>
@@ -474,7 +619,7 @@ const MilestonesTab = ({
               
               <button
                 onClick={() => onDeleteMilestone(milestone.id)}
-                className="flex-shrink-0 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex-shrink-0 p-2 text-netsurit-warm-orange hover:text-netsurit-red hover:bg-netsurit-light-coral/20 rounded-xl transition-all duration-200"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -489,8 +634,8 @@ const MilestonesTab = ({
 // Notes Tab Component
 const NotesTab = ({ notes, newNote, setNewNote, onAddNote, formatDate }) => {
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Notes</h3>
+    <div className="space-y-4 sm:space-y-5">
+      <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Notes</h3>
 
       {/* Add New Note */}
       <div className="space-y-3">
@@ -498,12 +643,12 @@ const NotesTab = ({ notes, newNote, setNewNote, onAddNote, formatDate }) => {
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           placeholder="Add a note about your progress, thoughts, or experiences..."
-          className="w-full h-32 input-field resize-none"
+          className="w-full h-32 px-4 py-3 border border-professional-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 resize-none"
         />
         <button
           onClick={onAddNote}
           disabled={!newNote.trim()}
-          className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
         >
           <Plus className="w-4 h-4" />
           <span>Add Note</span>
@@ -513,24 +658,85 @@ const NotesTab = ({ notes, newNote, setNewNote, onAddNote, formatDate }) => {
       {/* Notes List */}
       <div className="space-y-4">
         {notes.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Edit3 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>No notes yet. Add your first note above!</p>
+          <div className="text-center py-12">
+            <Edit3 className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
+            <p className="text-professional-gray-500">No notes yet. Add your first note above!</p>
           </div>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+            <div key={note.id} className="bg-white border border-professional-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+              <div className="p-4 sm:p-5">
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2 text-sm text-professional-gray-600">
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(note.timestamp)}</span>
+                  </div>
                 </div>
+                <p className="text-professional-gray-800 leading-relaxed whitespace-pre-wrap">{note.text}</p>
               </div>
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{note.text}</p>
             </div>
           ))
         )}
       </div>
+    </div>
+  );
+};
+
+// Coach Notes Tab Component
+const CoachNotesTab = ({ coachNotes, formatDate }) => {
+  return (
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Coach Notes</h3>
+        <span className="text-sm text-professional-gray-600 bg-netsurit-light-coral/20 text-netsurit-red px-3 py-1 rounded-lg font-medium">
+          {coachNotes.length} coaching insights
+        </span>
+      </div>
+
+      {coachNotes.length === 0 ? (
+        <div className="text-center py-12">
+          <MessageSquare className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
+          <p className="text-professional-gray-500">No coaching notes yet.</p>
+          <p className="text-sm mt-2 text-professional-gray-500">Your coach will add insights and feedback here to help guide your progress.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {coachNotes.map((note) => (
+            <div key={note.id} className="bg-white border border-professional-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+              <div className="p-4 sm:p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                    <MessageSquare className="h-5 w-5 text-netsurit-red" />
+                    <span className="text-sm font-medium text-professional-gray-800 capitalize">
+                    {note.type?.replace('_', ' ') || 'Coach Note'}
+                  </span>
+                </div>
+                  <span className="text-xs text-netsurit-red font-medium">
+                  Coach: {note.coachName || 'Your Coach'}
+                </span>
+              </div>
+                <p className="text-professional-gray-800 leading-relaxed mb-3">{note.note || note.text}</p>
+              <div className="flex items-center justify-between text-sm">
+                  <span className="text-netsurit-red font-medium">
+                  {formatDate(note.createdAt || note.timestamp)}
+                </span>
+                {note.type && (
+                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                      note.type === 'encouragement' ? 'bg-professional-gray-100 text-professional-gray-700' :
+                      note.type === 'suggestion' ? 'bg-netsurit-light-coral/20 text-netsurit-red' :
+                      note.type === 'concern' ? 'bg-netsurit-warm-orange/20 text-netsurit-orange' :
+                      note.type === 'milestone' ? 'bg-netsurit-coral/20 text-netsurit-coral' :
+                      'bg-professional-gray-100 text-professional-gray-700'
+                  }`}>
+                    {note.type.replace('_', ' ')}
+                  </span>
+                )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -553,40 +759,42 @@ const HistoryTab = ({ history, formatDate }) => {
   const getHistoryColor = (type) => {
     switch (type) {
       case 'progress':
-        return 'text-blue-600 bg-blue-100';
+        return 'text-netsurit-red bg-netsurit-light-coral/20';
       case 'milestone':
-        return 'text-green-600 bg-green-100';
+        return 'text-netsurit-coral bg-netsurit-coral/20';
       case 'note':
-        return 'text-purple-600 bg-purple-100';
+        return 'text-netsurit-orange bg-netsurit-orange/20';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-professional-gray-600 bg-professional-gray-100';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">History</h3>
+    <div className="space-y-4 sm:space-y-5">
+      <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">History</h3>
 
       {history.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p>No history yet. Your progress updates will appear here!</p>
+        <div className="text-center py-12">
+          <Clock className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
+          <p className="text-professional-gray-500">No history yet. Your progress updates will appear here!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {history.map((entry, index) => (
-            <div key={entry.id} className="flex items-start space-x-4">
+            <div key={entry.id} className="flex items-start space-x-4 relative">
               <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${getHistoryColor(entry.type)}`}>
                 {getHistoryIcon(entry.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <p className="text-gray-900 font-medium">{entry.action}</p>
-                  <p className="text-sm text-gray-600 mt-1">{formatDate(entry.timestamp)}</p>
+                <div className="bg-white border border-professional-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+                  <div className="p-4 sm:p-5">
+                    <p className="text-professional-gray-900 font-medium">{entry.action}</p>
+                    <p className="text-sm text-professional-gray-600 mt-1">{formatDate(entry.timestamp)}</p>
+                  </div>
                 </div>
               </div>
               {index < history.length - 1 && (
-                <div className="absolute left-5 mt-10 w-0.5 h-4 bg-gray-200"></div>
+                <div className="absolute left-5 top-10 w-0.5 h-4 bg-professional-gray-200"></div>
               )}
             </div>
           ))}

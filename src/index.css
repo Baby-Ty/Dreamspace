@@ -14,27 +14,27 @@ html, body, #root {
 
 @layer components {
   .btn-primary {
-    @apply bg-dream-blue hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-netsurit-red hover:bg-netsurit-coral text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-professional-gray-200 hover:bg-professional-gray-300 text-professional-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300;
+    @apply bg-white rounded-xl shadow-sm border border-professional-gray-200 p-6 hover:shadow-md transition-shadow duration-300;
   }
   
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dream-blue focus:border-transparent;
+    @apply w-full px-3 py-2 border border-professional-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent;
   }
   
   .sidebar-link {
-    @apply flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-dream-blue transition-colors rounded-lg;
+    @apply flex items-center px-4 py-3 text-professional-gray-700 hover:bg-professional-gray-100 hover:text-netsurit-red transition-colors rounded-lg;
   }
   
   .sidebar-link.active {
-    @apply bg-dream-blue text-white hover:bg-blue-700 hover:text-white;
+    @apply bg-gradient-to-r from-netsurit-red to-netsurit-orange text-white hover:from-netsurit-coral hover:to-netsurit-warm-orange hover:text-white shadow-md;
   }
 
   /* Custom slider styling */
@@ -54,7 +54,7 @@ html, body, #root {
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    background: #6366f1;
+    background: #FF8A50;
     height: 20px;
     width: 20px;
     border-radius: 50%;
@@ -76,7 +76,7 @@ html, body, #root {
   }
 
   .slider::-moz-range-thumb {
-    background: #6366f1;
+    background: #FF8A50;
     height: 20px;
     width: 20px;
     border-radius: 50%;
@@ -149,6 +149,11 @@ html, body, #root {
     background-color: #9ca3af;
   }
 
+  /* White emoji styling for dream detail windows */
+  .emoji-white {
+    filter: brightness(0) invert(1);
+  }
+
   /* Save status animation */
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
@@ -162,6 +167,20 @@ html, body, #root {
     to {
       transform: translateY(0);
       opacity: 1;
+    }
+  }
+
+  /* Shimmer animation for progress bars */
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) skewX(-12deg);
+    }
+    100% {
+      transform: translateX(200%) skewX(-12deg);
     }
   }
 }

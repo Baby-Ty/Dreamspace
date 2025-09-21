@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -10,36 +11,47 @@ import DreamConnect from './pages/DreamConnect';
 import CareerBook from './pages/CareerBook';
 import Scorecard from './pages/Scorecard';
 import AdminDashboard from './pages/AdminDashboard';
+import DreamCoach from './pages/DreamCoach';
+import PeopleDashboard from './pages/PeopleDashboard';
+import LoadingSpinner from './components/LoadingSpinner';
 
 function AppContent() {
-  const { isAuthenticated, login } = useApp();
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   if (!isAuthenticated) {
-    return <Login onLogin={login} />;
+    return <Login />;
   }
 
   return (
-    <Router basename={import.meta.env.BASE_URL}>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dream-book" element={<DreamBook />} />
-          <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
-          <Route path="/dream-connect" element={<DreamConnect />} />
-          <Route path="/career-book" element={<CareerBook />} />
-          <Route path="/scorecard" element={<Scorecard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <AppProvider initialUser={user}>
+      <Router basename={import.meta.env.BASE_URL}>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dream-book" element={<DreamBook />} />
+            <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
+            <Route path="/dream-connect" element={<DreamConnect />} />
+            <Route path="/career-book" element={<CareerBook />} />
+            <Route path="/scorecard" element={<Scorecard />} />
+            <Route path="/dream-coach" element={<DreamCoach />} />
+            <Route path="/people" element={<PeopleDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </AppProvider>
   );
 }
 
 function App() {
   return (
-    <AppProvider>
+    <AuthProvider>
       <AppContent />
-    </AppProvider>
+    </AuthProvider>
   );
 }
 

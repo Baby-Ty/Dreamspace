@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Pencil, Save, X, Upload, Trash, Search, Image } from 'lucide-react';
+import { Plus, Pencil, Save, X, Upload, Trash, Search, Image, BookOpen } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import StockPhotoSearch from '../components/StockPhotoSearch';
@@ -17,7 +17,7 @@ const DreamBook = () => {
     title: '',
     category: '',
     description: '',
-    progress: 0,
+    isPublic: false,
     image: '',
     milestonesDraft: []
   });
@@ -198,7 +198,7 @@ const DreamBook = () => {
       title: dream.title,
       category: dream.category,
       description: dream.description,
-      progress: dream.progress,
+      isPublic: dream.isPublic || false,
       image: dream.image
     });
   };
@@ -209,7 +209,7 @@ const DreamBook = () => {
       title: '',
       category: dreamCategories?.[0] || 'Health',
       description: '',
-      progress: 0,
+      isPublic: false,
       image: '',
       milestonesDraft: []
     });
@@ -220,6 +220,7 @@ const DreamBook = () => {
       const newDream = {
         id: Date.now(),
         ...formData,
+        progress: 0,
         milestones: (formData.milestonesDraft || []).map((text, index) => ({
           id: Date.now() + index + 1,
           text,
@@ -243,7 +244,7 @@ const DreamBook = () => {
       title: '',
       category: '',
       description: '',
-      progress: 0,
+      isPublic: false,
       image: '',
       milestonesDraft: []
     });
@@ -256,7 +257,7 @@ const DreamBook = () => {
       title: '',
       category: '',
       description: '',
-      progress: 0,
+      isPublic: false,
       image: '',
       milestonesDraft: []
     });
@@ -332,22 +333,23 @@ const DreamBook = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-4 sm:space-y-4">
       {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-2xl px-4 py-3 shadow-sm border border-white/50">
+      <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col justify-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-1">
-              My Dream Book 📖
-            </h1>
-            <p className="text-sm text-gray-500">
-              Document and track your personal dreams ({dreams.length}/{maxDreams} dreams)
-            </p>
+            <div className="flex items-center space-x-3 mb-2">
+              <BookOpen className="h-8 w-8 text-netsurit-red" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-professional-gray-900">My Dream Book</h1>
+            </div>
+          <p className="text-professional-gray-600">
+            Document and track your personal dreams ({dreams.length}/{maxDreams} dreams)
+          </p>
           </div>
 
           <div className="flex items-center gap-3">
             {dreams.length < maxDreams && !isCreating && (
               <button
                 onClick={handleCreate}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
+                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
               >
                 <Plus className="w-5 h-5" />
                 <span>Add Dream</span>
@@ -356,7 +358,7 @@ const DreamBook = () => {
             <button
               type="button"
               onClick={() => setShowInspiration(true)}
-              className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+              className="inline-flex items-center justify-center px-6 py-3 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-xl hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
             >
               Find Inspiration
             </button>
@@ -365,14 +367,14 @@ const DreamBook = () => {
       </div>
 
       {/* Dreams Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
 
         {/* Existing Dreams */}
         {dreams.map((dream, index) => (
           <div
             key={dream.id}
             id={`dream-card-${dream.id}`}
-            className={`bg-white rounded-2xl border-2 border-gray-200 shadow-sm p-4 hover:shadow-lg hover:scale-[1.01] transition relative h-full ${dragOverIndex === index && draggingIndex !== null ? 'ring-2 ring-blue-400' : ''}`}
+            className={`relative h-full ${dragOverIndex === index && draggingIndex !== null ? 'ring-4 ring-netsurit-red ring-opacity-50' : ''}`}
             draggable={editingDream === null}
             onDragStart={(e) => { if (editingDream === null) handleDragStart(e, index); }}
             onDragOver={(e) => { if (editingDream === null) handleDragOver(e, index); }}
@@ -383,22 +385,22 @@ const DreamBook = () => {
           >
             {/* Reorder controls - hidden while editing to allow text selection */}
             {editingDream === null && (
-            <div className="absolute -top-3 right-2 flex gap-1">
+            <div className="absolute -top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button
                 type="button"
                 onClick={() => { if (index > 0) reorderDreams(index, index - 1); }}
                 title="Move left"
-                className="w-6 h-6 rounded-full bg-white/80 hover:bg-white shadow-sm text-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl text-professional-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 hover:scale-110"
               >
-                <span className="-mt-0.5">◀</span>
+                <span className="text-sm font-bold">◀</span>
               </button>
               <button
                 type="button"
                 onClick={() => { if (index < dreams.length - 1) reorderDreams(index, index + 1); }}
                 title="Move right"
-                className="w-6 h-6 rounded-full bg-white/80 hover:bg-white shadow-sm text-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl text-professional-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 hover:scale-110"
               >
-                <span className="-mt-0.5">▶</span>
+                <span className="text-sm font-bold">▶</span>
               </button>
             </div>
             )}
@@ -430,12 +432,14 @@ const DreamBook = () => {
           <button
             type="button"
             onClick={handleCreate}
-            className="bg-white rounded-2xl border-2 border-dashed border-blue-300 hover:border-blue-400 hover:bg-blue-50 shadow-sm p-4 flex items-center justify-center h-full group hover:shadow-lg hover:scale-[1.01] transition"
+            className="group bg-white rounded-2xl border-2 border-dashed border-netsurit-red/30 hover:border-netsurit-red/60 hover:bg-gradient-to-br hover:from-netsurit-red/5 hover:to-netsurit-coral/5 shadow-lg hover:shadow-2xl p-8 flex items-center justify-center h-full transition-all duration-300 hover:scale-[1.02] min-h-[400px]"
           >
             <div className="text-center">
-              <Plus className="w-10 h-10 text-blue-500 group-hover:text-blue-600 mx-auto mb-3" />
-              <p className="text-lg font-medium text-blue-600 group-hover:text-blue-700">Add Dream</p>
-              <p className="text-sm text-blue-500/70">Create a new dream entry</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-netsurit-red/10 group-hover:bg-netsurit-red/20 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+                <Plus className="w-8 h-8 text-netsurit-red group-hover:text-netsurit-coral transition-colors duration-300" />
+              </div>
+              <p className="text-xl font-bold text-netsurit-red group-hover:text-netsurit-coral transition-colors duration-300 mb-2">Add Dream</p>
+              <p className="text-sm text-professional-gray-600 group-hover:text-professional-gray-700 transition-colors duration-300">Create a new dream entry</p>
             </div>
           </button>
         )}
@@ -444,11 +448,14 @@ const DreamBook = () => {
         {Array.from({ length: Math.max(0, maxDreams - dreams.length - (dreams.length < maxDreams ? 1 : 0)) }).map((_, index) => (
           <div
             key={`empty-${index}`}
-            className="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center min-h-[300px] hover:border-gray-400 transition-all duration-300"
+            className="bg-gradient-to-br from-professional-gray-50 to-professional-gray-100 rounded-2xl border-2 border-dashed border-professional-gray-300 flex items-center justify-center min-h-[400px] hover:border-professional-gray-400 hover:from-professional-gray-100 hover:to-professional-gray-150 transition-all duration-300"
           >
-            <div className="text-center text-gray-400">
-              <Plus className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Dream slot {dreams.length + index + 1}</p>
+            <div className="text-center text-professional-gray-400">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-professional-gray-200 flex items-center justify-center">
+                <Plus className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-medium">Dream slot {dreams.length + index + 2}</p>
+              <p className="text-xs text-professional-gray-400 mt-1">Available</p>
             </div>
           </div>
         ))}
@@ -458,12 +465,12 @@ const DreamBook = () => {
       {isCreating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Add New Dream</h3>
+            <div className="flex items-center justify-between p-5 border-b border-professional-gray-200">
+              <h3 className="text-xl font-semibold text-professional-gray-900">Add New Dream</h3>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="p-2 text-professional-gray-400 hover:text-professional-gray-600 hover:bg-professional-gray-100 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -508,8 +515,8 @@ const DreamBook = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden">
             {/* Modal Header with horizontally scrollable category pills */}
-            <div className="flex items-center gap-3 p-5 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 shrink-0">Find Inspiration</h3>
+            <div className="flex items-center gap-3 p-5 border-b border-professional-gray-200">
+              <h3 className="text-xl font-semibold text-professional-gray-900 shrink-0">Find Inspiration</h3>
               <div className="flex-1 overflow-x-auto horizontal-scroll pb-2 -mb-2">
                 <div className="flex items-center gap-2 whitespace-nowrap pr-2">
                   {inspirationCategories.map((c) => (
@@ -518,8 +525,8 @@ const DreamBook = () => {
                       onClick={() => setInspirationCategory(c)}
                       className={`rounded-full px-4 py-1 text-sm transition-colors ${
                         inspirationCategory === c
-                          ? 'bg-blue-100 text-blue-800 font-semibold'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-netsurit-red/10 text-netsurit-red font-semibold'
+                          : 'bg-professional-gray-100 text-professional-gray-700 hover:bg-professional-gray-200'
                       }`}
                     >
                       {c}
@@ -530,7 +537,7 @@ const DreamBook = () => {
               <button
                 type="button"
                 onClick={() => setShowInspiration(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg shrink-0"
+                className="p-2 text-professional-gray-400 hover:text-professional-gray-600 hover:bg-professional-gray-100 rounded-lg shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -540,7 +547,7 @@ const DreamBook = () => {
             <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto overscroll-contain scrollbar-clean">
 
               {loadingInspiration && (
-                <div className="text-center text-gray-600 py-6">Loading images…</div>
+                <div className="text-center text-professional-gray-600 py-6">Loading images…</div>
               )}
               {inspirationError && (
                 <div className="text-center text-red-600 py-4 text-sm">{inspirationError}</div>
@@ -548,19 +555,19 @@ const DreamBook = () => {
               {/* Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredInspiration.map((item) => (
-                  <div key={item.id} className="rounded-xl border-2 border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full">
+                  <div key={item.id} className="rounded-xl border border-professional-gray-200 bg-white shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col h-full">
                     <div className="relative">
                       {item.image ? (
                         <img src={item.image} alt={item.title} className="w-full h-40 object-cover" />
                       ) : (
-                        <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">No image</div>
+                        <div className="w-full h-40 bg-professional-gray-200 flex items-center justify-center text-professional-gray-500 text-sm">No image</div>
                       )}
                       <span className="absolute top-2 left-2 bg-white px-2 py-1 rounded-full text-xs font-medium">
                         {item.category}
                       </span>
                     </div>
                       <div className="p-4 flex flex-col gap-2 h-full">
-                      <h4 className="font-semibold text-gray-900 truncate text-center">{item.title}</h4>
+                      <h4 className="font-semibold text-professional-gray-900 truncate text-center">{item.title}</h4>
                       {/* Removed author line for cleaner inspiration cards */}
                       <button
                         type="button"
@@ -590,7 +597,7 @@ const DreamBook = () => {
                             image: newDream.image
                           });
                         }}
-                        className="mt-auto w-full inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 text-sm"
+                        className="mt-auto w-full inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 text-sm"
                         disabled={dreams.length >= maxDreams}
                       >
                         Add to My Dream Book
@@ -646,9 +653,9 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
               className="w-full h-32 object-cover rounded-lg"
             />
           ) : (
-            <div className="w-full h-32 bg-gray-200 rounded-lg flex flex-col items-center justify-center">
-              <Image className="w-8 h-8 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">No image selected</p>
+            <div className="w-full h-32 bg-professional-gray-200 rounded-lg flex flex-col items-center justify-center">
+              <Image className="w-8 h-8 text-professional-gray-400 mb-2" />
+              <p className="text-sm text-professional-gray-500">No image selected</p>
             </div>
           )}
           
@@ -657,9 +664,9 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
               type="button"
               onClick={onCancel}
               title="Close"
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-netsurit-red"
             >
-              <X className="w-4 h-4 text-gray-700" />
+              <X className="w-4 h-4 text-professional-gray-700" />
             </button>
           )}
         </div>
@@ -723,7 +730,7 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
       {/* Milestones (create only) */}
       {!isEditing && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Milestones</label>
+          <label className="block text-sm font-medium text-professional-gray-700">Milestones</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -736,7 +743,7 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
             <button
               type="button"
               onClick={addMilestoneDraft}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-coral transition-colors disabled:opacity-50"
               disabled={!milestoneInput.trim()}
             >
               Add
@@ -745,8 +752,8 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
           {(formData.milestonesDraft || []).length > 0 && (
             <ul className="space-y-2">
               {(formData.milestonesDraft || []).map((text, idx) => (
-                <li key={`${text}-${idx}`} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <span className="text-gray-800">{text}</span>
+                <li key={`${text}-${idx}`} className="flex items-center justify-between bg-professional-gray-50 border border-professional-gray-200 rounded-lg px-3 py-2 text-sm">
+                  <span className="text-professional-gray-800">{text}</span>
                   <button
                     type="button"
                     onClick={() => removeMilestoneDraft(idx)}
@@ -762,26 +769,40 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
         </div>
       )}
 
-      {/* Progress */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Progress: {formData.progress}%
-        </label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={formData.progress}
-          onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
-          className="w-full"
-        />
+      {/* Visibility Toggle */}
+      <div className="flex items-center space-x-3">
+        <label className="text-sm font-medium text-professional-gray-700">Visibility:</label>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, isPublic: false })}
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+              !formData.isPublic 
+                ? 'bg-professional-gray-600 text-white' 
+                : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
+            }`}
+          >
+            Private
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, isPublic: true })}
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+              formData.isPublic 
+                ? 'bg-netsurit-red text-white' 
+                : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
+            }`}
+          >
+            Public
+          </button>
+        </div>
       </div>
 
       {/* Actions */}
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
+          className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
         >
           <Save className="w-4 h-4" />
           <span>{isEditing ? 'Update' : 'Save'}</span>
@@ -789,7 +810,7 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center justify-center px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+          className="inline-flex items-center justify-center px-4 py-3 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-xl hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
         >
           <X className="w-4 h-4" />
         </button>
@@ -808,70 +829,107 @@ const DreamCard = ({ dream, onEdit, onDelete, onView }) => {
 
   return (
     <div
-      className="relative flex flex-col h-full cursor-pointer select-none"
+      className="group relative flex flex-col h-full cursor-pointer select-none overflow-hidden rounded-2xl bg-white border border-professional-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-netsurit-red/20"
       onClick={onView}
       role="button"
       tabIndex={0}
       onKeyDown={handleCardKey}
     >
       {/* Top-right icon buttons */}
-      <div className="absolute top-2 right-2 z-10 flex gap-1">
+      <div className="absolute top-3 right-3 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(); }}
           title="Edit"
-          className="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200"
         >
-          <Pencil className="w-4 h-4 text-gray-700" />
+          <Pencil className="w-4 h-4 text-professional-gray-700" />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
           title="Delete"
-          className="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
         >
           <Trash className="w-4 h-4 text-red-600" />
         </button>
       </div>
 
       {/* Image */}
-      <div className="relative flex-shrink-0">
+      <div className="relative flex-shrink-0 overflow-hidden">
         {dream.image ? (
-          <img src={dream.image} alt={dream.title} className="w-full h-40 object-cover rounded-t-lg" draggable={false} />
+          <img 
+            src={dream.image} 
+            alt={dream.title} 
+            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+            draggable={false} 
+          />
         ) : (
-          <div className="w-full h-40 bg-gray-200 rounded-t-lg flex items-center justify-center">
-            <Image className="w-8 h-8 text-gray-400" />
+          <div className="w-full h-48 bg-gradient-to-br from-professional-gray-100 to-professional-gray-200 flex items-center justify-center">
+            <Image className="w-12 h-12 text-professional-gray-400" />
           </div>
         )}
-        <span className="absolute top-2 left-2 bg-white px-2 py-1 rounded-full text-xs font-medium">
-          {dream.category}
-        </span>
+        
+        {/* Category Badge */}
+        <div className="absolute top-3 left-3">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-professional-gray-800 shadow-md border border-white/20">
+            {dream.category}
+          </span>
+        </div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
       {/* Content */}
-      <div className="flex flex-col h-full">
-        <h3 className="font-semibold text-gray-900 mb-2 mt-3">{dream.title}</h3>
-        <p className="text-sm text-gray-600 line-clamp-3">
-          {dream.description}
-        </p>
+      <div className="flex flex-col h-full p-5">
+        <div className="flex-1">
+          <h3 className="font-bold text-lg text-professional-gray-900 mb-3 line-clamp-2 group-hover:text-netsurit-red transition-colors duration-200">
+            {dream.title}
+          </h3>
+          <p className="text-sm text-professional-gray-600 line-clamp-3 leading-relaxed mb-4">
+            {dream.description}
+          </p>
+        </div>
 
-        {/* Progress */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-            <span>Progress</span>
-            <span>{dream.progress}%</span>
+        {/* Progress Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-professional-gray-700">Progress</span>
+            <span className="text-sm font-bold text-netsurit-red">{dream.progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-dream-blue h-2 rounded-full transition-all duration-300"
-              style={{ width: `${dream.progress}%` }}
-            ></div>
+          
+          {/* Enhanced Progress Bar */}
+          <div className="relative">
+            <div className="w-full bg-professional-gray-200 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-netsurit-red via-netsurit-coral to-netsurit-orange h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                style={{ width: `${dream.progress}%` }}
+              >
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-shimmer"></div>
+              </div>
+            </div>
+            
+            {/* Progress milestone indicators */}
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-between px-1">
+              {[25, 50, 75].map((milestone) => (
+                <div
+                  key={milestone}
+                  className={`w-1 h-4 rounded-full transition-colors duration-300 ${
+                    dream.progress >= milestone 
+                      ? 'bg-white shadow-sm' 
+                      : 'bg-professional-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Footer with primary action */}
-        <div className="mt-auto pt-4">
+        {/* Action Button */}
+        <div className="mt-5">
           <button
             onClick={(e) => { e.stopPropagation(); onView(); }}
-            className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl font-semibold text-sm hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             View Details
           </button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Target, Users, BookOpen, Calendar, TrendingUp, Medal, Star } from 'lucide-react';
+import { Trophy, Target, Users, BookOpen, Calendar, TrendingUp, Medal, Star, BarChart3, PieChart, Activity } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const Scorecard = () => {
@@ -7,44 +7,54 @@ const Scorecard = () => {
   const [viewMode, setViewMode] = useState('summary'); // 'summary' or 'detailed'
 
   const totalScore = scoringHistory.reduce((sum, item) => sum + item.points, 0);
+  
+  // Calculate dream progress statistics
+  const dreamProgressStats = {
+    totalDreams: currentUser.dreamBook.length,
+    averageProgress: currentUser.dreamBook.length > 0 
+      ? Math.round(currentUser.dreamBook.reduce((sum, dream) => sum + dream.progress, 0) / currentUser.dreamBook.length)
+      : 0,
+    completedDreams: currentUser.dreamBook.filter(dream => dream.progress === 100).length,
+    activeDreams: currentUser.dreamBook.filter(dream => dream.progress > 0 && dream.progress < 100).length
+  };
 
   const categoryStats = {
     dreamsCompleted: {
       count: scoringHistory.filter(item => item.type === 'dreamCompleted').length,
       points: scoringHistory.filter(item => item.type === 'dreamCompleted').reduce((sum, item) => sum + item.points, 0),
       icon: Target,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      color: 'text-netsurit-red',
+      bgColor: 'bg-netsurit-light-coral/20'
     },
     dreamConnects: {
       count: scoringHistory.filter(item => item.type === 'dreamConnect').length,
       points: scoringHistory.filter(item => item.type === 'dreamConnect').reduce((sum, item) => sum + item.points, 0),
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    journalEntries: {
-      count: scoringHistory.filter(item => item.type === 'journalEntry').length,
-      points: scoringHistory.filter(item => item.type === 'journalEntry').reduce((sum, item) => sum + item.points, 0),
-      icon: BookOpen,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
+      color: 'text-netsurit-coral',
+      bgColor: 'bg-netsurit-coral/20'
     },
     groupAttendance: {
       count: scoringHistory.filter(item => item.type === 'groupAttendance').length,
       points: scoringHistory.filter(item => item.type === 'groupAttendance').reduce((sum, item) => sum + item.points, 0),
       icon: Calendar,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100'
+      color: 'text-netsurit-orange',
+      bgColor: 'bg-netsurit-warm-orange/20'
+    },
+    dreamProgress: {
+      count: dreamProgressStats.totalDreams,
+      points: dreamProgressStats.averageProgress,
+      icon: Activity,
+      color: 'text-netsurit-coral',
+      bgColor: 'bg-netsurit-coral/20'
     }
   };
 
   const getScoreLevel = (score) => {
-    if (score >= 100) return { level: 'Dream Master', icon: Medal, color: 'text-yellow-600' };
-    if (score >= 75) return { level: 'Dream Achiever', icon: Trophy, color: 'text-purple-600' };
-    if (score >= 50) return { level: 'Dream Builder', icon: Star, color: 'text-blue-600' };
-    if (score >= 25) return { level: 'Dream Explorer', icon: TrendingUp, color: 'text-green-600' };
-    return { level: 'Dream Starter', icon: Target, color: 'text-gray-600' };
+    if (score >= 100) return { level: 'Dream Master', icon: Medal, color: 'text-netsurit-warm-orange' };
+    if (score >= 75) return { level: 'Dream Achiever', icon: Trophy, color: 'text-netsurit-red' };
+    if (score >= 50) return { level: 'Dream Builder', icon: Star, color: 'text-netsurit-coral' };
+    if (score >= 25) return { level: 'Dream Explorer', icon: TrendingUp, color: 'text-netsurit-orange' };
+    return { level: 'Dream Starter', icon: Target, color: 'text-professional-gray-600' };
   };
 
   const currentLevel = getScoreLevel(totalScore);
@@ -52,49 +62,48 @@ const Scorecard = () => {
   const progressToNext = totalScore >= 100 ? 100 : ((totalScore % 25) / 25) * 100;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-purple-100 via-blue-50 to-pink-100 rounded-xl px-3 py-2 shadow-sm border border-white/50">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col justify-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-1">
-              Scorecard 🏆
-            </h1>
-            <p className="text-xs text-gray-500">
-              Track your achievements and see how you're progressing on your dream journey.
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      {/* Compact Header with Total Score */}
+      <div className="bg-gradient-to-r from-netsurit-red to-netsurit-orange text-white rounded-2xl shadow-xl p-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+          {/* Title and Description */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center space-x-3 mb-2">
+              <Trophy className="h-8 w-8" />
+              <h1 className="text-2xl font-bold">Scorecard</h1>
+            </div>
+            <p className="text-white/90 text-sm">
+              Track your dream journey progress
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Total Score Card */}
-      <div className="bg-gradient-to-r from-dream-blue to-dream-purple text-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Total Score</h2>
-            <p className="text-4xl font-bold">{totalScore} Points</p>
-            <div className="flex items-center mt-4">
-              <currentLevel.icon className={`w-6 h-6 mr-2 ${currentLevel.color.replace('text-', 'text-')}`} />
-              <span className="text-lg font-medium">{currentLevel.level}</span>
+          {/* Total Score */}
+          <div className="lg:col-span-1 text-center">
+            <div className="inline-flex items-center space-x-4 bg-white/20 rounded-xl p-4">
+              <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
+                <Trophy className="w-6 h-6" />
+        </div>
+              <div>
+                <p className="text-3xl font-bold">{totalScore}</p>
+                <p className="text-sm opacity-90">Total Points</p>
+      </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
-              <Trophy className="w-12 h-12" />
+
+          {/* Level and Progress */}
+          <div className="lg:col-span-1 text-center lg:text-right">
+            <div className="flex items-center justify-center lg:justify-end space-x-2 mb-2">
+              <currentLevel.icon className="w-5 h-5" />
+              <span className="font-medium">{currentLevel.level}</span>
             </div>
             {totalScore < 100 && (
               <div>
-                <p className="text-sm opacity-90 mb-2">
-                  Progress to {nextLevel.level}
+                <p className="text-xs opacity-90 mb-1">
+                  Next: {nextLevel.level}
                 </p>
-                <div className="w-32 bg-white bg-opacity-20 rounded-full h-2">
+                <div className="w-24 bg-white/20 rounded-full h-1.5 mx-auto lg:mx-0 lg:ml-auto">
                   <div
-                    className="bg-white h-2 rounded-full transition-all duration-300"
+                    className="bg-white h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressToNext}%` }}
                   ></div>
                 </div>
@@ -105,31 +114,33 @@ const Scorecard = () => {
       </div>
 
       {/* View Mode Toggle */}
-      <div className="flex space-x-4 mb-6">
+      <div className="flex space-x-2 mb-6">
         <button
           onClick={() => setViewMode('summary')}
-          className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
             viewMode === 'summary'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+              ? 'bg-netsurit-red text-white shadow-lg'
+              : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 border border-professional-gray-200'
           }`}
         >
-          Summary View
+          <BarChart3 className="w-4 h-4 inline mr-2" />
+          Overview
         </button>
         <button
           onClick={() => setViewMode('detailed')}
-          className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
             viewMode === 'detailed'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+              ? 'bg-netsurit-red text-white shadow-lg'
+              : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 border border-professional-gray-200'
           }`}
         >
-          Detailed History
+          <Calendar className="w-4 h-4 inline mr-2" />
+          History
         </button>
       </div>
 
       {viewMode === 'summary' ? (
-        <SummaryView categoryStats={categoryStats} scoringRules={scoringRules} />
+        <SummaryView categoryStats={categoryStats} scoringRules={scoringRules} totalScore={totalScore} />
       ) : (
         <DetailedView scoringHistory={scoringHistory} />
       )}
@@ -137,124 +148,210 @@ const Scorecard = () => {
   );
 };
 
-const SummaryView = ({ categoryStats, scoringRules }) => {
-  return (
-    <div className="space-y-8">
-      {/* Category Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <ScoreCard
-          title="Dreams Completed"
-          count={categoryStats.dreamsCompleted.count}
-          points={categoryStats.dreamsCompleted.points}
-          pointsEach={scoringRules.dreamCompleted}
-          icon={categoryStats.dreamsCompleted.icon}
-          color={categoryStats.dreamsCompleted.color}
-          bgColor={categoryStats.dreamsCompleted.bgColor}
-        />
-        
-        <ScoreCard
-          title="Dream Connects"
-          count={categoryStats.dreamConnects.count}
-          points={categoryStats.dreamConnects.points}
-          pointsEach={scoringRules.dreamConnect}
-          icon={categoryStats.dreamConnects.icon}
-          color={categoryStats.dreamConnects.color}
-          bgColor={categoryStats.dreamConnects.bgColor}
-        />
-        
-        <ScoreCard
-          title="Journal Entries"
-          count={categoryStats.journalEntries.count}
-          points={categoryStats.journalEntries.points}
-          pointsEach={scoringRules.journalEntry}
-          icon={categoryStats.journalEntries.icon}
-          color={categoryStats.journalEntries.color}
-          bgColor={categoryStats.journalEntries.bgColor}
-        />
-        
-        <ScoreCard
-          title="Group Attendance"
-          count={categoryStats.groupAttendance.count}
-          points={categoryStats.groupAttendance.points}
-          pointsEach={scoringRules.groupAttendance}
-          icon={categoryStats.groupAttendance.icon}
-          color={categoryStats.groupAttendance.color}
-          bgColor={categoryStats.groupAttendance.bgColor}
-        />
-      </div>
+const SummaryView = ({ categoryStats, scoringRules, totalScore }) => {
+  const categories = [
+    { key: 'dreamsCompleted', label: 'Dreams Completed', stats: categoryStats.dreamsCompleted },
+    { key: 'dreamConnects', label: 'Dream Connects', stats: categoryStats.dreamConnects },
+    { key: 'groupAttendance', label: 'Group Attendance', stats: categoryStats.groupAttendance },
+    { key: 'dreamProgress', label: 'Dream Progress', stats: categoryStats.dreamProgress }
+  ];
 
-      {/* Scoring Rules */}
-      <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          How Points Are Earned
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-sm transition-all duration-200">
-            <span className="text-gray-700 font-medium">Dreams Completed</span>
-            <span className="font-bold text-green-600">+{scoringRules.dreamCompleted} pts</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-sm transition-all duration-200">
-            <span className="text-gray-700 font-medium">Dream Connects</span>
-            <span className="font-bold text-blue-600">+{scoringRules.dreamConnect} pts</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-sm transition-all duration-200">
-            <span className="text-gray-700 font-medium">Journal Entries</span>
-            <span className="font-bold text-purple-600">+{scoringRules.journalEntry} pts</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-sm transition-all duration-200">
-            <span className="text-gray-700 font-medium">Group Attendance</span>
-            <span className="font-bold text-orange-600">+{scoringRules.groupAttendance} pts</span>
+  const totalActivities = categories.reduce((sum, cat) => sum + cat.stats.count, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Main Dashboard Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Category Breakdown - Compact Cards */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-lg border border-professional-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-professional-gray-900">Activity Breakdown</h3>
+              <PieChart className="w-5 h-5 text-professional-gray-500" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {categories.map((category) => {
+                if (category.key === 'dreamProgress') {
+                  return (
+                    <DreamProgressCard
+                      key={category.key}
+                      title={category.label}
+                      totalDreams={category.stats.count}
+                      averageProgress={category.stats.points}
+                      icon={category.stats.icon}
+                      color={category.stats.color}
+                      bgColor={category.stats.bgColor}
+                    />
+                  );
+                }
+                return (
+                  <CompactScoreCard
+                    key={category.key}
+                    title={category.label}
+                    count={category.stats.count}
+                    points={category.stats.points}
+                    pointsEach={scoringRules[category.key === 'dreamsCompleted' ? 'dreamCompleted' : category.key]}
+                    icon={category.stats.icon}
+                    color={category.stats.color}
+                    bgColor={category.stats.bgColor}
+                  />
+                );
+              })}
+      </div>
           </div>
         </div>
+
+        {/* Stats and Progress */}
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="bg-white rounded-2xl shadow-lg border border-professional-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-professional-gray-900 mb-4">Quick Stats</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-professional-gray-600">Total Activities</span>
+                <span className="font-bold text-professional-gray-900">{totalActivities}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-professional-gray-600">Average per Activity</span>
+                <span className="font-bold text-professional-gray-900">
+                  {totalActivities > 0 ? Math.round(totalScore / totalActivities) : 0} pts
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-professional-gray-600">Most Active</span>
+                <span className="font-bold text-professional-gray-900">
+                  {categories.reduce((max, cat) => 
+                    cat.stats.count > max.stats.count ? cat : max
+                  ).label.split(' ')[0]}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
+
     </div>
   );
 };
 
 const DetailedView = ({ scoringHistory }) => {
+  const groupedHistory = scoringHistory.reduce((groups, item) => {
+    const date = new Date(item.date).toDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(item);
+    return groups;
+  }, {});
+
+  const sortedDates = Object.keys(groupedHistory).sort((a, b) => new Date(b) - new Date(a));
+
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-6">
-        Points History
-      </h3>
-      <div className="space-y-4">
-        {scoringHistory.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-5 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-md hover:scale-[1.02] transition-all duration-300">
-            <div className="flex-1">
-              <h4 className="font-medium text-gray-900">{item.title}</h4>
-              <div className="flex items-center space-x-4 mt-1">
-                <span className="text-sm text-gray-600">{item.category}</span>
-                <span className="text-sm text-gray-500">
-                  {new Date(item.date).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-lg font-bold text-dream-blue">
-                +{item.points} pts
-              </span>
-            </div>
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl shadow-lg border border-professional-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-professional-gray-900">Points History</h3>
+          <div className="text-sm text-professional-gray-500">
+            {scoringHistory.length} total activities
           </div>
+        </div>
+        
+        <div className="space-y-6">
+          {sortedDates.map((date) => {
+            const dayItems = groupedHistory[date];
+            const dayTotal = dayItems.reduce((sum, item) => sum + item.points, 0);
+            
+            return (
+              <div key={date} className="border-l-4 border-netsurit-red pl-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-professional-gray-900">
+                    {new Date(date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </h4>
+                  <span className="text-sm font-bold text-netsurit-red">
+                    +{dayTotal} pts
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {dayItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-professional-gray-50 rounded-lg hover:bg-professional-gray-100 transition-colors duration-200">
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-medium text-professional-gray-900 text-sm truncate">{item.title}</h5>
+                        <p className="text-xs text-professional-gray-600 mt-1">{item.category}</p>
+                      </div>
+                      <div className="text-right ml-3">
+                        <span className="text-sm font-bold text-netsurit-red">
+                          +{item.points}
+                        </span>
+                      </div>
+                    </div>
         ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {scoringHistory.length === 0 && (
+          <div className="text-center py-8">
+            <Trophy className="w-12 h-12 text-professional-gray-300 mx-auto mb-4" />
+            <p className="text-professional-gray-500">No activities yet. Start your dream journey!</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const ScoreCard = ({ title, count, points, pointsEach, icon: Icon, color, bgColor }) => {
+const DreamProgressCard = ({ title, totalDreams, averageProgress, icon: Icon, color, bgColor }) => {
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:scale-[1.02]">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 ${bgColor} rounded-xl`}>
-          <Icon className={`w-6 h-6 ${color}`} />
+    <div className="p-4 rounded-xl border border-professional-gray-200 hover:shadow-sm transition-all duration-200 hover:scale-[1.02]">
+      <div className="flex items-center space-x-3 mb-3">
+        <div className={`p-2 ${bgColor} rounded-lg`}>
+          <Icon className={`w-4 h-4 ${color}`} />
         </div>
-        <span className={`text-2xl font-bold ${color}`}>
-          +{points}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-professional-gray-900 text-sm truncate">{title}</h4>
+          <p className="text-xs text-professional-gray-500">{totalDreams} dreams</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-professional-gray-600">
+          Average progress
+        </span>
+        <span className={`text-lg font-bold ${color}`}>
+          {averageProgress}%
         </span>
       </div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <div className="text-sm text-gray-600">
-        <p>{count} × {pointsEach} points each</p>
+    </div>
+  );
+};
+
+const CompactScoreCard = ({ title, count, points, pointsEach, icon: Icon, color, bgColor }) => {
+  return (
+    <div className="p-4 rounded-xl border border-professional-gray-200 hover:shadow-sm transition-all duration-200 hover:scale-[1.02]">
+      <div className="flex items-center space-x-3 mb-3">
+        <div className={`p-2 ${bgColor} rounded-lg`}>
+          <Icon className={`w-4 h-4 ${color}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-professional-gray-900 text-sm truncate">{title}</h4>
+          <p className="text-xs text-professional-gray-500">{count} activities</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-professional-gray-600">
+          {pointsEach} pts each
+        </span>
+        <span className={`text-lg font-bold ${color}`}>
+          {points}
+        </span>
       </div>
     </div>
   );
