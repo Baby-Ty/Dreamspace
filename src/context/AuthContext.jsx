@@ -14,6 +14,22 @@ export const AuthProvider = ({ children }) => {
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
+    // Handle redirect response on page load
+    const handleRedirectResponse = async () => {
+      try {
+        const response = await instance.handleRedirectPromise();
+        if (response) {
+          console.log('✅ Redirect response received:', response);
+        }
+      } catch (error) {
+        console.error('❌ Error handling redirect:', error);
+      }
+    };
+    
+    handleRedirectResponse();
+  }, [instance]);
+
+  useEffect(() => {
     // Skip MSAL account checking if we're in demo mode
     if (isDemoMode) {
       return;
@@ -215,10 +231,12 @@ export const AuthProvider = ({ children }) => {
       // Regular Microsoft login
       console.log('🔐 Starting Microsoft login...');
       setIsDemoMode(false);
-      const result = await instance.loginPopup(loginRequest);
-      console.log('✅ Login popup completed:', result);
       
-      // The useEffect will handle the account processing
+      // Try redirect login instead of popup for better reliability
+      await instance.loginRedirect(loginRequest);
+      console.log('✅ Login redirect initiated');
+      
+      // The redirect will reload the page and useEffect will handle the account processing
     } catch (error) {
       console.error('❌ Login failed:', error);
       setIsLoading(false);

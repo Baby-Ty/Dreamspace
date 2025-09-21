@@ -10,11 +10,14 @@ export const msalConfig = {
     navigateToLoginRequestUrl: false, // Prevents issues with SPA redirects
   },
   cache: {
-    cacheLocation: "sessionStorage", // This configures where your cache will be stored
-    storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+    cacheLocation: "localStorage", // Changed from sessionStorage to localStorage for better persistence
+    storeAuthStateInCookie: true, // Enable cookie storage for better compatibility
   },
   system: {
     allowNativeBroker: false, // Disables WAM Broker
+    windowHashTimeout: 60000, // Increase timeout for popup windows
+    iframeHashTimeout: 6000,
+    loadFrameTimeout: 0,
     loggerOptions: {
       loggerCallback: (level, message, containsPii) => {
         if (containsPii) {
@@ -22,19 +25,20 @@ export const msalConfig = {
         }
         switch (level) {
           case "Error":
-            console.error(message);
+            console.error('[MSAL Error]', message);
             return;
           case "Info":
-            console.info(message);
+            console.info('[MSAL Info]', message);
             return;
           case "Verbose":
-            console.debug(message);
+            console.debug('[MSAL Verbose]', message);
             return;
           case "Warning":
-            console.warn(message);
+            console.warn('[MSAL Warning]', message);
             return;
         }
-      }
+      },
+      logLevel: "Info" // Enable more detailed logging
     }
   }
 };
