@@ -7,10 +7,35 @@ export const msalConfig = {
     // Single-tenant (original): authority: "https://login.microsoftonline.com/fe3fb5c4-c612-405e-bee1-60ba20a1bdff",
     redirectUri: window.location.origin, // Dynamically uses current origin (localhost:5173 or production URL)
     postLogoutRedirectUri: window.location.origin,
+    navigateToLoginRequestUrl: false, // Prevents issues with SPA redirects
   },
   cache: {
     cacheLocation: "sessionStorage", // This configures where your cache will be stored
     storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+  },
+  system: {
+    allowNativeBroker: false, // Disables WAM Broker
+    loggerOptions: {
+      loggerCallback: (level, message, containsPii) => {
+        if (containsPii) {
+          return;
+        }
+        switch (level) {
+          case "Error":
+            console.error(message);
+            return;
+          case "Info":
+            console.info(message);
+            return;
+          case "Verbose":
+            console.debug(message);
+            return;
+          case "Warning":
+            console.warn(message);
+            return;
+        }
+      }
+    }
   }
 };
 
