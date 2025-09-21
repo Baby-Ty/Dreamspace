@@ -218,11 +218,14 @@ export const AuthProvider = ({ children }) => {
       console.log('🔐 Starting Microsoft login...');
       setIsDemoMode(false);
       
-      // Try redirect login instead of popup for better reliability
-      await instance.loginRedirect(loginRequest);
-      console.log('✅ Login redirect initiated');
+      // Try popup login with simplified configuration
+      const result = await instance.loginPopup({
+        scopes: ["User.Read"],
+        prompt: "select_account"
+      });
+      console.log('✅ Login popup completed:', result);
       
-      // The redirect will reload the page and useEffect will handle the account processing
+      // The useEffect will handle the account processing
     } catch (error) {
       console.error('❌ Login failed:', error);
       setIsLoading(false);

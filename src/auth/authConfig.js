@@ -45,15 +45,8 @@ export const msalConfig = {
 
 // Add scopes here for ID token to be used at Microsoft identity platform endpoints.
 export const loginRequest = {
-  scopes: ["User.Read", "profile", "openid", "email"],
-  // Request roles claim in the token
-  extraQueryParameters: {
-    claims: JSON.stringify({
-      id_token: {
-        roles: null
-      }
-    })
-  }
+  scopes: ["User.Read"],
+  // Simplified request without extra parameters to avoid SPA client-type issues
 };
 
 // Add the endpoints here for Microsoft Graph API services you'd like to use.
