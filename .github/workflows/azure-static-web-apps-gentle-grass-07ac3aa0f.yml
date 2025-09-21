@@ -29,7 +29,7 @@ jobs:
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "/" # App source code path
-          api_location: "" # Api source code path - optional
+          api_location: "api" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
         env:
@@ -37,6 +37,9 @@ jobs:
           VITE_APP_ENV: production
           VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
           VITE_COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
+          # API environment variables
+          COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
+          COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

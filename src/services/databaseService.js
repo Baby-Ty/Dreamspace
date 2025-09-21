@@ -1,13 +1,16 @@
-// Database service for DreamSpace - handles both localStorage and Azure Cosmos DB
+// Database service for DreamSpace - handles both localStorage and Azure Cosmos DB via API
 class DatabaseService {
   constructor() {
     this.isProduction = import.meta.env.VITE_APP_ENV === 'production';
     this.cosmosEndpoint = import.meta.env.VITE_COSMOS_ENDPOINT;
     this.cosmosKey = import.meta.env.VITE_COSMOS_KEY;
+    
+    // Use Cosmos DB via API functions in production
     this.useCosmosDB = this.isProduction && this.cosmosEndpoint && this.cosmosKey;
     
     if (this.useCosmosDB) {
-      console.log('🌟 Using Azure Cosmos DB for data persistence');
+      console.log('🌟 Using Azure Cosmos DB via API functions for data persistence');
+      this.apiBase = '/api'; // Azure Static Web Apps API base path
     } else {
       console.log('💾 Using localStorage for data persistence');
     }
@@ -20,6 +23,7 @@ class DatabaseService {
 
   // Save user data
   async saveUserData(userId, userData) {
+    console.log('💾 Saving data for user ID:', userId, 'Data keys:', Object.keys(userData));
     try {
       if (this.useCosmosDB) {
         return await this.saveToCosmosDB(userId, userData);
@@ -30,7 +34,7 @@ class DatabaseService {
       console.error('Error saving user data:', error);
       // Fallback to localStorage if Cosmos DB fails
       if (this.useCosmosDB) {
-        console.log('Falling back to localStorage');
+        console.log('🔄 Falling back to localStorage');
         return this.saveToLocalStorage(userId, userData);
       }
       return { success: false, error: error.message };
@@ -39,29 +43,24 @@ class DatabaseService {
 
   // Load user data
   async loadUserData(userId) {
+    console.log('📂 Loading data for user ID:', userId);
     try {
       if (this.useCosmosDB) {
+        // For production, load from Cosmos DB (fresh start for new users)
         const cosmosData = await this.loadFromCosmosDB(userId);
-        if (cosmosData) {
-          return cosmosData;
-        }
-        // If no data in Cosmos DB, try to migrate from localStorage
-        console.log('No data found in Cosmos DB, checking localStorage for migration...');
-        const localData = this.loadFromLocalStorage(userId);
-        if (localData) {
-          console.log('Migrating data from localStorage to Cosmos DB...');
-          await this.saveToCosmosDB(userId, localData);
-          return localData;
-        }
-        return null;
+        console.log('📂 Cosmos DB data loaded:', cosmosData ? 'Found data' : 'No data found');
+        return cosmosData; // Returns null if user doesn't exist - that's fine for fresh start
       } else {
-        return this.loadFromLocalStorage(userId);
+        // For development, use localStorage (includes mock data for demos)
+        const localData = this.loadFromLocalStorage(userId);
+        console.log('📂 LocalStorage data loaded:', localData ? 'Found data' : 'No data found');
+        return localData;
       }
     } catch (error) {
       console.error('Error loading user data:', error);
       // Fallback to localStorage if Cosmos DB fails
       if (this.useCosmosDB) {
-        console.log('Falling back to localStorage');
+        console.log('🔄 Falling back to localStorage');
         return this.loadFromLocalStorage(userId);
       }
       return null;
@@ -98,110 +97,79 @@ class DatabaseService {
     }
   }
 
-  // Cosmos DB methods (using REST API to avoid additional dependencies)
+  // Cosmos DB methods (using API functions)
   async saveToCosmosDB(userId, userData) {
-    const url = `${this.cosmosEndpoint}/dbs/dreamspace/colls/users/docs`;
-    
-    const document = {
-      id: userId.toString(),
-      userId: userId,
-      ...userData,
-      lastUpdated: new Date().toISOString(),
-      _partitionKey: userId.toString()
-    };
+    try {
+      const response = await fetch(`${this.apiBase}/users/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': this.getCosmosAuthHeader('POST', 'docs', 'dbs/dreamspace/colls/users'),
-        'Content-Type': 'application/json',
-        'x-ms-date': new Date().toUTCString(),
-        'x-ms-version': '2020-07-15',
-        'x-ms-documentdb-is-upsert': 'true'
-      },
-      body: JSON.stringify(document)
-    });
-
-    if (response.ok) {
-      return { success: true };
-    } else {
-      const error = await response.text();
-      console.error('Cosmos DB save error:', error);
-      return { success: false, error: error };
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Data saved to Cosmos DB for user:', userId);
+        return { success: true, result };
+      } else {
+        const error = await response.json();
+        console.error('❌ Cosmos DB save error:', error);
+        return { success: false, error: error.error || 'Unknown error' };
+      }
+    } catch (error) {
+      console.error('❌ Cosmos DB save error:', error);
+      return { success: false, error: error.message };
     }
   }
 
   async loadFromCosmosDB(userId) {
-    const url = `${this.cosmosEndpoint}/dbs/dreamspace/colls/users/docs/${userId}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': this.getCosmosAuthHeader('GET', 'docs', `dbs/dreamspace/colls/users/docs/${userId}`),
-        'Content-Type': 'application/json',
-        'x-ms-date': new Date().toUTCString(),
-        'x-ms-version': '2020-07-15',
-        'x-ms-documentdb-partitionkey': `["${userId}"]`
+    try {
+      const response = await fetch(`${this.apiBase}/users/${userId}`);
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('✅ Data loaded from Cosmos DB for user:', userId);
+        return userData;
+      } else if (response.status === 404) {
+        console.log('ℹ️ No data found in Cosmos DB for user:', userId);
+        return null; // User not found
+      } else {
+        const error = await response.json();
+        console.error('❌ Cosmos DB load error:', error);
+        throw new Error(error.error || 'Unknown error');
       }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      // Remove Cosmos DB specific fields
-      const { id, _rid, _self, _etag, _attachments, _ts, lastUpdated, _partitionKey, ...userData } = data;
-      return userData;
-    } else if (response.status === 404) {
-      return null; // User not found
-    } else {
-      const error = await response.text();
-      console.error('Cosmos DB load error:', error);
-      throw new Error(error);
+    } catch (error) {
+      console.error('❌ Cosmos DB load error:', error);
+      throw error;
     }
   }
 
-  // Generate Cosmos DB authorization header
-  getCosmosAuthHeader(verb, resourceType, resourceLink) {
-    // This is a simplified version - in production, you'd want to implement proper HMAC-SHA256 signing
-    // For now, we'll use the master key directly (not recommended for production)
-    return `type=master&ver=1.0&sig=${this.cosmosKey}`;
-  }
-
-  // Migration utilities
-  async migrateAllLocalDataToCosmosDB() {
-    if (!this.useCosmosDB) {
-      console.log('Not in production mode, skipping migration');
-      return;
-    }
-
-    console.log('Starting migration of all localStorage data to Cosmos DB...');
-    const migrated = [];
-    const failed = [];
-
-    // Find all dreamspace user data in localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('dreamspace_user_')) {
-        try {
-          const userId = key.replace('dreamspace_user_', '').replace('_data', '');
-          const userData = JSON.parse(localStorage.getItem(key));
-          
-          const result = await this.saveToCosmosDB(userId, userData);
-          if (result.success) {
-            migrated.push(userId);
-            console.log(`✅ Migrated user ${userId}`);
-          } else {
-            failed.push({ userId, error: result.error });
-            console.error(`❌ Failed to migrate user ${userId}:`, result.error);
-          }
-        } catch (error) {
-          console.error(`❌ Error processing ${key}:`, error);
-          failed.push({ key, error: error.message });
+  // Utility methods
+  async clearUserData(userId) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/users/${userId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          console.log(`✅ Cleared Cosmos DB data for user ${userId}`);
+          return { success: true };
+        } else {
+          const error = await response.json();
+          return { success: false, error: error.error || 'Unknown error' };
         }
+      } else {
+        const storageKey = this.getUserStorageKey(userId);
+        localStorage.removeItem(storageKey);
+        console.log(`✅ Cleared localStorage data for user ${userId}`);
+        return { success: true };
       }
+    } catch (error) {
+      console.error('Error clearing user data:', error);
+      return { success: false, error: error.message };
     }
-
-    console.log(`Migration complete: ${migrated.length} successful, ${failed.length} failed`);
-    return { migrated, failed };
   }
 }
 

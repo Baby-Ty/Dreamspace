@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200
@@ -8,9 +12,14 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,scss,js,png,gif,ico,jpg,svg}"]
+    "exclude": ["/assets/*", "/api/*", "/*.{css,scss,js,png,gif,ico,jpg,svg}"]
   },
   "mimeTypes": {
     ".json": "text/json"
+  },
+  "globalHeaders": {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
   }
 }
