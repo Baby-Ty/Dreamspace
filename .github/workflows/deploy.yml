@@ -1,25 +1,20 @@
-name: Deploy to GitHub Pages
+name: Deploy DreamSpace to GitHub Pages
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
@@ -38,14 +33,14 @@ jobs:
       - name: Debug Environment Variables
         run: |
           echo "=== Environment Debug ==="
-          echo "VITE_APP_ENV: production"
+          echo "VITE_APP_ENV: $VITE_APP_ENV"
           echo "VITE_COSMOS_ENDPOINT exists: ${{ secrets.VITE_COSMOS_ENDPOINT != '' }}"
           echo "VITE_COSMOS_KEY exists: ${{ secrets.VITE_COSMOS_KEY != '' }}"
         env:
           VITE_APP_ENV: production
           VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
           VITE_COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
-          
+        
       - name: Build application
         env:
           VITE_APP_ENV: production
@@ -59,9 +54,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: './dist'
 
-  # Deployment job
   deploy:
     environment:
       name: github-pages
