@@ -32,6 +32,11 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+        env:
+          # Environment variables for build process
+          VITE_APP_ENV: production
+          VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
+          VITE_COSMOS_KEY: ${{ secrets.VITE_COSMOS_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
