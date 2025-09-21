@@ -108,9 +108,9 @@ const PeopleDashboard = () => {
   };
 
   return (
-    <div className="py-3 sm:py-4 space-y-4 sm:space-y-5">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="p-4 sm:p-5">
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-3 mb-2">
@@ -123,7 +123,7 @@ const PeopleDashboard = () => {
           <div className="flex items-center">
             <button 
               onClick={() => setShowReportBuilder(true)}
-              className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               <span>Report Builder</span>
@@ -133,8 +133,8 @@ const PeopleDashboard = () => {
       </div>
 
       {/* Executive Summary Metrics */}
-      <div className="p-4 sm:p-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
+      <div className="px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div className="p-4 sm:p-5">
               <div className="flex items-center justify-between">
@@ -198,7 +198,7 @@ const PeopleDashboard = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="p-4 sm:p-5">
+      <div className="px-4 sm:px-6">
         <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
           <div className="p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -250,8 +250,8 @@ const PeopleDashboard = () => {
       </div>
 
       {/* Coaches Grid */}
-      <div className="p-4 sm:p-5">
-        <div className="space-y-4 sm:space-y-5">
+      <div className="px-4 sm:px-6 pb-6">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Coaches Overview</h2>
             <span className="text-sm text-professional-gray-600">
@@ -259,44 +259,44 @@ const PeopleDashboard = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredCoaches.map((coach) => (
               <div
                 key={coach.id}
                 className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer"
                 onClick={() => handleViewCoach(coach)}
               >
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-start space-x-3">
+                <div className="p-5">
+                  <div className="flex items-start space-x-4">
                     <img
                       src={coach.avatar}
                       alt={coach.name}
-                      className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                       onError={(e) => {
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(coach.name)}&background=6366f1&color=fff&size=100`;
                       }}
                     />
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-lg font-bold text-professional-gray-900 truncate">{coach.name}</h3>
                           <p className="text-sm text-professional-gray-600 truncate">{coach.teamName}</p>
                           <div className="flex items-center text-xs text-professional-gray-500 mt-1">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            <span>{coach.office}</span>
+                            <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{coach.office}</span>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-netsurit-red flex-shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-netsurit-red flex-shrink-0 ml-2" />
                       </div>
 
                       {/* Performance Indicators */}
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="text-center">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="text-center bg-professional-gray-50 rounded-lg py-2">
                           <p className="text-lg font-bold text-professional-gray-900">{coach.teamMetrics?.teamSize || 0}</p>
                           <p className="text-xs text-professional-gray-600">Team Size</p>
                         </div>
-                        <div className="text-center">
+                        <div className="text-center bg-professional-gray-50 rounded-lg py-2">
                           <p className="text-lg font-bold text-professional-gray-900">{coach.performanceScore}</p>
                           <p className="text-xs text-professional-gray-600">Avg Score</p>
                         </div>
@@ -305,18 +305,18 @@ const PeopleDashboard = () => {
                       {/* Status Badges */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium border ${getPerformanceColor(coach.performanceScore)}`}>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${getPerformanceColor(coach.performanceScore)}`}>
                             {coach.performanceScore >= 60 ? 'Excelling' : 
                              coach.performanceScore >= 30 ? 'On Track' : 'Needs Attention'}
                           </span>
                           
-                          <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${getAlertColor(coach.alerts?.length || 0)}`}>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getAlertColor(coach.alerts?.length || 0)}`}>
                             {coach.alerts?.length || 0} Alert{(coach.alerts?.length || 0) !== 1 ? 's' : ''}
                           </span>
                         </div>
 
                         <div className="flex items-center text-xs text-professional-gray-600">
-                          <Activity className="w-3 h-3 mr-1" />
+                          <Activity className="w-3 h-3 mr-1 flex-shrink-0" />
                           <span>{coach.teamMetrics?.engagementRate || 0}% engaged</span>
                         </div>
                       </div>
