@@ -13,21 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
-  useEffect(() => {
-    // Handle redirect response on page load
-    const handleRedirectResponse = async () => {
-      try {
-        const response = await instance.handleRedirectPromise();
-        if (response) {
-          console.log('✅ Redirect response received:', response);
-        }
-      } catch (error) {
-        console.error('❌ Error handling redirect:', error);
-      }
-    };
-    
-    handleRedirectResponse();
-  }, [instance]);
+  // Redirect handling is now done in main.jsx during MSAL initialization
 
   useEffect(() => {
     // Skip MSAL account checking if we're in demo mode
