@@ -1,24 +1,9 @@
-// Database service for DreamSpace - handles both localStorage and Azure Cosmos DB via API
+// Database service for DreamSpace - handles localStorage data persistence
 class DatabaseService {
   constructor() {
-    this.isProduction = import.meta.env.VITE_APP_ENV === 'production';
-    this.cosmosEndpoint = import.meta.env.VITE_COSMOS_ENDPOINT;
-    this.cosmosKey = import.meta.env.VITE_COSMOS_KEY;
-    
-    // Environment variables configured successfully
-    
-    // Use Cosmos DB via API functions in production
-    this.useCosmosDB = this.isProduction && this.cosmosEndpoint && this.cosmosKey;
-    
-    if (this.useCosmosDB) {
-      console.log('🌟 Using Azure Cosmos DB via API functions for data persistence');
-      this.apiBase = '/api'; // Azure Static Web Apps API base path
-    } else {
-      console.log('💾 Using localStorage for data persistence');
-      if (this.isProduction) {
-        console.log('⚠️ In production mode but missing Cosmos DB configuration');
-      }
-    }
+    // Always use localStorage for simplicity and reliability
+    this.useCosmosDB = false;
+    console.log('💾 Using localStorage for data persistence');
   }
 
   // Get user-specific storage key for localStorage
