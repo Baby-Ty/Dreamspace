@@ -14,7 +14,11 @@ module.exports = async function (context, req) {
   if (!userId) {
     context.res = {
       status: 400,
-      body: { error: 'User ID is required' }
+      body: JSON.stringify({ error: 'User ID is required' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     };
     return;
   }
@@ -28,7 +32,7 @@ module.exports = async function (context, req) {
       
       context.res = {
         status: 200,
-        body: userData,
+        body: JSON.stringify(userData),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
@@ -37,7 +41,7 @@ module.exports = async function (context, req) {
     } else {
       context.res = {
         status: 404,
-        body: { error: 'User not found' },
+        body: JSON.stringify({ error: 'User not found' }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
@@ -48,7 +52,7 @@ module.exports = async function (context, req) {
     if (error.code === 404) {
       context.res = {
         status: 404,
-        body: { error: 'User not found' },
+        body: JSON.stringify({ error: 'User not found' }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
@@ -58,7 +62,7 @@ module.exports = async function (context, req) {
       context.log.error('Error loading user data:', error);
       context.res = {
         status: 500,
-        body: { error: 'Internal server error' },
+        body: JSON.stringify({ error: 'Internal server error', details: error.message }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'

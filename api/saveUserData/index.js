@@ -15,7 +15,7 @@ module.exports = async function (context, req) {
   if (!userId) {
     context.res = {
       status: 400,
-      body: { error: 'User ID is required' },
+      body: JSON.stringify({ error: 'User ID is required' }),
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
@@ -27,7 +27,7 @@ module.exports = async function (context, req) {
   if (!userData) {
     context.res = {
       status: 400,
-      body: { error: 'User data is required' },
+      body: JSON.stringify({ error: 'User data is required' }),
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
@@ -48,7 +48,7 @@ module.exports = async function (context, req) {
     
     context.res = {
       status: 200,
-      body: { success: true, id: resource.id },
+      body: JSON.stringify({ success: true, id: resource.id }),
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
@@ -58,7 +58,7 @@ module.exports = async function (context, req) {
     context.log.error('Error saving user data:', error);
     context.res = {
       status: 500,
-      body: { error: 'Internal server error' },
+      body: JSON.stringify({ error: 'Internal server error', details: error.message }),
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
