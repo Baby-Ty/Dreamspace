@@ -1,12 +1,15 @@
 const { CosmosClient } = require('@azure/cosmos');
 
-const client = new CosmosClient({
-  endpoint: process.env.COSMOS_ENDPOINT,
-  key: process.env.COSMOS_KEY
-});
-
-const database = client.database('dreamspace');
-const container = database.container('users');
+// Initialize Cosmos client only if environment variables are present
+let client, database, container;
+if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
+  client = new CosmosClient({
+    endpoint: process.env.COSMOS_ENDPOINT,
+    key: process.env.COSMOS_KEY
+  });
+  database = client.database('dreamspace');
+  container = database.container('users');
+}
 
 module.exports = async function (context, req) {
   const userId = context.bindingData.userId;
@@ -28,6 +31,19 @@ module.exports = async function (context, req) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'User data is required' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    };
+    return;
+  }
+
+  // Check if Cosmos DB is configured
+  if (!container) {
+    context.res = {
+      status: 500,
+      body: JSON.stringify({ error: 'Database not configured', details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' }),
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
