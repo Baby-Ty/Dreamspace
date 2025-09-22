@@ -33,10 +33,9 @@ jobs:
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
         env:
-          # Frontend environment variables
+          # Frontend environment variables - these will be available at build time
           VITE_APP_ENV: production
           VITE_COSMOS_ENDPOINT: https://dreamspace-cosmos-db.documents.azure.com:443/
-          VITE_COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
