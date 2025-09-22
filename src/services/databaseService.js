@@ -1,19 +1,22 @@
 // Database service for DreamSpace - handles Cosmos DB data persistence
 class DatabaseService {
   constructor() {
-    // Only use Cosmos DB if we have the endpoint configured (Azure Static Web Apps)
-    // For GitHub Pages, we'll always use localStorage
-    this.useCosmosDB = import.meta.env.VITE_COSMOS_ENDPOINT && 
-                      import.meta.env.VITE_COSMOS_KEY &&
-                      !import.meta.env.GITHUB_PAGES;
+    // Use Cosmos DB if environment variables are present
+    this.useCosmosDB = !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_COSMOS_KEY);
     
-    // Set API base URL - in production it's relative, in development it might be different
+    // Set API base URL
     this.apiBase = '/api';
+    
+    // Debug logging
+    console.log('🔍 Environment check:');
+    console.log('VITE_COSMOS_ENDPOINT:', import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET');
+    console.log('VITE_COSMOS_KEY:', import.meta.env.VITE_COSMOS_KEY ? 'SET' : 'NOT SET');
+    console.log('VITE_APP_ENV:', import.meta.env.VITE_APP_ENV);
     
     if (this.useCosmosDB) {
       console.log('☁️ Using Azure Cosmos DB for data persistence');
     } else {
-      console.log('💾 Using localStorage for data persistence');
+      console.log('💾 Using localStorage for data persistence (development mode)');
     }
   }
 
