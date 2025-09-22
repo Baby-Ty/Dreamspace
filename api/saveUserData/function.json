@@ -6,7 +6,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["post", "put"],
-      "route": "users/{userId}"
+      "route": "saveUserData/{userId}"
     },
     {
       "type": "http",
