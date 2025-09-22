@@ -1,9 +1,18 @@
-// Database service for DreamSpace - handles localStorage data persistence
+// Database service for DreamSpace - handles Cosmos DB data persistence
 class DatabaseService {
   constructor() {
-    // Always use localStorage for simplicity and reliability
-    this.useCosmosDB = false;
-    console.log('💾 Using localStorage for data persistence');
+    // Check if we're in production (Azure Static Web Apps) or development
+    this.useCosmosDB = import.meta.env.VITE_APP_ENV === 'production' || 
+                      import.meta.env.VITE_COSMOS_ENDPOINT;
+    
+    // Set API base URL - in production it's relative, in development it might be different
+    this.apiBase = '/api';
+    
+    if (this.useCosmosDB) {
+      console.log('☁️ Using Azure Cosmos DB for data persistence');
+    } else {
+      console.log('💾 Using localStorage for data persistence (development mode)');
+    }
   }
 
   // Get user-specific storage key for localStorage
@@ -87,10 +96,10 @@ class DatabaseService {
     }
   }
 
-  // Cosmos DB methods (using API functions)
+  // Cosmos DB methods (using Azure Functions API)
   async saveToCosmosDB(userId, userData) {
     try {
-      const response = await fetch(`${this.apiBase}/users/${userId}`, {
+      const response = await fetch(`${this.apiBase}/saveUserData/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -101,6 +110,8 @@ class DatabaseService {
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Data saved to Cosmos DB for user:', userId);
+        // Notify listeners that a save occurred
+        window.dispatchEvent(new Event('dreamspace:saved'));
         return { success: true, result };
       } else {
         const error = await response.json();
@@ -115,7 +126,7 @@ class DatabaseService {
 
   async loadFromCosmosDB(userId) {
     try {
-      const response = await fetch(`${this.apiBase}/users/${userId}`);
+      const response = await fetch(`${this.apiBase}/getUserData/${userId}`);
       
       if (response.ok) {
         const userData = await response.json();
@@ -123,7 +134,7 @@ class DatabaseService {
         return userData;
       } else if (response.status === 404) {
         console.log('ℹ️ No data found in Cosmos DB for user:', userId);
-        return null; // User not found
+        return null; // User not found - this is fine for new users
       } else {
         const error = await response.json();
         console.error('❌ Cosmos DB load error:', error);
@@ -139,16 +150,27 @@ class DatabaseService {
   async clearUserData(userId) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/users/${userId}`, {
-          method: 'DELETE'
-        });
+        // For Cosmos DB, we'll save empty user data instead of deleting
+        // This preserves the user record but clears their data
+        const emptyUserData = {
+          dreamBook: [],
+          careerGoals: [],
+          developmentPlan: [],
+          score: 0,
+          connects: [],
+          dreamCategories: [],
+          dreamsCount: 0,
+          connectsCount: 0,
+          weeklyGoals: [],
+          scoringHistory: []
+        };
         
-        if (response.ok) {
+        const result = await this.saveToCosmosDB(userId, emptyUserData);
+        if (result.success) {
           console.log(`✅ Cleared Cosmos DB data for user ${userId}`);
           return { success: true };
         } else {
-          const error = await response.json();
-          return { success: false, error: error.error || 'Unknown error' };
+          return result;
         }
       } else {
         const storageKey = this.getUserStorageKey(userId);

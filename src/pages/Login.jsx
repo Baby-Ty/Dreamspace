@@ -3,7 +3,7 @@ import { Star, Users, Target, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, loginError, clearLoginError } = useAuth();
   return (
     <div className="min-h-screen bg-professional-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
@@ -69,6 +69,21 @@ const Login = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {loginError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
+            <div className="flex items-center justify-between">
+              <p className="text-sm">{loginError}</p>
+              <button 
+                onClick={clearLoginError}
+                className="text-red-600 hover:text-red-800 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Login Button */}
         <div className="space-y-4">
           <button
@@ -85,6 +100,18 @@ const Login = () => {
             )}
             Sign in with Microsoft
           </button>
+          
+          {loginError && !isLoading && (
+            <button
+              onClick={() => {
+                clearLoginError();
+                login(false);
+              }}
+              className="w-full flex items-center justify-center px-4 py-2 bg-white border border-netsurit-red text-netsurit-red rounded-xl hover:bg-netsurit-red hover:text-white focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium"
+            >
+              Try Again
+            </button>
+          )}
           
           <p className="text-center text-sm text-professional-gray-500">
             Use your company Microsoft account to access DreamSpace

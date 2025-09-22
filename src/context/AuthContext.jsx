@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [loginError, setLoginError] = useState(null);
 
   useEffect(() => {
     // Skip MSAL account checking if we're in demo mode
@@ -166,6 +167,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (isDemo = false) => {
     try {
       setIsLoading(true);
+      setLoginError(null); // Clear any previous errors
       
       if (isDemo) {
         // Demo login - use Sarah Johnson's data from mockData
@@ -178,9 +180,43 @@ export const AuthProvider = ({ children }) => {
       
       // Regular Microsoft login
       setIsDemoMode(false);
-      await instance.loginPopup(loginRequest);
+      
+      // Try popup first, fallback to redirect if popup is blocked
+      try {
+        await instance.loginPopup(loginRequest);
+      } catch (popupError) {
+        // Check if error is due to popup being blocked
+        if (popupError.errorCode === 'popup_window_error' || 
+            popupError.message?.includes('popup') || 
+            popupError.name === 'BrowserAuthError') {
+          console.log('Popup blocked, trying redirect...');
+          setLoginError('Popup was blocked. Redirecting to login page...');
+          // Give user a moment to see the message
+          setTimeout(() => {
+            instance.loginRedirect(loginRequest);
+          }, 2000);
+          return;
+        }
+        throw popupError; // Re-throw if it's not a popup issue
+      }
+      
     } catch (error) {
       console.error('Login failed:', error);
+      
+      // Provide specific error messages based on error type
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.errorCode === 'user_cancelled') {
+        errorMessage = 'Login was cancelled. Please try again when ready.';
+      } else if (error.errorCode === 'network_error') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.errorCode === 'invalid_client') {
+        errorMessage = 'Configuration error. Please contact support.';
+      } else if (error.message?.includes('AADSTS')) {
+        errorMessage = 'Microsoft authentication error. Please try again or contact your IT administrator.';
+      }
+      
+      setLoginError(errorMessage);
       setIsLoading(false);
     }
   };
@@ -213,8 +249,10 @@ export const AuthProvider = ({ children }) => {
     userRole,
     isAuthenticated: !!user,
     isLoading,
+    loginError,
     login,
-    logout
+    logout,
+    clearLoginError: () => setLoginError(null)
   };
 
   return (
