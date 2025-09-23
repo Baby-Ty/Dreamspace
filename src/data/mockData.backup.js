@@ -268,16 +268,15 @@ export const currentUser = {
 };
 
 export const dreamCategories = [
-  "Health",
-  "Travel", 
-  "Career",
-  "Learning",
-  "Creative",
-  "Financial",
-  "Relationships",
-  "Adventure",
-  "Spiritual",
-  "Community"
+  "Family & Friends",
+  "Skills & Hobbies",
+  "Growth & Learning",
+  "Spirituality & Mind",
+  "Adventure & Fun",
+  "Love & Relationships",
+  "Wellness & Fitness",
+  "Money & Wealth",
+  "Contribution & Giving Back"
 ];
 
 export const allUsers = [
