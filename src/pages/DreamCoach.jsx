@@ -292,59 +292,75 @@ const DreamCoach = () => {
             <div className="lg:col-span-2">
               <h3 className="text-lg font-semibold text-professional-gray-900 mb-4">Dreams Portfolio</h3>
               <div className="space-y-4">
-                {member.sampleDreams?.slice(0, 3).map((dream, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-professional-gray-50 rounded-lg p-4 hover:bg-netsurit-light-coral/10 cursor-pointer transition-colors border border-transparent hover:border-netsurit-light-coral/40 hover:shadow-sm"
-                    onClick={() => handleDreamSelect(dream, member)}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className="h-16 w-16 rounded-lg flex-shrink-0 ring-1 ring-professional-gray-200 overflow-hidden bg-professional-gray-100">
-                        {dream.image ? (
-                          <img 
-                            src={dream.image} 
-                            alt={dream.title}
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div className={`h-full w-full flex items-center justify-center ${dream.image ? 'hidden' : 'flex'}`}>
-                          {React.createElement(getCategoryIcon(dream.category), { 
-                            className: "h-8 w-8 text-professional-gray-400" 
-                          })}
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-2">
+                {(member.dreamBook || member.sampleDreams || []).length > 0 ? (
+                  (member.dreamBook || member.sampleDreams || [])?.slice(0, 3).map((dream, index) => (
+                    <div 
+                      key={dream.id || index} 
+                      className="bg-professional-gray-50 rounded-lg p-4 hover:bg-netsurit-light-coral/10 cursor-pointer transition-colors border border-transparent hover:border-netsurit-light-coral/40 hover:shadow-sm"
+                      onClick={() => handleDreamSelect(dream, member)}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="h-16 w-16 rounded-lg flex-shrink-0 ring-1 ring-professional-gray-200 overflow-hidden bg-professional-gray-100">
+                          {dream.image ? (
+                            <img 
+                              src={dream.image} 
+                              alt={dream.title}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`h-full w-full flex items-center justify-center ${dream.image ? 'hidden' : 'flex'}`}>
                             {React.createElement(getCategoryIcon(dream.category), { 
-                              className: "h-4 w-4 text-netsurit-red" 
+                              className: "h-8 w-8 text-professional-gray-400" 
                             })}
-                            <h4 className="font-medium text-professional-gray-900">{dream.title}</h4>
-                          </div>
-                          <div className="flex items-center space-x-1 text-netsurit-red">
-                            <Eye className="h-4 w-4" />
-                            <span className="text-xs font-medium">View Details</span>
                           </div>
                         </div>
-                        <p className="text-sm text-professional-gray-600 mb-2">{dream.category}</p>
-                        <div className="w-full bg-professional-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-2 rounded-full transition-all duration-300" 
-                            style={{ width: `${dream.progress || 0}%` }}
-                          ></div>
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-xs text-professional-gray-500">{dream.progress || 0}% complete</p>
-                          <p className="text-xs text-netsurit-red font-medium">Click to coach</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              {React.createElement(getCategoryIcon(dream.category), { 
+                                className: "h-4 w-4 text-netsurit-red" 
+                              })}
+                              <h4 className="font-medium text-professional-gray-900">{dream.title}</h4>
+                            </div>
+                            <div className="flex items-center space-x-1 text-netsurit-red">
+                              <Eye className="h-4 w-4" />
+                              <span className="text-xs font-medium">View Details</span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-professional-gray-600 mb-2">{dream.category}</p>
+                          {dream.description && (
+                            <p className="text-xs text-professional-gray-500 mb-2 line-clamp-2">{dream.description}</p>
+                          )}
+                          <div className="w-full bg-professional-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${dream.progress || 0}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs text-professional-gray-500">{dream.progress || 0}% complete</p>
+                            <p className="text-xs text-netsurit-red font-medium">Click to coach</p>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-professional-gray-300 mx-auto mb-4" />
+                    <p className="text-professional-gray-500 font-medium">No Dreams Yet</p>
+                    <p className="text-sm text-professional-gray-400 mt-1">
+                      {member.name} hasn't created any dreams to work on.
+                    </p>
+                    <p className="text-xs text-professional-gray-400 mt-2">
+                      Encourage them to set some professional or personal goals!
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
