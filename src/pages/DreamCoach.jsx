@@ -56,8 +56,10 @@ const DreamCoach = () => {
         currentUserKeys: currentUser ? Object.keys(currentUser) : null
       });
       
-      if (!currentUser?.id) {
-        console.log('❌ No currentUser.id, skipping loadCoachData');
+      // Use id or userId - handle both formats
+      const userId = currentUser?.id || currentUser?.userId;
+      if (!userId) {
+        console.log('❌ No currentUser.id or currentUser.userId, skipping loadCoachData');
         setIsLoading(false); // IMPORTANT: Stop loading even if no user
         return;
       }
@@ -66,11 +68,11 @@ const DreamCoach = () => {
         setError(null);
         setIsLoading(true);
         
-        console.log('🔄 About to call peopleService APIs with userId:', currentUser.id);
+        console.log('🔄 About to call peopleService APIs with userId:', userId);
 
         const [metrics, alerts] = await Promise.all([
-          peopleService.getTeamMetrics(currentUser.id),
-          peopleService.getCoachingAlerts(currentUser.id)
+          peopleService.getTeamMetrics(userId),
+          peopleService.getCoachingAlerts(userId)
         ]);
 
         console.log('📊 Raw API responses received:', {
@@ -85,7 +87,7 @@ const DreamCoach = () => {
         setTeamNotes([]); // For now, we'll use empty array until we implement coaching notes API
         
         console.log('✅ Loaded coach data - Final state:', {
-          userId: currentUser.id,
+          userId: userId,
           hasMetrics: !!metrics,
           metricsType: typeof metrics,
           metricsValue: JSON.stringify(metrics),
@@ -105,20 +107,21 @@ const DreamCoach = () => {
     };
 
     loadCoachData();
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.userId]);
 
   // Refresh data function
   const refreshData = async () => {
     setIsLoading(true);
     const loadCoachData = async () => {
-      if (!currentUser?.id) return;
+      const userId = currentUser?.id || currentUser?.userId;
+      if (!userId) return;
 
       try {
         setError(null);
 
         const [metrics, alerts] = await Promise.all([
-          peopleService.getTeamMetrics(currentUser.id),
-          peopleService.getCoachingAlerts(currentUser.id)
+          peopleService.getTeamMetrics(userId),
+          peopleService.getCoachingAlerts(userId)
         ]);
 
         setTeamMetrics(metrics);
@@ -148,7 +151,9 @@ const DreamCoach = () => {
           <p className="text-professional-gray-600">Fetching your coaching assignments and team data...</p>
           <div className="mt-4 text-sm text-professional-gray-500">
             <p>User ID: {currentUser?.id || 'Not available'}</p>
+            <p>User UserID: {currentUser?.userId || 'Not available'}</p>
             <p>User Name: {currentUser?.name || 'Not available'}</p>
+            <p>Effective ID: {currentUser?.id || currentUser?.userId || 'Not available'}</p>
             <p>Debug: Check browser console for detailed loading info</p>
           </div>
           <button 
