@@ -106,6 +106,13 @@ class PeopleService {
 
   // Get team metrics for a specific manager
   async getTeamMetrics(managerId) {
+    console.log('🔍 getTeamMetrics called:', {
+      managerId,
+      useCosmosDB: this.useCosmosDB,
+      environment: import.meta.env.VITE_APP_ENV,
+      cosmosEndpoint: import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET'
+    });
+    
     try {
       if (this.useCosmosDB) {
         const response = await fetch(`${this.apiBase}/getTeamMetrics/${managerId}`, {
@@ -121,6 +128,13 @@ class PeopleService {
 
         const result = await response.json();
         console.log('✅ Retrieved team metrics from Cosmos DB for manager:', managerId);
+        console.log('🔍 Team metrics response:', {
+          hasResult: !!result,
+          hasMetrics: !!result.metrics,
+          metricsType: typeof result.metrics,
+          teamSize: result.metrics?.teamSize,
+          teamMembers: result.metrics?.teamMembers?.length
+        });
         return result.metrics;
       } else {
         // Fallback to localStorage for development

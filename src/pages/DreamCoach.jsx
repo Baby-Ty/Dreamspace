@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Users2, 
   TrendingUp, 
@@ -21,10 +21,12 @@ import {
   Briefcase,
   Zap,
   Eye,
-  UserCheck
+  UserCheck,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTeamMetrics, getCoachingAlerts, coachingNotes } from '../data/mockData';
+import peopleService from '../services/peopleService';
 import DreamCoachingModal from '../components/DreamCoachingModal';
 
 const DreamCoach = () => {
@@ -34,22 +36,140 @@ const DreamCoach = () => {
   const [dreamCoachingNotes, setDreamCoachingNotes] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Real data state
+  const [teamMetrics, setTeamMetrics] = useState(null);
+  const [coachingAlerts, setCoachingAlerts] = useState([]);
+  const [teamNotes, setTeamNotes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Get team data for current user (assuming they're a manager)
-  const teamMetrics = useMemo(() => getTeamMetrics(currentUser.id), [currentUser.id]);
-  const coachingAlerts = useMemo(() => getCoachingAlerts(currentUser.id), [currentUser.id]);
-  const teamNotes = useMemo(() => 
-    coachingNotes.filter(note => note.managerId === currentUser.id),
-    [currentUser.id]
-  );
+  // Load team data for current user
+  useEffect(() => {
+    const loadCoachData = async () => {
+      if (!currentUser?.id) return;
 
+      try {
+        setError(null);
+        setIsLoading(true);
+
+        const [metrics, alerts] = await Promise.all([
+          peopleService.getTeamMetrics(currentUser.id),
+          peopleService.getCoachingAlerts(currentUser.id)
+        ]);
+
+        setTeamMetrics(metrics);
+        setCoachingAlerts(alerts || []);
+        setTeamNotes([]); // For now, we'll use empty array until we implement coaching notes API
+        
+        console.log('✅ Loaded coach data:', {
+          userId: currentUser.id,
+          hasMetrics: !!metrics,
+          metricsType: typeof metrics,
+          metricsValue: metrics,
+          alertsCount: alerts?.length || 0,
+          environment: import.meta.env.VITE_APP_ENV,
+          cosmosEndpoint: import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET'
+        });
+      } catch (error) {
+        console.error('❌ Error loading coach data:', error);
+        setError(error.message || 'Failed to load team data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCoachData();
+  }, [currentUser?.id]);
+
+  // Refresh data function
+  const refreshData = async () => {
+    setIsLoading(true);
+    const loadCoachData = async () => {
+      if (!currentUser?.id) return;
+
+      try {
+        setError(null);
+
+        const [metrics, alerts] = await Promise.all([
+          peopleService.getTeamMetrics(currentUser.id),
+          peopleService.getCoachingAlerts(currentUser.id)
+        ]);
+
+        setTeamMetrics(metrics);
+        setCoachingAlerts(alerts || []);
+        setTeamNotes([]);
+        
+        console.log('🔄 Refreshed coach data');
+      } catch (error) {
+        console.error('❌ Error refreshing coach data:', error);
+        setError(error.message || 'Failed to refresh team data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    await loadCoachData();
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-20">
+          <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Your Team</h2>
+          <p className="text-professional-gray-600">Fetching your coaching assignments and team data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-20">
+          <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Failed to Load Team Data</h2>
+          <p className="text-professional-gray-600 mb-4">{error}</p>
+          <button
+            onClick={refreshData}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            <span>{isLoading ? 'Retrying...' : 'Retry'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no team assigned state
   if (!teamMetrics) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
           <Users2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">No Team Assigned</h2>
-          <p className="text-gray-600">You don't have any team members assigned to coach yet.</p>
+          <p className="text-gray-600 mb-4">You don't have any team members assigned to coach yet.</p>
+          <button
+            onClick={refreshData}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-3 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 flex items-center mx-auto"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            <span className="text-sm">{isLoading ? 'Checking...' : 'Check Again'}</span>
+          </button>
         </div>
       </div>
     );
