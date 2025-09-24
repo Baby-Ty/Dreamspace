@@ -50,40 +50,56 @@ const DreamCoach = () => {
       console.log('🎯 DreamCoach useEffect triggered:', {
         hasCurrentUser: !!currentUser,
         currentUserId: currentUser?.id,
-        currentUserName: currentUser?.name
+        currentUserUserId: currentUser?.userId,
+        currentUserEmail: currentUser?.email,
+        currentUserName: currentUser?.name,
+        currentUserKeys: currentUser ? Object.keys(currentUser) : null
       });
       
       if (!currentUser?.id) {
         console.log('❌ No currentUser.id, skipping loadCoachData');
+        setIsLoading(false); // IMPORTANT: Stop loading even if no user
         return;
       }
 
       try {
         setError(null);
         setIsLoading(true);
+        
+        console.log('🔄 About to call peopleService APIs with userId:', currentUser.id);
 
         const [metrics, alerts] = await Promise.all([
           peopleService.getTeamMetrics(currentUser.id),
           peopleService.getCoachingAlerts(currentUser.id)
         ]);
 
+        console.log('📊 Raw API responses received:', {
+          metricsResponse: metrics,
+          alertsResponse: alerts,
+          metricsType: typeof metrics,
+          alertsType: typeof alerts
+        });
+
         setTeamMetrics(metrics);
         setCoachingAlerts(alerts || []);
         setTeamNotes([]); // For now, we'll use empty array until we implement coaching notes API
         
-        console.log('✅ Loaded coach data:', {
+        console.log('✅ Loaded coach data - Final state:', {
           userId: currentUser.id,
           hasMetrics: !!metrics,
           metricsType: typeof metrics,
-          metricsValue: metrics,
+          metricsValue: JSON.stringify(metrics),
           alertsCount: alerts?.length || 0,
-          environment: import.meta.env.VITE_APP_ENV,
-          cosmosEndpoint: import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET'
+          teamSize: metrics?.teamSize,
+          averageScore: metrics?.averageScore,
+          totalDreams: metrics?.totalDreams
         });
       } catch (error) {
         console.error('❌ Error loading coach data:', error);
+        console.error('❌ Error stack:', error.stack);
         setError(error.message || 'Failed to load team data');
       } finally {
+        console.log('🏁 Setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -130,6 +146,20 @@ const DreamCoach = () => {
           <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Your Team</h2>
           <p className="text-professional-gray-600">Fetching your coaching assignments and team data...</p>
+          <div className="mt-4 text-sm text-professional-gray-500">
+            <p>User ID: {currentUser?.id || 'Not available'}</p>
+            <p>User Name: {currentUser?.name || 'Not available'}</p>
+            <p>Debug: Check browser console for detailed loading info</p>
+          </div>
+          <button 
+            onClick={() => {
+              console.log('🔄 Force refresh triggered');
+              window.location.reload();
+            }}
+            className="mt-4 px-4 py-2 bg-netsurit-red text-white rounded hover:bg-netsurit-coral"
+          >
+            Force Reload Page
+          </button>
         </div>
       </div>
     );
