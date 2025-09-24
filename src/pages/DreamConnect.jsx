@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Users, MapPin, Heart, MessageCircle, Calendar, Camera, X, Send, Award, BookOpen, MoreVertical, Network } from 'lucide-react';
-import { getSuggestedConnections } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Users, MapPin, Heart, MessageCircle, Calendar, Camera, X, Send, Award, BookOpen, MoreVertical, Network, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import peopleService from '../services/peopleService';
 import { useApp } from '../context/AppContext';
 
 const DreamConnect = () => {
@@ -15,20 +15,134 @@ const DreamConnect = () => {
   const [previewUser, setPreviewUser] = useState(null);
   const { currentUser } = useApp();
 
-  const suggestedConnections = getSuggestedConnections(currentUser.id);
+  // Real data state
+  const [allUsers, setAllUsers] = useState([]);
+  const [suggestedConnections, setSuggestedConnections] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load users and generate suggestions
+  useEffect(() => {
+    loadUsersAndGenerateSuggestions();
+  }, [currentUser?.id]);
+
+  const loadUsersAndGenerateSuggestions = async () => {
+    if (!currentUser?.id) return;
+
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      // Get all users from Cosmos DB
+      const users = await peopleService.getAllUsers();
+      setAllUsers(users);
+
+      // Generate suggested connections based on real data
+      const suggestions = generateSuggestedConnections(users, currentUser);
+      setSuggestedConnections(suggestions);
+
+      console.log('✅ Loaded Dream Connect data:', {
+        totalUsers: users.length,
+        suggestions: suggestions.length,
+        currentUser: currentUser.name
+      });
+    } catch (error) {
+      console.error('❌ Error loading Dream Connect data:', error);
+      setError(error.message || 'Failed to load users');
+      setSuggestedConnections([]); // Fallback to empty array
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateSuggestedConnections = (users, currentUser) => {
+    if (!users || !currentUser) return [];
+
+    // Filter out the current user
+    const otherUsers = users.filter(user => user.id !== currentUser.id);
+
+    // Calculate shared categories and create suggestions
+    return otherUsers.map(user => {
+      const sharedCategories = getSharedCategories(
+        currentUser.dreamCategories || [], 
+        user.dreamCategories || []
+      );
+
+      return {
+        ...user,
+        sharedCategories,
+        // Add sample dreams if they don't exist
+        sampleDreams: user.sampleDreams || generateSampleDreamsFromCategories(user.dreamCategories || [])
+      };
+    })
+    // Sort by number of shared categories first (most compatible first), 
+    // then by activity level, then alphabetically
+    .sort((a, b) => {
+      const diff = b.sharedCategories.length - a.sharedCategories.length;
+      if (diff !== 0) return diff;
+      // Secondary sort by score/activity level
+      const scoreDiff = (b.score || 0) - (a.score || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      // Tertiary sort alphabetically by name
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  };
+
+  const getSharedCategories = (userCategories, otherCategories) => {
+    return userCategories.filter(cat => otherCategories.includes(cat));
+  };
+
+  const generateSampleDreamsFromCategories = (categories) => {
+    const sampleTitleByCategory = {
+      'Learning': { title: 'Learn a New Skill', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=60&auto=format&fit=crop' },
+      'Health': { title: 'Get Fit — 3x a Week', image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=60&auto=format&fit=crop' },
+      'Travel': { title: 'Visit a New Country', image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=60&auto=format&fit=crop' },
+      'Creative': { title: 'Start a Creative Project', image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&q=60&auto=format&fit=crop' },
+      'Career': { title: 'Earn a Certification', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=60&auto=format&fit=crop' },
+      'Financial': { title: 'Save for a Big Goal', image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&q=60&auto=format&fit=crop' },
+      'Community': { title: 'Volunteer for a Cause', image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&q=60&auto=format&fit=crop' }
+    };
+
+    return categories.slice(0, 3).map((category, index) => ({
+      title: sampleTitleByCategory[category]?.title || 'Personal Growth Goal',
+      category: category,
+      image: sampleTitleByCategory[category]?.image || 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=600&q=60&auto=format&fit=crop'
+    }));
+  };
+
+  const refreshConnections = async () => {
+    await loadUsersAndGenerateSuggestions();
+  };
 
   const categoryPills = ['All','Learning','Health','Travel','Creative','Career','Finance','Community'];
   const mapCategory = (c) => (c === 'Finance' ? 'Financial' : c);
 
   const filteredConnections = suggestedConnections.filter(u => {
     let ok = true;
+    
+    // Category filtering: Show all users when "All" is selected
     if (categoryFilter !== 'All') {
-      ok = (u.dreamCategories || []).includes(mapCategory(categoryFilter));
+      // When a specific category is selected, only show users with that dream category
+      const userCategories = u.dreamCategories || [];
+      ok = userCategories.includes(mapCategory(categoryFilter));
     }
+    // If categoryFilter is "All", show everyone regardless of dream categories (ok stays true)
+    
+    // Location filtering
     if (ok && locationFilter !== 'All') {
       ok = u.office === locationFilter;
     }
+    
     return ok;
+  });
+
+  console.log('🔍 Dream Connect Debug:', {
+    totalUsers: allUsers.length,
+    suggestedConnections: suggestedConnections.length,
+    filteredConnections: filteredConnections.length,
+    categoryFilter,
+    locationFilter,
+    currentUser: currentUser?.name
   });
 
   const handleConnectRequest = (user) => {
@@ -43,21 +157,53 @@ const DreamConnect = () => {
     setShowPreviewModal(true);
   };
 
-  const handleSendRequest = () => {
-    // In a real app, this would send the connect request
-    console.log('Sending connect request to:', selectedUser.name);
-    console.log('Message:', requestMessage);
-    console.log('Scheduling:', schedulingOption);
-    console.log('Upload selfie after meeting:', uploadSelfie);
-    
-    setShowRequestModal(false);
-    setSelectedUser(null);
-    setRequestMessage('');
-    setUploadSelfie(false);
-    setSchedulingOption('teams');
-    
-    // Show success message (you could add a toast notification here)
-    alert(`Dream Connect request sent to ${selectedUser?.name}!`);
+  const handleSendRequest = async () => {
+    if (!selectedUser || !requestMessage.trim()) return;
+
+    try {
+      // Create connect entry
+      const connectData = {
+        id: Date.now(),
+        name: selectedUser.name,
+        category: categoryFilter !== 'All' ? mapCategory(categoryFilter) : (selectedUser.sharedCategories?.[0] || 'Shared interests'),
+        withWhom: selectedUser.name,
+        date: new Date().toISOString().split('T')[0],
+        notes: requestMessage,
+        avatar: selectedUser.avatar,
+        office: selectedUser.office,
+        schedulingOption,
+        uploadSelfie
+      };
+
+      console.log('✅ Dream Connect request created:', {
+        to: selectedUser.name,
+        message: requestMessage,
+        scheduling: schedulingOption,
+        uploadSelfie
+      });
+
+      // TODO: In a real implementation, this would:
+      // 1. Send notification to the target user
+      // 2. Create a pending connection request in the database
+      // 3. Update both users' connect histories
+      // For now, we'll just add it to the current user's connects
+      
+      // You can use the AppContext addConnect method here if needed
+      // addConnect(connectData);
+      
+      setShowRequestModal(false);
+      setSelectedUser(null);
+      setRequestMessage('');
+      setUploadSelfie(false);
+      setSchedulingOption('teams');
+      
+      // Show success message
+      alert(`Dream Connect request sent to ${selectedUser?.name}! 🎉`);
+      
+    } catch (error) {
+      console.error('❌ Error sending connect request:', error);
+      alert(`Failed to send connect request to ${selectedUser?.name}. Please try again.`);
+    }
   };
 
   const handleCloseModal = () => {
@@ -67,6 +213,39 @@ const DreamConnect = () => {
     setUploadSelfie(false);
     setSchedulingOption('teams');
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <div className="text-center py-20">
+          <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Dream Connections</h2>
+          <p className="text-professional-gray-600">Finding people you can connect with...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <div className="text-center py-20">
+          <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Failed to Load Connections</h2>
+          <p className="text-professional-gray-600 mb-4">{error}</p>
+          <button
+            onClick={refreshConnections}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            <span>Retry</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4">
@@ -79,6 +258,14 @@ const DreamConnect = () => {
                 <Network className="h-6 w-6 text-white" />
               </div>
               <h1 className="text-2xl lg:text-3xl font-bold text-professional-gray-900">Dream Connect</h1>
+              <button
+                onClick={refreshConnections}
+                disabled={isLoading}
+                className="bg-professional-gray-100 text-professional-gray-700 p-2 rounded-lg hover:bg-professional-gray-200 focus:outline-none focus:ring-2 focus:ring-professional-gray-300 transition-all duration-200"
+                title="Refresh Connections"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
             <p className="text-base text-professional-gray-600">
               Find colleagues with shared dream categories and learn from each other.
@@ -173,16 +360,26 @@ const DreamConnect = () => {
               <Users className="w-10 h-10 text-professional-gray-400" />
             </div>
             <h3 className="text-xl font-bold text-professional-gray-900 mb-3">
-              No suggestions available
+              {categoryFilter === 'All' ? 'No colleagues found' : `No colleagues with "${categoryFilter}" dreams`}
             </h3>
             <p className="text-professional-gray-600 max-w-md mx-auto leading-relaxed">
-              Complete your Dream Book or adjust your filters to get personalized connection suggestions!
+              {categoryFilter === 'All' 
+                ? 'No other users are available for connections at the moment.'
+                : `Try selecting "All" to see all colleagues, or choose a different dream category.`
+              }
             </p>
             <button 
-              onClick={() => setCategoryFilter('All')}
+              onClick={() => {
+                if (categoryFilter === 'All') {
+                  refreshConnections();
+                } else {
+                  setCategoryFilter('All'); 
+                  setLocationFilter('All');
+                }
+              }}
               className="mt-6 px-6 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
             >
-              Reset Filters
+              {categoryFilter === 'All' ? 'Refresh' : 'Show All Colleagues'}
             </button>
           </div>
         ) : (
