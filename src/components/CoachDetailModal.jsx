@@ -41,7 +41,17 @@ const CoachDetailModal = ({ coach, onClose }) => {
   const coachingAlerts = coach.alerts || [];
   const teamNotes = []; // For now, we'll use empty array until we implement coaching notes API
 
-  if (!coach || !teamMetrics) return null;
+  console.log('🔍 CoachDetailModal rendering with:', {
+    coach: coach?.name,
+    hasTeamMetrics: !!teamMetrics,
+    teamMetrics: teamMetrics,
+    alertsCount: coachingAlerts?.length || 0
+  });
+
+  if (!coach || !teamMetrics) {
+    console.log('🚫 CoachDetailModal returning null - coach:', !!coach, 'teamMetrics:', !!teamMetrics);
+    return null;
+  }
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },

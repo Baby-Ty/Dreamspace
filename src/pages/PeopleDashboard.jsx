@@ -188,8 +188,16 @@ const PeopleDashboard = () => {
   const offices = [...new Set(allUsers.map(user => user.office))];
 
   const handleViewCoach = (coach) => {
+    console.log('🔍 handleViewCoach called with coach:', {
+      id: coach.id,
+      name: coach.name,
+      teamMetrics: coach.teamMetrics,
+      alerts: coach.alerts,
+      hasTeamMetrics: !!coach.teamMetrics
+    });
     setSelectedCoach(coach);
     setShowCoachModal(true);
+    console.log('🔍 Modal state set - showCoachModal: true, selectedCoach:', coach.name);
   };
 
   const toggleTeamExpansion = (coachId) => {
