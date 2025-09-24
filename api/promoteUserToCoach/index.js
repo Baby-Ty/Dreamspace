@@ -89,7 +89,7 @@ module.exports = async function (context, req) {
     const teamRelationship = {
       id: teamId,
       type: 'team_relationship',
-      managerId: parseInt(userId),
+      managerId: userId, // Keep as string to match user ID format
       teamMembers: [],
       teamName: teamName,
       managerRole: 'Dream Coach',
@@ -108,7 +108,7 @@ module.exports = async function (context, req) {
       body: JSON.stringify({
         success: true,
         message: 'User successfully promoted to coach',
-        userId: parseInt(userId),
+        userId: userId,
         teamName: teamName,
         teamId: teamId,
         promotedAt: teamRelationship.createdAt,
