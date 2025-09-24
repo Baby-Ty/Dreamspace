@@ -164,8 +164,8 @@ export const AuthProvider = ({ children }) => {
 
   const determineUserRoleFromToken = (account, profile, userData) => {
     try {
-      // Sarah Johnson admin override only applies in demo mode
-      if (isDemoMode && userData.id === 1) return 'admin';
+      // Sarah Johnson admin override - works with both demo mode and regular login
+      if (userData.email === 'sarah.johnson@netsurit.com' || userData.id === 'sarah.johnson@netsurit.com') return 'admin';
       
       // Get roles from the ID token claims (Entra App Roles)
       const idTokenClaims = account?.idTokenClaims;
@@ -211,31 +211,29 @@ export const AuthProvider = ({ children }) => {
       setLoginError(null); // Clear any previous errors
       
       if (isDemo) {
-        // Demo login - load Sarah Johnson from Cosmos DB
+        // Demo login - load Sarah Johnson as a real user from Cosmos DB
+        // She's now a production user, so load her actual data
         setIsDemoMode(true);
         
         try {
-          // Load Sarah Johnson's real data from Cosmos DB
+          // Load Sarah Johnson's real data from production Cosmos DB
           const sarahData = await databaseService.loadUserData('sarah.johnson@netsurit.com');
           
           if (sarahData && sarahData.success && sarahData.data) {
-            // Use the real Sarah Johnson data from Cosmos DB
+            // Use the real Sarah Johnson data from production database
             setUser(sarahData.data);
-            setUserRole('admin'); // Sarah is an admin in the demo
-            console.log('✅ Demo login successful with Cosmos DB data for Sarah Johnson');
-          } else {
-            // Fallback to mock data if Cosmos DB doesn't have Sarah
-            console.log('⚠️ Sarah Johnson not found in Cosmos DB, using mock data fallback');
-            const sarahJohnson = allUsers.find(user => user.id === 1); // Sarah Johnson from mock data
-            setUser(sarahJohnson);
+            // Sarah gets admin role for demo purposes (can access coaching features)
             setUserRole('admin');
+            console.log('✅ Demo login successful with production data for Sarah Johnson');
+          } else {
+            // If not found in production DB, show error
+            throw new Error('Sarah Johnson not found in production database. Please run the user setup first.');
           }
         } catch (error) {
-          console.error('❌ Error loading demo user from Cosmos DB:', error);
-          // Fallback to mock data
-          const sarahJohnson = allUsers.find(user => user.id === 1);
-          setUser(sarahJohnson);
-          setUserRole('admin');
+          console.error('❌ Error loading demo user from production DB:', error);
+          setLoginError(`Demo user not available: ${error.message}. Please ensure Sarah Johnson has been added to the production database.`);
+          setIsLoading(false);
+          return;
         }
         
         setIsLoading(false);
