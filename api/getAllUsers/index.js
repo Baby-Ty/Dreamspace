@@ -52,24 +52,30 @@ module.exports = async function (context, req) {
     
     // Transform users to match the expected format
     const formattedUsers = users.map(user => {
+      // Extract the best available profile data - prioritize currentUser data if available
+      const currentUser = user.currentUser || {};
+      const bestName = currentUser.name || user.name || user.displayName || 'Unknown User';
+      const bestEmail = currentUser.email || user.email || user.userPrincipalName || user.mail || '';
+      const bestOffice = currentUser.office || user.office || user.officeLocation || 'Unknown';
+      const bestAvatar = currentUser.avatar || user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(bestName)}&background=6366f1&color=fff&size=100`;
+      
       const formattedUser = {
         id: user.userId || user.id,
-        name: user.name || user.displayName || 'Unknown User',
-        email: user.email || user.userPrincipalName || '',
-        office: user.office || user.officeLocation || 'Unknown',
-        avatar: user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=6366f1&color=fff&size=100`,
-        score: user.score || 0,
-        dreamsCount: (user.dreamBook && user.dreamBook.length) || 0,
-        connectsCount: user.connectsCount || 0,
+        name: bestName,
+        email: bestEmail,
+        office: bestOffice,
+        avatar: bestAvatar,
+        score: currentUser.score || user.score || 0,
+        dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
+        connectsCount: currentUser.connectsCount || user.connectsCount || 0,
         role: user.role || 'user', // user, coach, manager, admin
         isActive: user.isActive !== false,
         lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
         createdAt: user.createdAt || user._ts ? new Date(user._ts * 1000).toISOString() : new Date().toISOString()
       };
       
-      // Log raw vs formatted for debugging
-      context.log('Raw user data:', JSON.stringify(user));
-      context.log('Formatted user:', JSON.stringify(formattedUser));
+      // Log the data sources for debugging
+      context.log(`User ${formattedUser.id}: Using name "${bestName}" from ${currentUser.name ? 'currentUser' : user.name ? 'user' : 'default'}`);
       
       return formattedUser;
     });

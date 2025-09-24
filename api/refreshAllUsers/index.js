@@ -57,34 +57,77 @@ module.exports = async function (context, req) {
 
     for (const user of usersToUpdate) {
       try {
-        // For now, we'll update with placeholder data based on their ID
-        // In a real scenario, you'd fetch from Microsoft Graph API
+        // Check if the user already has good profile data
+        if (user.name && user.name !== 'Unknown User' && !user.name.startsWith('User ')) {
+          results.push({
+            id: user.id,
+            name: user.name,
+            status: 'skipped - already has profile data'
+          });
+          continue;
+        }
+
+        // Try to extract meaningful data from existing fields
+        let updatedName = user.name || 'Unknown User';
+        let updatedEmail = user.email || '';
+        let updatedOffice = user.office || 'Remote';
+
+        // Check if we have any Microsoft Graph fields stored but not mapped
+        if (user.displayName && user.displayName !== 'Unknown User') {
+          updatedName = user.displayName;
+        }
+        if (user.userPrincipalName && !updatedEmail) {
+          updatedEmail = user.userPrincipalName;
+        }
+        if (user.mail && !updatedEmail) {
+          updatedEmail = user.mail;
+        }
+        if (user.officeLocation && user.officeLocation !== 'Unknown') {
+          updatedOffice = user.officeLocation;
+        }
+
+        // If still no good name, create a more user-friendly placeholder
+        if (updatedName === 'Unknown User' || updatedName.startsWith('User ')) {
+          // Extract a more readable name from the ID or email
+          if (updatedEmail && updatedEmail.includes('@')) {
+            const emailPrefix = updatedEmail.split('@')[0];
+            // Convert email prefix to a more readable format
+            updatedName = emailPrefix.split('.').map(part => 
+              part.charAt(0).toUpperCase() + part.slice(1)
+            ).join(' ');
+          } else {
+            updatedName = `User ${user.id.substring(0, 8)}`;
+          }
+        }
+
         const updatedUser = {
           ...user,
-          name: user.displayName || `User ${user.id.substring(0, 8)}`,
-          email: user.email || user.userPrincipalName || `user.${user.id.substring(0, 8)}@company.com`,
-          office: user.office || user.officeLocation || 'Office Location',
-          avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || `User ${user.id.substring(0, 8)}`)}&background=6366f1&color=fff&size=100`,
+          name: updatedName,
+          email: updatedEmail || `${user.id.substring(0, 8)}@yourcompany.com`,
+          office: updatedOffice,
+          avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(updatedName)}&background=6366f1&color=fff&size=100`,
           lastUpdated: new Date().toISOString(),
           profileRefreshed: new Date().toISOString()
         };
 
-        // Only update if we have better data
-        if (updatedUser.name !== 'Unknown User' && updatedUser.name !== user.name) {
+        // Update if we have improvements
+        if (updatedUser.name !== user.name || updatedUser.email !== user.email || updatedUser.office !== user.office) {
           await container.items.upsert(updatedUser);
           updatedCount++;
           results.push({
             id: user.id,
             oldName: user.name,
             newName: updatedUser.name,
-            status: 'updated'
+            oldEmail: user.email,
+            newEmail: updatedUser.email,
+            status: 'updated with improved data'
           });
           context.log(`Updated user ${user.id}: "${user.name}" -> "${updatedUser.name}"`);
         } else {
           results.push({
             id: user.id,
             name: user.name,
-            status: 'skipped - no better data available'
+            status: 'no improvements available'
           });
         }
       } catch (error) {
