@@ -57,7 +57,7 @@ module.exports = async function (context, req) {
       query: 'SELECT * FROM c WHERE c.type = @type AND c.managerId = @managerId',
       parameters: [
         { name: '@type', value: 'team_relationship' },
-        { name: '@managerId', value: parseInt(managerId) }
+        { name: '@managerId', value: managerId } // Keep as string UUID
       ]
     };
 
@@ -89,17 +89,23 @@ module.exports = async function (context, req) {
 
       const { resources: users } = await usersContainer.items.query(usersQuery).fetchAll();
       
-      // Transform user data
+      // Transform user data - prioritize currentUser data like getAllUsers API
       users.forEach(user => {
+        const currentUser = user.currentUser || {};
+        const bestName = currentUser.name || user.name || user.displayName || 'Unknown User';
+        const bestEmail = currentUser.email || user.email || user.userPrincipalName || user.mail || '';
+        const bestOffice = currentUser.office || user.office || user.officeLocation || 'Unknown';
+        const bestAvatar = currentUser.avatar || user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(bestName)}&background=6366f1&color=fff&size=100`;
+        
         teamMembers.push({
           id: user.userId || user.id,
-          name: user.name || user.displayName || 'Unknown User',
-          email: user.email || user.userPrincipalName || '',
-          office: user.office || user.officeLocation || 'Unknown',
-          avatar: user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=6366f1&color=fff&size=100`,
-          score: user.score || 0,
-          dreamsCount: (user.dreamBook && user.dreamBook.length) || 0,
-          connectsCount: user.connectsCount || 0,
+          name: bestName,
+          email: bestEmail,
+          office: bestOffice,
+          avatar: bestAvatar,
+          score: currentUser.score || user.score || 0,
+          dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
+          connectsCount: currentUser.connectsCount || user.connectsCount || 0,
           lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString()
         });
       });
@@ -134,7 +140,7 @@ module.exports = async function (context, req) {
       body: JSON.stringify({
         success: true,
         metrics,
-        managerId: parseInt(managerId),
+        managerId: managerId,
         timestamp: new Date().toISOString()
       }),
       headers
