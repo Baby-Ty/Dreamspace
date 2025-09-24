@@ -667,9 +667,10 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  console.log('🔄 Replace coach clicked for:', coach.name);
                   onReplaceCoach(coach);
                 }}
-                className="p-1.5 text-professional-gray-400 hover:text-netsurit-orange hover:bg-netsurit-orange/10 rounded transition-colors"
+                className="p-1.5 text-netsurit-orange hover:text-netsurit-warm-orange hover:bg-netsurit-orange/10 rounded transition-colors border border-netsurit-orange/20"
                 title="Replace Coach"
               >
                 <Repeat className="w-4 h-4" />
