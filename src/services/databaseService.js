@@ -137,18 +137,19 @@ class DatabaseService {
       if (response.ok) {
         const userData = await response.json();
         console.log('✅ Data loaded from Cosmos DB for user:', userId);
-        return userData;
+        // Return in the expected format for demo login
+        return { success: true, data: userData };
       } else if (response.status === 404) {
         console.log('ℹ️ No data found in Cosmos DB for user:', userId);
-        return null; // User not found - this is fine for new users
+        return { success: false, error: 'User not found' }; // User not found
       } else {
         const error = await response.json();
         console.error('❌ Cosmos DB load error:', error);
-        throw new Error(error.error || 'Unknown error');
+        return { success: false, error: error.error || 'Unknown error' };
       }
     } catch (error) {
       console.error('❌ Cosmos DB load error:', error);
-      throw error;
+      return { success: false, error: error.message };
     }
   }
 
