@@ -12,17 +12,30 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 }
 
 module.exports = async function (context, req) {
+  // Set CORS headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    context.res = { status: 200, headers };
+    return;
+  }
+
   const userId = context.bindingData.userId;
   const userData = req.body;
+
+  context.log('Saving user data for userId:', userId, 'Data:', JSON.stringify(userData));
 
   if (!userId) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'User ID is required' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
     return;
   }
@@ -31,10 +44,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'User data is required' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
     return;
   }
@@ -44,10 +54,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 500,
       body: JSON.stringify({ error: 'Database not configured', details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
     return;
   }
@@ -62,23 +69,19 @@ module.exports = async function (context, req) {
 
     const { resource } = await container.items.upsert(document);
     
+    context.log('Successfully saved user data:', resource.id);
+    
     context.res = {
       status: 200,
       body: JSON.stringify({ success: true, id: resource.id }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
   } catch (error) {
     context.log.error('Error saving user data:', error);
     context.res = {
       status: 500,
       body: JSON.stringify({ error: 'Internal server error', details: error.message }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
   }
 };

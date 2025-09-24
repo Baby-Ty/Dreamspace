@@ -51,20 +51,28 @@ module.exports = async function (context, req) {
     const { resources: users } = await usersContainer.items.query(query).fetchAll();
     
     // Transform users to match the expected format
-    const formattedUsers = users.map(user => ({
-      id: user.userId || user.id,
-      name: user.name || user.displayName || 'Unknown User',
-      email: user.email || user.userPrincipalName || '',
-      office: user.office || user.officeLocation || 'Unknown',
-      avatar: user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=6366f1&color=fff&size=100`,
-      score: user.score || 0,
-      dreamsCount: (user.dreamBook && user.dreamBook.length) || 0,
-      connectsCount: user.connectsCount || 0,
-      role: user.role || 'user', // user, coach, manager, admin
-      isActive: user.isActive !== false,
-      lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
-      createdAt: user.createdAt || user._ts ? new Date(user._ts * 1000).toISOString() : new Date().toISOString()
-    }));
+    const formattedUsers = users.map(user => {
+      const formattedUser = {
+        id: user.userId || user.id,
+        name: user.name || user.displayName || 'Unknown User',
+        email: user.email || user.userPrincipalName || '',
+        office: user.office || user.officeLocation || 'Unknown',
+        avatar: user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=6366f1&color=fff&size=100`,
+        score: user.score || 0,
+        dreamsCount: (user.dreamBook && user.dreamBook.length) || 0,
+        connectsCount: user.connectsCount || 0,
+        role: user.role || 'user', // user, coach, manager, admin
+        isActive: user.isActive !== false,
+        lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
+        createdAt: user.createdAt || user._ts ? new Date(user._ts * 1000).toISOString() : new Date().toISOString()
+      };
+      
+      // Log raw vs formatted for debugging
+      context.log('Raw user data:', JSON.stringify(user));
+      context.log('Formatted user:', JSON.stringify(formattedUser));
+      
+      return formattedUser;
+    });
 
     context.log(`Successfully retrieved ${formattedUsers.length} users from Cosmos DB`);
 

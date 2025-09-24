@@ -7,7 +7,8 @@ class PeopleService {
     
     console.log('👥 People Service initialized:', {
       useCosmosDB: this.useCosmosDB,
-      apiBase: this.apiBase
+      apiBase: this.apiBase,
+      environment: import.meta.env.VITE_APP_ENV
     });
   }
 

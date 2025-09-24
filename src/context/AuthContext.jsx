@@ -3,6 +3,7 @@ import { useMsal } from '@azure/msal-react';
 import { loginRequest, graphConfig } from '../auth/authConfig';
 // Import mock data only for demo mode
 import { allUsers, currentUser } from '../data/mockData';
+import databaseService from '../services/databaseService';
 
 const AuthContext = createContext();
 
@@ -82,6 +83,21 @@ export const AuthProvider = ({ children }) => {
 
         // Get roles from the ID token (Entra App Roles)
         const userRole = determineUserRoleFromToken(account, profileData, userData);
+
+        // Save user profile to database on first login or profile update
+        try {
+          console.log('🔄 Saving user profile to database:', {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            office: userData.office
+          });
+          await databaseService.saveUserData(userData.id, userData);
+          console.log('✅ User profile saved to database successfully:', userData.name);
+        } catch (error) {
+          console.error('❌ Error saving user profile to database:', error);
+          // Continue with login even if database save fails
+        }
 
         setUser(userData);
         setUserRole(userRole);
