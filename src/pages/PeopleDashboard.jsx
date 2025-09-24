@@ -713,23 +713,30 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
                     }}
                   />
                   <div>
-                    <p className="text-xs font-medium text-professional-gray-900">{member.name}</p>
+                    <div className="flex items-center space-x-1">
+                      <p className="text-xs font-medium text-professional-gray-900">{member.name}</p>
+                      {member.isCoach && (
+                        <Crown className="w-3 h-3 text-netsurit-red" title="Team Coach" />
+                      )}
+                    </div>
                     <p className="text-xs text-professional-gray-500">{member.office}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <div className="text-xs font-semibold text-professional-gray-900">{member.score || 0}pt</div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUnassignUser(member, coach.id);
-                    }}
-                    className="p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded transition-colors"
-                    title="Unassign from team"
-                  >
-                    <UserMinus className="w-3.5 h-3.5" />
-                  </button>
+                  {!member.isCoach && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUnassignUser(member, coach.id);
+                      }}
+                      className="p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded transition-colors"
+                      title="Unassign from team"
+                    >
+                      <UserMinus className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

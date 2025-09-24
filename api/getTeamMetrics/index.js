@@ -77,14 +77,15 @@ module.exports = async function (context, req) {
 
     const team = teams[0];
 
-    // Get team members' data
+    // Get team members' data and coach data
     const memberIds = team.teamMembers || [];
+    const allMemberIds = [managerId, ...memberIds.filter(id => id !== managerId)]; // Include coach as first member, avoid duplicates
     const teamMembers = [];
     
-    if (memberIds.length > 0) {
+    if (allMemberIds.length > 0) {
       const usersQuery = {
-        query: `SELECT * FROM c WHERE c.userId IN (${memberIds.map((_, i) => `@userId${i}`).join(', ')})`,
-        parameters: memberIds.map((id, i) => ({ name: `@userId${i}`, value: id.toString() }))
+        query: `SELECT * FROM c WHERE c.userId IN (${allMemberIds.map((_, i) => `@userId${i}`).join(', ')})`,
+        parameters: allMemberIds.map((id, i) => ({ name: `@userId${i}`, value: id.toString() }))
       };
 
       const { resources: users } = await usersContainer.items.query(usersQuery).fetchAll();
@@ -97,8 +98,9 @@ module.exports = async function (context, req) {
         const bestOffice = currentUser.office || user.office || user.officeLocation || 'Unknown';
         const bestAvatar = currentUser.avatar || user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(bestName)}&background=6366f1&color=fff&size=100`;
         
+        const userId = user.userId || user.id;
         teamMembers.push({
-          id: user.userId || user.id,
+          id: userId,
           name: bestName,
           email: bestEmail,
           office: bestOffice,
@@ -106,8 +108,16 @@ module.exports = async function (context, req) {
           score: currentUser.score || user.score || 0,
           dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
           connectsCount: currentUser.connectsCount || user.connectsCount || 0,
-          lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString()
+          lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
+          isCoach: userId === managerId // Flag to identify the coach
         });
+      });
+      
+      // Sort team members to put the coach first
+      teamMembers.sort((a, b) => {
+        if (a.isCoach && !b.isCoach) return -1;
+        if (!a.isCoach && b.isCoach) return 1;
+        return 0; // Keep original order for non-coaches
       });
     }
 
