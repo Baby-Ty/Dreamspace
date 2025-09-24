@@ -61,6 +61,7 @@ module.exports = async function (context, req) {
       
       const formattedUser = {
         id: user.userId || user.id,
+        userId: user.userId || user.id,
         name: bestName,
         email: bestEmail,
         office: bestOffice,
@@ -71,7 +72,15 @@ module.exports = async function (context, req) {
         role: user.role || 'user', // user, coach, manager, admin
         isActive: user.isActive !== false,
         lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
-        createdAt: user.createdAt || user._ts ? new Date(user._ts * 1000).toISOString() : new Date().toISOString()
+        createdAt: user.createdAt || user._ts ? new Date(user._ts * 1000).toISOString() : new Date().toISOString(),
+        // Include complete dream data for Dream Connect
+        dreamBook: currentUser.dreamBook || user.dreamBook || [],
+        sampleDreams: currentUser.sampleDreams || user.sampleDreams || [],
+        dreamCategories: currentUser.dreamCategories || user.dreamCategories || [],
+        careerGoals: currentUser.careerGoals || user.careerGoals || [],
+        skills: currentUser.skills || user.skills || [],
+        connects: currentUser.connects || user.connects || [],
+        isCoach: currentUser.isCoach || user.isCoach || false
       };
       
       // Log the data sources for debugging
