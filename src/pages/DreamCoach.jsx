@@ -265,9 +265,12 @@ const DreamCoach = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <img 
-                src={member.avatar} 
+                src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`} 
                 alt={member.name}
                 className="h-16 w-16 rounded-full object-cover ring-2 ring-netsurit-light-coral/30"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`;
+                }}
               />
               <div>
                 <h2 className="text-2xl font-bold text-professional-gray-900">{member.name}</h2>
@@ -510,9 +513,12 @@ const DreamCoach = () => {
               >
                 <div className="flex items-center space-x-4 mb-4">
                   <img 
-                    src={member.avatar} 
+                    src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`} 
                     alt={member.name}
                     className="h-12 w-12 rounded-full object-cover ring-2 ring-professional-gray-200"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`;
+                    }}
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold text-professional-gray-900">{member.name}</h3>
