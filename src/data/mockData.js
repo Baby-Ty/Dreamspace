@@ -1,23 +1,23 @@
 // Mock data for DreamSpace application
 
 export const currentUser = {
-  id: 1,
-  name: "Sarah Johnson",
-  email: "sarah.johnson@netsurit.com",
-  office: "Cape Town",
-  avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
+  id: 8,
+  name: "Bruce Banner",
+  email: "bruce.banner@netsurit.com",
+  office: "New York",
+  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   dreamBook: [
     {
       id: 1,
-      title: "Stick to a Gym Routine",
-      category: "Health",
-      description: "Maintain a consistent routine: 3× strength and 2× cardio each week.",
-      progress: 30,
-      image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=300&h=200&fit=crop",
+      title: "Master React and TypeScript",
+      category: "Learning",
+      description: "Become expert in React 18, Next.js, and advanced TypeScript patterns for leading development teams.",
+      progress: 85,
+      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop",
       milestones: [
-        { id: 1, text: "Plan weekly split (Push/Pull/Legs + cardio)", completed: true, createdAt: "2024-01-05T10:00:00Z" },
-        { id: 2, text: "Set schedule and alarms", completed: false, createdAt: "2024-01-07T10:00:00Z" },
-        { id: 3, text: "Track workouts for 4 straight weeks", completed: false, createdAt: "2024-01-10T10:00:00Z" }
+        { id: 1, text: "Complete advanced React patterns course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+        { id: 2, text: "Build demo project with Next.js 14", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+        { id: 3, text: "Master TypeScript advanced patterns", completed: false, createdAt: "2024-02-01T10:00:00Z" }
       ],
       notes: [
         { id: 1, text: "Signed up at the new gym near the office.", timestamp: "2024-01-06T12:00:00Z" },
@@ -39,19 +39,19 @@ export const currentUser = {
     },
     {
       id: 2,
-      title: "Visit Machu Picchu",
-      category: "Travel",
-      description: "Experience the ancient wonder of Machu Picchu and trek the Inca Trail.",
-      progress: 15,
-      image: "https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=300&h=200&fit=crop",
+      title: "Lead Development Team",
+      category: "Career",
+      description: "Transition to engineering manager role and build high-performing development teams.",
+      progress: 70,
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=300&h=200&fit=crop",
       milestones: [
-        { id: 1, text: "Research best time to visit", completed: true, createdAt: "2024-01-05T10:00:00Z" },
-        { id: 2, text: "Book flights to Peru", completed: false, createdAt: "2024-01-08T10:00:00Z" },
-        { id: 3, text: "Get travel insurance", completed: false, createdAt: "2024-01-10T10:00:00Z" },
-        { id: 4, text: "Buy hiking gear", completed: false, createdAt: "2024-01-12T10:00:00Z" }
+        { id: 1, text: "Complete leadership training program", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+        { id: 2, text: "Start mentoring junior developers", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+        { id: 3, text: "Build team processes and culture", completed: false, createdAt: "2024-02-01T10:00:00Z" },
+        { id: 4, text: "Establish team metrics and KPIs", completed: false, createdAt: "2024-02-10T10:00:00Z" }
       ],
       notes: [
-        { id: 1, text: "Best time is dry season (May to September). Planning for June 2024.", timestamp: "2024-01-15T11:00:00Z" },
+        { id: 1, text: "Focus on building trust first, then implementing processes gradually.", timestamp: "2024-01-15T11:00:00Z" },
         { 
           id: 2, 
           dreamId: 2,
@@ -1096,6 +1096,92 @@ export const allUsers = [
     score: 44,
     dreamsCount: 3,
     connectsCount: 1
+  },
+  {
+    id: 8,
+    name: "Bruce Banner",
+    email: "bruce.banner@netsurit.com",
+    office: "New York",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    dreamCategories: ["Learning", "Career", "Health"],
+    latestDreamTitle: "Master React and TypeScript",
+    dreamBook: [
+      {
+        id: 1,
+        title: "Master React and TypeScript",
+        category: "Learning",
+        description: "Become proficient in React hooks, context API, and advanced TypeScript patterns to build scalable frontend applications.",
+        progress: 25,
+        image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=60&auto=format&fit=crop"
+      },
+      {
+        id: 2,
+        title: "Lead Development Team",
+        category: "Career",
+        description: "Transition from senior developer to team lead role, managing a team of 5 developers and driving technical decisions.",
+        progress: 40,
+        image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=60&auto=format&fit=crop"
+      },
+      {
+        id: 3,
+        title: "Train for NYC Marathon",
+        category: "Health",
+        description: "Complete a comprehensive 16-week training program to successfully finish the New York City Marathon.",
+        progress: 15,
+        image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=600&q=60&auto=format&fit=crop"
+      }
+    ],
+    sampleDreams: [
+      { title: "Master React and TypeScript", category: "Learning", image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=60&auto=format&fit=crop" },
+      { title: "Lead Development Team", category: "Career", image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=60&auto=format&fit=crop" },
+      { title: "Train for NYC Marathon", category: "Health", image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=600&q=60&auto=format&fit=crop" }
+    ],
+    careerGoals: [
+      {
+        id: 1,
+        title: "Become Engineering Manager",
+        description: "Transition from senior developer to engineering management role",
+        progress: 75,
+        targetDate: "2024-08-31",
+        status: "In Progress"
+      },
+      {
+        id: 2,
+        title: "Complete Leadership Training",
+        description: "Complete advanced leadership and management certification program",
+        progress: 50,
+        targetDate: "2024-10-31",
+        status: "In Progress"
+      }
+    ],
+    developmentPlan: [
+      {
+        id: 1,
+        title: "Technical Leadership & Team Management",
+        description: "Develop skills in technical leadership, team management, and strategic planning",
+        progress: 80,
+        targetDate: "2024-07-31",
+        status: "In Progress",
+        skills: ["Team Leadership", "Technical Strategy", "Performance Management", "Agile Coaching"]
+      },
+      {
+        id: 2,
+        title: "Advanced React & System Architecture",
+        description: "Master advanced React patterns and system architecture design",
+        progress: 90,
+        targetDate: "2024-06-30",
+        status: "In Progress",
+        skills: ["React", "TypeScript", "System Design", "Architecture Patterns"]
+      }
+    ],
+    connects: [
+      { id: 1, name: "Sarah Johnson", category: "Learning", mutual: true },
+      { id: 2, name: "Mike Chen", category: "Career", mutual: true },
+      { id: 3, name: "Emma Wilson", category: "Health", mutual: false }
+    ],
+    score: 95,
+    dreamsCount: 8,
+    connectsCount: 5
   }
 ];
 
@@ -1134,8 +1220,14 @@ export const getSuggestedConnections = (currentUserId) => {
 export const teamRelationships = [
   {
     managerId: 1, // Sarah Johnson is a manager
-    teamMembers: [2, 3, 4, 5, 6, 7], // Mike, Emma, James, Lisa, David, Noah
+    teamMembers: [2, 3, 4, 5, 6], // Mike, Emma, James, Lisa, David
     teamName: "Development Team Alpha",
+    managerRole: "Dream Coach"
+  },
+  {
+    managerId: 8, // Bruce Banner is a manager
+    teamMembers: [7], // Noah Patel (New York team member)
+    teamName: "New York Engineering Team",
     managerRole: "Dream Coach"
   }
 ];
