@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Setup Bruce Banner as Coach</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #ec4b5c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #d63547; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .log { background: #f5f5f5; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 12px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🛠️ Setup Bruce Banner as Dream Coach</h1>
+    <p>This tool will add Bruce Banner to the production database and set him up as a coach.</p>
+    
+    <div class="section">
+        <h3>Step 1: Check Current Users</h3>
+        <button onclick="getAllUsers()">Get All Users</button>
+        <div id="usersLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h3>Step 2: Add Bruce Banner User Profile</h3>
+        <button onclick="addBruceBanner()">Add Bruce Banner</button>
+        <div id="addUserLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h3>Step 3: Promote Bruce to Coach</h3>
+        <button onclick="promoteToCoach()">Promote Bruce Banner to Coach</button>
+        <div id="promoteLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h3>Step 4: Verify Team Setup</h3>
+        <button onclick="getTeamRelationships()">Get Team Relationships</button>
+        <div id="teamsLog" class="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://dreamspace.tylerstewart.co.za/api';
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            element.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        async function getAllUsers() {
+            const logElement = 'usersLog';
+            document.getElementById(logElement).innerHTML = '';
+            log(logElement, '🔍 Fetching all users from Cosmos DB...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/getAllUsers`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log(logElement, `✅ Found ${result.users?.length || 0} users:`, 'success');
+                    result.users?.forEach(user => {
+                        log(logElement, `  - ${user.name} (ID: ${user.id}) - ${user.email} - ${user.office}`);
+                    });
+                } else {
+                    log(logElement, `❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(logElement, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function addBruceBanner() {
+            const logElement = 'addUserLog';
+            document.getElementById(logElement).innerHTML = '';
+            log(logElement, '👤 Adding Bruce Banner to Cosmos DB...');
+            
+            const bruceBannerData = {
+                id: '8',
+                userId: '8',
+                name: 'Bruce Banner',
+                email: 'bruce.banner@netsurit.com',
+                office: 'New York',
+                avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+                dreamCategories: ['Learning', 'Career', 'Health'],
+                latestDreamTitle: 'Master React and TypeScript',
+                role: 'employee',
+                isCoach: false,
+                score: 95,
+                dreamsCount: 8,
+                connectsCount: 5,
+                dreamBook: [
+                    {
+                        id: 1,
+                        title: 'Master React and TypeScript',
+                        category: 'Learning',
+                        description: 'Become expert in React 18, Next.js, and advanced TypeScript patterns for leading development teams.',
+                        progress: 85,
+                        image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop'
+                    },
+                    {
+                        id: 2,
+                        title: 'Lead Development Team',
+                        category: 'Career',
+                        description: 'Transition to engineering manager role and build high-performing development teams.',
+                        progress: 70,
+                        image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=300&h=200&fit=crop'
+                    }
+                ],
+                careerGoals: [
+                    {
+                        id: 1,
+                        title: 'Become Engineering Manager',
+                        description: 'Transition from senior developer to engineering management role',
+                        progress: 75,
+                        targetDate: '2024-08-31',
+                        status: 'In Progress'
+                    }
+                ],
+                connects: []
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/saveUserData/8`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bruceBannerData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log(logElement, '✅ Bruce Banner added successfully!', 'success');
+                    log(logElement, `   User ID: ${result.id || '8'}`);
+                } else {
+                    log(logElement, `❌ Error: ${result.error || result.details}`, 'error');
+                }
+            } catch (error) {
+                log(logElement, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function promoteToCoach() {
+            const logElement = 'promoteLog';
+            document.getElementById(logElement).innerHTML = '';
+            log(logElement, '👑 Promoting Bruce Banner to Dream Coach...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/promoteUserToCoach`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: 8,
+                        teamName: 'New York Engineering Team',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log(logElement, '✅ Bruce Banner promoted to coach successfully!', 'success');
+                    log(logElement, `   Team: ${result.teamName || 'New York Engineering Team'}`);
+                    log(logElement, '   Role: Dream Coach');
+                } else {
+                    log(logElement, `❌ Error: ${result.error || result.details}`, 'error');
+                }
+            } catch (error) {
+                log(logElement, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getTeamRelationships() {
+            const logElement = 'teamsLog';
+            document.getElementById(logElement).innerHTML = '';
+            log(logElement, '👥 Fetching team relationships...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/getTeamRelationships`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log(logElement, `✅ Found ${result.teams?.length || 0} teams:`, 'success');
+                    result.teams?.forEach(team => {
+                        log(logElement, `  🏆 ${team.teamName} (Coach ID: ${team.managerId})`);
+                        log(logElement, `     Members: ${team.teamMembers?.length || 0} team members`);
+                    });
+                } else {
+                    log(logElement, `❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(logElement, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-load users on page load
+        window.onload = () => {
+            log('usersLog', '🚀 Ready to setup Bruce Banner as coach!');
+        };
+    </script>
+</body>
+</html>
+

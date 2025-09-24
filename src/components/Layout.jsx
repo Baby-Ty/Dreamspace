@@ -36,7 +36,8 @@ const Layout = ({ children }) => {
   // All users can now see coaching and admin pages for development/testing
   navigation.push({ name: 'Dream Coach', href: '/dream-coach', icon: Users2 });
   navigation.push({ name: 'People Hub', href: '/people', icon: UserCog });
-  navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
+  // ADMIN PAGE TEMPORARILY HIDDEN
+  // navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
   
   // Original RBAC logic (commented out for now):
   // if (userRole === 'coach' || userRole === 'manager' || userRole === 'admin') {
