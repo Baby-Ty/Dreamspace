@@ -211,11 +211,33 @@ export const AuthProvider = ({ children }) => {
       setLoginError(null); // Clear any previous errors
       
       if (isDemo) {
-        // Demo login - use Sarah Johnson's data from mockData
+        // Demo login - load Sarah Johnson from Cosmos DB
         setIsDemoMode(true);
-        const sarahJohnson = allUsers.find(user => user.id === 1); // Sarah Johnson
-        setUser(sarahJohnson);
-        setUserRole('admin'); // Sarah is an admin in the demo
+        
+        try {
+          // Load Sarah Johnson's real data from Cosmos DB
+          const sarahData = await databaseService.loadUserData('sarah.johnson@netsurit.com');
+          
+          if (sarahData && sarahData.success && sarahData.data) {
+            // Use the real Sarah Johnson data from Cosmos DB
+            setUser(sarahData.data);
+            setUserRole('admin'); // Sarah is an admin in the demo
+            console.log('✅ Demo login successful with Cosmos DB data for Sarah Johnson');
+          } else {
+            // Fallback to mock data if Cosmos DB doesn't have Sarah
+            console.log('⚠️ Sarah Johnson not found in Cosmos DB, using mock data fallback');
+            const sarahJohnson = allUsers.find(user => user.id === 1); // Sarah Johnson from mock data
+            setUser(sarahJohnson);
+            setUserRole('admin');
+          }
+        } catch (error) {
+          console.error('❌ Error loading demo user from Cosmos DB:', error);
+          // Fallback to mock data
+          const sarahJohnson = allUsers.find(user => user.id === 1);
+          setUser(sarahJohnson);
+          setUserRole('admin');
+        }
+        
         setIsLoading(false);
         return;
       }
