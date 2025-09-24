@@ -47,7 +47,16 @@ const DreamCoach = () => {
   // Load team data for current user
   useEffect(() => {
     const loadCoachData = async () => {
-      if (!currentUser?.id) return;
+      console.log('🎯 DreamCoach useEffect triggered:', {
+        hasCurrentUser: !!currentUser,
+        currentUserId: currentUser?.id,
+        currentUserName: currentUser?.name
+      });
+      
+      if (!currentUser?.id) {
+        console.log('❌ No currentUser.id, skipping loadCoachData');
+        return;
+      }
 
       try {
         setError(null);
@@ -114,6 +123,7 @@ const DreamCoach = () => {
 
   // Show loading state
   if (isLoading) {
+    console.log('🔄 DreamCoach showing loading state');
     return (
       <div className="p-6">
         <div className="text-center py-20">
@@ -152,6 +162,14 @@ const DreamCoach = () => {
 
   // Show no team assigned state
   if (!teamMetrics) {
+    console.log('❌ DreamCoach showing "No Team Assigned" state:', {
+      teamMetrics,
+      teamMetricsType: typeof teamMetrics,
+      hasCurrentUser: !!currentUser,
+      currentUserId: currentUser?.id,
+      isLoading,
+      error
+    });
     return (
       <div className="p-6">
         <div className="text-center py-12">
