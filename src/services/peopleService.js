@@ -239,6 +239,42 @@ class PeopleService {
     }
   }
 
+  // Replace team coach
+  async replaceTeamCoach(oldCoachId, newCoachId, teamName = null) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/replaceTeamCoach`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            oldCoachId,
+            newCoachId,
+            teamName,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Coach replaced in Cosmos DB:', { oldCoachId, newCoachId, teamName });
+        return result;
+      } else {
+        // Handle locally for development
+        const success = await this.replaceCoachLocalStorage(oldCoachId, newCoachId, teamName);
+        console.log('📱 Coach replaced in localStorage:', { oldCoachId, newCoachId, teamName });
+        return { success };
+      }
+    } catch (error) {
+      console.error('❌ Error replacing team coach:', error);
+      throw error;
+    }
+  }
+
   // === LOCAL STORAGE FALLBACK METHODS (Development Mode) ===
 
   async getLocalStorageUsers() {
@@ -342,6 +378,42 @@ class PeopleService {
     }
     
     return false;
+  }
+
+  async replaceCoachLocalStorage(oldCoachId, newCoachId, teamName = null) {
+    const teams = await this.getLocalStorageTeams();
+    
+    // Find the old coach's team
+    const oldTeamIndex = teams.findIndex(t => t.managerId === oldCoachId);
+    if (oldTeamIndex === -1) return false;
+    
+    const oldTeam = teams[oldTeamIndex];
+    
+    // Check if new coach already has a team
+    const newTeamIndex = teams.findIndex(t => t.managerId === newCoachId);
+    let mergedMembers = [...oldTeam.teamMembers];
+    
+    if (newTeamIndex !== -1) {
+      // Merge teams - combine members and remove new coach's old team
+      const existingMembers = new Set(teams[newTeamIndex].teamMembers);
+      mergedMembers = [
+        ...teams[newTeamIndex].teamMembers,
+        ...oldTeam.teamMembers.filter(member => !existingMembers.has(member))
+      ];
+      teams.splice(newTeamIndex, 1); // Remove new coach's old team
+    }
+    
+    // Update the team with new coach
+    teams[oldTeamIndex] = {
+      ...oldTeam,
+      managerId: newCoachId,
+      teamName: teamName || `Coach ${newCoachId}'s Team`,
+      teamMembers: mergedMembers,
+      lastModified: new Date().toISOString()
+    };
+    
+    localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
+    return true;
   }
 
   // Initialize localStorage with mock data if empty (development mode)

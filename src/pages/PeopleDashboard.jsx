@@ -24,12 +24,14 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  X
+  X,
+  Repeat
 } from 'lucide-react';
 import peopleService from '../services/peopleService';
 import CoachDetailModal from '../components/CoachDetailModal';
 import ReportBuilderModal from '../components/ReportBuilderModal';
 import UnassignUserModal from '../components/UnassignUserModal';
+import ReplaceCoachModal from '../components/ReplaceCoachModal';
 
 const PeopleDashboard = () => {
   const [selectedCoach, setSelectedCoach] = useState(null);
@@ -44,6 +46,8 @@ const PeopleDashboard = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showUnassignModal, setShowUnassignModal] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
+  const [showReplaceCoachModal, setShowReplaceCoachModal] = useState(false);
+  const [selectedCoachToReplace, setSelectedCoachToReplace] = useState(null);
   
   // Data state
   const [allUsers, setAllUsers] = useState([]);
@@ -226,6 +230,11 @@ const PeopleDashboard = () => {
     setShowUnassignModal(true);
   };
 
+  const handleReplaceCoach = (coach) => {
+    setSelectedCoachToReplace(coach);
+    setShowReplaceCoachModal(true);
+  };
+
   const confirmPromoteUser = async (user, teamName) => {
     try {
       setLoading(true);
@@ -278,6 +287,30 @@ const PeopleDashboard = () => {
     } catch (error) {
       console.error('❌ Error unassigning user:', error);
       setError(`Failed to unassign ${user.name}: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmReplaceCoach = async (oldCoachId, newCoachId, teamName) => {
+    try {
+      setLoading(true);
+      const oldCoach = coaches.find(c => c.id === oldCoachId);
+      const newCoach = allUsers.find(u => u.id === newCoachId);
+      
+      await peopleService.replaceTeamCoach(oldCoachId, newCoachId, teamName);
+      console.log(`✅ Successfully replaced ${oldCoach?.name} with ${newCoach?.name}`);
+      
+      // Reload data to reflect changes
+      await loadData();
+      
+      setShowReplaceCoachModal(false);
+      setSelectedCoachToReplace(null);
+    } catch (error) {
+      console.error('❌ Error replacing coach:', error);
+      const oldCoach = coaches.find(c => c.id === oldCoachId);
+      const newCoach = allUsers.find(u => u.id === newCoachId);
+      setError(`Failed to replace ${oldCoach?.name} with ${newCoach?.name}: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -440,6 +473,7 @@ const PeopleDashboard = () => {
                   onToggleExpand={() => toggleTeamExpansion(coach.id)}
                   onViewCoach={() => handleViewCoach(coach)}
                   onUnassignUser={handleUnassignUser}
+                  onReplaceCoach={handleReplaceCoach}
                 />
               ))}
 
@@ -538,12 +572,25 @@ const PeopleDashboard = () => {
           onConfirm={() => confirmUnassignUser(selectedTeamMember.user, selectedTeamMember.coachId)}
         />
       )}
+
+      {/* Replace Coach Modal */}
+      {showReplaceCoachModal && selectedCoachToReplace && (
+        <ReplaceCoachModal
+          coach={selectedCoachToReplace}
+          availableReplacements={allUsers.filter(user => user.id !== selectedCoachToReplace.id)}
+          onClose={() => {
+            setShowReplaceCoachModal(false);
+            setSelectedCoachToReplace(null);
+          }}
+          onConfirm={(oldCoachId, newCoachId, teamName) => confirmReplaceCoach(oldCoachId, newCoachId, teamName)}
+        />
+      )}
     </div>
   );
 };
 
 // Coach Team Card Component - Compact List Style
-const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnassignUser }) => {
+const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnassignUser, onReplaceCoach }) => {
   const getPerformanceColor = (score) => {
     if (score >= 60) return 'text-green-700 bg-green-100';
     if (score >= 30) return 'text-blue-700 bg-blue-100';
@@ -617,6 +664,16 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReplaceCoach(coach);
+                }}
+                className="p-1.5 text-professional-gray-400 hover:text-netsurit-orange hover:bg-netsurit-orange/10 rounded transition-colors"
+                title="Replace Coach"
+              >
+                <Repeat className="w-4 h-4" />
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
