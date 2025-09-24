@@ -25,7 +25,6 @@ import {
   Zap,
   Filter
 } from 'lucide-react';
-import { getTeamMetrics, getCoachingAlerts, coachingNotes, allUsers } from '../data/mockData';
 import DreamTrackerModal from './DreamTrackerModal';
 import UserManagementModal from './UserManagementModal';
 
@@ -37,13 +36,10 @@ const CoachDetailModal = ({ coach, onClose }) => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('score');
 
-  // Get team data for the coach
-  const teamMetrics = useMemo(() => getTeamMetrics(coach.id), [coach.id]);
-  const coachingAlerts = useMemo(() => getCoachingAlerts(coach.id), [coach.id]);
-  const teamNotes = useMemo(() => 
-    coachingNotes.filter(note => note.managerId === coach.id),
-    [coach.id]
-  );
+  // Use the real team data passed from the parent component
+  const teamMetrics = coach.teamMetrics;
+  const coachingAlerts = coach.alerts || [];
+  const teamNotes = []; // For now, we'll use empty array until we implement coaching notes API
 
   if (!coach || !teamMetrics) return null;
 
@@ -370,7 +366,7 @@ const OverviewTab = ({ coach, teamMetrics, coachingAlerts, teamNotes }) => {
                   <div key={note.id} className="border-l-4 border-netsurit-light-coral pl-4 py-2">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-professional-gray-900">
-                        {allUsers.find(u => u.id === note.teamMemberId)?.name}
+                        {teamMetrics.teamMembers.find(u => u.id === note.teamMemberId)?.name || 'Unknown User'}
                       </span>
                       <span className="text-xs text-professional-gray-500">
                         {new Date(note.createdAt).toLocaleDateString()}
