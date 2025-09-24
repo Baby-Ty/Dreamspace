@@ -3,10 +3,14 @@
 class PeopleService {
   constructor() {
     this.apiBase = '/api';
-    this.useCosmosDB = !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    // Always use Cosmos DB on the live site, regardless of environment variables
+    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('👥 People Service initialized:', {
       useCosmosDB: this.useCosmosDB,
+      isLiveSite,
+      hostname: window.location.hostname,
       apiBase: this.apiBase,
       environment: import.meta.env.VITE_APP_ENV
     });

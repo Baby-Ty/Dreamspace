@@ -1,14 +1,17 @@
 // Database service for DreamSpace - handles Cosmos DB data persistence
 class DatabaseService {
   constructor() {
-    // Use Cosmos DB if we have the endpoint (the key is handled server-side by Azure Functions)
-    this.useCosmosDB = !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    // Always use Cosmos DB on the live site, regardless of environment variables
+    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     // Set API base URL
     this.apiBase = '/api';
     
     // Debug logging
     console.log('🔍 Environment check:');
+    console.log('Hostname:', window.location.hostname);
+    console.log('Is live site:', isLiveSite);
     console.log('VITE_COSMOS_ENDPOINT:', import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET');
     console.log('VITE_COSMOS_KEY:', import.meta.env.VITE_COSMOS_KEY ? 'SET' : 'NOT SET');
     console.log('VITE_APP_ENV:', import.meta.env.VITE_APP_ENV);
