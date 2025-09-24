@@ -53,16 +53,24 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // Log debug info
+    context.log(`🔍 getCoachingAlerts: Looking for team with managerId: "${managerId}" (type: ${typeof managerId})`);
+    
     // Find the team relationship for this manager
     const teamQuery = {
       query: 'SELECT * FROM c WHERE c.type = @type AND c.managerId = @managerId',
       parameters: [
         { name: '@type', value: 'team_relationship' },
-        { name: '@managerId', value: parseInt(managerId) }
+        { name: '@managerId', value: managerId } // Keep as string UUID to match getTeamMetrics
       ]
     };
 
     const { resources: teams } = await teamsContainer.items.query(teamQuery).fetchAll();
+    
+    context.log(`🚨 getCoachingAlerts: Found ${teams.length} teams for managerId: "${managerId}"`);
+    if (teams.length > 0) {
+      context.log('🚨 Team details:', teams.map(t => ({ managerId: t.managerId, teamName: t.teamName, memberCount: t.teamMembers?.length || 0 })));
+    }
     
     if (teams.length === 0) {
       context.res = {
@@ -72,7 +80,7 @@ module.exports = async function (context, req) {
           alerts: [],
           count: 0,
           message: 'No team found for this manager',
-          managerId: parseInt(managerId),
+          managerId: managerId,
           timestamp: new Date().toISOString()
         }),
         headers
@@ -187,7 +195,7 @@ module.exports = async function (context, req) {
         success: true,
         alerts,
         count: alerts.length,
-        managerId: parseInt(managerId),
+        managerId: managerId,
         teamName: team.teamName,
         teamSize: memberIds.length,
         timestamp: new Date().toISOString()

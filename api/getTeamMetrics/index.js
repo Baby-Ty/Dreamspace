@@ -52,6 +52,9 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // Log debug info
+    context.log(`🔍 getTeamMetrics: Looking for team with managerId: "${managerId}" (type: ${typeof managerId})`);
+    
     // Find the team relationship for this manager
     const teamQuery = {
       query: 'SELECT * FROM c WHERE c.type = @type AND c.managerId = @managerId',
@@ -62,6 +65,11 @@ module.exports = async function (context, req) {
     };
 
     const { resources: teams } = await teamsContainer.items.query(teamQuery).fetchAll();
+    
+    context.log(`📊 getTeamMetrics: Found ${teams.length} teams for managerId: "${managerId}"`);
+    if (teams.length > 0) {
+      context.log('📊 Team details:', teams.map(t => ({ managerId: t.managerId, teamName: t.teamName, memberCount: t.teamMembers?.length || 0 })));
+    }
     
     if (teams.length === 0) {
       context.res = {
