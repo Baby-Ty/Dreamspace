@@ -11,7 +11,9 @@ import {
   BarChart3,
   Filter
 } from 'lucide-react';
-import { allUsers, teamRelationships } from '../data/mockData';
+// Temporarily disable this component to fix ReferenceError
+const allUsers = [];
+const teamRelationships = [];
 
 const ReportBuilderModal = ({ isOpen, onClose }) => {
   const [dateRange, setDateRange] = useState({
