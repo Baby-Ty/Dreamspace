@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter, Settings, Shield } from 'lucide-react';
-import { allUsers, offices, dreamCategories } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter, Settings, Shield, Loader2, RefreshCw } from 'lucide-react';
+import adminService from '../services/adminService';
 import UserManagementModal from '../components/UserManagementModal';
 
 const AdminDashboard = () => {
@@ -9,31 +9,57 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState('overview'); // 'overview' or 'users'
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-
-  // Calculate stats
-  const totalUsers = allUsers.length;
-  const usersWithDreamBooks = allUsers.filter(user => user.dreamsCount > 0).length;
-  const dreamBookPercentage = Math.round((usersWithDreamBooks / totalUsers) * 100);
   
-  // Category popularity
-  const categoryStats = dreamCategories.map(category => {
-    const usersWithCategory = allUsers.filter(user => 
-      user.dreamCategories.includes(category)
-    ).length;
-    return {
-      category,
-      count: usersWithCategory,
-      percentage: Math.round((usersWithCategory / totalUsers) * 100)
-    };
-  }).sort((a, b) => b.count - a.count);
+  // Real data state
+  const [allUsers, setAllUsers] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [offices, setOffices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Most active connectors
-  const topConnectors = [...allUsers]
-    .sort((a, b) => b.connectsCount - a.connectsCount)
-    .slice(0, 5);
+  // Load admin data
+  useEffect(() => {
+    loadAdminData();
+  }, []);
 
-  // Low engagement users (users with score < 20)
-  const lowEngagementUsers = allUsers.filter(user => user.score < 20);
+  const loadAdminData = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const [users, analyticsData, officesData] = await Promise.all([
+        adminService.getAllUsersForAdmin(),
+        adminService.getAdminAnalytics(),
+        adminService.getOffices()
+      ]);
+
+      setAllUsers(users);
+      setAnalytics(analyticsData);
+      setOffices(officesData);
+      
+      console.log('✅ Loaded admin data:', {
+        users: users.length,
+        offices: officesData.length,
+        analytics: !!analyticsData
+      });
+    } catch (error) {
+      console.error('❌ Error loading admin data:', error);
+      setError(error.message || 'Failed to load admin data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshData = async () => {
+    await loadAdminData();
+  };
+
+  // Calculate derived data from real data
+  const totalUsers = analytics?.totalUsers || 0;
+  const dreamBookPercentage = analytics?.dreamBookPercentage || 0;
+  const categoryStats = analytics?.categoryStats || [];
+  const topConnectors = analytics?.topConnectors || [];
+  const lowEngagementUsers = analytics?.lowEngagementUsers || [];
 
   // Filter users by office
   const filteredUsers = selectedOffice === 'all' 
@@ -62,6 +88,39 @@ const AdminDashboard = () => {
     setShowUserModal(false);
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="text-center py-20">
+          <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Admin Dashboard</h2>
+          <p className="text-professional-gray-600">Analyzing user data and engagement metrics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="text-center py-20">
+          <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Failed to Load Admin Data</h2>
+          <p className="text-professional-gray-600 mb-4">{error}</p>
+          <button
+            onClick={refreshData}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            <span>Retry</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Enhanced Header */}
@@ -80,6 +139,15 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex flex-wrap gap-4">
+            <button
+              onClick={refreshData}
+              disabled={isLoading}
+              className="flex items-center px-4 py-2 bg-white border border-professional-gray-300 text-professional-gray-700 rounded-xl hover:bg-professional-gray-50 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+            
             {/* View Mode Toggle */}
             <div className="flex space-x-2">
               <button
