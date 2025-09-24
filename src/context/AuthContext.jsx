@@ -213,7 +213,8 @@ export const AuthProvider = ({ children }) => {
       if (isDemo) {
         // Demo login - use Sarah Johnson's data from mockData
         setIsDemoMode(true);
-        setUser(currentUser);
+        const sarahJohnson = allUsers.find(user => user.id === 1); // Sarah Johnson
+        setUser(sarahJohnson);
         setUserRole('admin'); // Sarah is an admin in the demo
         setIsLoading(false);
         return;
