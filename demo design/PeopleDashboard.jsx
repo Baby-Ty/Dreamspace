@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Users2, 
   TrendingUp, 
@@ -25,7 +25,7 @@ import {
   User,
   X
 } from 'lucide-react';
-import peopleService from '../services/peopleService';
+import { allUsers, teamRelationships, getTeamMetrics, getCoachingAlerts } from '../data/mockData';
 import CoachDetailModal from '../components/CoachDetailModal';
 import ReportBuilderModal from '../components/ReportBuilderModal';
 
@@ -40,84 +40,13 @@ const PeopleDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
-  
-  // Data state
-  const [allUsers, setAllUsers] = useState([]);
-  const [teamRelationships, setTeamRelationships] = useState([]);
-  const [teamMetricsCache, setTeamMetricsCache] = useState({});
-  const [coachingAlertsCache, setCoachingAlertsCache] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Load data on component mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Initialize localStorage for development mode
-      await peopleService.initializeLocalStorage();
-
-      // Load users and team relationships
-      const [users, teams] = await Promise.all([
-        peopleService.getAllUsers(),
-        peopleService.getTeamRelationships()
-      ]);
-
-      setAllUsers(users);
-      setTeamRelationships(teams);
-
-      // Load metrics and alerts for each coach
-      const metricsPromises = teams.map(team => 
-        peopleService.getTeamMetrics(team.managerId).catch(err => {
-          console.warn(`Failed to load metrics for coach ${team.managerId}:`, err);
-          return null;
-        })
-      );
-
-      const alertsPromises = teams.map(team => 
-        peopleService.getCoachingAlerts(team.managerId).catch(err => {
-          console.warn(`Failed to load alerts for coach ${team.managerId}:`, err);
-          return [];
-        })
-      );
-
-      const [metricsResults, alertsResults] = await Promise.all([
-        Promise.all(metricsPromises),
-        Promise.all(alertsPromises)
-      ]);
-
-      // Cache the results
-      const newMetricsCache = {};
-      const newAlertsCache = {};
-      
-      teams.forEach((team, index) => {
-        newMetricsCache[team.managerId] = metricsResults[index];
-        newAlertsCache[team.managerId] = alertsResults[index];
-      });
-
-      setTeamMetricsCache(newMetricsCache);
-      setCoachingAlertsCache(newAlertsCache);
-
-      console.log('✅ People dashboard data loaded successfully');
-    } catch (err) {
-      console.error('❌ Error loading people dashboard data:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Get all coaches with their team metrics
   const coaches = useMemo(() => {
     return teamRelationships.map(team => {
       const coach = allUsers.find(user => user.id === team.managerId);
-      const teamMetrics = teamMetricsCache[team.managerId];
-      const alerts = coachingAlertsCache[team.managerId] || [];
+      const teamMetrics = getTeamMetrics(team.managerId);
+      const alerts = getCoachingAlerts(team.managerId);
       
       return {
         ...coach,
@@ -128,7 +57,17 @@ const PeopleDashboard = () => {
         teamData: team
       };
     }).filter(coach => coach.id); // Filter out any undefined coaches
-  }, [teamRelationships, allUsers, teamMetricsCache, coachingAlertsCache]);
+  }, []);
+
+  // Get unassigned users (not coaches and not assigned to any team)
+  const unassignedUsers = useMemo(() => {
+    const coachIds = new Set(teamRelationships.map(team => team.managerId));
+    const assignedUserIds = new Set(teamRelationships.flatMap(team => team.teamMembers));
+    
+    return allUsers.filter(user => 
+      !coachIds.has(user.id) && !assignedUserIds.has(user.id)
+    );
+  }, []);
 
   // Filter and sort coaches
   const filteredCoaches = useMemo(() => {
@@ -152,16 +91,6 @@ const PeopleDashboard = () => {
       }
     });
   }, [coaches, filterOffice, searchTerm, sortBy]);
-
-  // Get unassigned users (not coaches and not assigned to any team)
-  const unassignedUsers = useMemo(() => {
-    const coachIds = new Set(teamRelationships.map(team => team.managerId));
-    const assignedUserIds = new Set(teamRelationships.flatMap(team => team.teamMembers));
-    
-    return allUsers.filter(user => 
-      !coachIds.has(user.id) && !assignedUserIds.has(user.id)
-    );
-  }, [allUsers, teamRelationships]);
 
   // Calculate overall metrics
   const overallMetrics = useMemo(() => {
@@ -209,42 +138,20 @@ const PeopleDashboard = () => {
     setShowAssignModal(true);
   };
 
-  const confirmPromoteUser = async (user, teamName) => {
-    try {
-      setLoading(true);
-      await peopleService.promoteUserToCoach(user.id, teamName);
-      console.log(`✅ Successfully promoted ${user.name} to coach with team: ${teamName}`);
-      
-      // Reload data to reflect changes
-      await loadData();
-      
-      setShowPromoteModal(false);
-      setSelectedUser(null);
-    } catch (error) {
-      console.error('❌ Error promoting user:', error);
-      setError(`Failed to promote ${user.name}: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const confirmPromoteUser = (user, teamName) => {
+    // In a real app, this would make an API call
+    console.log(`Promoting ${user.name} to coach with team: ${teamName}`);
+    setShowPromoteModal(false);
+    setSelectedUser(null);
+    // TODO: Update the data store
   };
 
-  const confirmAssignUser = async (user, coachId) => {
-    try {
-      setLoading(true);
-      await peopleService.assignUserToCoach(user.id, coachId);
-      console.log(`✅ Successfully assigned ${user.name} to coach ID: ${coachId}`);
-      
-      // Reload data to reflect changes
-      await loadData();
-      
-      setShowAssignModal(false);
-      setSelectedUser(null);
-    } catch (error) {
-      console.error('❌ Error assigning user:', error);
-      setError(`Failed to assign ${user.name}: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const confirmAssignUser = (user, coachId) => {
+    // In a real app, this would make an API call
+    console.log(`Assigning ${user.name} to coach ID: ${coachId}`);
+    setShowAssignModal(false);
+    setSelectedUser(null);
+    // TODO: Update the data store
   };
 
   const getPerformanceColor = (score) => {
@@ -258,41 +165,6 @@ const PeopleDashboard = () => {
     if (alertCount <= 2) return 'text-netsurit-orange bg-netsurit-warm-orange/20';
     return 'text-netsurit-red bg-netsurit-light-coral/20';
   };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-netsurit-red mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading People Hub</h2>
-          <p className="text-professional-gray-600">Fetching team data and analytics...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Error Loading Data</h2>
-          <p className="text-professional-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              loadData();
-            }}
-            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-6 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -373,14 +245,14 @@ const PeopleDashboard = () => {
             <div className="bg-white rounded-lg border border-professional-gray-200 p-4">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold text-professional-gray-900">Coaches & Teams</h2>
-              <div className="flex-1">
-                <div className="relative">
+                <div className="flex-1">
+                  <div className="relative">
                     <Search className="w-4 h-4 text-professional-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search coaches or teams..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    <input
+                      type="text"
+                      placeholder="Search coaches or teams..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-9 pr-10 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
                     />
                     <button
@@ -390,15 +262,15 @@ const PeopleDashboard = () => {
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-        <div className="space-y-4">
-            {filteredCoaches.map((coach) => (
+            <div className="space-y-4">
+              {filteredCoaches.map((coach) => (
                 <CoachTeamCard 
-                key={coach.id}
+                  key={coach.id}
                   coach={coach}
                   isExpanded={expandedTeams[coach.id]}
                   onToggleExpand={() => toggleTeamExpansion(coach.id)}
@@ -406,13 +278,13 @@ const PeopleDashboard = () => {
                 />
               ))}
 
-          {filteredCoaches.length === 0 && (
-            <div className="text-center py-12">
+              {filteredCoaches.length === 0 && (
+                <div className="text-center py-12">
                   <Crown className="w-16 h-16 text-professional-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-professional-gray-900 mb-2">No coaches found</h3>
-              <p className="text-professional-gray-500">Try adjusting your search or filter criteria</p>
-            </div>
-          )}
+                  <h3 className="text-lg font-bold text-professional-gray-900 mb-2">No coaches found</h3>
+                  <p className="text-professional-gray-500">Try adjusting your search or filter criteria</p>
+                </div>
+              )}
             </div>
           </div>
 

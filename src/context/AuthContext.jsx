@@ -23,10 +23,10 @@ export const AuthProvider = ({ children }) => {
     if (accounts.length > 0) {
       const account = accounts[0];
       fetchUserProfile(account);
-    } else {
+    } else if (inProgress === 'none') {
       setIsLoading(false);
     }
-  }, [accounts, isDemoMode]);
+  }, [accounts, isDemoMode, inProgress]);
 
   const fetchUserProfile = async (account) => {
     try {
