@@ -109,6 +109,7 @@ module.exports = async function (context, req) {
         const userId = user.userId || user.id;
         teamMembers.push({
           id: userId,
+          userId: userId,
           name: bestName,
           email: bestEmail,
           office: bestOffice,
@@ -117,7 +118,14 @@ module.exports = async function (context, req) {
           dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
           connectsCount: currentUser.connectsCount || user.connectsCount || 0,
           lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
-          isCoach: userId === managerId // Flag to identify the coach
+          isCoach: userId === managerId, // Flag to identify the coach
+          // Include complete dream data for Dream Coach modal
+          dreamBook: currentUser.dreamBook || user.dreamBook || [],
+          sampleDreams: currentUser.sampleDreams || user.sampleDreams || [],
+          dreamCategories: currentUser.dreamCategories || user.dreamCategories || [],
+          careerGoals: currentUser.careerGoals || user.careerGoals || [],
+          skills: currentUser.skills || user.skills || [],
+          connects: currentUser.connects || user.connects || []
         });
       });
       
