@@ -37,6 +37,7 @@ const actionTypes = {
 // Create empty user template for real users
 const createEmptyUser = (userInfo = {}) => ({
   id: userInfo.id || null,
+  userId: userInfo.userId || null, // Preserve userId from Cosmos DB
   name: userInfo.name || '',
   email: userInfo.email || '',
   office: userInfo.office || '',
@@ -361,7 +362,9 @@ export const AppProvider = ({ children, initialUser }) => {
   // For real users, create empty profile. For demo users, use provided data.
   const userToUse = initialUser ? {
     ...createEmptyUser(initialUser),
-    // Preserve any existing data from initialUser (like from localStorage)
+    // Preserve ALL existing data from initialUser (especially from Cosmos DB)
+    ...initialUser,
+    // Ensure arrays exist
     dreamBook: initialUser.dreamBook || [],
     careerGoals: initialUser.careerGoals || [],
     developmentPlan: initialUser.developmentPlan || [],
@@ -389,7 +392,7 @@ export const AppProvider = ({ children, initialUser }) => {
   const saveTimeoutRef = useRef(null);
 
   // Load persisted data on mount
-  const userId = initialUser ? initialUser.id : null;
+  const userId = initialUser ? (initialUser.id || initialUser.userId) : null;
   useEffect(() => {
     if (!userId) return;
     
