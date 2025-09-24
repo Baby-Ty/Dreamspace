@@ -814,19 +814,37 @@ const PreviewDreamsModal = ({ user, onClose, onConnect }) => {
       default: return 'New Dream';
     }
   };
-  const dreams = (user.sampleDreams && user.sampleDreams.length > 0)
-    ? user.sampleDreams.slice(0, 6).map((d, idx) => ({
+  const dreams = (() => {
+    // First priority: Use actual dreams from user's dreamBook
+    if (user.dreamBook && user.dreamBook.length > 0) {
+      return user.dreamBook.slice(0, 6).map((d, idx) => ({
+        id: d.id || idx + 1,
+        title: d.title,
+        category: d.category,
+        image: d.image || `https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=600&q=60`,
+        progress: d.progress || 0,
+        description: d.description
+      }));
+    }
+    // Second priority: Use sampleDreams if they exist
+    else if (user.sampleDreams && user.sampleDreams.length > 0) {
+      return user.sampleDreams.slice(0, 6).map((d, idx) => ({
         id: idx + 1,
         title: d.title,
         category: d.category,
         image: d.image,
-      }))
-    : (user.dreamCategories || []).slice(0, 6).map((c, idx) => ({
+      }));
+    }
+    // Fallback: Generate from categories
+    else {
+      return (user.dreamCategories || []).slice(0, 6).map((c, idx) => ({
         id: idx + 1,
         title: sampleTitleByCategory(c),
         category: c,
         image: `https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=600&q=60`,
       }));
+    }
+  })();
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] shadow-2xl overflow-hidden border border-professional-gray-200 flex flex-col">
@@ -912,9 +930,24 @@ const PreviewDreamsModal = ({ user, onClose, onConnect }) => {
                     <p className="text-sm font-bold text-professional-gray-900 mb-1 group-hover:text-netsurit-red transition-colors duration-200">
                       {d.title}
                     </p>
-                    <p className="text-xs text-professional-gray-500 line-clamp-2 leading-relaxed">
-                      Sample description showcasing this dream's potential journey and goals.
-                    </p>
+                    {d.description && (
+                      <p className="text-xs text-professional-gray-500 line-clamp-2 leading-relaxed mb-2">
+                        {d.description}
+                      </p>
+                    )}
+                    {d.progress !== undefined && d.progress > 0 && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-1.5 bg-professional-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-netsurit-red to-netsurit-coral rounded-full transition-all duration-300"
+                            style={{ width: `${d.progress}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs font-medium text-professional-gray-600">
+                          {d.progress}%
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
