@@ -16,6 +16,7 @@ import {
   Star,
   MapPin,
   UserPlus,
+  UserMinus,
   Crown,
   ArrowRight,
   Shield,
@@ -28,6 +29,7 @@ import {
 import peopleService from '../services/peopleService';
 import CoachDetailModal from '../components/CoachDetailModal';
 import ReportBuilderModal from '../components/ReportBuilderModal';
+import UnassignUserModal from '../components/UnassignUserModal';
 
 const PeopleDashboard = () => {
   const [selectedCoach, setSelectedCoach] = useState(null);
@@ -40,6 +42,8 @@ const PeopleDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showUnassignModal, setShowUnassignModal] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   
   // Data state
   const [allUsers, setAllUsers] = useState([]);
@@ -217,6 +221,11 @@ const PeopleDashboard = () => {
     setShowAssignModal(true);
   };
 
+  const handleUnassignUser = (user, coachId) => {
+    setSelectedTeamMember({ user, coachId });
+    setShowUnassignModal(true);
+  };
+
   const confirmPromoteUser = async (user, teamName) => {
     try {
       setLoading(true);
@@ -250,6 +259,25 @@ const PeopleDashboard = () => {
     } catch (error) {
       console.error('❌ Error assigning user:', error);
       setError(`Failed to assign ${user.name}: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmUnassignUser = async (user, coachId) => {
+    try {
+      setLoading(true);
+      await peopleService.unassignUserFromTeam(user.id, coachId);
+      console.log(`✅ Successfully unassigned ${user.name} from coach ID: ${coachId}`);
+      
+      // Reload data to reflect changes
+      await loadData();
+      
+      setShowUnassignModal(false);
+      setSelectedTeamMember(null);
+    } catch (error) {
+      console.error('❌ Error unassigning user:', error);
+      setError(`Failed to unassign ${user.name}: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -411,6 +439,7 @@ const PeopleDashboard = () => {
                   isExpanded={expandedTeams[coach.id]}
                   onToggleExpand={() => toggleTeamExpansion(coach.id)}
                   onViewCoach={() => handleViewCoach(coach)}
+                  onUnassignUser={handleUnassignUser}
                 />
               ))}
 
@@ -435,8 +464,10 @@ const PeopleDashboard = () => {
                 <UnassignedUserCard 
                   key={user.id}
                   user={user}
+                  coaches={coaches}
                   onPromote={() => handlePromoteUser(user)}
                   onAssign={() => handleAssignUser(user)}
+                  onQuickAssign={(user, coachId) => confirmAssignUser(user, coachId)}
                 />
               ))}
 
@@ -493,12 +524,26 @@ const PeopleDashboard = () => {
           onConfirm={(coachId) => confirmAssignUser(selectedUser, coachId)}
         />
       )}
+
+      {/* Unassign User Modal */}
+      {showUnassignModal && selectedTeamMember && (
+        <UnassignUserModal
+          user={selectedTeamMember.user}
+          coachId={selectedTeamMember.coachId}
+          coaches={coaches}
+          onClose={() => {
+            setShowUnassignModal(false);
+            setSelectedTeamMember(null);
+          }}
+          onConfirm={() => confirmUnassignUser(selectedTeamMember.user, selectedTeamMember.coachId)}
+        />
+      )}
     </div>
   );
 };
 
 // Coach Team Card Component - Compact List Style
-const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach }) => {
+const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnassignUser }) => {
   const getPerformanceColor = (score) => {
     if (score >= 60) return 'text-green-700 bg-green-100';
     if (score >= 30) return 'text-blue-700 bg-blue-100';
@@ -608,7 +653,20 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach }) => {
                     <p className="text-xs text-professional-gray-500">{member.office}</p>
                   </div>
                 </div>
-                <div className="text-xs font-semibold text-professional-gray-900">{member.score || 0}pt</div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-semibold text-professional-gray-900">{member.score || 0}pt</div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnassignUser(member, coach.id);
+                    }}
+                    className="p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded transition-colors"
+                    title="Unassign from team"
+                  >
+                    <UserMinus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -619,7 +677,7 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach }) => {
 };
 
 // Unassigned User Card Component - Compact List Style
-const UnassignedUserCard = ({ user, onPromote, onAssign }) => {
+const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign }) => {
   return (
     <div className="bg-white border border-professional-gray-200 rounded-lg hover:shadow-md transition-all duration-200">
       <div className="p-3">
@@ -660,13 +718,40 @@ const UnassignedUserCard = ({ user, onPromote, onAssign }) => {
               <Crown className="w-3 h-3" />
               Promote
             </button>
-            <button
-              onClick={onAssign}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-professional-gray-100 text-professional-gray-700 text-xs font-medium rounded-md hover:bg-professional-gray-200 transition-all duration-200"
-            >
-              <ArrowRight className="w-3 h-3" />
-              Assign
-            </button>
+            
+            {/* Quick Assign Dropdown */}
+            {coaches.length > 0 ? (
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    onQuickAssign(user, e.target.value);
+                    e.target.value = ''; // Reset dropdown
+                  }
+                }}
+                className="px-2.5 py-1.5 bg-professional-gray-100 text-professional-gray-700 text-xs font-medium rounded-md hover:bg-professional-gray-200 transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundSize: '0.75rem'
+                }}
+              >
+                <option value="">Assign to Coach</option>
+                {coaches.map(coach => (
+                  <option key={coach.id} value={coach.id}>
+                    {coach.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <button
+                onClick={onAssign}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-professional-gray-100 text-professional-gray-700 text-xs font-medium rounded-md hover:bg-professional-gray-200 transition-all duration-200"
+              >
+                <ArrowRight className="w-3 h-3" />
+                Assign
+              </button>
+            )}
           </div>
         </div>
       </div>

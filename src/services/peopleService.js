@@ -204,6 +204,41 @@ class PeopleService {
     }
   }
 
+  // Unassign user from coach/team
+  async unassignUserFromTeam(userId, coachId) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/unassignUserFromTeam`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            coachId,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ User unassigned from coach in Cosmos DB:', { userId, coachId });
+        return result;
+      } else {
+        // Handle locally for development
+        const success = await this.unassignUserLocalStorage(userId, coachId);
+        console.log('📱 User unassigned from coach in localStorage:', { userId, coachId });
+        return { success };
+      }
+    } catch (error) {
+      console.error('❌ Error unassigning user from coach:', error);
+      throw error;
+    }
+  }
+
   // === LOCAL STORAGE FALLBACK METHODS (Development Mode) ===
 
   async getLocalStorageUsers() {
@@ -288,6 +323,20 @@ class PeopleService {
     const coachTeam = teams.find(t => t.managerId === coachId);
     if (coachTeam && !coachTeam.teamMembers.includes(userId)) {
       coachTeam.teamMembers.push(userId);
+      localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
+      return true;
+    }
+    
+    return false;
+  }
+
+  async unassignUserLocalStorage(userId, coachId) {
+    const teams = await this.getLocalStorageTeams();
+    
+    // Find the coach's team and remove the user
+    const coachTeam = teams.find(t => t.managerId === coachId);
+    if (coachTeam && coachTeam.teamMembers.includes(userId)) {
+      coachTeam.teamMembers = coachTeam.teamMembers.filter(id => id !== userId);
       localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
       return true;
     }
