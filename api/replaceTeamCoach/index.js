@@ -27,7 +27,7 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { oldCoachId, newCoachId, teamName } = req.body;
+  const { oldCoachId, newCoachId, teamName, demoteOption = 'unassigned', assignToTeamId } = req.body;
 
   if (!oldCoachId || !newCoachId) {
     context.res = {
@@ -158,7 +158,7 @@ module.exports = async function (context, req) {
     // Create the new team with the new coach
     await teamsContainer.items.create(updatedTeam);
 
-    // Update old coach role back to 'user' if they have no other teams
+    // Handle old coach demotion/assignment
     const oldCoachTeamsQuery = {
       query: 'SELECT * FROM c WHERE c.type = @type AND c.managerId = @managerId',
       parameters: [
@@ -170,7 +170,7 @@ module.exports = async function (context, req) {
     const { resources: remainingOldCoachTeams } = await teamsContainer.items.query(oldCoachTeamsQuery).fetchAll();
     
     if (remainingOldCoachTeams.length === 0) {
-      // Old coach has no more teams, demote them
+      // Old coach has no more teams, handle according to demoteOption
       const oldCoachUserQuery = {
         query: 'SELECT * FROM c WHERE c.userId = @userId',
         parameters: [
@@ -182,13 +182,56 @@ module.exports = async function (context, req) {
       
       if (oldCoachUsers.length > 0) {
         const oldCoachUser = oldCoachUsers[0];
-        const updatedOldCoachUser = {
-          ...oldCoachUser,
-          role: 'user',
-          demotedAt: new Date().toISOString(),
-          lastModified: new Date().toISOString()
-        };
-        await usersContainer.item(oldCoachUser.id, oldCoachUser.userId).replace(updatedOldCoachUser);
+        
+        if (demoteOption === 'assign-to-team' && assignToTeamId) {
+          // Assign old coach to another team
+          const assignToTeamQuery = {
+            query: 'SELECT * FROM c WHERE c.type = @type AND c.managerId = @managerId',
+            parameters: [
+              { name: '@type', value: 'team_relationship' },
+              { name: '@managerId', value: assignToTeamId }
+            ]
+          };
+
+          const { resources: assignToTeams } = await teamsContainer.items.query(assignToTeamQuery).fetchAll();
+          
+          if (assignToTeams.length > 0) {
+            const targetTeam = assignToTeams[0];
+            
+            // Add old coach to the target team
+            if (!targetTeam.teamMembers.includes(oldCoachId)) {
+              const updatedTargetTeam = {
+                ...targetTeam,
+                teamMembers: [...targetTeam.teamMembers, oldCoachId],
+                lastModified: new Date().toISOString()
+              };
+              await teamsContainer.item(targetTeam.id, targetTeam.managerId).replace(updatedTargetTeam);
+            }
+
+            // Update old coach user record
+            const updatedOldCoachUser = {
+              ...oldCoachUser,
+              role: 'user',
+              assignedCoachId: assignToTeamId,
+              assignedTeamName: targetTeam.teamName,
+              demotedAt: new Date().toISOString(),
+              reassignedAt: new Date().toISOString(),
+              lastModified: new Date().toISOString()
+            };
+            await usersContainer.item(oldCoachUser.id, oldCoachUser.userId).replace(updatedOldCoachUser);
+          }
+        } else {
+          // Default: Move to unassigned
+          const updatedOldCoachUser = {
+            ...oldCoachUser,
+            role: 'user',
+            assignedCoachId: null,
+            assignedTeamName: null,
+            demotedAt: new Date().toISOString(),
+            lastModified: new Date().toISOString()
+          };
+          await usersContainer.item(oldCoachUser.id, oldCoachUser.userId).replace(updatedOldCoachUser);
+        }
       }
     }
 

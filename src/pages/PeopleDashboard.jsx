@@ -292,14 +292,17 @@ const PeopleDashboard = () => {
     }
   };
 
-  const confirmReplaceCoach = async (oldCoachId, newCoachId, teamName) => {
+  const confirmReplaceCoach = async (oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId) => {
     try {
       setLoading(true);
       const oldCoach = coaches.find(c => c.id === oldCoachId);
       const newCoach = allUsers.find(u => u.id === newCoachId);
       
-      await peopleService.replaceTeamCoach(oldCoachId, newCoachId, teamName);
-      console.log(`✅ Successfully replaced ${oldCoach?.name} with ${newCoach?.name}`);
+      await peopleService.replaceTeamCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
+      console.log(`✅ Successfully replaced ${oldCoach?.name} with ${newCoach?.name}`, {
+        demoteOption,
+        assignToTeamId
+      });
       
       // Reload data to reflect changes
       await loadData();
@@ -578,11 +581,14 @@ const PeopleDashboard = () => {
         <ReplaceCoachModal
           coach={selectedCoachToReplace}
           availableReplacements={allUsers.filter(user => user.id !== selectedCoachToReplace.id)}
+          coaches={coaches}
           onClose={() => {
             setShowReplaceCoachModal(false);
             setSelectedCoachToReplace(null);
           }}
-          onConfirm={(oldCoachId, newCoachId, teamName) => confirmReplaceCoach(oldCoachId, newCoachId, teamName)}
+          onConfirm={(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId) => 
+            confirmReplaceCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId)
+          }
         />
       )}
     </div>

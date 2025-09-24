@@ -240,7 +240,7 @@ class PeopleService {
   }
 
   // Replace team coach
-  async replaceTeamCoach(oldCoachId, newCoachId, teamName = null) {
+  async replaceTeamCoach(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
     try {
       if (this.useCosmosDB) {
         const response = await fetch(`${this.apiBase}/replaceTeamCoach`, {
@@ -252,6 +252,8 @@ class PeopleService {
             oldCoachId,
             newCoachId,
             teamName,
+            demoteOption,
+            assignToTeamId,
             timestamp: new Date().toISOString()
           })
         });
@@ -261,12 +263,12 @@ class PeopleService {
         }
 
         const result = await response.json();
-        console.log('✅ Coach replaced in Cosmos DB:', { oldCoachId, newCoachId, teamName });
+        console.log('✅ Coach replaced in Cosmos DB:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
         return result;
       } else {
         // Handle locally for development
-        const success = await this.replaceCoachLocalStorage(oldCoachId, newCoachId, teamName);
-        console.log('📱 Coach replaced in localStorage:', { oldCoachId, newCoachId, teamName });
+        const success = await this.replaceCoachLocalStorage(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
+        console.log('📱 Coach replaced in localStorage:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
         return { success };
       }
     } catch (error) {
@@ -380,7 +382,7 @@ class PeopleService {
     return false;
   }
 
-  async replaceCoachLocalStorage(oldCoachId, newCoachId, teamName = null) {
+  async replaceCoachLocalStorage(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
     const teams = await this.getLocalStorageTeams();
     
     // Find the old coach's team
