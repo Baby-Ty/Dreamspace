@@ -86,16 +86,41 @@ export const AuthProvider = ({ children }) => {
 
         // Save user profile to database on first login or profile update
         try {
-          console.log('🔄 Saving user profile to database:', {
+          console.log('🔄 Updating user profile in database:', {
             id: userData.id,
             name: userData.name,
             email: userData.email,
             office: userData.office
           });
-          await databaseService.saveUserData(userData.id, userData);
-          console.log('✅ User profile saved to database successfully:', userData.name);
+          
+          // Use the updateUserProfile API to merge profile data with existing data
+          const response = await fetch(`/api/updateUserProfile/${userData.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(profileData)
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ User profile updated successfully:', result.name);
+          } else {
+            const error = await response.json();
+            console.error('❌ Failed to update user profile:', error);
+            // Fallback to regular save
+            await databaseService.saveUserData(userData.id, userData);
+            console.log('✅ Used fallback save method');
+          }
         } catch (error) {
-          console.error('❌ Error saving user profile to database:', error);
+          console.error('❌ Error updating user profile:', error);
+          // Fallback to regular save method
+          try {
+            await databaseService.saveUserData(userData.id, userData);
+            console.log('✅ Used fallback save method');
+          } catch (fallbackError) {
+            console.error('❌ Fallback save also failed:', fallbackError);
+          }
           // Continue with login even if database save fails
         }
 
