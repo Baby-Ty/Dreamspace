@@ -24,10 +24,22 @@ const DreamConnect = () => {
   // Load users and generate suggestions
   useEffect(() => {
     loadUsersAndGenerateSuggestions();
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.userId]);
 
   const loadUsersAndGenerateSuggestions = async () => {
-    if (!currentUser?.id) return;
+    // Use id or userId - handle both formats
+    const userId = currentUser?.id || currentUser?.userId;
+    if (!userId) {
+      console.log('❌ DreamConnect: No currentUser.id or currentUser.userId, skipping loadUsersAndGenerateSuggestions');
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('🔄 DreamConnect: Loading users and generating suggestions', {
+      currentUserId: userId,
+      currentUserName: currentUser?.name,
+      currentUserEmail: currentUser?.email
+    });
 
     try {
       setError(null);
@@ -58,8 +70,16 @@ const DreamConnect = () => {
   const generateSuggestedConnections = (users, currentUser) => {
     if (!users || !currentUser) return [];
 
+    // Use currentUser's id or userId - handle both formats
+    const currentUserId = currentUser.id || currentUser.userId;
+
     // Filter out the current user
-    const otherUsers = users.filter(user => user.id !== currentUser.id);
+    const otherUsers = users.filter(user => 
+      user.id !== currentUserId && 
+      user.userId !== currentUserId &&
+      user.id !== currentUser.id && 
+      user.userId !== currentUser.userId
+    );
 
     // Calculate shared categories and create suggestions
     return otherUsers.map(user => {
@@ -222,6 +242,22 @@ const DreamConnect = () => {
           <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Dream Connections</h2>
           <p className="text-professional-gray-600">Finding people you can connect with...</p>
+          
+          {/* Debug Info */}
+          <div className="mt-8 bg-gray-50 p-4 rounded-lg text-left max-w-md mx-auto">
+            <p className="text-sm text-gray-600 mb-2"><strong>Debug Info:</strong></p>
+            <p className="text-xs text-gray-500">User ID: {currentUser?.id || 'Not available'}</p>
+            <p className="text-xs text-gray-500">User UserID: {currentUser?.userId || 'Not available'}</p>
+            <p className="text-xs text-gray-500">User Name: {currentUser?.name || 'Not available'}</p>
+            <p className="text-xs text-gray-500">Effective ID: {currentUser?.id || currentUser?.userId || 'Not available'}</p>
+            <p className="text-xs text-gray-500">Debug: Check browser console for detailed loading info</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-netsurit-red text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
+            >
+              Force Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );
