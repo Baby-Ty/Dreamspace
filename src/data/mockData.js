@@ -1182,6 +1182,92 @@ export const allUsers = [
     score: 95,
     dreamsCount: 8,
     connectsCount: 5
+  },
+  {
+    id: 9,
+    name: "Clark Kent",
+    email: "clark.kent@netsurit.com",
+    office: "Metropolis",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    dreamCategories: ["Creative", "Learning", "Community"],
+    latestDreamTitle: "Write and Publish Technical Blog",
+    dreamBook: [
+      {
+        id: 1,
+        title: "Write and Publish Technical Blog",
+        category: "Creative",
+        description: "Start a weekly blog about emerging technologies and their impact on business transformation.",
+        progress: 60,
+        image: "https://images.unsplash.com/photo-1486312338219-ce68e2c6b7d9?auto=format&fit=crop&w=600&q=60"
+      },
+      {
+        id: 2,
+        title: "Master Cloud Architecture Certification",
+        category: "Learning",
+        description: "Achieve AWS Solutions Architect Professional certification to lead cloud migration projects.",
+        progress: 30,
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=60"
+      },
+      {
+        id: 3,
+        title: "Mentor Junior Developers",
+        category: "Community",
+        description: "Establish a formal mentorship program for new graduates joining our development teams.",
+        progress: 50,
+        image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=60"
+      },
+      {
+        id: 4,
+        title: "Learn Photojournalism",
+        category: "Creative",
+        description: "Take professional photography courses to enhance visual storytelling skills for content creation.",
+        progress: 20,
+        image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=600&q=60"
+      }
+    ],
+    sampleDreams: [
+      { title: "Write and Publish Technical Blog", category: "Creative", image: "https://images.unsplash.com/photo-1486312338219-ce68e2c6b7d9?auto=format&fit=crop&w=600&q=60" },
+      { title: "Master Cloud Architecture Certification", category: "Learning", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=60" },
+      { title: "Mentor Junior Developers", category: "Community", image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=60" },
+      { title: "Learn Photojournalism", category: "Creative", image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=600&q=60" }
+    ],
+    careerGoals: [
+      {
+        id: 1,
+        title: "Become CTO",
+        description: "Lead technology strategy and innovation across the organization",
+        progress: 45,
+        targetDate: "2025-12-31",
+        status: "In Progress"
+      },
+      {
+        id: 2,
+        title: "Build World-Class Dev Team",
+        description: "Recruit and develop a team of exceptional software engineers",
+        progress: 70,
+        targetDate: "2024-12-31",
+        status: "In Progress"
+      }
+    ],
+    developmentPlan: [
+      {
+        id: 1,
+        title: "Executive Leadership & Strategic Thinking",
+        description: "Develop executive presence and strategic planning capabilities",
+        progress: 40,
+        targetDate: "2024-10-31",
+        status: "In Progress",
+        skills: ["Executive Leadership", "Strategic Planning", "Innovation Management", "Team Building"]
+      }
+    ],
+    connects: [
+      { id: 1, name: "Bruce Banner", category: "Learning", mutual: true },
+      { id: 2, name: "Diana Prince", category: "Community", mutual: true },
+      { id: 3, name: "Tony Stark", category: "Creative", mutual: false }
+    ],
+    score: 120,
+    dreamsCount: 4,
+    connectsCount: 3
   }
 ];
 
