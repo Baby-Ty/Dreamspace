@@ -28,14 +28,15 @@ const Layout = ({ children }) => {
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Week Ahead', href: '/dreams-week-ahead', icon: Calendar },
     { name: 'Dream Connect', href: '/dream-connect', icon: Users },
+    { name: 'Dream Coach', href: '/dream-coach', icon: Users2 },
+    { name: 'People Hub', href: '/people', icon: UserCog },
     { name: 'Career Book', href: '/career-book', icon: Briefcase },
     { name: 'Scorecard', href: '/scorecard', icon: Trophy },
   ];
 
   // TEMPORARILY DISABLED: Add role-specific navigation (RBAC will be re-enabled later)
   // All users can now see coaching and admin pages for development/testing
-  navigation.push({ name: 'Dream Coach', href: '/dream-coach', icon: Users2 });
-  navigation.push({ name: 'People Hub', href: '/people', icon: UserCog });
+  // Note: Dream Coach and People Hub are now included in the main navigation array above
   // ADMIN PAGE TEMPORARILY HIDDEN
   // navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
   
