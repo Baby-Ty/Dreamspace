@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, MapPin, Heart, MessageCircle, Calendar, Camera, X, Send, Award, BookOpen, MoreVertical, Network, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Users, MapPin, Heart, MessageCircle, Calendar, Camera, X, Send, Award, BookOpen, MoreVertical, Network, Loader2, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import peopleService from '../services/peopleService';
 import { useApp } from '../context/AppContext';
 
@@ -13,6 +13,7 @@ const DreamConnect = () => {
   const [locationFilter, setLocationFilter] = useState('All');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewUser, setPreviewUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const { currentUser } = useApp();
 
   // Real data state
@@ -156,10 +157,25 @@ const DreamConnect = () => {
     return ok;
   });
 
+  // Pagination constants
+  const USERS_PER_PAGE = 9;
+  const totalPages = Math.ceil(filteredConnections.length / USERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const endIndex = startIndex + USERS_PER_PAGE;
+  const paginatedConnections = filteredConnections.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, locationFilter]);
+
   console.log('🔍 Dream Connect Debug:', {
     totalUsers: allUsers.length,
     suggestedConnections: suggestedConnections.length,
     filteredConnections: filteredConnections.length,
+    paginatedConnections: paginatedConnections.length,
+    currentPage,
+    totalPages,
     categoryFilter,
     locationFilter,
     currentUser: currentUser?.name
@@ -381,6 +397,9 @@ const DreamConnect = () => {
                 ? `${filteredConnections.length} colleague${filteredConnections.length !== 1 ? 's' : ''} match${filteredConnections.length === 1 ? 'es' : ''} your interests`
                 : 'No matches found for current filters'
               }
+              {totalPages > 1 && (
+                <span className="text-professional-gray-500"> • Page {currentPage} of {totalPages}</span>
+              )}
             </p>
           </div>
           {filteredConnections.length > 0 && (
@@ -419,17 +438,71 @@ const DreamConnect = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredConnections.map((user) => (
-              <ConnectionCard
-                key={user.id}
-                user={user}
-                currentUserCategories={[...new Set(currentUser.dreamBook.map(d=>d.category))]}
-                onConnect={() => handleConnectRequest(user)}
-                onPreview={() => handlePreview(user)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-3 gap-4 auto-rows-fr">
+              {paginatedConnections.map((user) => (
+                <div key={user.id} className="w-full">
+                  <ConnectionCard
+                    user={user}
+                    currentUserCategories={[...new Set(currentUser.dreamBook.map(d=>d.category))]}
+                    onConnect={() => handleConnectRequest(user)}
+                    onPreview={() => handlePreview(user)}
+                  />
+                </div>
+              ))}
+              {/* Fill remaining slots with empty cards if needed for consistent 3x3 layout */}
+              {Array.from({ length: Math.max(0, USERS_PER_PAGE - paginatedConnections.length) }).map((_, index) => (
+                <div key={`empty-${index}`} className="w-full">
+                  {/* Empty placeholder to maintain grid structure */}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-lg border transition-all duration-200 ${
+                    currentPage === 1 
+                      ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
+                      : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                  }`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg border font-medium text-sm transition-all duration-200 ${
+                        currentPage === pageNum
+                          ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white border-netsurit-red shadow-md'
+                          : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-lg border transition-all duration-200 ${
+                    currentPage === totalPages
+                      ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
+                      : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                  }`}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -702,7 +775,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
   
   return (
     <div
-      className="group relative rounded-xl border border-professional-gray-200 bg-white shadow-lg hover:shadow-xl transition-all duration-300 p-4 flex flex-col cursor-pointer hover:scale-[1.01] hover:border-netsurit-red/20 overflow-hidden"
+      className="group relative rounded-xl border border-professional-gray-200 bg-white shadow-lg hover:shadow-xl transition-all duration-300 p-4 flex flex-col cursor-pointer hover:scale-[1.01] hover:border-netsurit-red/20 overflow-hidden w-full max-w-sm mx-auto"
       onClick={() => onPreview()}
       role="button"
       tabIndex={0}
