@@ -42,15 +42,15 @@ const createEmptyUser = (userInfo = {}) => ({
   email: userInfo.email || '',
   office: userInfo.office || '',
   avatar: userInfo.avatar || '',
-  dreamBook: [],
-  careerGoals: [],
-  developmentPlan: [],
-  score: 0,
-  connects: [],
-  dreamCategories: [],
-  dreamsCount: 0,
-  connectsCount: 0,
-  careerProfile: {
+  dreamBook: userInfo.dreamBook || [],
+  careerGoals: userInfo.careerGoals || [],
+  developmentPlan: userInfo.developmentPlan || [],
+  score: userInfo.score || 0,
+  connects: userInfo.connects || [],
+  dreamCategories: userInfo.dreamCategories || [],
+  dreamsCount: userInfo.dreamsCount || 0,
+  connectsCount: userInfo.connectsCount || 0,
+  careerProfile: userInfo.careerProfile || {
     currentRole: {
       jobTitle: '',
       department: '',
@@ -395,6 +395,13 @@ export const AppProvider = ({ children, initialUser }) => {
   const userId = initialUser ? (initialUser.id || initialUser.userId) : null;
   useEffect(() => {
     if (!userId) return;
+    
+    // Skip redundant database call for demo user (Sarah Johnson) who already has data from login
+    const isDemoUser = initialUser?.email === 'sarah.johnson@netsurit.com' || userId === 'sarah.johnson@netsurit.com';
+    if (isDemoUser && initialUser?.dreamBook && initialUser.dreamBook.length > 0) {
+      console.log('ℹ️ Skipping redundant data load for demo user - using initial data');
+      return;
+    }
     
     const loadData = async () => {
       const persistedData = await loadUserData(userId);
