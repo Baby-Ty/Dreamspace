@@ -444,7 +444,7 @@ const DreamConnect = () => {
                   className={`p-2 rounded-lg border transition-all duration-200 ${
                     currentPage === 1 
                       ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
-                      : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                      : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
                   }`}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -458,7 +458,7 @@ const DreamConnect = () => {
                       className={`w-10 h-10 rounded-lg border font-medium text-sm transition-all duration-200 ${
                         currentPage === pageNum
                           ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white border-netsurit-red shadow-md'
-                          : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                          : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
                       }`}
                     >
                       {pageNum}
@@ -472,7 +472,7 @@ const DreamConnect = () => {
                   className={`p-2 rounded-lg border transition-all duration-200 ${
                     currentPage === totalPages
                       ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
-                      : 'border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red hover:text-netsurit-red hover:shadow-md'
+                      : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
                   }`}
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -628,7 +628,7 @@ const DreamConnect = () => {
                     {selectedUser.sharedCategories.map((category) => (
                       <span
                         key={category}
-                        className="px-2 py-1 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red text-xs font-semibold rounded-full border border-netsurit-red/20"
+                        className="px-2 py-1 bg-professional-gray-50 text-professional-gray-600 text-xs font-medium rounded-full border border-professional-gray-200"
                       >
                         {category}
                       </span>
@@ -740,9 +740,19 @@ const DreamConnect = () => {
 const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const matchPercent = (() => {
+    if (!user.sharedCategories || user.sharedCategories.length === 0) {
+      // No shared categories - give a low random match between 15-25%
+      return 15 + Math.floor(Math.random() * 11);
+    }
+    
     const denom = user.dreamCategories?.length || 1;
     const pct = Math.round((user.sharedCategories.length / denom) * 100);
-    return Math.min(100, Math.max(30, pct));
+    
+    // Add some randomness to make it more realistic
+    const variance = Math.floor(Math.random() * 21) - 10; // -10 to +10
+    const finalPct = Math.min(95, Math.max(20, pct + variance));
+    
+    return finalPct;
   })();
   const categoriesToShow = (user.sharedCategories && user.sharedCategories.length > 0)
     ? user.sharedCategories
@@ -788,7 +798,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
         {/* Match Badge & Menu */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red border border-netsurit-red/20 shadow-sm">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-professional-gray-100 text-professional-gray-700 border border-professional-gray-200 shadow-sm">
               {matchPercent}%
             </span>
           </div>
@@ -825,7 +835,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
           {limitedCategories.map((category) => (
             <span 
               key={category} 
-              className="px-2 py-0.5 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red text-xs font-semibold rounded-full border border-netsurit-red/20 hover:from-netsurit-red/20 hover:to-netsurit-coral/20 transition-all duration-200"
+              className="px-2 py-0.5 bg-professional-gray-50 text-professional-gray-600 text-xs font-medium rounded-full border border-professional-gray-200 hover:bg-professional-gray-100 transition-all duration-200"
             >
               {category}
             </span>
@@ -873,7 +883,7 @@ const ConnectionCard = ({ user, onConnect, onPreview, currentUserCategories }) =
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onPreview(); }}
-          className="px-3 py-2 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-lg hover:bg-professional-gray-50 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-xs"
+          className="px-3 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-xs"
         >
           Preview
         </button>
@@ -976,7 +986,7 @@ const PreviewDreamsModal = ({ user, onClose, onConnect }) => {
                 {(user.dreamCategories || []).map((c) => (
                   <span 
                     key={c} 
-                    className="px-2 py-1 bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red text-xs font-semibold rounded-full border border-netsurit-red/20"
+                    className="px-2 py-1 bg-professional-gray-50 text-professional-gray-600 text-xs font-medium rounded-full border border-professional-gray-200"
                   >
                     {c}
                   </span>

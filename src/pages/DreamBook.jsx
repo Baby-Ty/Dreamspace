@@ -349,7 +349,7 @@ const DreamBook = () => {
             <button
               type="button"
               onClick={() => setShowInspiration(true)}
-              className="inline-flex items-center justify-center px-6 py-3 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-xl hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+              className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-xl hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
             >
               Find Inspiration
             </button>
