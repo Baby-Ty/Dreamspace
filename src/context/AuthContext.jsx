@@ -211,29 +211,51 @@ export const AuthProvider = ({ children }) => {
       setLoginError(null); // Clear any previous errors
       
       if (isDemo) {
-        // Demo login - load Sarah Johnson as a real user from Cosmos DB
-        // She's now a production user, so load her actual data
+        // Demo login - load Sarah Johnson from either Cosmos DB or fallback to mock data
         setIsDemoMode(true);
         
         try {
-          // Load Sarah Johnson's real data from production Cosmos DB
+          // First try to load Sarah Johnson's real data from Cosmos DB (works in production)
           const sarahData = await databaseService.loadUserData('sarah.johnson@netsurit.com');
           
           if (sarahData && sarahData.success && sarahData.data) {
-            // Use the real Sarah Johnson data from production database
+            // Use the real Sarah Johnson data from database
             setUser(sarahData.data);
             // Sarah gets admin role for demo purposes (can access coaching features)
             setUserRole('admin');
             console.log('✅ Demo login successful with production data for Sarah Johnson');
           } else {
-            // If not found in production DB, show error
-            throw new Error('Sarah Johnson not found in production database. Please run the user setup first.');
+            // Fallback to mock data for local development
+            console.log('ℹ️ Sarah not found in database, using mock data for local demo');
+            const mockSarah = allUsers.find(user => user.email === 'sarah.johnson@netsurit.com') || currentUser;
+            if (mockSarah) {
+              setUser(mockSarah);
+              setUserRole('admin');
+              console.log('✅ Demo login successful with mock data for Sarah Johnson');
+            } else {
+              throw new Error('Demo user data not available in mock data either.');
+            }
           }
         } catch (error) {
-          console.error('❌ Error loading demo user from production DB:', error);
-          setLoginError(`Demo user not available: ${error.message}. Please ensure Sarah Johnson has been added to the production database.`);
-          setIsLoading(false);
-          return;
+          console.error('❌ Error loading demo user:', error);
+          
+          // Final fallback to mock data for local development
+          console.log('🔄 Attempting fallback to mock data...');
+          try {
+            const mockSarah = allUsers.find(user => user.email === 'sarah.johnson@netsurit.com') || currentUser;
+            if (mockSarah) {
+              setUser(mockSarah);
+              setUserRole('admin');
+              console.log('✅ Demo login successful with fallback mock data');
+            } else {
+              throw new Error('No demo data available');
+            }
+          } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+            setLoginError(`Demo login failed: Unable to load demo user data. This may be because the local API is not running or demo data is not properly configured.`);
+            setIsLoading(false);
+            return;
+          }
         }
         
         setIsLoading(false);

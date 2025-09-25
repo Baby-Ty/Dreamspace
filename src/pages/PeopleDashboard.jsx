@@ -380,46 +380,38 @@ const PeopleDashboard = () => {
             <p className="text-professional-gray-600">HR oversight of coaches, teams, and program engagement</p>
           </div>
           
-          {/* Center: Compact KPI Stats */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 bg-white border border-professional-gray-200 rounded-lg px-3 py-2">
-              <div className="p-1.5 bg-netsurit-light-coral/20 rounded">
-                <TrendingUp className="w-4 h-4 text-netsurit-red" />
+          {/* KPI Metrics Inline */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <TrendingUp className="h-6 w-6 text-netsurit-red" />
               </div>
-              <div>
-                <p className="text-lg font-bold text-professional-gray-900">{overallMetrics.programAdoption}%</p>
-                <p className="text-xs text-professional-gray-500">Adoption</p>
-              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Adoption</p>
+              <p className="text-xl font-bold text-professional-gray-900">{overallMetrics.programAdoption}%</p>
             </div>
 
-            <div className="flex items-center gap-2 bg-white border border-professional-gray-200 rounded-lg px-3 py-2">
-              <div className="p-1.5 bg-netsurit-coral/20 rounded">
-                <Crown className="w-4 h-4 text-netsurit-coral" />
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Crown className="h-6 w-6 text-netsurit-coral" />
               </div>
-              <div>
-                <p className="text-lg font-bold text-professional-gray-900">{overallMetrics.totalCoaches}</p>
-                <p className="text-xs text-professional-gray-500">Coaches</p>
-              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Coaches</p>
+              <p className="text-xl font-bold text-professional-gray-900">{overallMetrics.totalCoaches}</p>
             </div>
 
-            <div className="flex items-center gap-2 bg-white border border-professional-gray-200 rounded-lg px-3 py-2">
-              <div className="p-1.5 bg-netsurit-orange/20 rounded">
-                <UserPlus className="w-4 h-4 text-netsurit-orange" />
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <UserPlus className="h-6 w-6 text-netsurit-orange" />
               </div>
-              <div>
-                <p className="text-lg font-bold text-professional-gray-900">{overallMetrics.totalUnassigned}</p>
-                <p className="text-xs text-professional-gray-500">Unassigned</p>
-              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Unassigned</p>
+              <p className="text-xl font-bold text-professional-gray-900">{overallMetrics.totalUnassigned}</p>
             </div>
 
-            <div className="flex items-center gap-2 bg-white border border-professional-gray-200 rounded-lg px-3 py-2">
-              <div className="p-1.5 bg-netsurit-warm-orange/20 rounded">
-                <AlertCircle className="w-4 h-4 text-netsurit-warm-orange" />
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <AlertCircle className="h-6 w-6 text-netsurit-warm-orange" />
               </div>
-              <div>
-                <p className="text-lg font-bold text-professional-gray-900">{overallMetrics.totalAlerts}</p>
-                <p className="text-xs text-professional-gray-500">Alerts</p>
-              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Alerts</p>
+              <p className="text-xl font-bold text-professional-gray-900">{overallMetrics.totalAlerts}</p>
             </div>
           </div>
 

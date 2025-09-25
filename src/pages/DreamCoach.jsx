@@ -445,61 +445,50 @@ const DreamCoach = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Header with Inline KPIs */}
       <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <UserCheck className="h-8 w-8 text-netsurit-red" />
-          <h1 className="text-3xl font-bold text-professional-gray-900">Dream Coach Dashboard</h1>
-        </div>
-        <p className="text-professional-gray-600">Support and guide your team's personal and professional growth journey</p>
-      </div>
-
-      {/* Team Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6 border border-professional-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Users2 className="h-8 w-8 text-netsurit-red" />
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          {/* Title Section */}
+          <div className="mb-6 lg:mb-0">
+            <div className="flex items-center space-x-3 mb-2">
+              <UserCheck className="h-8 w-8 text-netsurit-red" />
+              <h1 className="text-3xl font-bold text-professional-gray-900">Dream Coach Dashboard</h1>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-professional-gray-500">Team Size</p>
-              <p className="text-2xl font-semibold text-professional-gray-900">{teamMetrics.teamSize}</p>
-            </div>
+            <p className="text-professional-gray-600">Support and guide your team's personal and professional growth journey</p>
           </div>
-        </div>
+          
+          {/* KPI Metrics Inline */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Users2 className="h-6 w-6 text-netsurit-red" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Team Size</p>
+              <p className="text-xl font-bold text-professional-gray-900">{teamMetrics.teamSize}</p>
+            </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-professional-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="h-8 w-8 text-netsurit-coral" />
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <TrendingUp className="h-6 w-6 text-netsurit-coral" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Avg Score</p>
+              <p className="text-xl font-bold text-professional-gray-900">{teamMetrics.averageScore}</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-professional-gray-500">Avg Score</p>
-              <p className="text-2xl font-semibold text-professional-gray-900">{teamMetrics.averageScore}</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-professional-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Target className="h-8 w-8 text-netsurit-orange" />
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Target className="h-6 w-6 text-netsurit-orange" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Dreams</p>
+              <p className="text-xl font-bold text-professional-gray-900">{teamMetrics.totalDreams}</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-professional-gray-500">Total Dreams</p>
-              <p className="text-2xl font-semibold text-professional-gray-900">{teamMetrics.totalDreams}</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-professional-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Award className="h-8 w-8 text-netsurit-warm-orange" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-professional-gray-500">Engagement</p>
-              <p className="text-2xl font-semibold text-professional-gray-900">{teamMetrics.engagementRate}%</p>
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Award className="h-6 w-6 text-netsurit-warm-orange" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Engagement</p>
+              <p className="text-xl font-bold text-professional-gray-900">{teamMetrics.engagementRate}%</p>
             </div>
           </div>
         </div>

@@ -158,7 +158,7 @@ const DreamConnect = () => {
   });
 
   // Pagination constants
-  const USERS_PER_PAGE = 9;
+  const USERS_PER_PAGE = 6;
   const totalPages = Math.ceil(filteredConnections.length / USERS_PER_PAGE);
   const startIndex = (currentPage - 1) * USERS_PER_PAGE;
   const endIndex = startIndex + USERS_PER_PAGE;
@@ -301,15 +301,14 @@ const DreamConnect = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4">
-      {/* Compact Header with KPIs */}
-      <div className="mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex flex-col justify-center">
+      {/* Header with Inline KPIs */}
+      <div className="mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          {/* Title Section */}
+          <div className="mb-6 lg:mb-0">
             <div className="flex items-center space-x-3 mb-2">
-              <div className="p-1.5 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-xl shadow-lg">
-                <Network className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-professional-gray-900">Dream Connect</h1>
+              <Network className="h-8 w-8 text-netsurit-red" />
+              <h1 className="text-3xl font-bold text-professional-gray-900">Dream Connect</h1>
               <button
                 onClick={refreshConnections}
                 disabled={isLoading}
@@ -319,40 +318,57 @@ const DreamConnect = () => {
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
-            <p className="text-base text-professional-gray-600">
-              Find colleagues with shared dream categories and learn from each other.
-            </p>
+            <p className="text-professional-gray-600">Find colleagues with shared dream categories and learn from each other</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
-            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                <Users className="w-4 h-4 text-netsurit-red" />
+          
+          {/* KPI Metrics Inline */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Users className="h-6 w-6 text-netsurit-red" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Suggested</p>
-              <p className="text-lg font-bold text-professional-gray-900">{filteredConnections.length}</p>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Suggested</p>
+              <p className="text-xl font-bold text-professional-gray-900">{filteredConnections.length}</p>
             </div>
-            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-coral/10 to-netsurit-orange/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                <Heart className="w-4 h-4 text-netsurit-coral" />
+
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Heart className="h-6 w-6 text-netsurit-coral" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Your Connects</p>
-              <p className="text-lg font-bold text-professional-gray-900">{currentUser.connects.length}</p>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Your Connects</p>
+              <p className="text-xl font-bold text-professional-gray-900">{currentUser.connects.length}</p>
             </div>
-            <div className="group bg-white rounded-xl border border-professional-gray-200 shadow-lg hover:shadow-xl p-3 text-center transition-all duration-300 hover:scale-105">
-              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-orange/10 to-netsurit-red/10 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                <BookOpen className="w-4 h-4 text-netsurit-orange" />
+
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
+              <div className="flex items-center justify-center mb-2">
+                <BookOpen className="h-6 w-6 text-netsurit-orange" />
               </div>
-              <p className="text-xs text-professional-gray-500 font-medium mb-0.5">Categories</p>
-              <p className="text-lg font-bold text-professional-gray-900">{new Set(currentUser.dreamBook.map(d=>d.category)).size}</p>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Categories</p>
+              <p className="text-xl font-bold text-professional-gray-900">{new Set(currentUser.dreamBook.map(d=>d.category)).size}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Compact Sticky Filters */}
-      <div className="sticky top-2 z-20 bg-gradient-to-b from-white via-white to-white/95 backdrop-blur-sm pt-3 pb-4 border-b border-professional-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex flex-wrap items-center gap-2 flex-1">
+
+      {/* Suggested Connections with Inline Category Filters */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+          <div>
+            <h2 className="text-xl font-bold text-professional-gray-900 mb-1">
+              Suggested Connections
+            </h2>
+            <p className="text-sm text-professional-gray-600">
+              {filteredConnections.length > 0 
+                ? `${filteredConnections.length} colleague${filteredConnections.length !== 1 ? 's' : ''} match${filteredConnections.length === 1 ? 'es' : ''} your interests`
+                : 'No matches found for current filters'
+              }
+              {totalPages > 1 && (
+                <span className="text-professional-gray-500"> • Page {currentPage} of {totalPages}</span>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-professional-gray-700 mr-1">Categories:</span>
             {categoryPills.map((c) => (
               <button
@@ -368,45 +384,6 @@ const DreamConnect = () => {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-professional-gray-500" />
-            <select
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-              className="px-3 py-1.5 border border-professional-gray-300 rounded-lg text-xs font-medium bg-white text-professional-gray-700 hover:border-professional-gray-400 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <option>All Locations</option>
-              <option>Cape Town</option>
-              <option>Johannesburg</option>
-              <option>New York</option>
-              <option>Remote</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Suggested Connections */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-xl font-bold text-professional-gray-900 mb-1">
-              Suggested Dream Connections
-            </h2>
-            <p className="text-sm text-professional-gray-600">
-              {filteredConnections.length > 0 
-                ? `${filteredConnections.length} colleague${filteredConnections.length !== 1 ? 's' : ''} match${filteredConnections.length === 1 ? 'es' : ''} your interests`
-                : 'No matches found for current filters'
-              }
-              {totalPages > 1 && (
-                <span className="text-professional-gray-500"> • Page {currentPage} of {totalPages}</span>
-              )}
-            </p>
-          </div>
-          {filteredConnections.length > 0 && (
-            <div className="text-xs text-professional-gray-500">
-              Sorted by compatibility
-            </div>
-          )}
         </div>
         
         {filteredConnections.length === 0 ? (
@@ -450,7 +427,7 @@ const DreamConnect = () => {
                   />
                 </div>
               ))}
-              {/* Fill remaining slots with empty cards if needed for consistent 3x3 layout */}
+              {/* Fill remaining slots with empty cards if needed for consistent 3x2 layout */}
               {Array.from({ length: Math.max(0, USERS_PER_PAGE - paginatedConnections.length) }).map((_, index) => (
                 <div key={`empty-${index}`} className="w-full">
                   {/* Empty placeholder to maintain grid structure */}

@@ -90,34 +90,28 @@ const Dashboard = () => {
             <p className="text-base text-gray-700 font-medium">Ready to make progress on your dreams today?</p>
           </div>
           
-          {/* Enhanced Stats Cards */}
+          {/* Stats Cards */}
            <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
-            <div className="bg-gradient-to-br from-white to-red-50 rounded-xl p-4 shadow-lg border border-red-100 min-w-[100px] hover:shadow-xl transition-all duration-300">
-              <div className="flex flex-col items-center space-y-2">
-                <div className="p-2 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-lg shadow-md">
-                  <BookOpen className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">{stats.dreamsCreated}</span>
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Dreams</p>
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <BookOpen className="h-6 w-6 text-netsurit-red" />
               </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Dreams</p>
+              <p className="text-xl font-bold text-professional-gray-900">{stats.dreamsCreated}</p>
             </div>
-            <div className="bg-gradient-to-br from-white to-orange-50 rounded-xl p-4 shadow-lg border border-orange-100 min-w-[100px] hover:shadow-xl transition-all duration-300">
-              <div className="flex flex-col items-center space-y-2">
-                <div className="p-2 bg-gradient-to-br from-netsurit-orange to-netsurit-warm-orange rounded-lg shadow-md">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">{stats.connectsCompleted}</span>
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Connects</p>
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <Users className="h-6 w-6 text-netsurit-coral" />
               </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Connects</p>
+              <p className="text-xl font-bold text-professional-gray-900">{stats.connectsCompleted}</p>
             </div>
-            <div className="bg-gradient-to-br from-white to-yellow-50 rounded-xl p-4 shadow-lg border border-yellow-100 min-w-[100px] hover:shadow-xl transition-all duration-300">
-              <div className="flex flex-col items-center space-y-2">
-                <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg shadow-md">
-                  <Trophy className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">{stats.scorecardPoints}</span>
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Points</p>
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <Trophy className="h-6 w-6 text-netsurit-orange" />
               </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Points</p>
+              <p className="text-xl font-bold text-professional-gray-900">{stats.scorecardPoints}</p>
             </div>
           </div>
         </div>
