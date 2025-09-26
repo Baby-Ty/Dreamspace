@@ -320,11 +320,6 @@ const PeopleDashboard = () => {
   };
 
 
-  const getAlertColor = (alertCount) => {
-    if (alertCount === 0) return 'text-professional-gray-700 bg-professional-gray-100';
-    if (alertCount <= 2) return 'text-netsurit-orange bg-netsurit-warm-orange/20';
-    return 'text-netsurit-red bg-netsurit-light-coral/20';
-  };
 
   // Show loading state
   if (loading) {
@@ -585,12 +580,6 @@ const PeopleDashboard = () => {
 // Coach Team Card Component - Compact List Style
 const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnassignUser, onReplaceCoach }) => {
 
-  const getAlertColor = (alertCount) => {
-    if (alertCount === 0) return 'text-professional-gray-600 bg-professional-gray-100';
-    if (alertCount <= 2) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
-  };
-
   return (
     <div className="bg-white border border-professional-gray-200 rounded-lg hover:shadow-md transition-all duration-200">
       {/* Main Coach Row */}
@@ -639,12 +628,6 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
               </div>
             </div>
 
-            {/* Alert Badge */}
-            <div className="flex items-center gap-1">
-              <span className={`px-1.5 py-1 rounded text-xs font-medium ${getAlertColor(coach.alerts?.length || 0)}`}>
-                {coach.alerts?.length || 0}
-              </span>
-            </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
