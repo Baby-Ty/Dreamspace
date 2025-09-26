@@ -639,7 +639,7 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
               </div>
             </div>
 
-            {/* Alert Badge */}
+            {/* Alert Badge Only */}
             <div className="flex items-center gap-1">
               <span className={`px-1.5 py-1 rounded text-xs font-medium ${getAlertColor(coach.alerts?.length || 0)}`}>
                 {coach.alerts?.length || 0}
@@ -777,9 +777,9 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
                     e.target.value = ''; // Reset dropdown
                   }
                 }}
-                className="px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
+                className="px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 border-none outline-none appearance-none pr-6 shadow-md hover:shadow-lg"
                 style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 0.5rem center',
                   backgroundSize: '0.75rem'
@@ -795,7 +795,7 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
             ) : (
               <button
                 onClick={onAssign}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <ArrowRight className="w-3 h-3" />
                 Assign
@@ -868,7 +868,7 @@ const PromoteUserModal = ({ user, onClose, onConfirm }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
+                className="flex-1 px-4 py-2 border border-professional-gray-300 text-professional-gray-700 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -951,7 +951,7 @@ const AssignUserModal = ({ user, coaches, onClose, onConfirm }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
+                className="flex-1 px-4 py-2 border border-professional-gray-300 text-professional-gray-700 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
               >
                 Cancel
               </button>
