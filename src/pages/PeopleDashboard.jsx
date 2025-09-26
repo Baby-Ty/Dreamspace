@@ -777,18 +777,17 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
                     e.target.value = ''; // Reset dropdown
                   }
                 }}
-                className="px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 border-none outline-none appearance-none pr-6"
+                className="px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
                 style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '0.75rem',
-                  color: 'white'
+                  backgroundSize: '0.75rem'
                 }}
               >
-                <option value="" className="bg-professional-gray-700 text-white">Assign to Coach</option>
+                <option value="">Assign to Coach</option>
                 {coaches.map(coach => (
-                  <option key={coach.id} value={coach.id} className="bg-professional-gray-700 text-white">
+                  <option key={coach.id} value={coach.id}>
                     {coach.name}
                   </option>
                 ))}
