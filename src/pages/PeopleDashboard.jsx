@@ -319,11 +319,6 @@ const PeopleDashboard = () => {
     }
   };
 
-  const getPerformanceColor = (score) => {
-    if (score >= 60) return 'text-professional-gray-700 bg-professional-gray-100 border-professional-gray-300'; // Excelling - Light grey background, darker grey text
-    if (score >= 30) return 'text-professional-gray-700 bg-professional-gray-100 border-professional-gray-300'; // On Track - Same grey pill
-    return 'text-amber-800 bg-amber-100 border-amber-300'; // Needs Attention - Amber pill
-  };
 
   const getAlertColor = (alertCount) => {
     if (alertCount === 0) return 'text-professional-gray-700 bg-professional-gray-100';
@@ -589,11 +584,6 @@ const PeopleDashboard = () => {
 
 // Coach Team Card Component - Compact List Style
 const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnassignUser, onReplaceCoach }) => {
-  const getPerformanceColor = (score) => {
-    if (score >= 60) return 'text-green-700 bg-green-100';
-    if (score >= 30) return 'text-blue-700 bg-blue-100';
-    return 'text-amber-700 bg-amber-100';
-  };
 
   const getAlertColor = (alertCount) => {
     if (alertCount === 0) return 'text-professional-gray-600 bg-professional-gray-100';
@@ -649,12 +639,8 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
               </div>
             </div>
 
-            {/* Status Badges */}
+            {/* Alert Badge */}
             <div className="flex items-center gap-1">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${getPerformanceColor(coach.performanceScore)}`}>
-                {coach.performanceScore >= 60 ? 'Excelling' : 
-                 coach.performanceScore >= 30 ? 'On Track' : 'Needs Attention'}
-              </span>
               <span className={`px-1.5 py-1 rounded text-xs font-medium ${getAlertColor(coach.alerts?.length || 0)}`}>
                 {coach.alerts?.length || 0}
               </span>
@@ -791,7 +777,7 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
                     e.target.value = ''; // Reset dropdown
                   }
                 }}
-                className="px-2.5 py-1.5 bg-professional-gray-100 text-professional-gray-700 text-xs font-medium rounded-md hover:bg-professional-gray-200 transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
+                className="px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
                 style={{
                   backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
@@ -809,7 +795,7 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
             ) : (
               <button
                 onClick={onAssign}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-professional-gray-100 text-professional-gray-700 text-xs font-medium rounded-md hover:bg-professional-gray-200 transition-all duration-200"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white text-xs font-medium rounded-md hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
               >
                 <ArrowRight className="w-3 h-3" />
                 Assign
@@ -882,7 +868,7 @@ const PromoteUserModal = ({ user, onClose, onConfirm }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-professional-gray-300 text-professional-gray-700 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -965,7 +951,7 @@ const AssignUserModal = ({ user, coaches, onClose, onConfirm }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-professional-gray-300 text-professional-gray-700 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200"
               >
                 Cancel
               </button>
