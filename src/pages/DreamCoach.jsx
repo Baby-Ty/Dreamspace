@@ -181,7 +181,7 @@ const DreamCoach = () => {
           <button
             onClick={refreshData}
             disabled={isLoading}
-            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -214,7 +214,7 @@ const DreamCoach = () => {
           <button
             onClick={refreshData}
             disabled={isLoading}
-            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-3 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 flex items-center mx-auto"
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -228,17 +228,6 @@ const DreamCoach = () => {
     );
   }
 
-  const getStatusColor = (score) => {
-    if (score >= 60) return 'text-professional-gray-700 bg-professional-gray-100 border-professional-gray-300'; // Excelling - Light grey background, darker grey text
-    if (score >= 30) return 'text-professional-gray-700 bg-professional-gray-100 border-professional-gray-300'; // On Track - Same grey pill
-    return 'text-amber-800 bg-amber-100 border-amber-300'; // Needs Attention - Amber pill
-  };
-
-  const getStatusText = (score) => {
-    if (score >= 60) return 'Excelling';
-    if (score >= 30) return 'On Track';
-    return 'Needs Attention';
-  };
 
   const getCategoryIcon = (category) => {
     const icons = {
@@ -310,9 +299,6 @@ const DreamCoach = () => {
               <div>
                 <h2 className="text-2xl font-bold text-professional-gray-900">{member.name}</h2>
                 <p className="text-professional-gray-600">{member.office} • {member.score} points</p>
-                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(member.score)}`}>
-                  {getStatusText(member.score)}
-                </span>
               </div>
             </div>
             <button 
@@ -427,11 +413,11 @@ const DreamCoach = () => {
               </div>
 
               <div className="space-y-3">
-                <button className="w-full bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-coral transition-colors flex items-center justify-center space-x-2 shadow-sm hover:shadow-md">
+                <button className="w-full bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
                   <MessageSquare className="h-4 w-4" />
                   <span>Add Coaching Note</span>
                 </button>
-                <button className="w-full bg-white border border-professional-gray-300 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-netsurit-light-coral/10 hover:border-netsurit-light-coral/40 transition-colors flex items-center justify-center space-x-2">
+                <button className="w-full bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white px-4 py-2 rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
                   <Calendar className="h-4 w-4" />
                   <span>Schedule Check-in</span>
                 </button>
@@ -528,67 +514,62 @@ const DreamCoach = () => {
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {filteredMembers.map((member) => (
               <div 
                 key={member.id} 
-                className="bg-professional-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer border border-professional-gray-200 hover:border-netsurit-light-coral/40 hover:bg-netsurit-light-coral/5"
+                className="bg-professional-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer border border-professional-gray-200 hover:border-netsurit-light-coral/40 hover:bg-netsurit-light-coral/5"
                 onClick={() => setSelectedMember(member)}
               >
-                <div className="flex items-center space-x-4 mb-4">
+                <div className="flex items-center space-x-3 mb-3">
                   <img 
                     src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`} 
                     alt={member.name}
-                    className="h-12 w-12 rounded-full object-cover ring-2 ring-professional-gray-200"
+                    className="h-10 w-10 rounded-full object-cover ring-2 ring-professional-gray-200"
                     onError={(e) => {
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6366f1&color=fff&size=100`;
                     }}
                   />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-professional-gray-900">{member.name}</h3>
-                    <p className="text-sm text-professional-gray-600">{member.office}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-professional-gray-900 text-sm truncate">{member.name}</h3>
+                    <p className="text-xs text-professional-gray-600 truncate">{member.office}</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-netsurit-red" />
+                  <ChevronRight className="h-4 w-4 text-netsurit-red" />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-professional-gray-600">Overall Score</span>
-                    <span className="font-semibold text-professional-gray-900">{member.score}</span>
+                    <span className="text-xs text-professional-gray-600">Overall Score</span>
+                    <span className="font-semibold text-professional-gray-900 text-sm">{member.score}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-professional-gray-600">Dreams</span>
-                    <span className="font-semibold text-professional-gray-900">{member.dreamsCount || 0}</span>
+                    <span className="text-xs text-professional-gray-600">Dreams</span>
+                    <span className="font-semibold text-professional-gray-900 text-sm">{member.dreamsCount || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-professional-gray-600">Connects</span>
-                    <span className="font-semibold text-professional-gray-900">{member.connectsCount || 0}</span>
+                    <span className="text-xs text-professional-gray-600">Connects</span>
+                    <span className="font-semibold text-professional-gray-900 text-sm">{member.connectsCount || 0}</span>
                   </div>
 
-                  <div className="pt-2">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(member.score)}`}>
-                      {getStatusText(member.score)}
-                    </span>
-                  </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-professional-gray-200">
-                  <p className="text-xs text-professional-gray-500 mb-2">Top Categories:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {member.dreamCategories?.slice(0, 3).map((category, index) => (
-                      <span 
-                        key={index}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-professional-gray-100 text-professional-gray-700 border border-professional-gray-300"
-                      >
-                        {React.createElement(getCategoryIcon(category), { 
-                          className: "h-3 w-3 mr-1" 
-                        })}
-                        {category}
-                      </span>
-                    ))}
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedMember(member); }}
+                    className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-semibold text-xs"
+                  >
+                    <BookOpen className="w-3 h-3 mr-1.5" />
+                    <span>View Dreams</span>
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); /* TODO: Add check-in functionality */ }}
+                    className="px-3 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-xs"
+                  >
+                    Check-In
+                  </button>
                 </div>
               </div>
             ))}
@@ -618,7 +599,7 @@ const DreamCoach = () => {
                     <p className="text-sm font-medium text-professional-gray-900">{alert.message}</p>
                     <p className="text-sm text-professional-gray-600 mt-1">{alert.actionSuggestion}</p>
                   </div>
-                  <button className="text-netsurit-red hover:text-netsurit-coral text-sm font-medium transition-colors">
+                  <button className="px-3 py-1.5 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg">
                     Take Action
                   </button>
                 </div>
