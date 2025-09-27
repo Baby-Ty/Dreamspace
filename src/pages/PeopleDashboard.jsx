@@ -25,7 +25,8 @@ import {
   ChevronUp,
   User,
   X,
-  Repeat
+  Repeat,
+  Edit
 } from 'lucide-react';
 import peopleService from '../services/peopleService';
 import CoachDetailModal from '../components/CoachDetailModal';
@@ -48,6 +49,10 @@ const PeopleDashboard = () => {
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [showReplaceCoachModal, setShowReplaceCoachModal] = useState(false);
   const [selectedCoachToReplace, setSelectedCoachToReplace] = useState(null);
+  const [showAllUsers, setShowAllUsers] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [selectedEditUser, setSelectedEditUser] = useState(null);
   
   // Data state
   const [allUsers, setAllUsers] = useState([]);
@@ -171,6 +176,21 @@ const PeopleDashboard = () => {
     );
   }, [allUsers, teamRelationships]);
 
+  // Get displayed users based on toggle state and search term
+  const displayedUsers = useMemo(() => {
+    let baseUsers = showAllUsers ? allUsers : unassignedUsers;
+    
+    if (userSearchTerm.trim()) {
+      baseUsers = baseUsers.filter(user => 
+        user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        user.office.toLowerCase().includes(userSearchTerm.toLowerCase())
+      );
+    }
+    
+    return baseUsers;
+  }, [showAllUsers, allUsers, unassignedUsers, userSearchTerm]);
+
   // Calculate overall metrics
   const overallMetrics = useMemo(() => {
     const totalEmployees = allUsers.length;
@@ -233,6 +253,11 @@ const PeopleDashboard = () => {
   const handleReplaceCoach = (coach) => {
     setSelectedCoachToReplace(coach);
     setShowReplaceCoachModal(true);
+  };
+
+  const handleEditUser = (user) => {
+    setSelectedEditUser(user);
+    setShowEditUserModal(true);
   };
 
   const confirmPromoteUser = async (user, teamName) => {
@@ -472,14 +497,52 @@ const PeopleDashboard = () => {
             </div>
           </div>
 
-          {/* Right Panel: Unassigned Users */}
+          {/* Right Panel: Users */}
           <div className="space-y-4">
             <div className="bg-white rounded-lg border border-professional-gray-200 p-4">
-              <h2 className="text-xl font-bold text-professional-gray-900">Unassigned Users</h2>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-xl font-bold text-professional-gray-900 flex-shrink-0">
+                  {showAllUsers ? 'All Users' : 'Unassigned Users'}
+                </h2>
+                
+                {/* Search Bar */}
+                <div className="flex-1 max-w-xs">
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-professional-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder={`Search ${showAllUsers ? 'all users' : 'unassigned users'}...`}
+                      value={userSearchTerm}
+                      onChange={(e) => setUserSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
+                    />
+                    {userSearchTerm && (
+                      <button
+                        onClick={() => setUserSearchTerm('')}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-professional-gray-400 hover:text-netsurit-red transition-colors duration-200"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowAllUsers(!showAllUsers)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 flex-shrink-0 ${
+                    showAllUsers
+                      ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white hover:from-netsurit-coral hover:to-netsurit-orange'
+                      : 'bg-professional-gray-100 text-professional-gray-700 hover:bg-professional-gray-200'
+                  }`}
+                >
+                  {showAllUsers ? 'Show Unassigned' : 'Show All Users'}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
-              {unassignedUsers.map((user) => (
+              {displayedUsers.map((user) => (
                 <UnassignedUserCard 
                   key={user.id}
                   user={user}
@@ -487,14 +550,40 @@ const PeopleDashboard = () => {
                   onPromote={() => handlePromoteUser(user)}
                   onAssign={() => handleAssignUser(user)}
                   onQuickAssign={(user, coachId) => confirmAssignUser(user, coachId)}
+                  onEditUser={() => handleEditUser(user)}
                 />
               ))}
 
-              {unassignedUsers.length === 0 && (
+              {displayedUsers.length === 0 && (
                 <div className="text-center py-12">
-                  <UserPlus className="w-16 h-16 text-professional-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-professional-gray-900 mb-2">All users assigned</h3>
-                  <p className="text-professional-gray-500">Every user is either a coach or assigned to a team</p>
+                  {userSearchTerm ? (
+                    <>
+                      <Search className="w-16 h-16 text-professional-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-professional-gray-900 mb-2">No users found</h3>
+                      <p className="text-professional-gray-500">
+                        No {showAllUsers ? 'users' : 'unassigned users'} match "{userSearchTerm}"
+                      </p>
+                      <button
+                        onClick={() => setUserSearchTerm('')}
+                        className="mt-3 text-sm text-netsurit-red hover:text-netsurit-coral transition-colors duration-200"
+                      >
+                        Clear search
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-16 h-16 text-professional-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-professional-gray-900 mb-2">
+                        {showAllUsers ? 'No users found' : 'All users assigned'}
+                      </h3>
+                      <p className="text-professional-gray-500">
+                        {showAllUsers 
+                          ? 'There are no users in the system' 
+                          : 'Every user is either a coach or assigned to a team'
+                        }
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -517,6 +606,8 @@ const PeopleDashboard = () => {
       <ReportBuilderModal
         isOpen={showReportBuilder}
         onClose={() => setShowReportBuilder(false)}
+        allUsers={allUsers}
+        teamRelationships={teamRelationships}
       />
 
       {/* Promote User Modal */}
@@ -571,6 +662,25 @@ const PeopleDashboard = () => {
           onConfirm={(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId) => 
             confirmReplaceCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId)
           }
+        />
+      )}
+
+      {/* Edit User Modal */}
+      {showEditUserModal && selectedEditUser && (
+        <EditUserModal
+          user={selectedEditUser}
+          coaches={coaches}
+          allUsers={allUsers}
+          onClose={() => {
+            setShowEditUserModal(false);
+            setSelectedEditUser(null);
+          }}
+          onSave={(updatedUser) => {
+            // TODO: Implement user update logic
+            console.log('Saving user updates:', updatedUser);
+            setShowEditUserModal(false);
+            setSelectedEditUser(null);
+          }}
         />
       )}
     </div>
@@ -708,8 +818,25 @@ const CoachTeamCard = ({ coach, isExpanded, onToggleExpand, onViewCoach, onUnass
   );
 };
 
-// Unassigned User Card Component - Compact List Style
-const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign }) => {
+// User Card Component - Can display unassigned users, assigned users, or coaches
+const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign, onEditUser }) => {
+  // Determine user status
+  const coachIds = new Set(coaches.map(coach => coach.id));
+  const isCoach = coachIds.has(user.id);
+  const assignedUserIds = new Set();
+  
+  // Get all assigned user IDs from all coaches
+  coaches.forEach(coach => {
+    if (coach.teamMetrics?.teamMembers) {
+      coach.teamMetrics.teamMembers.forEach(member => {
+        assignedUserIds.add(member.id);
+      });
+    }
+  });
+  
+  const isAssigned = assignedUserIds.has(user.id);
+  const isUnassigned = !isCoach && !isAssigned;
+
   return (
     <div className="bg-white border border-professional-gray-200 rounded-lg hover:shadow-md transition-all duration-200">
       <div className="p-3">
@@ -725,7 +852,21 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
             />
             
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-medium text-professional-gray-900 truncate">{user.name}</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-medium text-professional-gray-900 truncate">{user.name}</h4>
+                {isCoach && <Crown className="w-3.5 h-3.5 text-netsurit-red flex-shrink-0" title="Coach" />}
+                {isAssigned && !isCoach && <Shield className="w-3.5 h-3.5 text-netsurit-coral flex-shrink-0" title="Assigned to Team" />}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditUser();
+                  }}
+                  className="p-1 text-professional-gray-400 hover:text-professional-gray-600 hover:bg-professional-gray-100 rounded transition-colors duration-200 flex-shrink-0"
+                  title="Edit user details"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <div className="flex items-center gap-2 text-xs text-professional-gray-500">
                 <span className="flex items-center">
                   <MapPin className="w-3 h-3 mr-1" />
@@ -741,48 +882,59 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign 
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Only show for unassigned users */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={onPromote}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white text-xs font-medium rounded-md hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
-            >
-              <Crown className="w-3 h-3" />
-              Promote
-            </button>
+            {isUnassigned && (
+              <>
+                <button
+                  onClick={onPromote}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white text-xs font-medium rounded-md hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
+                >
+                  <Crown className="w-3 h-3" />
+                  Promote
+                </button>
+                
+                {/* Quick Assign Dropdown */}
+                {coaches.length > 0 ? (
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        onQuickAssign(user, e.target.value);
+                        e.target.value = ''; // Reset dropdown
+                      }
+                    }}
+                    className="px-2.5 py-1.5 bg-professional-gray-800 hover:bg-professional-gray-900 text-white text-xs font-medium rounded-md transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.5rem center',
+                      backgroundSize: '0.75rem'
+                    }}
+                  >
+                    <option value="">Assign to Coach</option>
+                    {coaches.map(coach => (
+                      <option key={coach.id} value={coach.id}>
+                        {coach.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <button
+                    onClick={onAssign}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-professional-gray-800 hover:bg-professional-gray-900 text-white text-xs font-medium rounded-md transition-all duration-200"
+                  >
+                    <ArrowRight className="w-3 h-3" />
+                    Assign
+                  </button>
+                )}
+              </>
+            )}
             
-            {/* Quick Assign Dropdown */}
-            {coaches.length > 0 ? (
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    onQuickAssign(user, e.target.value);
-                    e.target.value = ''; // Reset dropdown
-                  }
-                }}
-                className="px-2.5 py-1.5 bg-professional-gray-800 hover:bg-professional-gray-900 text-white text-xs font-medium rounded-md transition-all duration-200 border-none outline-none appearance-none pr-6 bg-arrow-down"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '0.75rem'
-                }}
-              >
-                <option value="">Assign to Coach</option>
-                {coaches.map(coach => (
-                  <option key={coach.id} value={coach.id}>
-                    {coach.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <button
-                onClick={onAssign}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-professional-gray-800 hover:bg-professional-gray-900 text-white text-xs font-medium rounded-md transition-all duration-200"
-              >
-                <ArrowRight className="w-3 h-3" />
-                Assign
-              </button>
+            {/* Status indicator for assigned/coach users */}
+            {(isCoach || isAssigned) && (
+              <div className="text-xs font-medium text-professional-gray-500">
+                {isCoach ? 'Coach' : 'Assigned'}
+              </div>
             )}
           </div>
         </div>
@@ -943,6 +1095,244 @@ const AssignUserModal = ({ user, coaches, onClose, onConfirm }) => {
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
               >
                 Assign
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Edit User Modal Component
+const EditUserModal = ({ user, coaches, allUsers, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    name: user.name || '',
+    title: user.title || '',
+    manager: user.manager || '',
+    office: user.office || '',
+    department: user.department || '',
+    roles: {
+      admin: user.roles?.admin || false,
+      coach: user.roles?.coach || false,
+      employee: user.roles?.employee || true,
+      people: user.roles?.people || false
+    },
+    coachId: user.coachId || '',
+    teamId: user.teamId || ''
+  });
+
+  // Determine current coach and team
+  const currentCoach = coaches.find(coach => 
+    coach.teamMetrics?.teamMembers?.some(member => member.id === user.id)
+  );
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleRoleToggle = (role) => {
+    setFormData(prev => ({
+      ...prev,
+      roles: {
+        ...prev.roles,
+        [role]: !prev.roles[role]
+      }
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[1000]">
+      <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-professional-gray-900">Edit User</h3>
+            <button
+              onClick={onClose}
+              className="p-2 text-professional-gray-400 hover:text-professional-gray-600 rounded-lg transition-colors duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-3 mb-6">
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-16 h-16 rounded-full object-cover"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=64`;
+              }}
+            />
+            <div>
+              <p className="font-medium text-professional-gray-900">{user.name}</p>
+              <p className="text-sm text-professional-gray-500">{user.email}</p>
+              <p className="text-xs text-professional-gray-400">Username: {user.username || user.email}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Display Name */}
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                />
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                />
+              </div>
+
+              {/* Manager */}
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Manager
+                </label>
+                <select
+                  value={formData.manager}
+                  onChange={(e) => handleInputChange('manager', e.target.value)}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                >
+                  <option value="">Select manager...</option>
+                  {allUsers.filter(u => u.id !== user.id).map(manager => (
+                    <option key={manager.id} value={manager.id}>
+                      {manager.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Department/Office */}
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Department / Office
+                </label>
+                <input
+                  type="text"
+                  value={formData.office}
+                  onChange={(e) => handleInputChange('office', e.target.value)}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                />
+              </div>
+            </div>
+
+            {/* Roles */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-professional-gray-700 mb-3">
+                Roles
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries({
+                  admin: 'Admin',
+                  coach: 'Coach', 
+                  employee: 'Employee',
+                  people: 'People'
+                }).map(([key, label]) => (
+                  <label key={key} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.roles[key]}
+                      onChange={() => handleRoleToggle(key)}
+                      className="w-4 h-4 text-netsurit-red bg-gray-100 border-gray-300 rounded focus:ring-netsurit-red focus:ring-2"
+                    />
+                    <span className="text-sm text-professional-gray-700">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Coach Assignment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Coach
+                </label>
+                <select
+                  value={currentCoach?.id || ''}
+                  onChange={(e) => handleInputChange('coachId', e.target.value)}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                >
+                  <option value="">No coach assigned</option>
+                  {coaches.map(coach => (
+                    <option key={coach.id} value={coach.id}>
+                      {coach.name} - {coach.teamName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Team
+                </label>
+                <input
+                  type="text"
+                  value={currentCoach?.teamName || ''}
+                  readOnly
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg bg-professional-gray-50 text-professional-gray-500"
+                  placeholder="Team assigned based on coach"
+                />
+              </div>
+            </div>
+
+            {/* Non-editable SSO Info */}
+            <div className="mb-6 p-4 bg-professional-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-professional-gray-700 mb-3">
+                Non-editable (SSO-synced)
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-professional-gray-500">Email:</span>
+                  <div className="font-medium text-professional-gray-900">{user.email}</div>
+                </div>
+                <div>
+                  <span className="text-professional-gray-500">Username:</span>
+                  <div className="font-medium text-professional-gray-900">{user.username || user.email}</div>
+                </div>
+                <div>
+                  <span className="text-professional-gray-500">Account Status:</span>
+                  <div className="font-medium text-green-600">Active</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-professional-gray-800 hover:bg-professional-gray-900 text-white rounded-lg transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
+              >
+                Save Changes
               </button>
             </div>
           </form>
