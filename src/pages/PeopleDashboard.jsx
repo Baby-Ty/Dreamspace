@@ -879,8 +879,6 @@ const UnassignedUserCard = ({ user, onPromote, onAssign, coaches, onQuickAssign,
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h4 className="text-sm font-medium text-professional-gray-900 truncate">{user.name}</h4>
-                {isCoach && <Crown className="w-3.5 h-3.5 text-netsurit-red flex-shrink-0" title="Coach" />}
-                {isAssigned && !isCoach && <Shield className="w-3.5 h-3.5 text-netsurit-coral flex-shrink-0" title="Assigned to Team" />}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
