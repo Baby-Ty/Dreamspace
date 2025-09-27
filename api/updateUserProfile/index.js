@@ -83,6 +83,11 @@ module.exports = async function (context, req) {
       email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
       office: profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
       avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
+      // Additional profile fields from edit modal
+      title: profileData.title || existingDocument?.title || '',
+      department: profileData.department || existingDocument?.department || '',
+      manager: profileData.manager || existingDocument?.manager || '',
+      roles: profileData.roles || existingDocument?.roles || { admin: false, coach: false, employee: true, people: false },
       // Initialize default fields if they don't exist
       dreamBook: existingDocument?.dreamBook || [],
       careerGoals: existingDocument?.careerGoals || [],
@@ -109,7 +114,11 @@ module.exports = async function (context, req) {
         id: resource.id,
         name: resource.name,
         email: resource.email,
-        office: resource.office
+        office: resource.office,
+        title: resource.title,
+        department: resource.department,
+        manager: resource.manager,
+        roles: resource.roles
       }),
       headers
     };

@@ -6,6 +6,9 @@ import DreamTrackerModal from '../components/DreamTrackerModal';
 
 const Dashboard = () => {
   const { currentUser, weeklyGoals, toggleWeeklyGoal, addWeeklyGoal, updateDream } = useApp();
+  
+  // Ensure weeklyGoals is always an array to prevent filter errors
+  const safeWeeklyGoals = Array.isArray(weeklyGoals) ? weeklyGoals : [];
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: '',
@@ -37,8 +40,8 @@ const Dashboard = () => {
   };
 
   // Calculate weekly progress
-  const weeklyProgress = weeklyGoals.length > 0 
-    ? Math.round((weeklyGoals.filter(goal => goal.completed).length / weeklyGoals.length) * 100)
+  const weeklyProgress = safeWeeklyGoals.length > 0 
+    ? Math.round((safeWeeklyGoals.filter(goal => goal.completed).length / safeWeeklyGoals.length) * 100)
     : 0;
 
   // Handle adding new goal
@@ -156,7 +159,7 @@ const Dashboard = () => {
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 text-center">
                 <span className="text-base font-bold text-professional-gray-800">
-                  {weeklyGoals.filter(g => g.completed).length} of {weeklyGoals.length} goals completed
+                  {safeWeeklyGoals.filter(g => g.completed).length} of {safeWeeklyGoals.length} goals completed
                   {weeklyProgress === 100 && <span className="ml-2 text-xl">🎉</span>}
                 </span>
               </div>
@@ -165,7 +168,7 @@ const Dashboard = () => {
 
           {/* Weekly Goals List */}
            <div className="flex-1 p-4 sm:p-5 overflow-hidden">
-            {weeklyGoals.length === 0 && !showAddGoal ? (
+            {safeWeeklyGoals.length === 0 && !showAddGoal ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <div className="p-4 bg-professional-gray-100 rounded-full w-fit mx-auto mb-4 shadow-lg">
@@ -252,7 +255,7 @@ const Dashboard = () => {
 
                 {/* Goals List */}
                 <div className="flex-1 space-y-5 overflow-y-auto pr-2">
-                  {weeklyGoals.map((goal) => (
+                  {safeWeeklyGoals.map((goal) => (
                     <div key={goal.id} className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg transform hover:scale-[1.02] ${
                       goal.completed 
                         ? 'bg-professional-gray-50 border-professional-gray-300 shadow-md' 
@@ -307,7 +310,7 @@ const Dashboard = () => {
                   ))}
 
                   {/* Add Goal Button (when goals exist) */}
-                  {weeklyGoals.length > 0 && !showAddGoal && (
+                  {safeWeeklyGoals.length > 0 && !showAddGoal && (
                     <button
                       onClick={() => setShowAddGoal(true)}
                       className="w-full p-8 rounded-2xl border-3 border-dashed border-professional-gray-300 hover:border-netsurit-red hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-300 text-center group hover:shadow-lg transform hover:scale-[1.02]"

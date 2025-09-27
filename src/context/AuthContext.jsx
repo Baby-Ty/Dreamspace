@@ -16,21 +16,34 @@ export const AuthProvider = ({ children }) => {
   const [loginError, setLoginError] = useState(null);
 
   useEffect(() => {
+    console.log('🔄 AuthContext useEffect:', { 
+      isDemoMode, 
+      accountsLength: accounts.length, 
+      inProgress, 
+      isLoading 
+    });
+    
     // Skip MSAL account checking if we're in demo mode
     if (isDemoMode) {
+      console.log('📝 Demo mode active, skipping MSAL checks');
       return;
     }
     
     if (accounts.length > 0) {
       const account = accounts[0];
+      console.log('👤 Found MSAL account:', account.name);
       fetchUserProfile(account);
     } else if (inProgress === 'none') {
+      console.log('🏁 No accounts found and MSAL not in progress, setting loading to false');
       setIsLoading(false);
     }
   }, [accounts, isDemoMode, inProgress]);
 
   const fetchUserProfile = async (account) => {
     try {
+      setIsLoading(true);
+      console.log('🔄 Fetching user profile for:', account.name);
+      
       // Get access token for Microsoft Graph
       const response = await instance.acquireTokenSilent({
         ...loginRequest,
@@ -38,6 +51,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       // Call Microsoft Graph to get user profile
+      console.log('📞 Calling Microsoft Graph API...');
       const graphResponse = await fetch(graphConfig.graphMeEndpoint, {
         headers: {
           'Authorization': `Bearer ${response.accessToken}`
@@ -93,45 +107,29 @@ export const AuthProvider = ({ children }) => {
             office: userData.office
           });
           
-          // Use the updateUserProfile API to merge profile data with existing data
-          const response = await fetch(`/api/updateUserProfile/${userData.id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(profileData)
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            console.log('✅ User profile updated successfully:', result.name);
+          // Try to save user data (will use localStorage in local development)
+          const saveResult = await databaseService.saveUserData(userData.id, userData);
+          if (saveResult.success) {
+            console.log('✅ User profile saved successfully');
           } else {
-            const error = await response.json();
-            console.error('❌ Failed to update user profile:', error);
-            // Fallback to regular save
-            await databaseService.saveUserData(userData.id, userData);
-            console.log('✅ Used fallback save method');
+            console.log('ℹ️ Profile save failed but continuing with login:', saveResult.error);
           }
         } catch (error) {
           console.error('❌ Error updating user profile:', error);
-          // Fallback to regular save method
-          try {
-            await databaseService.saveUserData(userData.id, userData);
-            console.log('✅ Used fallback save method');
-          } catch (fallbackError) {
-            console.error('❌ Fallback save also failed:', fallbackError);
-          }
           // Continue with login even if database save fails
+          console.log('ℹ️ Continuing with login despite save error');
         }
 
         setUser(userData);
         setUserRole(userRole);
+        console.log('✅ User profile setup completed');
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       // Fallback to basic account info
+      console.log('🔄 Using fallback basic user info');
       const basicUser = {
-        id: Date.now(),
+        id: account.localAccountId || account.username || Date.now().toString(),
         name: account.name,
         email: account.username,
         office: 'Remote',
@@ -147,7 +145,9 @@ export const AuthProvider = ({ children }) => {
       };
       setUser(basicUser);
       setUserRole(determineUserRoleFromToken(account, null, basicUser));
+      console.log('✅ Basic user setup completed');
     } finally {
+      console.log('🏁 Finishing user profile fetch');
       setIsLoading(false);
     }
   };
@@ -211,15 +211,19 @@ export const AuthProvider = ({ children }) => {
       setLoginError(null); // Clear any previous errors
       
       if (isDemo) {
+        console.log('🎭 Starting demo login...');
         // Demo login - load Sarah Johnson from either Cosmos DB or fallback to mock data
         setIsDemoMode(true);
         
         try {
+          console.log('🔄 Attempting to load Sarah Johnson from database...');
           // First try to load Sarah Johnson's real data from Cosmos DB (works in production)
           const sarahData = await databaseService.loadUserData('sarah.johnson@netsurit.com');
+          console.log('📊 Database response:', sarahData);
           
           if (sarahData && sarahData.success && sarahData.data) {
             // Use the real Sarah Johnson data from database
+            console.log('✅ Found Sarah in database, using production data');
             setUser(sarahData.data);
             // Sarah gets admin role for demo purposes (can access coaching features)
             setUserRole('admin');
@@ -227,7 +231,9 @@ export const AuthProvider = ({ children }) => {
           } else {
             // Fallback to mock data for local development
             console.log('ℹ️ Sarah not found in database, using mock data for local demo');
+            console.log('📋 Available mock users:', allUsers.map(u => u.email));
             const mockSarah = allUsers.find(user => user.email === 'sarah.johnson@netsurit.com') || currentUser;
+            console.log('👤 Mock Sarah found:', !!mockSarah, mockSarah?.name);
             if (mockSarah) {
               setUser(mockSarah);
               setUserRole('admin');
@@ -243,12 +249,17 @@ export const AuthProvider = ({ children }) => {
           console.log('🔄 Attempting fallback to mock data...');
           try {
             const mockSarah = allUsers.find(user => user.email === 'sarah.johnson@netsurit.com') || currentUser;
+            console.log('👤 Fallback user:', mockSarah?.name);
             if (mockSarah) {
               setUser(mockSarah);
               setUserRole('admin');
               console.log('✅ Demo login successful with fallback mock data');
             } else {
-              throw new Error('No demo data available');
+              console.log('📋 CurrentUser fallback:', currentUser?.name);
+              // Use currentUser as absolute fallback
+              setUser(currentUser);
+              setUserRole('admin');
+              console.log('✅ Demo login successful with currentUser fallback');
             }
           } catch (fallbackError) {
             console.error('❌ Fallback also failed:', fallbackError);
@@ -258,6 +269,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
+        console.log('🏁 Demo login completed, setting loading to false');
         setIsLoading(false);
         return;
       }

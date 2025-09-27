@@ -382,7 +382,7 @@ export const AppProvider = ({ children, initialUser }) => {
   const initialStateWithUser = {
     ...initialState,
     currentUser: userToUse,
-    weeklyGoals: (initialUser && initialUser.weeklyGoals) || [],
+    weeklyGoals: Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [],
     isAuthenticated: !!initialUser
   };
 
@@ -428,7 +428,8 @@ export const AppProvider = ({ children, initialUser }) => {
           payload: {
             ...persistedData,
             currentUser: migratedUser,
-            weeklyGoals: persistedData.weeklyGoals || (initialUser && initialUser.weeklyGoals) || []
+            weeklyGoals: Array.isArray(persistedData.weeklyGoals) ? persistedData.weeklyGoals : 
+                        (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [])
           }
         });
       }

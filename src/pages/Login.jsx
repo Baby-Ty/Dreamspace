@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const { login, isLoading, loginError, clearLoginError } = useAuth();
+  
+  console.log('Login component state:', { isLoading, hasError: !!loginError });
+  
   return (
     <div className="min-h-screen bg-professional-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">

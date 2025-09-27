@@ -257,6 +257,37 @@ class PeopleService {
     }
   }
 
+  // Update user profile
+  async updateUserProfile(userId, profileData) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/updateUserProfile/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(profileData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ User profile updated in Cosmos DB:', userId);
+        return result;
+      } else {
+        // Handle locally for development
+        const success = await this.updateUserProfileLocalStorage(userId, profileData);
+        console.log('📱 User profile updated in localStorage:', userId);
+        return { success };
+      }
+    } catch (error) {
+      console.error('❌ Error updating user profile:', error);
+      throw error;
+    }
+  }
+
   // Replace team coach
   async replaceTeamCoach(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
     try {
@@ -394,6 +425,30 @@ class PeopleService {
     if (coachTeam && coachTeam.teamMembers.includes(userId)) {
       coachTeam.teamMembers = coachTeam.teamMembers.filter(id => id !== userId);
       localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
+      return true;
+    }
+    
+    return false;
+  }
+
+  async updateUserProfileLocalStorage(userId, profileData) {
+    const users = await this.getLocalStorageUsers();
+    
+    // Find the user and update their profile
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex] = {
+        ...users[userIndex],
+        name: profileData.name || users[userIndex].name,
+        title: profileData.title || users[userIndex].title,
+        office: profileData.office || users[userIndex].office,
+        department: profileData.department || users[userIndex].department,
+        roles: profileData.roles || users[userIndex].roles,
+        manager: profileData.manager || users[userIndex].manager,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      localStorage.setItem('dreamspace_all_users', JSON.stringify(users));
       return true;
     }
     

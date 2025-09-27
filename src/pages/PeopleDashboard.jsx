@@ -675,11 +675,36 @@ const PeopleDashboard = () => {
             setShowEditUserModal(false);
             setSelectedEditUser(null);
           }}
-          onSave={(updatedUser) => {
-            // TODO: Implement user update logic
-            console.log('Saving user updates:', updatedUser);
-            setShowEditUserModal(false);
-            setSelectedEditUser(null);
+          onSave={async (updatedUser) => {
+            try {
+              setLoading(true);
+              
+              // Prepare profile data for API
+              const profileData = {
+                displayName: updatedUser.name,
+                name: updatedUser.name,
+                title: updatedUser.title,
+                office: updatedUser.office,
+                department: updatedUser.department,
+                officeLocation: updatedUser.office,
+                roles: updatedUser.roles,
+                manager: updatedUser.manager
+              };
+              
+              await peopleService.updateUserProfile(selectedEditUser.id, profileData);
+              console.log('✅ Successfully updated user profile:', selectedEditUser.name);
+              
+              // Reload data to reflect changes
+              await loadData();
+              
+              setShowEditUserModal(false);
+              setSelectedEditUser(null);
+            } catch (error) {
+              console.error('❌ Error updating user profile:', error);
+              setError(`Failed to update ${selectedEditUser.name}: ${error.message}`);
+            } finally {
+              setLoading(false);
+            }
           }}
         />
       )}
@@ -1106,6 +1131,8 @@ const AssignUserModal = ({ user, coaches, onClose, onConfirm }) => {
 
 // Edit User Modal Component
 const EditUserModal = ({ user, coaches, allUsers, onClose, onSave }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: user.name || '',
     title: user.title || '',
@@ -1144,9 +1171,18 @@ const EditUserModal = ({ user, coaches, allUsers, onClose, onSave }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await onSave(formData);
+    } catch (err) {
+      setError(err.message || 'Failed to save user profile');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -1178,6 +1214,15 @@ const EditUserModal = ({ user, coaches, allUsers, onClose, onSave }) => {
               <p className="text-xs text-professional-gray-400">Username: {user.username || user.email}</p>
             </div>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                <span className="text-sm text-red-700">{error}</span>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -1324,15 +1369,24 @@ const EditUserModal = ({ user, coaches, allUsers, onClose, onSave }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-professional-gray-800 hover:bg-professional-gray-900 text-white rounded-lg transition-all duration-200"
+                disabled={isLoading}
+                className="flex-1 px-4 py-2 bg-professional-gray-800 hover:bg-professional-gray-900 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200"
+                disabled={isLoading}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                Save Changes
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
               </button>
             </div>
           </form>

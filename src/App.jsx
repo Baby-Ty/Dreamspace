@@ -18,12 +18,22 @@ import LoadingSpinner from './components/LoadingSpinner';
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  console.log('App State:', { isAuthenticated, isLoading, hasUser: !!user });
+
   if (isLoading) {
+    console.log('🔄 App is loading...');
     return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
+    console.log('🔐 User not authenticated, showing login');
     return <Login />;
+  }
+
+  console.log('✅ User authenticated, showing main app');
+  if (!user) {
+    console.error('❌ Authenticated but no user data!');
+    return <div>Error: User authenticated but no user data available</div>;
   }
 
   return (

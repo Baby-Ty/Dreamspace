@@ -182,6 +182,7 @@ const AdminDashboard = () => {
           categoryStats={categoryStats}
           topConnectors={topConnectors}
           lowEngagementUsers={lowEngagementUsers}
+          allUsers={allUsers}
           anonymizeName={anonymizeName}
           onOpenUserModal={handleOpenUserModal}
         />
@@ -190,6 +191,7 @@ const AdminDashboard = () => {
           filteredUsers={filteredUsers}
           selectedOffice={selectedOffice}
           setSelectedOffice={setSelectedOffice}
+          offices={offices}
           anonymizeName={anonymizeName}
           anonymizeEmail={anonymizeEmail}
           onOpenUserModal={handleOpenUserModal}
@@ -213,6 +215,7 @@ const OverviewMode = ({
   categoryStats, 
   topConnectors, 
   lowEngagementUsers,
+  allUsers,
   anonymizeName,
   onOpenUserModal 
 }) => {
@@ -394,6 +397,7 @@ const UsersMode = ({
   filteredUsers, 
   selectedOffice, 
   setSelectedOffice, 
+  offices,
   anonymizeName, 
   anonymizeEmail,
   onOpenUserModal 

@@ -11,11 +11,7 @@ import {
   BarChart3,
   Filter
 } from 'lucide-react';
-// Temporarily disable this component to fix ReferenceError
-const allUsers = [];
-const teamRelationships = [];
-
-const ReportBuilderModal = ({ isOpen, onClose }) => {
+const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships = [] }) => {
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
     endDate: new Date().toISOString().split('T')[0] // today
