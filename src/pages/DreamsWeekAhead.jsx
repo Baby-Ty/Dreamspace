@@ -593,7 +593,7 @@ const WeekCard = ({ week, isActive, progress, onClick }) => {
       className={`
         relative p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md text-left w-full
         ${isActive 
-          ? 'bg-gradient-to-br from-netsurit-red to-netsurit-orange text-white shadow-lg transform scale-105' 
+          ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-lg transform scale-105' 
           : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 border-2 border-professional-gray-200'
         }
       `}
@@ -621,7 +621,7 @@ const WeekCard = ({ week, isActive, progress, onClick }) => {
                   ? 'bg-white' 
                   : progress === 100 
                     ? 'bg-netsurit-red' 
-                    : 'bg-gradient-to-r from-netsurit-red to-netsurit-orange'
+                    : 'bg-gradient-to-r from-netsurit-red to-netsurit-coral'
               }`}
               style={{ width: `${progress}%` }}
             ></div>

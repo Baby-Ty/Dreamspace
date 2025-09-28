@@ -92,13 +92,16 @@ const Login = () => {
           <button
             onClick={() => login(false)}
             disabled={isLoading}
-            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-lg disabled:opacity-50"
+            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-light-coral focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-lg disabled:opacity-50"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
             ) : (
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23.5 12.5h-3.4v-1.1h3.4v1.1zm0-2.3h-3.4V9.1h3.4v1.1zm0-2.2h-3.4V6.9h3.4v1.1zM12 3.8L8.7 7.1l-.8-.8L12 2.2l4.1 4.1-.8.8L12 3.8zm8.1 16.3L12 12l-8.1 8.1-.8-.8L11.2 11l-8.1-8.1.8-.8L12 10.2l8.1-8.1.8.8L12.8 11l8.1 8.1-.8.8z"/>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="currentColor">
+                <path d="M1 1h10v10H1z"/>
+                <path d="M12 1h10v10H12z"/>
+                <path d="M1 12h10v10H1z"/>
+                <path d="M12 12h10v10H12z"/>
               </svg>
             )}
             Sign in with Microsoft

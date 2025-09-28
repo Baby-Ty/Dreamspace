@@ -86,7 +86,7 @@ const Layout = ({ children }) => {
                   e.target.nextSibling.style.display = 'flex';
                 }}
               />
-              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-red to-netsurit-orange rounded-lg items-center justify-center hidden">
+              <div className="w-8 h-8 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-lg items-center justify-center hidden">
                 <Star className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">DreamSpace</h1>
@@ -160,7 +160,7 @@ const Layout = ({ children }) => {
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-gradient-to-br from-netsurit-red to-netsurit-orange rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded flex items-center justify-center">
                 <Star className="w-4 h-4 text-white" />
               </div>
               <h1 className="text-lg font-bold text-gray-900">DreamSpace</h1>
