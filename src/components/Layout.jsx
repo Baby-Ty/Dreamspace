@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';
-import HealthBadge from './HealthBadge';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -145,13 +144,6 @@ const Layout = ({ children }) => {
               <LogOut className="w-4 h-4 mr-3" />
               Sign out
             </button>
-            
-            {/* Health Status Badge */}
-            <div className="pt-2 border-t border-gray-200 mt-2">
-              <div className="relative">
-                <HealthBadge showDetails={true} className="" />
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -173,7 +165,7 @@ const Layout = ({ children }) => {
               </div>
               <h1 className="text-lg font-bold text-gray-900">DreamSpace</h1>
             </div>
-            <HealthBadge showDetails={false} className="" />
+            <div className="w-10"></div>
           </div>
         </div>
 

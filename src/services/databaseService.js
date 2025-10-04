@@ -1,7 +1,4 @@
 // Database service for DreamSpace - handles Cosmos DB data persistence
-import { ok, fail } from '../utils/errorHandling.js';
-import { ERR, ErrorCodes } from '../constants/errors.js';
-
 class DatabaseService {
   constructor() {
     // Always use Cosmos DB on the live site, regardless of environment variables
@@ -48,7 +45,7 @@ class DatabaseService {
         console.log('🔄 Falling back to localStorage');
         return this.saveToLocalStorage(userId, userData);
       }
-      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save user data');
+      return { success: false, error: error.message };
     }
   }
 
@@ -64,25 +61,24 @@ class DatabaseService {
         // Unwrap Cosmos DB response - it returns { success: true, data: {...} }
         if (cosmosData && cosmosData.success && cosmosData.data) {
           // Cosmos DB wraps data, so unwrap it
-          return ok(cosmosData.data);
+          return cosmosData.data;
         }
-        return ok(null); // Returns null if user doesn't exist - that's fine for fresh start
+        return null; // Returns null if user doesn't exist - that's fine for fresh start
       } else {
         // For development, use localStorage (returns raw data, not wrapped)
         const localData = this.loadFromLocalStorage(userId);
         console.log('📂 LocalStorage data loaded:', localData ? 'Found data' : 'No data found');
         // localStorage returns raw data directly
-        return ok(localData);
+        return localData;
       }
     } catch (error) {
       console.error('Error loading user data:', error);
       // Fallback to localStorage if Cosmos DB fails
       if (this.useCosmosDB) {
         console.log('🔄 Falling back to localStorage');
-        const localData = this.loadFromLocalStorage(userId);
-        return ok(localData);
+        return this.loadFromLocalStorage(userId);
       }
-      return fail(ErrorCodes.LOAD_ERROR, error.message || 'Failed to load user data');
+      return null;
     }
   }
 
@@ -94,12 +90,12 @@ class DatabaseService {
         localStorage.setItem(storageKey, JSON.stringify(userData));
         // Notify listeners that a save occurred
         window.dispatchEvent(new Event('dreamspace:saved'));
-        return ok(null);
+        return { success: true };
       }
-      return fail(ErrorCodes.INVALID_INPUT, 'No user ID provided');
+      return { success: false, error: 'No user ID provided' };
     } catch (error) {
       console.warn('❌ Could not save to localStorage:', error);
-      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save to localStorage');
+      return { success: false, error: error.message };
     }
   }
 
@@ -132,15 +128,15 @@ class DatabaseService {
         console.log('✅ Data saved to Cosmos DB for user:', userId);
         // Notify listeners that a save occurred
         window.dispatchEvent(new Event('dreamspace:saved'));
-        return ok(result);
+        return { success: true, result };
       } else {
         const error = await response.json();
         console.error('❌ Cosmos DB save error:', error);
-        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Unknown error');
+        return { success: false, error: error.error || 'Unknown error' };
       }
     } catch (error) {
       console.error('❌ Cosmos DB save error:', error);
-      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save to Cosmos DB');
+      return { success: false, error: error.message };
     }
   }
 
@@ -155,15 +151,15 @@ class DatabaseService {
         return { success: true, data: userData };
       } else if (response.status === 404) {
         console.log('ℹ️ No data found in Cosmos DB for user:', userId);
-        return fail(ErrorCodes.NOT_FOUND, 'User not found');
+        return { success: false, error: 'User not found' }; // User not found
       } else {
         const error = await response.json();
         console.error('❌ Cosmos DB load error:', error);
-        return fail(ErrorCodes.LOAD_ERROR, error.error || 'Unknown error');
+        return { success: false, error: error.error || 'Unknown error' };
       }
     } catch (error) {
       console.error('❌ Cosmos DB load error:', error);
-      return fail(ErrorCodes.LOAD_ERROR, error.message || 'Failed to load from Cosmos DB');
+      return { success: false, error: error.message };
     }
   }
 
@@ -189,7 +185,7 @@ class DatabaseService {
         const result = await this.saveToCosmosDB(userId, emptyUserData);
         if (result.success) {
           console.log(`✅ Cleared Cosmos DB data for user ${userId}`);
-          return ok(null);
+          return { success: true };
         } else {
           return result;
         }
@@ -197,11 +193,11 @@ class DatabaseService {
         const storageKey = this.getUserStorageKey(userId);
         localStorage.removeItem(storageKey);
         console.log(`✅ Cleared localStorage data for user ${userId}`);
-        return ok(null);
+        return { success: true };
       }
     } catch (error) {
       console.error('Error clearing user data:', error);
-      return fail(ErrorCodes.DELETE_ERROR, error.message || 'Failed to clear user data');
+      return { success: false, error: error.message };
     }
   }
 }

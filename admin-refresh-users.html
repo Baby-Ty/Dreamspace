@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamSpace - User Profile Refresh Utility</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #EC4B5C, #FF7F7F);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: linear-gradient(135deg, #EC4B5C, #FF7F7F);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #FF7F7F, #FFA500);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .user-item {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #EC4B5C;
+        }
+        .status {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status.updated { background: #d4edda; color: #155724; }
+        .status.skipped { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 DreamSpace User Profile Refresh</h1>
+        <p>Admin utility to refresh user profiles in the database</p>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ Important:</strong> This utility helps update users who currently show as "Unknown User" in the database. 
+        The best solution is for users to sign out and sign back in, which will automatically update their profiles with real Microsoft Graph data.
+    </div>
+
+    <div>
+        <button id="refreshBtn" class="button" onclick="refreshUsers()">
+            🔄 Refresh All Users
+        </button>
+        <button id="checkBtn" class="button" onclick="checkUsers()">
+            👀 Check Current Users
+        </button>
+    </div>
+
+    <div id="results" class="results" style="display: none;">
+        <h3>Results:</h3>
+        <div id="resultContent"></div>
+    </div>
+
+    <script>
+        async function refreshUsers() {
+            const btn = document.getElementById('refreshBtn');
+            const results = document.getElementById('results');
+            const content = document.getElementById('resultContent');
+            
+            btn.disabled = true;
+            btn.textContent = '🔄 Refreshing...';
+            results.style.display = 'block';
+            content.innerHTML = '<p>Refreshing user profiles...</p>';
+
+            try {
+                const response = await fetch('/api/refreshAllUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    content.innerHTML = `
+                        <h4>✅ Success: ${data.message}</h4>
+                        <p><strong>Updated:</strong> ${data.updatedCount} users</p>
+                        <p><strong>Total Checked:</strong> ${data.totalChecked} users</p>
+                        <div>
+                            ${data.results.map(result => `
+                                <div class="user-item">
+                                    <strong>User ID:</strong> ${result.id}<br>
+                                    ${result.oldName ? `<strong>Old Name:</strong> ${result.oldName}<br>` : ''}
+                                    ${result.newName ? `<strong>New Name:</strong> ${result.newName}<br>` : ''}
+                                    <span class="status ${result.status.includes('updated') ? 'updated' : result.status.includes('error') ? 'error' : 'skipped'}">${result.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `<p>❌ Error: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                content.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🔄 Refresh All Users';
+        }
+
+        async function checkUsers() {
+            const btn = document.getElementById('checkBtn');
+            const results = document.getElementById('results');
+            const content = document.getElementById('resultContent');
+            
+            btn.disabled = true;
+            btn.textContent = '👀 Checking...';
+            results.style.display = 'block';
+            content.innerHTML = '<p>Checking current users...</p>';
+
+            try {
+                const response = await fetch('/api/getAllUsers');
+                const data = await response.json();
+                
+                if (data.success) {
+                    content.innerHTML = `
+                        <h4>👥 Current Users (${data.count})</h4>
+                        <div>
+                            ${data.users.map(user => `
+                                <div class="user-item">
+                                    <strong>Name:</strong> ${user.name}<br>
+                                    <strong>Email:</strong> ${user.email}<br>
+                                    <strong>Office:</strong> ${user.office}<br>
+                                    <strong>ID:</strong> ${user.id}<br>
+                                    <strong>Role:</strong> ${user.role}<br>
+                                    <strong>Active:</strong> ${user.isActive ? 'Yes' : 'No'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `<p>❌ Error: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                content.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '👀 Check Current Users';
+        }
+    </script>
+</body>
+</html>

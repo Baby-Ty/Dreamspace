@@ -70,28 +70,17 @@ const DreamCoach = () => {
         
         console.log('🔄 About to call peopleService APIs with userId:', userId);
 
-        const [metricsResult, alertsResult] = await Promise.all([
+        const [metrics, alerts] = await Promise.all([
           peopleService.getTeamMetrics(userId),
           peopleService.getCoachingAlerts(userId)
         ]);
 
         console.log('📊 Raw API responses received:', {
-          metricsResult,
-          alertsResult,
-          metricsSuccess: metricsResult?.success,
-          alertsSuccess: alertsResult?.success
+          metricsResponse: metrics,
+          alertsResponse: alerts,
+          metricsType: typeof metrics,
+          alertsType: typeof alerts
         });
-
-        // Handle new { success, data, error } format
-        if (!metricsResult?.success) {
-          throw new Error(metricsResult?.error?.message || 'Failed to load team metrics');
-        }
-        if (!alertsResult?.success) {
-          throw new Error(alertsResult?.error?.message || 'Failed to load coaching alerts');
-        }
-
-        const metrics = metricsResult.data;
-        const alerts = alertsResult.data;
 
         setTeamMetrics(metrics);
         setCoachingAlerts(alerts || []);
@@ -130,21 +119,10 @@ const DreamCoach = () => {
       try {
         setError(null);
 
-        const [metricsResult, alertsResult] = await Promise.all([
+        const [metrics, alerts] = await Promise.all([
           peopleService.getTeamMetrics(userId),
           peopleService.getCoachingAlerts(userId)
         ]);
-
-        // Handle new { success, data, error } format
-        if (!metricsResult?.success) {
-          throw new Error(metricsResult?.error?.message || 'Failed to load team metrics');
-        }
-        if (!alertsResult?.success) {
-          throw new Error(alertsResult?.error?.message || 'Failed to load coaching alerts');
-        }
-
-        const metrics = metricsResult.data;
-        const alerts = alertsResult.data;
 
         setTeamMetrics(metrics);
         setCoachingAlerts(alerts || []);

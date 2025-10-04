@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Demo Users in Cosmos DB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .user-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .user-card h3 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .setup-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .setup-btn:hover {
+            background: #0056b3;
+        }
+        .setup-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Setup Demo Users in Cosmos DB</h1>
+        
+        <p>This will create Sarah Johnson as a coach and her 3 team members in Cosmos DB for the demo account.</p>
+        
+        <div class="user-card">
+            <h3>👩‍💼 Sarah Johnson</h3>
+            <p><strong>Role:</strong> Senior Development Manager (Coach)</p>
+            <p><strong>Email:</strong> sarah.johnson@netsurit.com</p>
+            <p><strong>Office:</strong> Cape Town</p>
+            <div id="sarah-status" class="status pending">Pending</div>
+        </div>
+
+        <div class="user-card">
+            <h3>👨‍💻 Mike Chen</h3>
+            <p><strong>Role:</strong> Frontend Developer</p>
+            <p><strong>Email:</strong> mike.chen@netsurit.com</p>
+            <p><strong>Coach:</strong> Sarah Johnson</p>
+            <div id="mike-status" class="status pending">Pending</div>
+        </div>
+
+        <div class="user-card">
+            <h3>👩‍💻 Jennifer Smith</h3>
+            <p><strong>Role:</strong> Full Stack Developer</p>
+            <p><strong>Email:</strong> jennifer.smith@netsurit.com</p>
+            <p><strong>Coach:</strong> Sarah Johnson</p>
+            <div id="jennifer-status" class="status pending">Pending</div>
+        </div>
+
+        <div class="user-card">
+            <h3>👨‍💻 Alex Rodriguez</h3>
+            <p><strong>Role:</strong> Junior Developer</p>
+            <p><strong>Email:</strong> alex.rodriguez@netsurit.com</p>
+            <p><strong>Coach:</strong> Sarah Johnson</p>
+            <div id="alex-status" class="status pending">Pending</div>
+        </div>
+
+        <button id="setup-btn" class="setup-btn" onclick="setupUsers()">
+            🎯 Create Demo Users in Cosmos DB
+        </button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+
+        function logMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(userId, status, message = '') {
+            const statusEl = document.getElementById(`${userId}-status`);
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = status === 'success' ? '✅ Created' : 
+                                  status === 'error' ? '❌ Failed' : 'Pending';
+            if (message) {
+                logMessage(`${userId}: ${message}`);
+            }
+        }
+
+        async function saveUserToCosmosDB(userData) {
+            try {
+                logMessage(`Creating user: ${userData.name} (${userData.email})`);
+                
+                const response = await fetch(`/api/saveUserData/${userData.userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save user');
+                }
+
+                const result = await response.json();
+                logMessage(`✅ Successfully created ${userData.name}`);
+                return { success: true, result };
+            } catch (error) {
+                logMessage(`❌ Error creating ${userData.name}: ${error.message}`);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function setupUsers() {
+            const button = document.getElementById('setup-btn');
+            button.disabled = true;
+            button.textContent = '🔄 Creating Users...';
+            
+            logMessage('🚀 Starting demo user setup...');
+
+            // User data (same as in setup-demo-users.js)
+            const users = [
+                {
+                    id: "sarah.johnson@netsurit.com",
+                    userId: "sarah.johnson@netsurit.com", 
+                    name: "Sarah Johnson",
+                    email: "sarah.johnson@netsurit.com",
+                    office: "Cape Town",
+                    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
+                    jobTitle: "Senior Development Manager",
+                    department: "Engineering",
+                    role: "coach",
+                    dreamCategories: ["Learning", "Travel", "Health", "Career"],
+                    dreamBook: [
+                        {
+                            id: 1,
+                            title: "Master Team Leadership",
+                            category: "Career",
+                            description: "Develop advanced leadership skills to effectively manage and inspire development teams.",
+                            progress: 75,
+                            image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Complete leadership training program", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Implement weekly 1:1s with all team members", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+                                { id: 3, text: "Launch team mentorship program", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "Started implementing new team structure with clear roles and responsibilities.", timestamp: "2024-01-06T12:00:00Z" },
+                                { id: 2, text: "Team feedback has been very positive on the new 1:1 format.", timestamp: "2024-01-20T14:30:00Z" }
+                            ],
+                            history: [
+                                { id: 1, type: "progress", action: "Progress updated to 75%", timestamp: "2024-01-20T09:00:00Z", oldValue: 60, newValue: 75 }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            title: "Complete Advanced React Certification",
+                            category: "Learning",
+                            description: "Stay current with the latest React patterns and advanced techniques to guide team development.",
+                            progress: 45,
+                            image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Complete React 18 new features course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Build demo project with Next.js 14", completed: false, createdAt: "2024-01-15T10:00:00Z" },
+                                { id: 3, text: "Pass certification exam", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "React 18 concurrent features are game-changing for performance.", timestamp: "2024-01-10T11:00:00Z" }
+                            ],
+                            history: [
+                                { id: 1, type: "milestone", action: "Completed milestone: React 18 course", timestamp: "2024-01-10T11:05:00Z" }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            title: "Run Cape Town Marathon",
+                            category: "Health",
+                            description: "Train for and complete the Cape Town Marathon to maintain physical and mental health.",
+                            progress: 30,
+                            image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Create 16-week training plan", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Complete first 10K training run", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+                                { id: 3, text: "Register for marathon", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "Training is going well, running 3x per week consistently.", timestamp: "2024-01-20T07:00:00Z" }
+                            ],
+                            history: [
+                                { id: 1, type: "progress", action: "Progress updated to 30%", timestamp: "2024-01-20T07:05:00Z", oldValue: 15, newValue: 30 }
+                            ]
+                        }
+                    ],
+                    careerGoals: [
+                        {
+                            id: 1,
+                            title: "Lead Digital Transformation Initiative",
+                            description: "Spearhead the company's digital transformation, modernizing legacy systems and processes",
+                            progress: 85,
+                            targetDate: "2024-06-30",
+                            status: "In Progress"
+                        },
+                        {
+                            id: 2,
+                            title: "Expand Team to 12 Developers",
+                            description: "Grow the development team from 6 to 12 developers while maintaining code quality and team culture",
+                            progress: 60,
+                            targetDate: "2024-08-31",
+                            status: "In Progress"
+                        }
+                    ],
+                    careerProfile: {
+                        currentRole: {
+                            jobTitle: "Senior Development Manager",
+                            department: "Engineering",
+                            startDate: "2022-03-15",
+                            location: "Cape Town, South Africa"
+                        },
+                        aspirations: {
+                            desiredJobTitle: "VP of Engineering",
+                            preferredDepartment: "Engineering Leadership",
+                            interestedInRelocation: false,
+                            preferredGeography: "Cape Town"
+                        },
+                        preferences: {
+                            wantToDo: ["Team Leadership", "Strategic Planning", "Mentoring", "Technology Innovation"],
+                            dontWantToDo: ["Individual Contributor Work", "Travel >50%", "Legacy System Maintenance"],
+                            motivators: ["Team Growth", "Technical Excellence", "Innovation", "Work-Life Balance"]
+                        },
+                        careerHighlights: [
+                            "Led successful migration from monolith to microservices architecture",
+                            "Grew development team from 3 to 8 members",
+                            "Implemented DevOps practices reducing deployment time by 80%",
+                            "Mentored 5 junior developers to mid-level positions"
+                        ],
+                        skills: {
+                            technical: ["React", "Node.js", "AWS", "Docker", "Kubernetes", "TypeScript", "GraphQL"],
+                            soft: ["Team Leadership", "Strategic Thinking", "Communication", "Problem Solving", "Mentoring"]
+                        }
+                    },
+                    score: 142,
+                    dreamsCount: 3,
+                    connectsCount: 8,
+                    lastUpdated: new Date().toISOString()
+                },
+                {
+                    id: "mike.chen@netsurit.com",
+                    userId: "mike.chen@netsurit.com",
+                    name: "Mike Chen",
+                    email: "mike.chen@netsurit.com",
+                    office: "Cape Town",
+                    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
+                    jobTitle: "Frontend Developer",
+                    department: "Engineering",
+                    role: "employee",
+                    coachId: "sarah.johnson@netsurit.com",
+                    dreamCategories: ["Learning", "Career", "Technology"],
+                    dreamBook: [
+                        {
+                            id: 1,
+                            title: "Master React and TypeScript",
+                            category: "Learning",
+                            description: "Become proficient in React 18 features and advanced TypeScript patterns.",
+                            progress: 65,
+                            image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Complete React Hooks mastery", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Learn TypeScript generics", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+                                { id: 3, text: "Build full-stack project", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "React Suspense and concurrent features are fascinating!", timestamp: "2024-01-10T14:00:00Z" },
+                                {
+                                    id: 2,
+                                    dreamId: 1,
+                                    teamMemberId: "mike.chen@netsurit.com",
+                                    coachId: "sarah.johnson@netsurit.com",
+                                    coachName: "Sarah Johnson",
+                                    note: "Excellent progress on TypeScript! Consider applying these patterns to our current project.",
+                                    type: "encouragement",
+                                    createdAt: "2024-01-16T10:30:00Z",
+                                    isCoachNote: true
+                                }
+                            ],
+                            history: [
+                                { id: 1, type: "progress", action: "Progress updated to 65%", timestamp: "2024-01-16T09:00:00Z", oldValue: 50, newValue: 65 }
+                            ]
+                        }
+                    ],
+                    score: 89,
+                    dreamsCount: 2,
+                    connectsCount: 4,
+                    lastUpdated: new Date().toISOString()
+                },
+                {
+                    id: "jennifer.smith@netsurit.com",
+                    userId: "jennifer.smith@netsurit.com",
+                    name: "Jennifer Smith", 
+                    email: "jennifer.smith@netsurit.com",
+                    office: "Cape Town",
+                    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
+                    jobTitle: "Full Stack Developer",
+                    department: "Engineering", 
+                    role: "employee",
+                    coachId: "sarah.johnson@netsurit.com",
+                    dreamCategories: ["Career", "Learning", "Leadership"],
+                    dreamBook: [
+                        {
+                            id: 1,
+                            title: "Become a Tech Lead",
+                            category: "Career",
+                            description: "Develop the technical and people skills necessary to lead engineering projects.",
+                            progress: 55,
+                            image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Complete technical architecture course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Lead a cross-team project", completed: false, createdAt: "2024-01-20T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "Architecture course gave me great insights into system design.", timestamp: "2024-01-12T15:00:00Z" }
+                            ],
+                            history: [
+                                { id: 1, type: "progress", action: "Progress updated to 55%", timestamp: "2024-01-18T09:00:00Z", oldValue: 40, newValue: 55 }
+                            ]
+                        }
+                    ],
+                    score: 98,
+                    dreamsCount: 2,
+                    connectsCount: 3,
+                    lastUpdated: new Date().toISOString()
+                },
+                {
+                    id: "alex.rodriguez@netsurit.com",
+                    userId: "alex.rodriguez@netsurit.com",
+                    name: "Alex Rodriguez",
+                    email: "alex.rodriguez@netsurit.com", 
+                    office: "Cape Town",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
+                    jobTitle: "Junior Developer",
+                    department: "Engineering",
+                    role: "employee", 
+                    coachId: "sarah.johnson@netsurit.com",
+                    dreamCategories: ["Learning", "Career", "Skills"],
+                    dreamBook: [
+                        {
+                            id: 1,
+                            title: "Master JavaScript Fundamentals",
+                            category: "Learning",
+                            description: "Build a strong foundation in JavaScript, ES6+, and modern development practices.",
+                            progress: 70,
+                            image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=600&q=60&auto=format&fit=crop",
+                            milestones: [
+                                { id: 1, text: "Complete JavaScript course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+                                { id: 2, text: "Build 3 portfolio projects", completed: true, createdAt: "2024-01-18T10:00:00Z" }
+                            ],
+                            notes: [
+                                { id: 1, text: "Async/await patterns finally clicked for me!", timestamp: "2024-01-12T16:00:00Z" }
+                            ],
+                            history: [
+                                { id: 1, type: "progress", action: "Progress updated to 70%", timestamp: "2024-01-19T09:00:00Z", oldValue: 55, newValue: 70 }
+                            ]
+                        }
+                    ],
+                    score: 67,
+                    dreamsCount: 2,
+                    connectsCount: 2,
+                    lastUpdated: new Date().toISOString()
+                }
+            ];
+
+            // Create users one by one
+            const userIds = ['sarah', 'mike', 'jennifer', 'alex'];
+            
+            for (let i = 0; i < users.length; i++) {
+                const user = users[i];
+                const userId = userIds[i];
+                
+                const result = await saveUserToCosmosDB(user);
+                
+                if (result.success) {
+                    updateStatus(userId, 'success', `Created successfully`);
+                } else {
+                    updateStatus(userId, 'error', `Failed: ${result.error}`);
+                }
+                
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            logMessage('🎉 Demo user setup completed!');
+            button.disabled = false;
+            button.textContent = '✅ Setup Complete';
+        }
+    </script>
+</body>
+</html>
