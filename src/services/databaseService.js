@@ -57,11 +57,18 @@ class DatabaseService {
         // For production, load from Cosmos DB (fresh start for new users)
         const cosmosData = await this.loadFromCosmosDB(userId);
         console.log('📂 Cosmos DB data loaded:', cosmosData ? 'Found data' : 'No data found');
-        return cosmosData; // Returns null if user doesn't exist - that's fine for fresh start
+        
+        // Unwrap Cosmos DB response - it returns { success: true, data: {...} }
+        if (cosmosData && cosmosData.success && cosmosData.data) {
+          // Cosmos DB wraps data, so unwrap it
+          return cosmosData.data;
+        }
+        return null; // Returns null if user doesn't exist - that's fine for fresh start
       } else {
-        // For development, use localStorage (includes mock data for demos)
+        // For development, use localStorage (returns raw data, not wrapped)
         const localData = this.loadFromLocalStorage(userId);
         console.log('📂 LocalStorage data loaded:', localData ? 'Found data' : 'No data found');
+        // localStorage returns raw data directly
         return localData;
       }
     } catch (error) {

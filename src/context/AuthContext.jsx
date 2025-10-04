@@ -79,7 +79,8 @@ export const AuthProvider = ({ children }) => {
 
         // For real Microsoft users, don't use mock data - create fresh profile
         // Mock data is only for demo mode
-        const userData = {
+        // Note: dreamCategories will be populated from global mockData in AppContext
+        let userData = {
          id: account.localAccountId || account.username,
           name: profileData.displayName,
           email: profileData.mail || profileData.userPrincipalName,
@@ -90,39 +91,57 @@ export const AuthProvider = ({ children }) => {
           developmentPlan: [],
           score: 0,
           connects: [],
-          dreamCategories: [],
           dreamsCount: 0,
           connectsCount: 0
         };
 
+        // Check if user data already exists before creating new profile
+        try {
+          console.log('🔄 Checking for existing user data in database...');
+          const existingData = await databaseService.loadUserData(userData.id);
+          
+          if (existingData && existingData.currentUser) {
+            // User data already exists, merge with existing data
+            console.log('✅ Found existing user data, merging with current profile');
+            console.log('📚 Existing dreams count:', existingData.currentUser.dreamBook?.length || 0);
+            userData = {
+              ...existingData.currentUser,
+              // Update only basic profile info, keep dreams and other data
+              name: userData.name,
+              email: userData.email,
+              office: userData.office,
+              avatar: userData.avatar
+            };
+            console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
+          } else {
+            // No existing data, save new user profile
+            console.log('🆕 No existing data found, saving new user profile');
+            const dataToSave = {
+              isAuthenticated: true,
+              currentUser: userData,
+              weeklyGoals: [],
+              scoringHistory: []
+            };
+            
+            const saveResult = await databaseService.saveUserData(userData.id, dataToSave);
+            if (saveResult.success) {
+              console.log('✅ New user profile saved successfully');
+            } else {
+              console.log('ℹ️ Profile save failed but continuing with login:', saveResult.error);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error checking/updating user profile:', error);
+          // Continue with login even if database operations fail
+          console.log('ℹ️ Continuing with login despite error');
+        }
+
         // Get roles from the ID token (Entra App Roles)
         const userRole = determineUserRoleFromToken(account, profileData, userData);
 
-        // Save user profile to database on first login or profile update
-        try {
-          console.log('🔄 Updating user profile in database:', {
-            id: userData.id,
-            name: userData.name,
-            email: userData.email,
-            office: userData.office
-          });
-          
-          // Try to save user data (will use localStorage in local development)
-          const saveResult = await databaseService.saveUserData(userData.id, userData);
-          if (saveResult.success) {
-            console.log('✅ User profile saved successfully');
-          } else {
-            console.log('ℹ️ Profile save failed but continuing with login:', saveResult.error);
-          }
-        } catch (error) {
-          console.error('❌ Error updating user profile:', error);
-          // Continue with login even if database save fails
-          console.log('ℹ️ Continuing with login despite save error');
-        }
-
         setUser(userData);
         setUserRole(userRole);
-        console.log('✅ User profile setup completed');
+        console.log('✅ User profile setup completed with', userData.dreamBook?.length || 0, 'dreams');
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -139,7 +158,6 @@ export const AuthProvider = ({ children }) => {
         developmentPlan: [],
         score: 0,
         connects: [],
-        dreamCategories: [],
         dreamsCount: 0,
         connectsCount: 0
       };

@@ -47,7 +47,8 @@ const createEmptyUser = (userInfo = {}) => ({
   developmentPlan: userInfo.developmentPlan || [],
   score: userInfo.score || 0,
   connects: userInfo.connects || [],
-  dreamCategories: userInfo.dreamCategories || [],
+  // Use global dreamCategories - don't store per user
+  dreamCategories: dreamCategories,
   dreamsCount: userInfo.dreamsCount || 0,
   connectsCount: userInfo.connectsCount || 0,
   careerProfile: userInfo.careerProfile || {
@@ -370,7 +371,8 @@ export const AppProvider = ({ children, initialUser }) => {
     developmentPlan: initialUser.developmentPlan || [],
     score: initialUser.score || 0,
     connects: initialUser.connects || [],
-    dreamCategories: initialUser.dreamCategories || [],
+    // Use global dreamCategories instead of per-user categories
+    dreamCategories: dreamCategories,
     dreamsCount: initialUser.dreamsCount || 0,
     connectsCount: initialUser.connectsCount || 0,
     careerProfile: {
@@ -405,7 +407,12 @@ export const AppProvider = ({ children, initialUser }) => {
     
     const loadData = async () => {
       const persistedData = await loadUserData(userId);
-      if (persistedData) {
+      console.log('📦 Persisted data loaded:', persistedData);
+      
+      if (persistedData && persistedData.currentUser) {
+        console.log('✅ Found persisted data with currentUser, loading...');
+        console.log('📚 Dreams in persisted data:', persistedData.currentUser.dreamBook?.length || 0);
+        
         // Ensure the persisted user data has all required fields
         const migratedUser = {
           ...createEmptyUser(initialUser),
@@ -415,13 +422,16 @@ export const AppProvider = ({ children, initialUser }) => {
           careerGoals: (persistedData.currentUser && persistedData.currentUser.careerGoals) || [],
           developmentPlan: (persistedData.currentUser && persistedData.currentUser.developmentPlan) || [],
           connects: (persistedData.currentUser && persistedData.currentUser.connects) || [],
-          dreamCategories: (persistedData.currentUser && persistedData.currentUser.dreamCategories) || [],
+          // Use global dreamCategories, not per-user
+          dreamCategories: dreamCategories,
           // Ensure career profile exists with proper structure
           careerProfile: {
             ...createEmptyUser().careerProfile,
             ...(persistedData.currentUser && persistedData.currentUser.careerProfile)
           }
         };
+        
+        console.log('📚 Dreams after migration:', migratedUser.dreamBook?.length || 0);
         
         dispatch({
           type: actionTypes.LOAD_PERSISTED_DATA,
@@ -432,6 +442,8 @@ export const AppProvider = ({ children, initialUser }) => {
                         (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [])
           }
         });
+      } else {
+        console.log('ℹ️ No persisted data found or missing currentUser structure');
       }
     };
     
@@ -449,13 +461,20 @@ export const AppProvider = ({ children, initialUser }) => {
     saveTimeoutRef.current = setTimeout(() => {
       // Only save if we have a user ID
       if (state.currentUser?.id) {
-        // Prepare data for persistence (exclude static data)
+        // Prepare data for persistence (exclude static data like dreamCategories)
+        const { dreamCategories: _, ...userDataWithoutCategories } = state.currentUser;
         const dataToSave = {
           isAuthenticated: state.isAuthenticated,
-          currentUser: state.currentUser,
+          currentUser: userDataWithoutCategories,
           weeklyGoals: state.weeklyGoals,
           scoringHistory: state.scoringHistory
         };
+        
+        console.log('💾 Saving user data:', {
+          userId: state.currentUser.id,
+          dreamsCount: userDataWithoutCategories.dreamBook?.length || 0,
+          weeklyGoalsCount: state.weeklyGoals?.length || 0
+        });
         
         saveUserData(dataToSave, state.currentUser.id);
       }
