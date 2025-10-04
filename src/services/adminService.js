@@ -1,6 +1,6 @@
 // Admin service for DreamSpace - handles admin analytics and user management data
 import { ok, fail } from '../utils/errorHandling.js';
-import { ErrorCodes } from '../constants/errors.js';
+import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class AdminService {
   constructor() {

@@ -1,7 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { z } from 'zod';
 import { ok, fail } from '../utils/errorHandling.js';
-import { ErrorCodes } from '../constants/errors.js';
+import { ERR, ErrorCodes } from '../constants/errors.js';
 
 // Zod schema for Unsplash photo
 const UnsplashPhotoSchema = z.object({
