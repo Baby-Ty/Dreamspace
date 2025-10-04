@@ -1,19 +1,25 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import LoadingSpinner from './components/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Eager imports (needed immediately)
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import DreamBook from './pages/DreamBook';
-import DreamsWeekAhead from './pages/DreamsWeekAhead';
-import DreamConnect from './pages/DreamConnect';
-import CareerBook from './pages/CareerBook';
-import Scorecard from './pages/Scorecard';
-import AdminDashboard from './pages/AdminDashboard';
-import DreamCoach from './pages/DreamCoach';
-import PeopleDashboard from './pages/PeopleDashboard';
-import LoadingSpinner from './components/LoadingSpinner';
+
+// Lazy-loaded page routes with named chunks for better debugging
+const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard" */ './pages/Dashboard'));
+const DreamBook = lazy(() => import(/* webpackChunkName: "dream-book" */ './pages/DreamBook'));
+const DreamsWeekAhead = lazy(() => import(/* webpackChunkName: "dreams-week-ahead" */ './pages/DreamsWeekAhead'));
+const DreamConnect = lazy(() => import(/* webpackChunkName: "dream-connect" */ './pages/dream-connect/DreamConnectLayout'));
+const CareerBook = lazy(() => import(/* webpackChunkName: "career-book" */ './pages/career/CareerBookLayout'));
+const Scorecard = lazy(() => import(/* webpackChunkName: "scorecard" */ './pages/Scorecard'));
+const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin-dashboard" */ './pages/AdminDashboard'));
+const DreamCoach = lazy(() => import(/* webpackChunkName: "dream-coach" */ './pages/DreamCoach'));
+const PeopleDashboard = lazy(() => import(/* webpackChunkName: "people-dashboard" */ './pages/people/PeopleDashboardLayout'));
+const HealthCheck = lazy(() => import(/* webpackChunkName: "health-check" */ './pages/HealthCheck'));
 
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -40,17 +46,20 @@ function AppContent() {
     <AppProvider initialUser={user}>
       <Router basename={import.meta.env.BASE_URL}>
         <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dream-book" element={<DreamBook />} />
-            <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
-            <Route path="/dream-connect" element={<DreamConnect />} />
-            <Route path="/career-book" element={<CareerBook />} />
-            <Route path="/scorecard" element={<Scorecard />} />
-            <Route path="/dream-coach" element={<DreamCoach />} />
-            <Route path="/people" element={<PeopleDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Routes>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dream-book" element={<DreamBook />} />
+              <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
+              <Route path="/dream-connect" element={<DreamConnect />} />
+              <Route path="/career-book" element={<CareerBook />} />
+              <Route path="/scorecard" element={<Scorecard />} />
+              <Route path="/dream-coach" element={<DreamCoach />} />
+              <Route path="/people" element={<PeopleDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/health" element={<HealthCheck />} />
+            </Routes>
+          </Suspense>
         </Layout>
       </Router>
     </AppProvider>
@@ -59,9 +68,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

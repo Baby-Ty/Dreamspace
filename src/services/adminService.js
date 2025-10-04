@@ -1,4 +1,6 @@
 // Admin service for DreamSpace - handles admin analytics and user management data
+import { ok, fail } from '../utils/errorHandling.js';
+import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class AdminService {
   constructor() {
@@ -24,29 +26,34 @@ class AdminService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Retrieved users for admin from Cosmos DB:', result.users?.length || 0);
-        return result.users || [];
+        return ok(result.users || []);
       } else {
         // Fallback to localStorage for development
         const users = await this.getLocalStorageUsers();
         console.log('📱 Retrieved users for admin from localStorage:', users.length);
-        return users;
+        return ok(users);
       }
     } catch (error) {
       console.error('❌ Error fetching users for admin:', error);
       // Fallback to localStorage on error
-      return this.getLocalStorageUsers();
+      const users = await this.getLocalStorageUsers();
+      return ok(users);
     }
   }
 
   // Calculate admin analytics from user data
   async getAdminAnalytics() {
     try {
-      const users = await this.getAllUsersForAdmin();
+      const result = await this.getAllUsersForAdmin();
+      if (!result.success) {
+        return result;
+      }
+      const users = result.data;
       
       // Calculate basic stats
       const totalUsers = users.length;
@@ -115,22 +122,26 @@ class AdminService {
         categoriesFound: categoryStats.length
       });
 
-      return analytics;
+      return ok(analytics);
     } catch (error) {
       console.error('❌ Error calculating admin analytics:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to calculate analytics');
     }
   }
 
   // Get available offices for filtering
   async getOffices() {
     try {
-      const users = await this.getAllUsersForAdmin();
+      const result = await this.getAllUsersForAdmin();
+      if (!result.success) {
+        return result;
+      }
+      const users = result.data;
       const offices = [...new Set(users.map(user => user.office).filter(office => office))];
-      return offices.sort();
+      return ok(offices.sort());
     } catch (error) {
       console.error('❌ Error fetching offices:', error);
-      return [];
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch offices');
     }
   }
 
@@ -147,20 +158,20 @@ class AdminService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Updated user data via admin:', userId);
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         console.log('📱 Updated user data in localStorage:', userId);
-        return { success: true };
+        return ok(null);
       }
     } catch (error) {
       console.error('❌ Error updating user data:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update user data');
     }
   }
 
