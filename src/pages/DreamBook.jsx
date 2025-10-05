@@ -3,6 +3,7 @@ import { Plus, Pencil, Save, X, Upload, Search, Image, BookOpen, Trash } from 'l
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import StockPhotoSearch from '../components/StockPhotoSearch';
+import HelpTooltip from '../components/HelpTooltip';
 
 const DreamBook = () => {
   const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams } = useApp();
@@ -330,6 +331,10 @@ const DreamBook = () => {
             <div className="flex items-center space-x-3 mb-2">
               <BookOpen className="h-8 w-8 text-netsurit-red" />
               <h1 className="text-2xl sm:text-3xl font-bold text-professional-gray-900">My Dream Book</h1>
+              <HelpTooltip 
+                title="Dream Book Guide"
+                content="Create up to 10 personal or professional dreams. Add titles, categories, descriptions, and images. Track progress from 0-100%. Click on any dream to view details and update progress. Drag to reorder your dreams."
+              />
             </div>
           <p className="text-professional-gray-600">
             Document and track your personal dreams ({dreams.length}/{maxDreams} dreams)

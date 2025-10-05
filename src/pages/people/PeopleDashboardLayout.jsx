@@ -18,6 +18,7 @@ import CoachList from './CoachList';
 import TeamMetrics from './TeamMetrics';
 import { usePeopleData } from '../../hooks/usePeopleData';
 import peopleService from '../../services/peopleService';
+import HelpTooltip from '../../components/HelpTooltip';
 
 // Lazy-load heavy modals with named chunks
 const CoachDetailModal = lazy(() => import(/* webpackChunkName: "coach-detail-modal" */ '../../components/coach/CoachDetailModal'));
@@ -262,6 +263,10 @@ export default function PeopleDashboardLayout() {
               <h1 className="text-2xl sm:text-3xl font-bold text-professional-gray-900">
                 People Dashboard
               </h1>
+              <HelpTooltip 
+                title="People Dashboard Guide"
+                content="HR oversight dashboard to manage coaches and teams. View all coaches and their teams, monitor program engagement metrics, promote users to coaches, assign/unassign team members, and generate reports."
+              />
             </div>
             <p className="text-professional-gray-600">
               HR oversight of coaches, teams, and program engagement

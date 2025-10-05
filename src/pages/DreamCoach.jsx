@@ -28,6 +28,7 @@ import {
 import { useApp } from '../context/AppContext';
 import peopleService from '../services/peopleService';
 import DreamCoachingModal from '../components/DreamCoachingModal';
+import HelpTooltip from '../components/HelpTooltip';
 
 const DreamCoach = () => {
   const { currentUser } = useApp();
@@ -461,6 +462,10 @@ const DreamCoach = () => {
             <div className="flex items-center space-x-3 mb-2">
               <UserCheck className="h-8 w-8 text-netsurit-red" />
               <h1 className="text-3xl font-bold text-professional-gray-900">Dream Coach Dashboard</h1>
+              <HelpTooltip 
+                title="Dream Coach Guide"
+                content="Guide your team's growth journey. View team member profiles, track their dreams and progress, provide coaching support, monitor alerts for team members needing attention, and celebrate achievements together."
+              />
             </div>
             <p className="text-professional-gray-600">Support and guide your team's personal and professional growth journey</p>
           </div>

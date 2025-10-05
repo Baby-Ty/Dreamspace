@@ -19,6 +19,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import HelpTooltip from '../components/HelpTooltip';
 
 const DreamsWeekAhead = () => {
   const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal } = useApp();
@@ -285,6 +286,10 @@ const DreamsWeekAhead = () => {
               <h1 className="text-3xl font-bold text-professional-gray-900">
                 Dreams Week Ahead
               </h1>
+              <HelpTooltip 
+                title="Week Ahead Guide"
+                content="Plan your weekly goals and track progress. Link goals to specific dreams from your Dream Book or create general goals. Check off completed goals to see your weekly progress percentage. Use the calendar to plan future weeks."
+              />
             </div>
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-professional-gray-200 shadow-lg">
               <p className="text-base text-professional-gray-700 font-medium mb-1">{dailyQuote}</p>
@@ -298,6 +303,10 @@ const DreamsWeekAhead = () => {
               <div className="flex items-center space-x-3 mb-2">
                 <Calendar className="h-8 w-8 text-netsurit-red" />
                 <h1 className="text-3xl font-bold text-professional-gray-900">Dreams Week Ahead</h1>
+                <HelpTooltip 
+                  title="Week Ahead Guide"
+                  content="Plan your weekly goals and track progress. Link goals to specific dreams from your Dream Book or create general goals. Check off completed goals to see your weekly progress percentage. Use the calendar to plan future weeks."
+                />
               </div>
               <p className="text-base text-professional-gray-700">Plan and track your weekly goals to make progress on your dreams</p>
             </div>

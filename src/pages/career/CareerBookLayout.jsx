@@ -4,6 +4,7 @@ import { Briefcase, User, Target, TrendingUp, Award } from 'lucide-react';
 import { useCareerData } from '../../hooks/useCareerData';
 import CareerTrackerModal from '../../components/CareerTrackerModal';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import HelpTooltip from '../../components/HelpTooltip';
 
 // Lazy load tab components with named chunks
 const MyCareerTab = lazy(() => import(/* webpackChunkName: "career-my-career" */ './MyCareerTab'));
@@ -69,6 +70,10 @@ export default function CareerBookLayout() {
               <h1 className="text-3xl font-bold text-professional-gray-900">
                 Career Book
               </h1>
+              <HelpTooltip 
+                title="Career Book Guide"
+                content="Manage your professional development journey. Track career goals, create a development plan, document your skills and experiences. Use tabs to navigate between different sections and update your progress regularly."
+              />
             </div>
             <p className="text-professional-gray-600">
               Track your career journey, goals, and professional development

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X } from 'lucide-react';
+import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
+import GuideModal from '../components/GuideModal';
 
 const Dashboard = () => {
   const { currentUser, weeklyGoals, toggleWeeklyGoal, addWeeklyGoal, updateDream } = useApp();
@@ -16,6 +17,7 @@ const Dashboard = () => {
     dreamId: ''
   });
   const [selectedDream, setSelectedDream] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
   
   const stats = {
     dreamsCreated: currentUser.dreamBook.length,
@@ -89,6 +91,14 @@ const Dashboard = () => {
               <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 Welcome back, {currentUser.name.split(' ')[0]}! ✨
               </h1>
+              <button
+                onClick={() => setShowGuide(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 text-sm font-semibold text-netsurit-red hover:text-white bg-white hover:bg-netsurit-red border-2 border-netsurit-red rounded-full transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                aria-label="View DreamSpace guide"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span>Guide</span>
+              </button>
             </div>
             <p className="text-base text-gray-700 font-medium">Ready to make progress on your dreams today?</p>
           </div>
@@ -406,6 +416,7 @@ const Dashboard = () => {
           }}
         />
       )}
+      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
     </div>
   );
 };

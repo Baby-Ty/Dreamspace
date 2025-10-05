@@ -22,6 +22,7 @@ import ConnectionCard from './ConnectionCard';
 import { useDreamConnections } from '../../hooks/useDreamConnections';
 import { useApp } from '../../context/AppContext';
 import { useRovingFocus } from '../../hooks/useRovingFocus';
+import HelpTooltip from '../../components/HelpTooltip';
 
 /**
  * Main layout for Dream Connect page
@@ -207,6 +208,10 @@ export default function DreamConnectLayout() {
               <h1 className="text-3xl font-bold text-professional-gray-900">
                 Dream Connect
               </h1>
+              <HelpTooltip 
+                title="Dream Connect Guide"
+                content="Connect with colleagues who share similar dream categories. Browse suggested connections, filter by category or location, and request a Dream Connect meeting. Complete connects earn you +5 points on your scorecard!"
+              />
             </div>
             <p className="text-professional-gray-600">
               Find colleagues with shared dream categories and learn from each other
