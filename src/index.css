@@ -30,7 +30,7 @@ html, body, #root {
   }
   
   .sidebar-link {
-    @apply flex items-center px-4 py-3 text-professional-gray-700 hover:bg-professional-gray-100 hover:text-netsurit-red transition-colors rounded-lg;
+    @apply flex items-center px-4 py-2.5 text-professional-gray-700 hover:bg-professional-gray-100 hover:text-netsurit-red transition-colors rounded-lg;
   }
   
   .sidebar-link.active {

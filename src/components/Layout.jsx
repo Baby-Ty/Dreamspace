@@ -24,34 +24,38 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const { user, userRole, logout } = useAuth();
 
-  const navigation = [
+  // Core navigation items (available to all users)
+  const coreNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Week Ahead', href: '/dreams-week-ahead', icon: Calendar },
     { name: 'Dream Connect', href: '/dream-connect', icon: Users },
-    { name: 'Dream Coach', href: '/dream-coach', icon: Users2 },
-    { name: 'People Hub', href: '/people', icon: UserCog },
     { name: 'Career Book', href: '/career-book', icon: Briefcase },
     { name: 'Scorecard', href: '/scorecard', icon: Trophy },
   ];
 
+  // Role-specific navigation items (displayed separately at bottom)
+  const roleNavigation = [
+    { name: 'Dream Coach', href: '/dream-coach', icon: Users2, roleLabel: 'Coach' },
+    { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
+  ];
+
   // TEMPORARILY DISABLED: Add role-specific navigation (RBAC will be re-enabled later)
   // All users can now see coaching and admin pages for development/testing
-  // Note: Dream Coach and People Hub are now included in the main navigation array above
   // ADMIN PAGE TEMPORARILY HIDDEN
-  // navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
+  // roleNavigation.push({ name: 'Admin', href: '/admin', icon: Settings, roleLabel: 'Admin' });
   
   // Original RBAC logic (commented out for now):
   // if (userRole === 'coach' || userRole === 'manager' || userRole === 'admin') {
-  //   navigation.push({ name: 'Dream Coach', href: '/dream-coach', icon: Users2 });
+  //   roleNavigation.push({ name: 'Dream Coach', href: '/dream-coach', icon: Users2, roleLabel: 'Coach' });
   // }
   // 
   // if (userRole === 'manager' || userRole === 'admin') {
-  //   navigation.push({ name: 'People Hub', href: '/people', icon: UserCog });
+  //   roleNavigation.push({ name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' });
   // }
   // 
   // if (userRole === 'admin') {
-  //   navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
+  //   roleNavigation.push({ name: 'Admin', href: '/admin', icon: Settings, roleLabel: 'Admin' });
   // }
 
   const isActive = (path) => {
@@ -76,7 +80,7 @@ const Layout = ({ children }) => {
       }`}>
         <div className="flex flex-col h-full overflow-y-auto overscroll-contain scrollbar-clean">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <img 
                 src="/logo.png" 
@@ -101,8 +105,9 @@ const Layout = ({ children }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => {
+          <nav className="flex-1 px-4 py-5 space-y-1.5">
+            {/* Core navigation items */}
+            {coreNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -116,11 +121,36 @@ const Layout = ({ children }) => {
                 </Link>
               );
             })}
+
+            {/* Divider */}
+            <div className="pt-3.5 pb-2.5">
+              <div className="border-t border-gray-200"></div>
+            </div>
+
+            {/* Role-specific navigation items */}
+            {roleNavigation.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`sidebar-link pl-3 ${active ? 'active' : ''}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  <span className="flex-1">{item.name}</span>
+                  <span className={`text-xs ${active ? 'text-white' : 'text-gray-500'}`}>
+                    {item.roleLabel}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User profile */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-3">
               <img
                 src={user?.avatar}
                 alt={user?.name}
