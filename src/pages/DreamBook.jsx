@@ -695,6 +695,7 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
         className="input-field"
         required
       >
+        <option value="">Select a category...</option>
         {dreamCategories?.map(category => (
           <option key={category} value={category}>{category}</option>
         ))}
