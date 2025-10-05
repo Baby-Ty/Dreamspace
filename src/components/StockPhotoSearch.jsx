@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Download, X, Loader2, Image } from 'lucide-react';
+import { UnsplashService } from '../services/unsplashService';
+import { ErrorCodes } from '../constants/errors';
 
 const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState(searchTerm);
   const [error, setError] = useState('');
+  
+  // Initialize Unsplash service
+  const unsplash = UnsplashService(import.meta.env.VITE_UNSPLASH_ACCESS_KEY);
 
   // Real Unsplash API implementation
   const searchPhotos = async (searchQuery) => {
@@ -15,27 +20,23 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
     setError('');
 
     try {
-      const accessKey = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+      const result = await unsplash.search(searchQuery, 12);
       
-      if (!accessKey || accessKey === 'your_actual_access_key_here') {
-        // Fallback to demo mode if no real API key is provided
-        console.log('Using demo mode - add real Unsplash API key to use live search');
-        const mockPhotos = getMockPhotos(searchQuery);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setPhotos(mockPhotos);
-        return;
+      if (result.success) {
+        setPhotos(result.data);
+      } else {
+        // Check if it's a config error (missing API key), use demo mode
+        if (result.error.code === ErrorCodes.INVALID_CONFIG) {
+          console.log('Using demo mode - add real Unsplash API key to use live search');
+          const mockPhotos = getMockPhotos(searchQuery);
+          await new Promise(resolve => setTimeout(resolve, 800));
+          setPhotos(mockPhotos);
+          return;
+        }
+        
+        // Other errors - show error message
+        throw new Error(result.error.message);
       }
-
-      const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=12&client_id=${accessKey}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setPhotos(data.results || []);
     } catch (err) {
       setError('Failed to search images. Please try again.');
       console.error('Photo search error:', err);
@@ -51,19 +52,19 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
       travel: [
         {
           id: '1',
-          urls: { regular: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop' },
           alt_description: 'Beautiful mountain landscape',
           user: { name: 'Unsplash' }
         },
         {
           id: '2',
-          urls: { regular: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=300&fit=crop' },
           alt_description: 'Ocean sunset view',
           user: { name: 'Unsplash' }
         },
         {
           id: '3',
-          urls: { regular: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop' },
           alt_description: 'Mountain peak adventure',
           user: { name: 'Unsplash' }
         }
@@ -72,19 +73,19 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
       learning: [
         {
           id: '4',
-          urls: { regular: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop' },
           alt_description: 'Books and learning',
           user: { name: 'Unsplash' }
         },
         {
           id: '5',
-          urls: { regular: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop' },
           alt_description: 'People collaborating',
           user: { name: 'Unsplash' }
         },
         {
           id: '6',
-          urls: { regular: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop' },
           alt_description: 'Laptop and study setup',
           user: { name: 'Unsplash' }
         }
@@ -93,19 +94,19 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
       health: [
         {
           id: '7',
-          urls: { regular: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop' },
           alt_description: 'Running shoes on track',
           user: { name: 'Unsplash' }
         },
         {
           id: '8',
-          urls: { regular: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=300&fit=crop' },
           alt_description: 'Person running outdoors',
           user: { name: 'Unsplash' }
         },
         {
           id: '9',
-          urls: { regular: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop' },
           alt_description: 'Yoga and wellness',
           user: { name: 'Unsplash' }
         }
@@ -114,19 +115,19 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
       career: [
         {
           id: '10',
-          urls: { regular: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
           alt_description: 'Professional workspace',
           user: { name: 'Unsplash' }
         },
         {
           id: '11',
-          urls: { regular: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop' },
           alt_description: 'Business meeting',
           user: { name: 'Unsplash' }
         },
         {
           id: '12',
-          urls: { regular: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop' },
           alt_description: 'Technology and innovation',
           user: { name: 'Unsplash' }
         }
@@ -135,19 +136,19 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
       creative: [
         {
           id: '13',
-          urls: { regular: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop' },
           alt_description: 'Art supplies and creativity',
           user: { name: 'Unsplash' }
         },
         {
           id: '14',
-          urls: { regular: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&h=300&fit=crop' },
           alt_description: 'Music and instruments',
           user: { name: 'Unsplash' }
         },
         {
           id: '15',
-          urls: { regular: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop' },
+          urls: { small: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop', regular: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop' },
           alt_description: 'Creative workspace',
           user: { name: 'Unsplash' }
         }

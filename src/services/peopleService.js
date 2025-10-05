@@ -1,4 +1,6 @@
 // People Hub service for DreamSpace - handles team management and coaching data
+import { ok, fail } from '../utils/errorHandling.js';
+import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class PeopleService {
   constructor() {
@@ -28,22 +30,23 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Retrieved users from Cosmos DB:', result.users?.length || 0);
-        return result.users || [];
+        return ok(result.users || []);
       } else {
         // Fallback to localStorage for development
         const users = await this.getLocalStorageUsers();
         console.log('📱 Retrieved users from localStorage:', users.length);
-        return users;
+        return ok(users);
       }
     } catch (error) {
       console.error('❌ Error fetching users:', error);
       // Fallback to localStorage on error
-      return this.getLocalStorageUsers();
+      const users = await this.getLocalStorageUsers();
+      return ok(users);
     }
   }
 
@@ -59,22 +62,23 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Retrieved team relationships from Cosmos DB:', result.teams?.length || 0);
-        return result.teams || [];
+        return ok(result.teams || []);
       } else {
         // Fallback to localStorage for development
         const teams = await this.getLocalStorageTeams();
         console.log('📱 Retrieved team relationships from localStorage:', teams.length);
-        return teams;
+        return ok(teams);
       }
     } catch (error) {
       console.error('❌ Error fetching team relationships:', error);
       // Fallback to localStorage on error
-      return this.getLocalStorageTeams();
+      const teams = await this.getLocalStorageTeams();
+      return ok(teams);
     }
   }
 
@@ -90,21 +94,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Retrieved coaching alerts from Cosmos DB:', result.alerts?.length || 0);
-        return result.alerts || [];
+        return ok(result.alerts || []);
       } else {
         // Fallback to localStorage for development
         const alerts = await this.getLocalStorageCoachingAlerts(managerId);
         console.log('📱 Retrieved coaching alerts from localStorage:', alerts.length);
-        return alerts;
+        return ok(alerts);
       }
     } catch (error) {
       console.error('❌ Error fetching coaching alerts:', error);
-      return [];
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch coaching alerts');
     }
   }
 
@@ -127,7 +131,7 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
@@ -139,16 +143,16 @@ class PeopleService {
           teamSize: result.metrics?.teamSize,
           teamMembers: result.metrics?.teamMembers?.length
         });
-        return result.metrics;
+        return ok(result.metrics);
       } else {
         // Fallback to localStorage for development
         const metrics = await this.getLocalStorageTeamMetrics(managerId);
         console.log('📱 Retrieved team metrics from localStorage for manager:', managerId);
-        return metrics;
+        return ok(metrics);
       }
     } catch (error) {
       console.error('❌ Error fetching team metrics:', error);
-      return null;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch team metrics');
     }
   }
 
@@ -169,21 +173,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ User promoted to coach in Cosmos DB:', userId);
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         const success = await this.promoteUserLocalStorage(userId, teamName);
         console.log('📱 User promoted to coach in localStorage:', userId);
-        return { success };
+        return ok({ success });
       }
     } catch (error) {
       console.error('❌ Error promoting user to coach:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to promote user to coach');
     }
   }
 
@@ -204,21 +208,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ User assigned to coach in Cosmos DB:', { userId, coachId });
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         const success = await this.assignUserLocalStorage(userId, coachId);
         console.log('📱 User assigned to coach in localStorage:', { userId, coachId });
-        return { success };
+        return ok({ success });
       }
     } catch (error) {
       console.error('❌ Error assigning user to coach:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to assign user to coach');
     }
   }
 
@@ -239,21 +243,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ User unassigned from coach in Cosmos DB:', { userId, coachId });
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         const success = await this.unassignUserLocalStorage(userId, coachId);
         console.log('📱 User unassigned from coach in localStorage:', { userId, coachId });
-        return { success };
+        return ok({ success });
       }
     } catch (error) {
       console.error('❌ Error unassigning user from coach:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to unassign user from coach');
     }
   }
 
@@ -270,21 +274,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ User profile updated in Cosmos DB:', userId);
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         const success = await this.updateUserProfileLocalStorage(userId, profileData);
         console.log('📱 User profile updated in localStorage:', userId);
-        return { success };
+        return ok({ success });
       }
     } catch (error) {
       console.error('❌ Error updating user profile:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update user profile');
     }
   }
 
@@ -308,21 +312,21 @@ class PeopleService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         console.log('✅ Coach replaced in Cosmos DB:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
-        return result;
+        return ok(result);
       } else {
         // Handle locally for development
         const success = await this.replaceCoachLocalStorage(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
         console.log('📱 Coach replaced in localStorage:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
-        return { success };
+        return ok({ success });
       }
     } catch (error) {
       console.error('❌ Error replacing team coach:', error);
-      throw error;
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to replace team coach');
     }
   }
 

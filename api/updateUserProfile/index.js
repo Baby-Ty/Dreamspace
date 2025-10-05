@@ -30,7 +30,7 @@ module.exports = async function (context, req) {
   const profileData = req.body;
 
   context.log('Updating user profile for userId:', userId, 'Profile data:', JSON.stringify(profileData));
-  context.log('Office field mappings - officeLocation:', profileData.officeLocation, 'city:', profileData.city, 'office:', profileData.office);
+  context.log('Office/Region field mappings - region:', profileData.region, 'officeLocation:', profileData.officeLocation, 'city:', profileData.city, 'office:', profileData.office);
 
   if (!userId) {
     context.res = {
@@ -82,7 +82,7 @@ module.exports = async function (context, req) {
       // Update with new profile data (both at root level and in currentUser for consistency)
       name: profileData.displayName || profileData.name || existingDocument?.name || 'Unknown User',
       email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
-      office: profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
+      office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
       avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
       // Additional profile fields from edit modal
       title: profileData.title || existingDocument?.title || '',
@@ -97,7 +97,7 @@ module.exports = async function (context, req) {
         // Update with new profile data
         name: profileData.displayName || profileData.name || existingDocument?.currentUser?.name || existingDocument?.name || 'Unknown User',
         email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.currentUser?.email || existingDocument?.email || '',
-        office: profileData.officeLocation || profileData.city || profileData.office || existingDocument?.currentUser?.office || existingDocument?.office || 'Remote',
+        office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.currentUser?.office || existingDocument?.office || 'Remote',
         avatar: profileData.picture || existingDocument?.currentUser?.avatar || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
         title: profileData.title || existingDocument?.currentUser?.title || existingDocument?.title || '',
         department: profileData.department || existingDocument?.currentUser?.department || existingDocument?.department || '',

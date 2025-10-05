@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
-import { loginRequest, graphConfig } from '../auth/authConfig';
+import { loginRequest } from '../auth/authConfig';
 // Import mock data only for demo mode
 import { allUsers, currentUser } from '../data/mockData';
 import databaseService from '../services/databaseService';
+import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
+import { GraphService } from '../services/graphService';
 
 const AuthContext = createContext();
 
@@ -14,6 +16,28 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [loginError, setLoginError] = useState(null);
+
+  // Token getter function (memoized to prevent unnecessary re-renders)
+  const getToken = useCallback(async () => {
+    if (accounts.length === 0) {
+      return null;
+    }
+    
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0]
+      });
+      return response.accessToken;
+    } catch (error) {
+      console.error('Failed to acquire token:', error);
+      return null;
+    }
+  }, [accounts, instance]);
+
+  // Create authenticated fetch and graph service
+  const authedFetch = useAuthenticatedFetch(getToken);
+  const graph = useMemo(() => GraphService(authedFetch, getToken), [authedFetch, getToken]);
 
   useEffect(() => {
     console.log('🔄 AuthContext useEffect:', { 
@@ -44,36 +68,19 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       console.log('🔄 Fetching user profile for:', account.name);
       
-      // Get access token for Microsoft Graph
-      const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account: account
-      });
-
-      // Call Microsoft Graph to get user profile
+      // Call Microsoft Graph to get user profile using graph service
       console.log('📞 Calling Microsoft Graph API...');
-      const graphResponse = await fetch(graphConfig.graphMeEndpoint, {
-        headers: {
-          'Authorization': `Bearer ${response.accessToken}`
-        }
-      });
+      const profileResult = await graph.getMe();
 
-      if (graphResponse.ok) {
-        const profileData = await graphResponse.json();
+      if (profileResult.success) {
+        const profileData = profileResult.data;
         
-        // Try to get user photo
+        // Try to get user photo using graph service
         let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
-        try {
-          const photoResponse = await fetch(graphConfig.graphPhotoEndpoint, {
-            headers: {
-              'Authorization': `Bearer ${response.accessToken}`
-            }
-          });
-          if (photoResponse.ok) {
-            const photoBlob = await photoResponse.blob();
-            avatarUrl = URL.createObjectURL(photoBlob);
-          }
-        } catch (photoError) {
+        const photoResult = await graph.getMyPhoto();
+        if (photoResult.success && photoResult.data) {
+          avatarUrl = photoResult.data;
+        } else {
           console.log('No profile photo available, using generated avatar');
         }
 
@@ -142,6 +149,9 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setUserRole(userRole);
         console.log('✅ User profile setup completed with', userData.dreamBook?.length || 0, 'dreams');
+      } else {
+        console.error('Failed to fetch profile:', profileResult.error);
+        throw new Error(profileResult.error.message);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -366,7 +376,9 @@ export const AuthProvider = ({ children }) => {
     loginError,
     login,
     logout,
-    clearLoginError: () => setLoginError(null)
+    clearLoginError: () => setLoginError(null),
+    getToken,
+    graph
   };
 
   return (
