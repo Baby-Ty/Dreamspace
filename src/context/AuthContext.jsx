@@ -107,12 +107,13 @@ export const AuthProvider = ({ children }) => {
           console.log('🔄 Checking for existing user data in database...');
           const existingData = await databaseService.loadUserData(userData.id);
           
-          if (existingData && existingData.currentUser) {
+          // Unwrap the response - loadUserData returns { success: true, data: {...} }
+          if (existingData && existingData.success && existingData.data && existingData.data.currentUser) {
             // User data already exists, merge with existing data
             console.log('✅ Found existing user data, merging with current profile');
-            console.log('📚 Existing dreams count:', existingData.currentUser.dreamBook?.length || 0);
+            console.log('📚 Existing dreams count:', existingData.data.currentUser.dreamBook?.length || 0);
             userData = {
-              ...existingData.currentUser,
+              ...existingData.data.currentUser,
               // Update only basic profile info, keep dreams and other data
               name: userData.name,
               email: userData.email,
@@ -252,7 +253,9 @@ export const AuthProvider = ({ children }) => {
           if (sarahData && sarahData.success && sarahData.data) {
             // Use the real Sarah Johnson data from database
             console.log('✅ Found Sarah in database, using production data');
-            setUser(sarahData.data);
+            // Check if data has currentUser wrapper or is the user object directly
+            const userData = sarahData.data.currentUser || sarahData.data;
+            setUser(userData);
             // Sarah gets admin role for demo purposes (can access coaching features)
             setUserRole('admin');
             console.log('✅ Demo login successful with production data for Sarah Johnson');
