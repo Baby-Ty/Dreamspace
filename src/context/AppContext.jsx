@@ -349,6 +349,10 @@ const loadUserData = async (userId) => {
     const savedData = await databaseService.loadUserData(userId);
     if (savedData) {
       console.log(`📦 Data loaded for user ${userId}`);
+      // Unwrap the { success: true, data: {...} } response from databaseService
+      if (savedData.success && savedData.data) {
+        return savedData.data;
+      }
       return savedData;
     }
     return null;
