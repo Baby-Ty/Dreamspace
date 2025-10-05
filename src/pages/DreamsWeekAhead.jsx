@@ -13,7 +13,10 @@ import {
   X,
   Save,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  Award,
+  Clock
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -248,6 +251,29 @@ const DreamsWeekAhead = () => {
   const progressPercentage = getProgressPercentage();
   const isWeekComplete = progressPercentage === 100 && weeklyGoals.length > 0;
 
+  // Calculate goal KPIs
+  const getGoalKPIs = () => {
+    const activeGoals = weeklyGoals.length;
+    const completedGoals = weeklyGoals.filter(goal => goal.completed).length;
+    const percentCompleted = activeGoals > 0 ? Math.round((completedGoals / activeGoals) * 100) : 0;
+    
+    // Calculate total weeks (mock data - in real app, would track historical weeks)
+    // For now, we'll use the current week number of the year
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+    const dayOfYear = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
+    const totalWeeks = Math.ceil(dayOfYear / 7);
+    
+    return {
+      activeGoals,
+      percentCompleted,
+      completedGoals,
+      totalWeeks
+    };
+  };
+
+  const goalKPIs = getGoalKPIs();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 space-y-3 sm:space-y-4">
       {/* Enhanced Header (collapses when a week is selected) */}
@@ -266,9 +292,47 @@ const DreamsWeekAhead = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center space-x-3">
-            <Calendar className="h-8 w-8 text-netsurit-red" />
-            <h1 className="text-3xl font-bold text-professional-gray-900 mb-1">Dreams Week Ahead</h1>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            {/* Title Section */}
+            <div>
+              <div className="flex items-center space-x-3 mb-2">
+                <Calendar className="h-8 w-8 text-netsurit-red" />
+                <h1 className="text-3xl font-bold text-professional-gray-900">Dreams Week Ahead</h1>
+              </div>
+              <p className="text-base text-professional-gray-700">Plan and track your weekly goals to make progress on your dreams</p>
+            </div>
+            
+            {/* Goal KPIs - Inline */}
+            <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
+              <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+                <div className="flex items-center justify-center mb-2">
+                  <Target className="h-6 w-6 text-netsurit-red" />
+                </div>
+                <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Active Goals</p>
+                <p className="text-xl font-bold text-professional-gray-900">{goalKPIs.activeGoals}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+                <div className="flex items-center justify-center mb-2">
+                  <TrendingUp className="h-6 w-6 text-netsurit-coral" />
+                </div>
+                <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">% Completed</p>
+                <p className="text-xl font-bold text-professional-gray-900">{goalKPIs.percentCompleted}%</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+                <div className="flex items-center justify-center mb-2">
+                  <Award className="h-6 w-6 text-netsurit-orange" />
+                </div>
+                <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Completed</p>
+                <p className="text-xl font-bold text-professional-gray-900">{goalKPIs.completedGoals}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+                <div className="flex items-center justify-center mb-2">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Weeks</p>
+                <p className="text-xl font-bold text-professional-gray-900">{goalKPIs.totalWeeks}</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
