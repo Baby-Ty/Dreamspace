@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { useScorecardData } from '../../hooks/useScorecardData';
 import SummaryView from './SummaryView';
 import HistoryView from './HistoryView';
+import HelpTooltip from '../../components/HelpTooltip';
 
 /**
  * Main layout for Scorecard page
@@ -38,53 +39,52 @@ function ScorecardLayout() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" data-testid="scorecard-layout">
-      {/* Compact Header with Total Score */}
-      <div 
-        className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-2xl shadow-xl p-6 mb-6"
-        role="banner"
-        aria-label="Scorecard header with total score and level"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-          {/* Title and Description */}
-          <div className="lg:col-span-1">
+      {/* Header */}
+      <div className="mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <div className="flex flex-col justify-center">
             <div className="flex items-center space-x-3 mb-2">
-              <Trophy className="h-8 w-8" aria-hidden="true" />
-              <h1 className="text-2xl font-bold">Scorecard</h1>
+              <Trophy className="h-8 w-8 text-netsurit-red" aria-hidden="true" />
+              <h1 className="text-2xl lg:text-3xl font-bold text-professional-gray-900">Scorecard</h1>
+              <HelpTooltip 
+                title="Scorecard Guide"
+                content="Earn points for your activities: +10 for completing dreams, +5 for Dream Connects, +3 for group attendance. Track your progress, view detailed history, and unlock achievement levels as you grow!"
+              />
             </div>
-            <p className="text-white/90 text-sm">
+            <p className="text-base text-professional-gray-600 font-medium">
               Track your dream journey progress
             </p>
           </div>
-
-          {/* Total Score */}
-          <div className="lg:col-span-1 text-center">
-            <div className="inline-flex items-center space-x-4 bg-white/20 rounded-xl p-4">
-              <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center" aria-hidden="true">
-                <Trophy className="w-6 h-6" />
+          
+          {/* Stats Cards */}
+          <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
+            {/* Total Score Card */}
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <Trophy className="h-6 w-6 text-netsurit-orange" />
               </div>
-              <div>
-                <p className="text-3xl font-bold" data-testid="total-score">{totalScore}</p>
-                <p className="text-sm opacity-90">Total Points</p>
-              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Points</p>
+              <p className="text-xl font-bold text-professional-gray-900" data-testid="total-score">{totalScore}</p>
             </div>
-          </div>
 
-          {/* Level and Progress */}
-          <div className="lg:col-span-1 text-center lg:text-right">
-            <div 
-              className="flex items-center justify-center lg:justify-end space-x-2 mb-2"
-              data-testid="current-level"
-            >
-              <currentLevel.icon className="w-5 h-5" aria-hidden="true" />
-              <span className="font-medium">{currentLevel.level}</span>
+            {/* Current Level Card */}
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <currentLevel.icon className="h-6 w-6 text-netsurit-red" aria-hidden="true" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Level</p>
+              <p className="text-xl font-bold text-professional-gray-900" data-testid="current-level">{currentLevel.level}</p>
             </div>
+
+            {/* Next Level Progress Card */}
             {totalScore < 100 && (
-              <div>
-                <p className="text-xs opacity-90 mb-1">
-                  Next: {nextLevel.level}
-                </p>
+              <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[120px]">
+                <div className="flex items-center justify-center mb-2">
+                  <nextLevel.icon className="h-6 w-6 text-netsurit-coral" aria-hidden="true" />
+                </div>
+                <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Next: {nextLevel.level}</p>
                 <div 
-                  className="w-24 bg-white/20 rounded-full h-1.5 mx-auto lg:mx-0 lg:ml-auto"
+                  className="w-full bg-professional-gray-200 rounded-full h-2 mt-2"
                   role="progressbar"
                   aria-valuenow={progressToNext}
                   aria-valuemin="0"
@@ -92,7 +92,7 @@ function ScorecardLayout() {
                   aria-label={`Progress to ${nextLevel.level}`}
                 >
                   <div
-                    className="bg-white h-1.5 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progressToNext}%` }}
                   ></div>
                 </div>
