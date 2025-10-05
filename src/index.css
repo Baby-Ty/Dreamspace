@@ -34,7 +34,7 @@ html, body, #root {
   }
   
   .sidebar-link.active {
-    @apply bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white hover:from-netsurit-coral hover:to-netsurit-light-coral hover:text-white shadow-md;
+    @apply bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white hover:from-netsurit-red hover:to-netsurit-orange hover:text-white shadow-md;
   }
 
   /* Custom slider styling */
