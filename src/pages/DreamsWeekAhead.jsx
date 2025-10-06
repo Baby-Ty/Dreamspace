@@ -16,19 +16,26 @@ import {
   ChevronRight,
   TrendingUp,
   Award,
-  Clock
+  Clock,
+  Repeat
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import HelpTooltip from '../components/HelpTooltip';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 
 const DreamsWeekAhead = () => {
-  const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal } = useApp();
+  const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal, logWeeklyCompletion } = useApp();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [selectedDream, setSelectedDream] = useState(null);
   const [editingGoal, setEditingGoal] = useState(null);
   const [goalFormData, setGoalFormData] = useState({
     title: '',
-    description: ''
+    description: '',
+    milestoneId: null,
+    recurrence: 'once',
+    weekLog: undefined,
+    durationType: 'unlimited', // 'unlimited', 'weeks', 'milestone'
+    durationWeeks: 4
   });
 
   // Month and week selector state
@@ -86,10 +93,20 @@ const DreamsWeekAhead = () => {
     return `${formatDate(startOfWeek)} – ${formatDate(endOfWeek)}`;
   };
 
-  // Calculate progress percentage
+  // Calculate progress percentage using current week's status
   const getProgressPercentage = () => {
     if (weeklyGoals.length === 0) return 0;
-    const completedGoals = weeklyGoals.filter(goal => goal.completed).length;
+    const currentWeek = getCurrentIsoWeek();
+    
+    const completedGoals = weeklyGoals.filter(goal => {
+      // For recurring goals, check weekLog for current week
+      if (goal.recurrence === 'weekly' && goal.weekLog) {
+        return goal.weekLog[currentWeek] === true;
+      }
+      // For non-recurring goals, check completed flag
+      return goal.completed;
+    }).length;
+    
     return Math.round((completedGoals / weeklyGoals.length) * 100);
   };
 
@@ -191,14 +208,28 @@ const DreamsWeekAhead = () => {
   };
 
   const handleAddGoal = (dream) => {
-    setSelectedDream(dream);
+    // Create a copy of the dream and ensure milestones array exists
+    const dreamWithMilestones = dream ? {
+      ...dream,
+      milestones: dream.milestones || []
+    } : null;
+    setSelectedDream(dreamWithMilestones);
     setShowGoalForm(true);
-    setGoalFormData({ title: '', description: '' });
+    setGoalFormData({ 
+      title: '', 
+      description: '',
+      milestoneId: null,
+      recurrence: 'once',
+      weekLog: undefined,
+      durationType: 'unlimited',
+      durationWeeks: 4
+    });
   };
 
   const handleSaveGoal = () => {
     if (!goalFormData.title.trim()) return;
 
+    const currentWeek = getCurrentIsoWeek();
     const newGoal = {
       id: Date.now(),
       title: goalFormData.title.trim(),
@@ -207,11 +238,32 @@ const DreamsWeekAhead = () => {
       dreamTitle: selectedDream.title,
       dreamCategory: selectedDream.category,
       completed: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      // New fields
+      milestoneId: goalFormData.milestoneId || undefined,
+      recurrence: goalFormData.recurrence || 'once',
+      active: true,
+      durationType: goalFormData.durationType || 'unlimited',
+      durationWeeks: goalFormData.durationWeeks || undefined
     };
 
+    // Initialize weekLog for recurring goals
+    if (newGoal.recurrence === 'weekly') {
+      newGoal.weekLog = {};
+      // Set start date for duration tracking
+      if (newGoal.durationType === 'weeks' || newGoal.durationType === 'milestone') {
+        newGoal.startDate = new Date().toISOString();
+      }
+    }
+
     if (editingGoal) {
-      updateWeeklyGoal({ ...newGoal, id: editingGoal.id });
+      // Preserve startDate when editing
+      updateWeeklyGoal({ 
+        ...newGoal, 
+        id: editingGoal.id,
+        startDate: editingGoal.startDate || newGoal.startDate,
+        weekLog: editingGoal.weekLog || newGoal.weekLog
+      });
       setEditingGoal(null);
     } else {
       addWeeklyGoal(newGoal);
@@ -219,15 +271,34 @@ const DreamsWeekAhead = () => {
 
     setShowGoalForm(false);
     setSelectedDream(null);
-    setGoalFormData({ title: '', description: '' });
+    setGoalFormData({ 
+      title: '', 
+      description: '',
+      milestoneId: null,
+      recurrence: 'once',
+      weekLog: undefined,
+      durationType: 'unlimited',
+      durationWeeks: 4
+    });
   };
 
   const handleEditGoal = (goal) => {
     setEditingGoal(goal);
-    setSelectedDream(currentUser.dreamBook.find(d => d.id === goal.dreamId));
+    const dream = currentUser.dreamBook.find(d => d.id === goal.dreamId);
+    // Create a copy of the dream and ensure milestones array exists
+    const dreamWithMilestones = dream ? {
+      ...dream,
+      milestones: dream.milestones || []
+    } : null;
+    setSelectedDream(dreamWithMilestones);
     setGoalFormData({
       title: goal.title,
-      description: goal.description
+      description: goal.description || '',
+      milestoneId: goal.milestoneId || null,
+      recurrence: goal.recurrence || 'once',
+      weekLog: goal.weekLog,
+      durationType: goal.durationType || 'unlimited',
+      durationWeeks: goal.durationWeeks || 4
     });
     setShowGoalForm(true);
   };
@@ -239,14 +310,33 @@ const DreamsWeekAhead = () => {
   };
 
   const toggleGoalCompletion = (goalId) => {
-    toggleWeeklyGoal(goalId);
+    const goal = weeklyGoals.find(g => g.id === goalId);
+    const currentWeek = getCurrentIsoWeek();
+    
+    // Check if this is a recurring goal with weekLog
+    if (goal?.recurrence === 'weekly' && goal?.weekLog !== undefined) {
+      // Use logWeeklyCompletion for recurring goals
+      const currentStatus = goal.weekLog[currentWeek] || false;
+      logWeeklyCompletion(goalId, currentWeek, !currentStatus);
+    } else {
+      // Fall back to simple toggle for non-recurring goals
+      toggleWeeklyGoal(goalId);
+    }
   };
 
   const handleCloseForm = () => {
     setShowGoalForm(false);
     setSelectedDream(null);
     setEditingGoal(null);
-    setGoalFormData({ title: '', description: '' });
+    setGoalFormData({ 
+      title: '', 
+      description: '',
+      milestoneId: null,
+      recurrence: 'once',
+      weekLog: undefined,
+      durationType: 'unlimited',
+      durationWeeks: 4
+    });
   };
 
   const progressPercentage = getProgressPercentage();
@@ -255,7 +345,15 @@ const DreamsWeekAhead = () => {
   // Calculate goal KPIs
   const getGoalKPIs = () => {
     const activeGoals = weeklyGoals.length;
-    const completedGoals = weeklyGoals.filter(goal => goal.completed).length;
+    const currentWeek = getCurrentIsoWeek();
+    
+    const completedGoals = weeklyGoals.filter(goal => {
+      if (goal.recurrence === 'weekly' && goal.weekLog) {
+        return goal.weekLog[currentWeek] === true;
+      }
+      return goal.completed;
+    }).length;
+    
     const percentCompleted = activeGoals > 0 ? Math.round((completedGoals / activeGoals) * 100) : 0;
     
     // Calculate total weeks (mock data - in real app, would track historical weeks)
@@ -336,7 +434,7 @@ const DreamsWeekAhead = () => {
               </div>
               <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
                 <div className="flex items-center justify-center mb-2">
-                  <Clock className="h-6 w-6 text-blue-600" />
+                  <Clock className="h-6 w-6 text-netsurit-orange" />
                 </div>
                 <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Weeks</p>
                 <p className="text-xl font-bold text-professional-gray-900">{goalKPIs.totalWeeks}</p>
@@ -561,9 +659,16 @@ const DreamCard = ({ dream, emoji, onAddGoal }) => {
 
 // Goal Item Component
 const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
+  const currentWeek = getCurrentIsoWeek();
+  
+  // Determine if goal is completed this week
+  const isCompleted = goal.recurrence === 'weekly' && goal.weekLog
+    ? (goal.weekLog[currentWeek] === true)
+    : goal.completed;
+  
   return (
     <div className={`rounded-2xl border shadow-lg hover:shadow-xl transition-all duration-300 p-4 hover:scale-[1.02] ${
-      goal.completed 
+      isCompleted 
         ? 'bg-professional-gray-50 border-netsurit-red' 
         : 'bg-white border-professional-gray-200'
     }`}>
@@ -571,11 +676,12 @@ const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
         <button
           onClick={onToggle}
           className="flex-shrink-0 mt-1"
+          aria-label={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
-          {goal.completed ? (
-            <CheckCircle2 className="w-6 h-6 text-netsurit-red" />
+          {isCompleted ? (
+            <CheckCircle2 className="w-6 h-6 text-netsurit-red" aria-hidden="true" />
           ) : (
-            <Circle className="w-6 h-6 text-professional-gray-400 hover:text-professional-gray-600" />
+            <Circle className="w-6 h-6 text-professional-gray-400 hover:text-professional-gray-600" aria-hidden="true" />
           )}
         </button>
         
@@ -583,7 +689,7 @@ const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className={`font-medium ${
-                goal.completed 
+                isCompleted 
                   ? 'line-through text-professional-gray-600' 
                   : 'text-professional-gray-900'
               }`}>
@@ -591,18 +697,29 @@ const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
               </h3>
               {goal.description && (
                 <p className={`text-sm mt-1 ${
-                  goal.completed 
+                  isCompleted 
                     ? 'line-through text-professional-gray-500' 
                     : 'text-professional-gray-600'
                 }`}>
                   {goal.description}
                 </p>
               )}
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="flex items-center space-x-2 mt-2 flex-wrap gap-1">
                 <span className="text-base">{emoji}</span>
                 <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full">
                   {goal.dreamTitle}
                 </span>
+                {goal.recurrence === 'weekly' && (
+                  <span className="text-xs bg-netsurit-warm-orange/20 text-netsurit-orange px-2 py-1 rounded-full font-medium flex items-center space-x-1">
+                    <Repeat className="w-3 h-3" />
+                    <span>Recurring Weekly</span>
+                  </span>
+                )}
+                {goal.milestoneId && (
+                  <span className="text-xs bg-netsurit-light-coral text-netsurit-red px-2 py-1 rounded-full font-medium">
+                    ⭐ Linked to Milestone
+                  </span>
+                )}
               </div>
             </div>
             
@@ -778,6 +895,142 @@ const GoalFormModal = ({
                 className="input-field h-20 resize-none"
               />
             </div>
+
+            {/* Link to Milestone */}
+            <div>
+              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                Link to Milestone (optional)
+              </label>
+              <select
+                value={goalFormData.milestoneId ? String(goalFormData.milestoneId) : ''}
+                onChange={(e) => setGoalFormData({ ...goalFormData, milestoneId: e.target.value ? Number(e.target.value) : null })}
+                className="input-field"
+                aria-label="Select milestone"
+              >
+                <option value="">No milestone</option>
+                {selectedDream?.milestones && selectedDream.milestones.length > 0 ? (
+                  selectedDream.milestones.map((milestone) => (
+                    <option key={milestone.id} value={String(milestone.id)}>
+                      {milestone.text}
+                      {milestone.coachManaged ? ' ⭐ (Coach Milestone)' : ''}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No milestones available - add milestones in dream first</option>
+                )}
+              </select>
+              <p className="text-xs text-professional-gray-500 mt-1">
+                {selectedDream?.milestones && selectedDream.milestones.length > 0 
+                  ? 'Link this goal to track progress toward a specific milestone'
+                  : '💡 Tip: Add milestones to your dream first to link goals to them'}
+              </p>
+            </div>
+
+            {/* Make Recurring */}
+            <div className="flex items-start space-x-3 p-3 bg-netsurit-light-coral/20 rounded-lg border border-netsurit-coral/30">
+              <input
+                type="checkbox"
+                id="recurring"
+                checked={goalFormData.recurrence === 'weekly'}
+                onChange={(e) => setGoalFormData({ 
+                  ...goalFormData, 
+                  recurrence: e.target.checked ? 'weekly' : 'once',
+                  weekLog: e.target.checked ? {} : undefined
+                })}
+                className="mt-1 h-4 w-4 text-netsurit-red border-gray-300 rounded focus:ring-netsurit-red"
+                aria-label="Make goal recurring"
+              />
+              <div className="flex-1">
+                <label htmlFor="recurring" className="text-sm font-medium text-professional-gray-900 cursor-pointer flex items-center space-x-2">
+                  <span className="flex items-center justify-center w-5 h-5 rounded bg-netsurit-warm-orange/20">
+                    <Repeat className="w-3.5 h-3.5 text-netsurit-orange" />
+                  </span>
+                  <span>Make this a recurring weekly goal</span>
+                </label>
+                <p className="text-xs text-professional-gray-600 mt-1">
+                  Track completion each week instead of just this week
+                </p>
+              </div>
+            </div>
+
+            {/* Duration Options - Only show when recurring */}
+            {goalFormData.recurrence === 'weekly' && (
+              <div className="space-y-3 p-3 bg-professional-gray-50 rounded-lg border border-professional-gray-200">
+                <label className="block text-sm font-medium text-professional-gray-700">
+                  Duration
+                </label>
+                
+                <div className="space-y-2">
+                  {/* Unlimited */}
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="durationType"
+                      value="unlimited"
+                      checked={goalFormData.durationType === 'unlimited'}
+                      onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
+                      className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm text-professional-gray-900 font-medium">Ongoing</span>
+                      <p className="text-xs text-professional-gray-600">Track this goal indefinitely</p>
+                    </div>
+                  </label>
+
+                  {/* Specific number of weeks */}
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="durationType"
+                      value="weeks"
+                      checked={goalFormData.durationType === 'weeks'}
+                      onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
+                      className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-professional-gray-900 font-medium">For</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="52"
+                          value={goalFormData.durationWeeks}
+                          onChange={(e) => setGoalFormData({ 
+                            ...goalFormData, 
+                            durationWeeks: parseInt(e.target.value) || 1,
+                            durationType: 'weeks'
+                          })}
+                          onClick={(e) => {
+                            setGoalFormData({ ...goalFormData, durationType: 'weeks' });
+                          }}
+                          className="w-16 px-2 py-1 text-sm border border-professional-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                        />
+                        <span className="text-sm text-professional-gray-900 font-medium">weeks</span>
+                      </div>
+                      <p className="text-xs text-professional-gray-600 mt-1">Goal will end after this many weeks</p>
+                    </div>
+                  </label>
+
+                  {/* Until milestone complete */}
+                  {goalFormData.milestoneId && (
+                    <label className="flex items-start space-x-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="durationType"
+                        value="milestone"
+                        checked={goalFormData.durationType === 'milestone'}
+                        onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
+                        className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-professional-gray-900 font-medium">Until milestone complete</span>
+                        <p className="text-xs text-professional-gray-600">Track until the linked milestone is marked complete</p>
+                      </div>
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="flex space-x-3 pt-3">
               <button

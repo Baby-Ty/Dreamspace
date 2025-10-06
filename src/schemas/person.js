@@ -28,7 +28,12 @@ export const WeeklyGoalSchema = z.object({
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
   createdAt: z.string().optional(),
-  completedAt: z.string().optional()
+  completedAt: z.string().optional(),
+  // Recurring goal fields
+  milestoneId: z.union([z.string(), z.number()]).optional(), // Link to milestone
+  recurrence: z.enum(['weekly', 'once']).optional().default('once'),
+  weekLog: z.record(z.boolean()).optional().default({}), // ISO week keys (e.g., "2025-W41": true)
+  active: z.boolean().optional().default(true)
 }).passthrough();
 
 // Person/User base schema (for team members, coaches, connections)

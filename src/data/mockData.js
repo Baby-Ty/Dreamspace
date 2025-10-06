@@ -18,7 +18,19 @@ export const currentUser = {
       milestones: [
         { id: 1, text: "Complete advanced React patterns course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
         { id: 2, text: "Build demo project with Next.js 14", completed: true, createdAt: "2024-01-15T10:00:00Z" },
-        { id: 3, text: "Master TypeScript advanced patterns", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+        { id: 3, text: "Master TypeScript advanced patterns", completed: false, createdAt: "2024-02-01T10:00:00Z" },
+        { 
+          id: 4, 
+          text: "Consistent practice - 12 weeks", 
+          completed: false, 
+          createdAt: "2025-10-01T10:00:00Z",
+          coachManaged: true,
+          type: "consistency",
+          targetWeeks: 12,
+          startDate: "2025-09-15",
+          endOnDreamComplete: false,
+          streakWeeks: 3
+        }
       ],
       notes: [
         { id: 1, text: "Signed up at the new gym near the office.", timestamp: "2024-01-06T12:00:00Z" },
@@ -120,17 +132,45 @@ export const currentUser = {
       dreamId: 2,
       dreamTitle: "Visit Machu Picchu",
       dreamCategory: "Travel",
-      createdAt: "2024-09-23T10:00:00Z"
+      createdAt: "2024-09-23T10:00:00Z",
+      recurrence: "once"
+    },
+    {
+      id: 4,
+      title: "Cardio training session",
+      description: "30-45min run or hike to build altitude endurance",
+      completed: false,
+      dreamId: 2,
+      dreamTitle: "Visit Machu Picchu",
+      dreamCategory: "Travel",
+      milestoneId: 3,
+      recurrence: "weekly",
+      active: true,
+      weekLog: {
+        "2025-W39": true,
+        "2025-W40": true,
+        "2025-W41": false
+      },
+      createdAt: "2025-09-20T10:00:00Z"
     },
     {
       id: 2,
-      title: "4 training sessions with PT",
-      description: "Monday, Tuesday, Thursday, Friday",
+      title: "Practice React patterns",
+      description: "Study and implement 2-3 patterns this week",
       completed: false,
       dreamId: 1,
-      dreamTitle: "Stick to a Gym Routine",
-      dreamCategory: "Health",
-      createdAt: "2024-09-23T10:00:00Z"
+      dreamTitle: "Master React and TypeScript",
+      dreamCategory: "Learning",
+      milestoneId: 4,
+      recurrence: "weekly",
+      active: true,
+      weekLog: {
+        "2025-W38": true,
+        "2025-W39": true,
+        "2025-W40": true,
+        "2025-W41": false
+      },
+      createdAt: "2025-09-15T10:00:00Z"
     },
     {
       id: 3,
@@ -140,7 +180,8 @@ export const currentUser = {
       dreamId: 3,
       dreamTitle: "Read a Book a Month",
       dreamCategory: "Learning",
-      createdAt: "2024-09-23T10:00:00Z"
+      createdAt: "2024-09-23T10:00:00Z",
+      recurrence: "once"
     }
   ],
   careerGoals: [
@@ -395,7 +436,19 @@ export const allUsers = [
         image: "https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=600&q=60&auto=format&fit=crop",
         milestones: [
           { id: 1, text: "Research best time to visit", completed: true, createdAt: "2024-01-05T10:00:00Z" },
-          { id: 2, text: "Book flights to Peru", completed: false, createdAt: "2024-01-08T10:00:00Z" }
+          { id: 2, text: "Book flights to Peru", completed: false, createdAt: "2024-01-08T10:00:00Z" },
+          { 
+            id: 3, 
+            text: "Physical prep - consistent cardio for 8 weeks", 
+            completed: false, 
+            createdAt: "2025-10-01T10:00:00Z",
+            coachManaged: true,
+            type: "consistency",
+            targetWeeks: 8,
+            startDate: "2025-09-20",
+            endOnDreamComplete: false,
+            streakWeeks: 2
+          }
         ],
         notes: [
           { id: 1, text: "Best time is dry season (May to September). Planning for June 2024.", timestamp: "2024-01-15T11:00:00Z" }
@@ -1277,7 +1330,9 @@ export const offices = ["Cape Town", "Johannesburg", "Durban", "Pretoria", "New 
 export const scoringRules = {
   dreamCompleted: 10,
   dreamConnect: 5,
-  groupAttendance: 3
+  groupAttendance: 3,
+  milestoneCompleted: 15,
+  weeklyGoalCompleted: 3
 };
 
 // Helper functions

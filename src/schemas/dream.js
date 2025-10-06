@@ -11,7 +11,14 @@ export const MilestoneSchema = z.object({
   id: z.union([z.string(), z.number()]),
   text: z.string(),
   completed: z.boolean().default(false),
-  createdAt: z.string().optional()
+  createdAt: z.string().optional(),
+  // Coach-managed consistency tracking
+  coachManaged: z.boolean().optional().default(false),
+  type: z.enum(['consistency', 'deadline', 'general']).optional().default('general'),
+  targetWeeks: z.number().optional(), // N weeks for consistency milestone
+  startDate: z.string().optional(), // ISO date when tracking starts
+  endOnDreamComplete: z.boolean().optional().default(false),
+  streakWeeks: z.number().optional().default(0) // Current consecutive weeks met
 });
 
 // Note/Comment schema (includes both user notes and coach notes)

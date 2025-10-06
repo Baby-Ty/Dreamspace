@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { dreamCategories, scoringRules } from '../data/mockData';
 import databaseService from '../services/databaseService';
+import { getCurrentIsoWeek, computeStreak, isMilestoneComplete } from '../utils/dateUtils';
 
 // Create the context
 const AppContext = createContext();
@@ -19,6 +20,8 @@ const actionTypes = {
   UPDATE_WEEKLY_GOAL: 'UPDATE_WEEKLY_GOAL',
   DELETE_WEEKLY_GOAL: 'DELETE_WEEKLY_GOAL',
   TOGGLE_WEEKLY_GOAL: 'TOGGLE_WEEKLY_GOAL',
+  LOG_WEEKLY_COMPLETION: 'LOG_WEEKLY_COMPLETION',
+  UPDATE_MILESTONE_STREAK: 'UPDATE_MILESTONE_STREAK',
   SET_SCORING_HISTORY: 'SET_SCORING_HISTORY',
   ADD_SCORING_ENTRY: 'ADD_SCORING_ENTRY',
   LOAD_PERSISTED_DATA: 'LOAD_PERSISTED_DATA',
@@ -199,6 +202,58 @@ const appReducer = (state, action) => {
       return {
         ...state,
         weeklyGoals: toggledWeeklyGoals
+      };
+
+    case actionTypes.LOG_WEEKLY_COMPLETION:
+      const { goalId, isoWeek, completed } = action.payload;
+      const updatedGoalsWithLog = state.weeklyGoals.map(goal => {
+        if (goal.id === goalId) {
+          const newWeekLog = { ...(goal.weekLog || {}), [isoWeek]: completed };
+          // Update completed status based on current week
+          const currentWeek = getCurrentIsoWeek();
+          const isCurrentWeekCompleted = newWeekLog[currentWeek] || false;
+          return {
+            ...goal,
+            weekLog: newWeekLog,
+            completed: isCurrentWeekCompleted,
+            completedAt: completed ? new Date().toISOString() : goal.completedAt
+          };
+        }
+        return goal;
+      });
+      return {
+        ...state,
+        weeklyGoals: updatedGoalsWithLog
+      };
+
+    case actionTypes.UPDATE_MILESTONE_STREAK:
+      const { dreamId, milestoneId: mId, newStreak } = action.payload;
+      const updatedDreamsWithStreak = state.currentUser.dreamBook.map(dream => {
+        if (dream.id === dreamId) {
+          const updatedMilestones = dream.milestones.map(milestone => {
+            if (milestone.id === mId) {
+              const isComplete = isMilestoneComplete(
+                { ...milestone, streakWeeks: newStreak },
+                dream.progress
+              );
+              return {
+                ...milestone,
+                streakWeeks: newStreak,
+                completed: isComplete
+              };
+            }
+            return milestone;
+          });
+          return { ...dream, milestones: updatedMilestones };
+        }
+        return dream;
+      });
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          dreamBook: updatedDreamsWithStreak
+        }
       };
 
     case actionTypes.SET_SCORING_HISTORY:
@@ -535,6 +590,71 @@ export const AppProvider = ({ children, initialUser }) => {
 
     toggleWeeklyGoal: (goalId) => {
       dispatch({ type: actionTypes.TOGGLE_WEEKLY_GOAL, payload: goalId });
+    },
+
+    logWeeklyCompletion: (goalId, isoWeek, completed) => {
+      dispatch({ 
+        type: actionTypes.LOG_WEEKLY_COMPLETION, 
+        payload: { goalId, isoWeek, completed } 
+      });
+      
+      // Find the goal and its linked milestone
+      const goal = state.weeklyGoals.find(g => g.id === goalId);
+      if (goal?.milestoneId && goal?.dreamId) {
+        // Find the dream and milestone
+        const dream = state.currentUser.dreamBook.find(d => d.id === goal.dreamId);
+        if (dream) {
+          const milestone = dream.milestones?.find(m => m.id === goal.milestoneId);
+          if (milestone?.coachManaged && milestone?.startDate) {
+            // Recompute streak
+            const newStreak = computeStreak(
+              { ...(goal.weekLog || {}), [isoWeek]: completed },
+              milestone.startDate
+            );
+            
+            // Update milestone streak
+            dispatch({
+              type: actionTypes.UPDATE_MILESTONE_STREAK,
+              payload: { dreamId: goal.dreamId, milestoneId: goal.milestoneId, newStreak }
+            });
+            
+            // Check if milestone just completed and add scoring entry
+            const wasComplete = milestone.streakWeeks >= milestone.targetWeeks;
+            const isNowComplete = newStreak >= milestone.targetWeeks;
+            
+            if (!wasComplete && isNowComplete) {
+              const scoringEntry = {
+                id: Date.now(),
+                type: 'milestoneCompleted',
+                title: `Completed milestone: "${milestone.text}"`,
+                points: state.scoringRules.milestoneCompleted || 15,
+                date: new Date().toISOString().split('T')[0],
+                category: dream.category
+              };
+              dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
+              
+              const newScore = state.currentUser.score + (state.scoringRules.milestoneCompleted || 15);
+              dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
+            }
+          }
+        }
+      }
+      
+      // Add scoring for weekly completion
+      if (completed) {
+        const scoringEntry = {
+          id: Date.now() + 1,
+          type: 'weeklyGoalCompleted',
+          title: `Completed weekly goal`,
+          points: state.scoringRules.weeklyGoalCompleted || 3,
+          date: new Date().toISOString().split('T')[0],
+          category: goal?.dreamCategory || 'General'
+        };
+        dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
+        
+        const newScore = state.currentUser.score + (state.scoringRules.weeklyGoalCompleted || 3);
+        dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
+      }
     },
 
     updateUserScore: (newScore) => {

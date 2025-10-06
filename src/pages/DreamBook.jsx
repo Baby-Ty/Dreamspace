@@ -126,9 +126,22 @@ const DreamBook = () => {
         { id: Date.now() + 13, text: 'Reserve camps/hostels (Torres del Paine, etc.)', completed: false, createdAt: nowIso },
         { id: Date.now() + 14, text: 'Gear checklist (backpack, layers, boots, rain gear)', completed: false, createdAt: nowIso },
         { id: Date.now() + 15, text: 'Create packing list and emergency contacts', completed: false, createdAt: nowIso },
+        { 
+          id: Date.now() + 16, 
+          text: 'Physical prep - consistent cardio for 10 weeks', 
+          completed: false, 
+          createdAt: nowIso,
+          coachManaged: true,
+          type: 'consistency',
+          targetWeeks: 10,
+          startDate: nowIso,
+          endOnDreamComplete: false,
+          streakWeeks: 0
+        },
       ];
       notes = [
-        { id: Date.now() + 16, text: 'Swap locations freely (e.g., add Ushuaia).', timestamp: nowIso },
+        { id: Date.now() + 17, text: 'Swap locations freely (e.g., add Ushuaia).', timestamp: nowIso },
+        { id: Date.now() + 18, text: 'Coach tip: Build endurance gradually. Start with 2-3 cardio sessions per week.', timestamp: nowIso, isCoachNote: true },
       ];
     }
 
