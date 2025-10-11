@@ -24,6 +24,7 @@ export const UserDataSchema = z.object({
   // Core identity (optional, may come from auth context)
   id: z.union([z.string(), z.number()]).optional(),
   userId: z.union([z.string(), z.number()]).optional(),
+  aadObjectId: z.string().optional(),
   name: z.string().optional(),
   email: z.string().email().optional(),
   

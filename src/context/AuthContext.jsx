@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }) => {
         // Mock data is only for demo mode
         // Note: dreamCategories will be populated from global mockData in AppContext
         let userData = {
-         id: account.localAccountId || account.username,
+          id: profileData.userPrincipalName || profileData.mail || account.username,
+          aadObjectId: account.localAccountId,
           name: profileData.displayName,
           email: profileData.mail || profileData.userPrincipalName,
           office: determineOfficeFromProfile(profileData),

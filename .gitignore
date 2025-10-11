@@ -47,3 +47,8 @@ logs
 # Temporary folders
 tmp/
 temp/
+
+# Deployment credentials (NEVER COMMIT!)
+deployment-credentials-*.txt
+*.credentials.txt
+azure-credentials.json
