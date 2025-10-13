@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import GuideModal from '../components/GuideModal';
 
 const Dashboard = () => {
   const { currentUser, weeklyGoals, toggleWeeklyGoal, addWeeklyGoal, updateDream } = useApp();
+  const navigate = useNavigate();
   
   // Ensure weeklyGoals is always an array to prevent filter errors
   const safeWeeklyGoals = Array.isArray(weeklyGoals) ? weeklyGoals : [];
@@ -127,6 +128,26 @@ const Dashboard = () => {
               <p className="text-xl font-bold text-professional-gray-900">{stats.scorecardPoints}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Vision Builder Demo CTA - NEW */}
+      <div className="bg-gradient-to-r from-netsurit-red to-netsurit-coral rounded-2xl p-6 shadow-xl mb-5">
+        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+          <div className="text-white">
+            <div className="flex items-center space-x-2 mb-2">
+              <Sparkles className="h-6 w-6" />
+              <h3 className="text-xl font-bold">Build Your Best Year</h3>
+            </div>
+            <p className="text-white/90">Try our AI-guided chat to create Dreams, Milestones, and Weekly Goals in minutes</p>
+          </div>
+          <button
+            onClick={() => navigate('/vision-builder-demo')}
+            className="bg-white text-netsurit-red px-6 py-3 rounded-xl font-bold hover:bg-professional-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center space-x-2"
+          >
+            <span>Try Demo</span>
+            <Sparkles className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
