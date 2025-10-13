@@ -1,0 +1,10 @@
+- Avoid adding to much code to a single page, instead try breaking the functionality of what you are adding into components or multiple files 
+
+- I prefer functional programming over oop 
+
+- Code should be terse but use human friendly variable names.
+- Avoid right lean
+- Use short circuits instead of nested conditionals 
+- Avoid nested exceptions
+- Avoid one line conditional returns or continues.
+- new Files should be no longer than 150 lines of code. Break large functionality into several files.

@@ -22,6 +22,13 @@ import {
 import { useApp } from '../context/AppContext';
 import HelpTooltip from '../components/HelpTooltip';
 import { getCurrentIsoWeek } from '../utils/dateUtils';
+import {
+  expandRecurringGoals,
+  getVisibleGoalsForWeek,
+  computeWeekProgress,
+  isWeekEditable
+} from '../services/weekGoalService';
+import { getIsoWeek } from '../utils/dateUtils';
 
 const DreamsWeekAhead = () => {
   const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal, logWeeklyCompletion } = useApp();
@@ -95,19 +102,9 @@ const DreamsWeekAhead = () => {
 
   // Calculate progress percentage using current week's status
   const getProgressPercentage = () => {
-    if (weeklyGoals.length === 0) return 0;
     const currentWeek = getCurrentIsoWeek();
-    
-    const completedGoals = weeklyGoals.filter(goal => {
-      // For recurring goals, check weekLog for current week
-      if (goal.recurrence === 'weekly' && goal.weekLog) {
-        return goal.weekLog[currentWeek] === true;
-      }
-      // For non-recurring goals, check completed flag
-      return goal.completed;
-    }).length;
-    
-    return Math.round((completedGoals / weeklyGoals.length) * 100);
+    const { completed, total } = computeWeekProgress(currentWeek, weeklyGoals);
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
   // Get dream emoji/icon
@@ -183,10 +180,11 @@ const DreamsWeekAhead = () => {
     return weeks;
   };
 
-  const getWeekProgress = (week) => {
-    // Mock progress for demo - in real app, this would filter goals by week
-    const progressOptions = [0, 25, 50, 75, 100];
-    return progressOptions[week.weekNumber % progressOptions.length];
+  // Determine per-week progress via service
+  const getWeekProgress = (weekObj) => {
+    const weekIso = getIsoWeek(weekObj.start);
+    const { completed, total } = computeWeekProgress(weekIso, weeklyGoals);
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
   // Find which week contains today's date
@@ -244,16 +242,23 @@ const DreamsWeekAhead = () => {
       recurrence: goalFormData.recurrence || 'once',
       active: true,
       durationType: goalFormData.durationType || 'unlimited',
-      durationWeeks: goalFormData.durationWeeks || undefined
+      durationWeeks: goalFormData.durationWeeks || undefined,
+      // Set recurrence flag for service
+      recurring: goalFormData.recurrence === 'weekly'
     };
 
-    // Initialize weekLog for recurring goals
+    // Assign week and weekLog based on recurrence
     if (newGoal.recurrence === 'weekly') {
+      newGoal.recurring = true;
       newGoal.weekLog = {};
       // Set start date for duration tracking
       if (newGoal.durationType === 'weeks' || newGoal.durationType === 'milestone') {
         newGoal.startDate = new Date().toISOString();
       }
+    } else {
+      // Non-recurring goal only for current week
+      newGoal.recurring = false;
+      newGoal.week = currentWeek;
     }
 
     if (editingGoal) {
@@ -339,8 +344,10 @@ const DreamsWeekAhead = () => {
     });
   };
 
+  const activeIsoWeek = getCurrentIsoWeek();
+  const visibleGoals = getVisibleGoalsForWeek(activeIsoWeek, weeklyGoals);
   const progressPercentage = getProgressPercentage();
-  const isWeekComplete = progressPercentage === 100 && weeklyGoals.length > 0;
+  const isWeekComplete = isWeekEditable(activeIsoWeek) && progressPercentage === 100 && visibleGoals.length > 0;
 
   // Calculate goal KPIs
   const getGoalKPIs = () => {
@@ -518,7 +525,7 @@ const DreamsWeekAhead = () => {
           {/* Left Column */}
           <div className="col-span-12 lg:col-span-5">
             {/* Progress Tracker */}
-            {weeklyGoals.length > 0 && (
+            {visibleGoals.length > 0 && (
               <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-professional-gray-900">Weekly Progress</h3>
@@ -549,8 +556,8 @@ const DreamsWeekAhead = () => {
                   )}
                 </div>
                 <div className="flex justify-between text-sm text-professional-gray-600 mt-2">
-                  <span>{weeklyGoals.filter((g) => g.completed).length} completed</span>
-                  <span>{weeklyGoals.length} total goals</span>
+                  <span>{computeWeekProgress(activeIsoWeek, weeklyGoals).completed} completed</span>
+                  <span>{computeWeekProgress(activeIsoWeek, weeklyGoals).total} total goals</span>
                 </div>
               </div>
             )}
@@ -588,7 +595,7 @@ const DreamsWeekAhead = () => {
           {/* Right Column */}
           <div className="col-span-12 lg:col-span-7 min-h-0">
             <h2 className="text-xl font-bold text-professional-gray-900 mb-3">This Week's Goals</h2>
-            {weeklyGoals.length === 0 ? (
+            {visibleGoals.length === 0 ? (
               <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-center">
                 <Star className="w-10 h-10 text-professional-gray-300 mx-auto mb-3" />
                 <p className="text-professional-gray-600 mb-2">No weekly goals yet!</p>
@@ -596,16 +603,19 @@ const DreamsWeekAhead = () => {
               </div>
             ) : (
               <div className="space-y-3 max-h-[80vh] lg:max-h-[78vh] overflow-y-auto pr-1">
-                {weeklyGoals.map((goal) => (
-                  <GoalItem
-                    key={goal.id}
-                    goal={goal}
-                    emoji={getDreamEmoji(goal.dreamCategory)}
-                    onToggle={() => toggleGoalCompletion(goal.id)}
-                    onEdit={() => handleEditGoal(goal)}
-                    onDelete={() => handleDeleteGoal(goal.id)}
-                  />
-                ))}
+                {visibleGoals.map((goal) => {
+                  const editable = isWeekEditable(activeIsoWeek);
+                  return (
+                    <GoalItem
+                      key={goal.id}
+                      goal={goal}
+                      emoji={getDreamEmoji(goal.dreamCategory)}
+                      onToggle={editable ? () => toggleGoalCompletion(goal.id) : undefined}
+                      onEdit={editable ? () => handleEditGoal(goal) : undefined}
+                      onDelete={editable ? () => handleDeleteGoal(goal.id) : undefined}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
