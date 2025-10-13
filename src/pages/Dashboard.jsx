@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 import GuideModal from '../components/GuideModal';
 
 const Dashboard = () => {
@@ -59,7 +60,9 @@ const Dashboard = () => {
         description: newGoal.description,
         dreamId: dreamId,
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        week: getCurrentIsoWeek(),
+        recurring: false
       };
 
       // Only add dream-specific data if a dream was actually selected
