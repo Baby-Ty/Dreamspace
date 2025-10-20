@@ -3,18 +3,16 @@
     {
       "route": "/api/*",
       "allowedRoles": ["anonymous"]
-    },
-    {
-      "route": "/*",
-      "rewrite": "/index.html"
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/api/*", "/*.{css,scss,js,png,gif,ico,jpg,svg}"]
+    "exclude": ["/assets/*", "/api/*", "/*.{css,scss,js,png,gif,ico,jpg,svg,woff,woff2,ttf,eot}"]
   },
   "mimeTypes": {
-    ".json": "text/json"
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css"
   },
   "globalHeaders": {
     "Access-Control-Allow-Origin": "*",
