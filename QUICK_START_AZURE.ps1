@@ -9,8 +9,8 @@ $TenantId = "YOUR_TENANT_ID_HERE"           # Required
 $SubscriptionId = "YOUR_SUBSCRIPTION_ID_HERE"  # Required
 
 # Optional: Customize resource names
-$ResourceGroup = "rg-dreamspace-prod-eastus"
-$Location = "eastus"
+$ResourceGroup = "rg_Dreams2025Dev"
+$Location = "eastus2"
 $Timestamp = Get-Date -Format "yyyyMMdd"
 $CosmosAccount = "cosmos-dreamspace-prod-$Timestamp"
 
@@ -26,9 +26,12 @@ az account show --output table
 # STEP 3: CREATE RESOURCES
 # ============================================================================
 
-# Create Resource Group
-Write-Host "`n📦 Creating Resource Group..." -ForegroundColor Cyan
-az group create --name $ResourceGroup --location $Location --output table
+# Create Resource Group (skip if already exists)
+Write-Host "`n📦 Checking Resource Group..." -ForegroundColor Cyan
+az group create --name $ResourceGroup --location $Location --output table 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Resource group ready ✓" -ForegroundColor Green
+}
 
 # Create Cosmos DB (takes 5-10 minutes)
 Write-Host "`n💾 Creating Cosmos DB (this will take 5-10 minutes)..." -ForegroundColor Cyan
@@ -38,7 +41,6 @@ az cosmosdb create `
     --resource-group $ResourceGroup `
     --locations regionName=$Location `
     --default-consistency-level Session `
-    --enable-free-tier true `
     --output table
 Write-Host "End: $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Gray
 
