@@ -23,22 +23,45 @@ People Dashboard → peopleService → Azure Functions → Cosmos DB
 
 ### Database: `dreamspace`
 
-#### Container 1: `users` (existing)
-- **Partition Key**: `/userId`
-- **Documents**: User profiles with coaching assignments
-- **New Fields Added**:
+#### Container 1: `users`
+- **Partition Key**: `/userId` or `/id`
+- **Documents**: User profiles with coaching assignments (without large arrays)
+- **Structure**:
   ```json
   {
+    "id": "user@example.com",
+    "userId": "user@example.com",
+    "name": "John Doe",
+    "email": "user@example.com",
     "role": "user|coach|manager|admin",
     "isCoach": boolean,
     "assignedCoachId": number,
     "assignedTeamName": string,
     "assignedAt": "ISO date string",
-    "promotedAt": "ISO date string"
+    "promotedAt": "ISO date string",
+    "score": number,
+    "dreamsCount": number,
+    "connectsCount": number,
+    "dataStructureVersion": 2
   }
   ```
 
-#### Container 2: `teams` (new)
+#### Container 2: `items` (new - 3-container architecture)
+- **Partition Key**: `/userId`
+- **Documents**: Individual dreams, goals, scoring entries, connects, etc.
+- **Structure**:
+  ```json
+  {
+    "id": "dream_12345",
+    "userId": "user@example.com",
+    "type": "dream|weekly_goal|scoring_entry|connect|career_goal|development_plan",
+    "createdAt": "ISO date string",
+    "updatedAt": "ISO date string",
+    ... type-specific fields ...
+  }
+  ```
+
+#### Container 3: `teams`
 - **Partition Key**: `/managerId`
 - **Documents**: Team relationships and coaching assignments
 - **Structure**:

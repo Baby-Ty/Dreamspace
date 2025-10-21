@@ -114,6 +114,26 @@ try {
     exit 1
 }
 
+# Check if items container exists
+Write-ColorText "🔍 Checking if 'items' container exists..." $Blue
+try {
+    $itemsContainer = az cosmosdb sql container show --account-name $CosmosAccountName --database-name "dreamspace" --resource-group $ResourceGroupName --name "items" --output json 2>$null | ConvertFrom-Json
+    if (-not $itemsContainer) {
+        Write-ColorText "📋 Creating 'items' container..." $Blue
+        az cosmosdb sql container create --account-name $CosmosAccountName --database-name "dreamspace" --resource-group $ResourceGroupName --name "items" --partition-key-path "/userId" --throughput 400 --output none
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColorText "❌ Failed to create 'items' container" $Red
+            exit 1
+        }
+        Write-ColorText "✅ Created 'items' container with partition key '/userId'" $Green
+    } else {
+        Write-ColorText "✅ Container 'items' already exists" $Green
+    }
+} catch {
+    Write-ColorText "❌ Error checking/creating 'items' container" $Red
+    exit 1
+}
+
 # Get connection details for verification
 Write-ColorText "Getting connection details..." $Blue
 try {
@@ -128,6 +148,7 @@ try {
     Write-ColorText "Database: dreamspace" $White
     Write-ColorText "Containers:" $White
     Write-ColorText "  • users (partition key: /userId)" $White
+    Write-ColorText "  • items (partition key: /userId)" $White
     Write-ColorText "  • teams (partition key: /managerId)" $White
     Write-ColorText "" $White
     Write-ColorText "🔧 Next Steps:" $Yellow

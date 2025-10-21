@@ -28,25 +28,28 @@ export const UserDataSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
   
-  // Dream data
-  dreamBook: DreamListSchema.default([]),
+  // Data structure version (1 = old monolithic, 2 = new 3-container)
+  dataStructureVersion: z.number().default(1),
+  
+  // Dream data (optional for v2 - stored in items container)
+  dreamBook: DreamListSchema.optional().default([]),
   dreamCategories: z.array(z.string()).default([]),
   dreamsCount: z.number().default(0),
   
-  // Career data
-  careerGoals: CareerGoalListSchema.default([]),
-  developmentPlan: DevelopmentPlanListSchema.default([]),
+  // Career data (optional for v2 - stored in items container)
+  careerGoals: CareerGoalListSchema.optional().default([]),
+  developmentPlan: DevelopmentPlanListSchema.optional().default([]),
   
-  // Connections
-  connects: ConnectListSchema.default([]),
+  // Connections (optional for v2 - stored in items container)
+  connects: ConnectListSchema.optional().default([]),
   connectsCount: z.number().default(0),
   
-  // Weekly planning
-  weeklyGoals: WeeklyGoalListSchema.default([]),
+  // Weekly planning (optional for v2 - stored in items container)
+  weeklyGoals: WeeklyGoalListSchema.optional().default([]),
   
   // Scoring
   score: z.number().default(0),
-  scoringHistory: z.array(ScoringHistorySchema).default([]),
+  scoringHistory: z.array(ScoringHistorySchema).optional().default([]),
   
   // Metadata
   createdAt: z.string().optional(),

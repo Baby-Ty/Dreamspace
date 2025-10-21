@@ -136,6 +136,22 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Success "Users container created"
 
+# Create items container for dreams, goals, scoring entries, etc.
+Write-Step "Creating container: items (partition key: /userId)"
+az cosmosdb sql container create `
+    --account-name $CosmosAccount `
+    --resource-group $ResourceGroup `
+    --database-name dreamspace `
+    --name items `
+    --partition-key-path "/userId" `
+    --output none
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to create items container"
+    exit 1
+}
+Write-Success "Items container created"
+
 # Create teams container
 Write-Step "Creating container: teams (partition key: /managerId)"
 az cosmosdb sql container create `

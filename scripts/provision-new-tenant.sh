@@ -164,6 +164,18 @@ az cosmosdb sql container create \
 
 print_success "Users container created"
 
+# Create items container for dreams, goals, scoring entries, etc.
+print_step "Creating container: items (partition key: /userId)"
+az cosmosdb sql container create \
+    --account-name "$COSMOS_ACCOUNT" \
+    --resource-group "$RESOURCE_GROUP" \
+    --database-name dreamspace \
+    --name items \
+    --partition-key-path "/userId" \
+    --output none
+
+print_success "Items container created"
+
 # Create teams container
 print_step "Creating container: teams (partition key: /managerId)"
 az cosmosdb sql container create \

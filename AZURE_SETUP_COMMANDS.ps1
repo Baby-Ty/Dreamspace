@@ -164,9 +164,33 @@ az cosmosdb sql container show `
     --output table
 
 # ============================================================================
-# SECTION 8: CREATE TEAMS CONTAINER (OPTIONAL)
+# SECTION 8: CREATE ITEMS CONTAINER
 # ============================================================================
-Write-Host "`n=== SECTION 8: Create Teams Container (Optional) ===" -ForegroundColor Cyan
+Write-Host "`n=== SECTION 8: Create Items Container ===" -ForegroundColor Cyan
+
+# Create items container for dreams, goals, scoring entries, etc.
+Write-Host "`nCreating container: items (partition key: /userId)" -ForegroundColor Yellow
+az cosmosdb sql container create `
+    --account-name $CosmosAccount `
+    --resource-group $ResourceGroup `
+    --database-name dreamspace `
+    --name items `
+    --partition-key-path "/userId" `
+    --output table
+
+# Verify container
+Write-Host "`nVerifying items container..." -ForegroundColor Yellow
+az cosmosdb sql container show `
+    --account-name $CosmosAccount `
+    --resource-group $ResourceGroup `
+    --database-name dreamspace `
+    --name items `
+    --output table
+
+# ============================================================================
+# SECTION 9: CREATE TEAMS CONTAINER (OPTIONAL)
+# ============================================================================
+Write-Host "`n=== SECTION 9: Create Teams Container (Optional) ===" -ForegroundColor Cyan
 
 # Create teams container
 Write-Host "`nCreating container: teams (partition key: /managerId)" -ForegroundColor Yellow
@@ -188,9 +212,9 @@ az cosmosdb sql container show `
     --output table
 
 # ============================================================================
-# SECTION 9: GET COSMOS DB CREDENTIALS
+# SECTION 10: GET COSMOS DB CREDENTIALS
 # ============================================================================
-Write-Host "`n=== SECTION 9: Get Cosmos DB Credentials ===" -ForegroundColor Cyan
+Write-Host "`n=== SECTION 10: Get Cosmos DB Credentials ===" -ForegroundColor Cyan
 
 # Get Cosmos endpoint
 Write-Host "`nRetrieving Cosmos DB endpoint..." -ForegroundColor Yellow

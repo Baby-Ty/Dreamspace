@@ -1,6 +1,7 @@
 // Database service for DreamSpace - handles Cosmos DB data persistence
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
+import itemService from './itemService.js';
 
 class DatabaseService {
   constructor() {
@@ -21,7 +22,7 @@ class DatabaseService {
     console.log('Production mode:', import.meta.env.VITE_APP_ENV === 'production');
     
     if (this.useCosmosDB) {
-      console.log('☁️ Using Azure Cosmos DB for data persistence');
+      console.log('☁️ Using Azure Cosmos DB for data persistence (3-container architecture)');
     } else {
       console.log('💾 Using localStorage for data persistence (development mode)');
     }
@@ -30,6 +31,27 @@ class DatabaseService {
   // Get user-specific storage key for localStorage
   getUserStorageKey(userId) {
     return `dreamspace_user_${userId}_data`;
+  }
+
+  /**
+   * Check if data is in old monolithic format (contains arrays)
+   */
+  isOldFormat(userData) {
+    return !!(
+      userData?.dreamBook || 
+      userData?.weeklyGoals || 
+      userData?.scoringHistory || 
+      userData?.connects || 
+      userData?.careerGoals || 
+      userData?.developmentPlan
+    );
+  }
+
+  /**
+   * Check if user is on new structure (v2)
+   */
+  isNewStructure(userData) {
+    return userData?.dataStructureVersion === 2;
   }
 
   // Save user data
@@ -57,7 +79,7 @@ class DatabaseService {
     console.log('📂 Loading data for user ID:', userId);
     try {
       if (this.useCosmosDB) {
-        // For production, load from Cosmos DB (fresh start for new users)
+        // For production, load from Cosmos DB
         const cosmosData = await this.loadFromCosmosDB(userId);
         console.log('📂 Cosmos DB data loaded:', cosmosData ? 'Found data' : 'No data found');
         
@@ -116,9 +138,11 @@ class DatabaseService {
     }
   }
 
-  // Cosmos DB methods (using Azure Functions API)
+  // Cosmos DB methods (using Azure Functions API with 3-container support)
   async saveToCosmosDB(userId, userData) {
     try {
+      // The saveUserData endpoint now handles splitting data automatically
+      // It detects old format and splits into profile + items
       const response = await fetch(`${this.apiBase}/saveUserData/${userId}`, {
         method: 'POST',
         headers: {
@@ -130,6 +154,9 @@ class DatabaseService {
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Data saved to Cosmos DB for user:', userId);
+        if (result.format === 'split') {
+          console.log(`📦 Data migrated to 3-container format: ${result.itemCount} items`);
+        }
         // Notify listeners that a save occurred
         window.dispatchEvent(new Event('dreamspace:saved'));
         return ok(result);
@@ -146,11 +173,21 @@ class DatabaseService {
 
   async loadFromCosmosDB(userId) {
     try {
+      // The getUserData endpoint handles both old and new formats
+      // It returns data in the old format (with arrays) regardless of storage format
       const response = await fetch(`${this.apiBase}/getUserData/${userId}`);
       
       if (response.ok) {
         const userData = await response.json();
         console.log('✅ Data loaded from Cosmos DB for user:', userId);
+        
+        // Check if data structure version is indicated
+        if (userData.dataStructureVersion === 2) {
+          console.log('📦 User is on 3-container structure (v2)');
+        } else {
+          console.log('📦 User is on monolithic structure (v1)');
+        }
+        
         // Return in the expected format for demo login
         return { success: true, data: userData };
       } else if (response.status === 404) {
@@ -203,6 +240,15 @@ class DatabaseService {
       console.error('Error clearing user data:', error);
       return fail(ErrorCodes.DELETE_ERROR, error.message || 'Failed to clear user data');
     }
+  }
+
+  /**
+   * Direct access to item service for granular operations
+   * These methods are available but not used by default
+   * The main save/load methods handle items automatically
+   */
+  get items() {
+    return itemService;
   }
 }
 

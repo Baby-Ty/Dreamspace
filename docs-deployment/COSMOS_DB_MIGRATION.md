@@ -1,13 +1,34 @@
 # Cosmos DB Migration Guide
 
+## 3-Container Architecture (V2)
+
+This application now uses a modern 3-container architecture for improved scalability and performance.
+
+### Container Structure
+
+**Container 1: `users`** - Partition key: `/userId` or `/id`
+- User profiles, roles, aggregate metrics
+- Small documents, rarely updated
+- No large arrays
+
+**Container 2: `items`** - Partition key: `/userId`
+- Individual dreams, weekly goals, scoring entries, connects
+- Each item is a separate document with a `type` field
+- Efficient queries by userId and type
+
+**Container 3: `teams`** - Partition key: `/managerId`
+- Team relationships and coaching assignments
+
 ## Changes Made
 
 ### 1. Updated Database Service
 - Modified `src/services/databaseService.js` to use Cosmos DB in production
 - Automatically detects environment and switches between localStorage (dev) and Cosmos DB (production)
+- Supports both legacy monolithic format and new 3-container format
 - Updated API endpoints to match your Azure Functions:
-  - Save: `/api/saveUserData/{userId}`
-  - Load: `/api/getUserData/{userId}`
+  - Save: `/api/saveUserData/{userId}` (now splits data across containers)
+  - Load: `/api/getUserData/{userId}` (now combines data from multiple containers)
+  - Items: `/api/saveItem`, `/api/getItems/{userId}`, `/api/deleteItem/{itemId}`
 
 ### 2. Environment Detection
 The app now automatically uses Cosmos DB when:

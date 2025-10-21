@@ -1,0 +1,126 @@
+const { CosmosClient } = require('@azure/cosmos');
+
+// Initialize Cosmos client only if environment variables are present
+let client, database, itemsContainer;
+if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
+  client = new CosmosClient({
+    endpoint: process.env.COSMOS_ENDPOINT,
+    key: process.env.COSMOS_KEY
+  });
+  database = client.database('dreamspace');
+  itemsContainer = database.container('items');
+}
+
+module.exports = async function (context, req) {
+  // Set CORS headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    context.res = { status: 200, headers };
+    return;
+  }
+
+  const { userId, items } = req.body || {};
+
+  context.log('Batch saving items for user:', userId, 'count:', items?.length || 0);
+
+  if (!userId) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ error: 'userId is required' }),
+      headers
+    };
+    return;
+  }
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ error: 'items array is required and must not be empty' }),
+      headers
+    };
+    return;
+  }
+
+  // Check if Cosmos DB is configured
+  if (!itemsContainer) {
+    context.res = {
+      status: 500,
+      body: JSON.stringify({ 
+        error: 'Database not configured', 
+        details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' 
+      }),
+      headers
+    };
+    return;
+  }
+
+  try {
+    const savedItems = [];
+    const errors = [];
+
+    // Process items in parallel (but be mindful of RU limits)
+    const promises = items.map(async (item) => {
+      try {
+        const { type, data } = item;
+        
+        if (!type || !data) {
+          throw new Error('Each item must have type and data properties');
+        }
+
+        const document = {
+          id: data.id || `${type}_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: userId,
+          type: type,
+          ...data,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        const { resource } = await itemsContainer.items.upsert(document);
+        savedItems.push({ id: resource.id, type: resource.type });
+      } catch (error) {
+        context.log.error('Error saving item:', error);
+        errors.push({ 
+          type: item.type, 
+          id: item.data?.id, 
+          error: error.message 
+        });
+      }
+    });
+
+    await Promise.all(promises);
+    
+    context.log(`Successfully saved ${savedItems.length} items, ${errors.length} errors`);
+    
+    context.res = {
+      status: errors.length === items.length ? 500 : 200,
+      body: JSON.stringify({ 
+        success: true,
+        savedCount: savedItems.length,
+        errorCount: errors.length,
+        savedItems: savedItems,
+        errors: errors.length > 0 ? errors : undefined
+      }),
+      headers
+    };
+  } catch (error) {
+    context.log.error('Error in batch save:', error);
+    context.res = {
+      status: 500,
+      body: JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error.message 
+      }),
+      headers
+    };
+  }
+};
+
+
