@@ -4,9 +4,9 @@ import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class PeopleService {
   constructor() {
-    this.apiBase = '/api';
     // Always use Cosmos DB on the live site, regardless of environment variables
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('👥 People Service initialized:', {

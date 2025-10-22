@@ -4,8 +4,9 @@ import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class AdminService {
   constructor() {
-    this.apiBase = '/api';
-    this.useCosmosDB = !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('🛡️ Admin Service initialized:', {
       useCosmosDB: this.useCosmosDB,

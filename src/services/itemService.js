@@ -4,7 +4,8 @@ import { ERR, ErrorCodes } from '../constants/errors.js';
 
 class ItemService {
   constructor() {
-    this.apiBase = '/api';
+    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     console.log('📦 Item Service initialized');
   }
 
