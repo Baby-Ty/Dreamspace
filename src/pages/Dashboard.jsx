@@ -62,8 +62,8 @@ const Dashboard = () => {
         dreamId: dreamId,
         completed: false,
         createdAt: new Date().toISOString(),
-        week: getCurrentIsoWeek(),
-        recurring: false
+        weekId: getCurrentIsoWeek(),  // CRITICAL: Must use weekId, not week
+        recurrence: 'once'  // One-time goal for current week
       };
 
       // Only add dream-specific data if a dream was actually selected

@@ -51,8 +51,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     title: '',
     description: '',
     milestoneId: null,
-    recurrence: 'once',
-    weekLog: {}
+    recurrence: 'once'
   });
 
 
@@ -313,8 +312,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       title: '',
       description: '',
       milestoneId: milestone.id,
-      recurrence: 'once',
-      weekLog: {}
+      recurrence: 'once'
     });
     setShowGoalModal(true);
   };
@@ -327,8 +325,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       title: goal.title,
       description: goal.description || '',
       milestoneId: goal.milestoneId,
-      recurrence: goal.recurrence || 'weekly',
-      weekLog: goal.weekLog || {}
+      recurrence: goal.recurrence || 'weekly'
     });
     setShowGoalModal(true);
   };
@@ -413,8 +410,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       title: '',
       description: '',
       milestoneId: null,
-      recurrence: 'once',
-      weekLog: {}
+      recurrence: 'once'
     });
     setShowGoalModal(false);
     setSelectedMilestone(null);

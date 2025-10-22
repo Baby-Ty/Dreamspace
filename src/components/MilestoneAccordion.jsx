@@ -339,6 +339,7 @@ function MilestoneAccordion({
                   goal={goal}
                   milestoneStartDate={milestone.startDate}
                   onEditGoal={onEditGoal}
+                  allGoals={allGoals}
                 />
               ))}
             </div>
@@ -359,12 +360,32 @@ function MilestoneAccordion({
  * Linked Goal Item Component
  * Shows a recurring goal with its weekly log
  */
-const LinkedGoalItem = memo(function LinkedGoalItem({ goal, milestoneStartDate, onEditGoal }) {
+const LinkedGoalItem = memo(function LinkedGoalItem({ goal, milestoneStartDate, onEditGoal, allGoals }) {
   const [showWeekLog, setShowWeekLog] = useState(false);
   
-  const weekLog = goal.weekLog || {};
-  const weekKeys = Object.keys(weekLog).sort().reverse(); // Most recent first
-  const completedWeeks = weekKeys.filter(week => weekLog[week] === true).length;
+  // For new format: Find all week instances with same templateId or goalId
+  // For old format: Fall back to weekLog
+  let weekInstances = [];
+  let completedWeeks = 0;
+  
+  if (goal.weekId) {
+    // New format: Find all instances with same templateId
+    weekInstances = (allGoals || []).filter(g => 
+      g.templateId === goal.templateId || 
+      (g.milestoneId === goal.milestoneId && g.dreamId === goal.dreamId)
+    ).sort((a, b) => b.weekId.localeCompare(a.weekId)); // Most recent first
+    completedWeeks = weekInstances.filter(g => g.completed).length;
+  } else {
+    // Old format: Use weekLog (for backward compatibility)
+    const weekLog = goal.weekLog || {};
+    const weekKeys = Object.keys(weekLog).sort().reverse();
+    completedWeeks = weekKeys.filter(week => weekLog[week] === true).length;
+    // Convert to instances format for display
+    weekInstances = weekKeys.map(week => ({
+      weekId: week,
+      completed: weekLog[week]
+    }));
+  }
 
   return (
     <div 
@@ -403,7 +424,7 @@ const LinkedGoalItem = memo(function LinkedGoalItem({ goal, milestoneStartDate, 
             </button>
           )}
           
-          {weekKeys.length > 0 && (
+          {weekInstances.length > 0 && (
             <button
               onClick={() => setShowWeekLog(!showWeekLog)}
               className="flex-shrink-0 text-xs text-professional-gray-600 hover:text-professional-gray-800 font-medium"
@@ -418,7 +439,7 @@ const LinkedGoalItem = memo(function LinkedGoalItem({ goal, milestoneStartDate, 
       </div>
 
       {/* Week Log History */}
-      {showWeekLog && weekKeys.length > 0 && (
+      {showWeekLog && weekInstances.length > 0 && (
         <div className="mt-3 pt-3 border-t border-professional-gray-200">
           <h5 className="text-xs font-semibold text-professional-gray-700 mb-2 flex items-center space-x-1">
             <Calendar className="w-3 h-3" aria-hidden="true" />
@@ -429,14 +450,14 @@ const LinkedGoalItem = memo(function LinkedGoalItem({ goal, milestoneStartDate, 
             role="list"
             aria-label="Weekly completion history"
           >
-            {weekKeys.map(week => (
+            {weekInstances.map((instance, idx) => (
               <div 
-                key={week} 
+                key={instance.weekId || idx} 
                 className="flex items-center justify-between text-xs py-1"
                 role="listitem"
               >
-                <span className="text-professional-gray-600">{formatIsoWeek(week)}</span>
-                {weekLog[week] ? (
+                <span className="text-professional-gray-600">{formatIsoWeek(instance.weekId)}</span>
+                {instance.completed ? (
                   <CheckCircle2 className="w-4 h-4 text-green-600" aria-label="Completed" />
                 ) : (
                   <Circle className="w-4 h-4 text-professional-gray-400" aria-label="Not completed" />
@@ -456,10 +477,13 @@ LinkedGoalItem.propTypes = {
     title: PropTypes.string.isRequired,
     description: PropTypes.string,
     recurrence: PropTypes.oneOf(['weekly', 'once']),
-    weekLog: PropTypes.object
+    weekLog: PropTypes.object,
+    weekId: PropTypes.string,
+    templateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }).isRequired,
   milestoneStartDate: PropTypes.string,
-  onEditGoal: PropTypes.func
+  onEditGoal: PropTypes.func,
+  allGoals: PropTypes.array
 };
 
 MilestoneAccordion.propTypes = {

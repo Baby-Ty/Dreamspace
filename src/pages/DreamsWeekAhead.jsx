@@ -39,7 +39,6 @@ const DreamsWeekAhead = () => {
     description: '',
     milestoneId: null,
     recurrence: 'once',
-    weekLog: undefined,
     durationType: 'unlimited', // 'unlimited', 'weeks', 'milestone'
     durationWeeks: 4
   });
@@ -221,7 +220,6 @@ const DreamsWeekAhead = () => {
       description: '',
       milestoneId: null,
       recurrence: 'once',
-      weekLog: undefined,
       durationType: 'unlimited',
       durationWeeks: 4
     });
@@ -344,7 +342,6 @@ const DreamsWeekAhead = () => {
       description: goal.description || '',
       milestoneId: goal.milestoneId || null,
       recurrence: goal.recurrence || 'once',
-      weekLog: goal.weekLog,
       durationType: goal.durationType || 'unlimited',
       durationWeeks: goal.durationWeeks || 4
     });
@@ -372,7 +369,6 @@ const DreamsWeekAhead = () => {
       description: '',
       milestoneId: null,
       recurrence: 'once',
-      weekLog: undefined,
       durationType: 'unlimited',
       durationWeeks: 4
     });
@@ -965,8 +961,7 @@ const GoalFormModal = ({
                 checked={goalFormData.recurrence === 'weekly'}
                 onChange={(e) => setGoalFormData({ 
                   ...goalFormData, 
-                  recurrence: e.target.checked ? 'weekly' : 'once',
-                  weekLog: e.target.checked ? {} : undefined
+                  recurrence: e.target.checked ? 'weekly' : 'once'
                 })}
                 className="mt-1 h-4 w-4 text-netsurit-red border-gray-300 rounded focus:ring-netsurit-red"
                 aria-label="Make goal recurring"
