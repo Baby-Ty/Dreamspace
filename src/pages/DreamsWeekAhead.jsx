@@ -357,30 +357,28 @@ const DreamsWeekAhead = () => {
 
   const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
   
-  // Get visible goals for this week:
-  // 1. Goals with matching weekId (one-time or existing week instances)
-  // 2. Active templates that should appear this week (create instance on-demand)
-  const weekSpecificGoals = weeklyGoals.filter(goal => goal.weekId === activeIsoWeek);
-  const activeTemplates = weeklyGoals.filter(goal => 
-    goal.type === 'weekly_goal_template' && 
-    goal.active && 
-    goal.recurrence === 'weekly'
-  );
-  
   // For each template, check if we need to create an instance for this week
   useEffect(() => {
+    const activeTemplates = weeklyGoals.filter(goal => 
+      goal.type === 'weekly_goal_template' && 
+      goal.active !== false &&
+      goal.recurrence === 'weekly'
+    );
+    
     activeTemplates.forEach(template => {
       // Check if instance already exists for this week
       const instanceExists = weeklyGoals.some(g => 
         g.templateId === template.id && g.weekId === activeIsoWeek
       );
       
-      if (!instanceExists && template.active) {
+      if (!instanceExists) {
+        console.log('Creating instance for template:', template.id, 'week:', activeIsoWeek);
         // Create instance on-demand for this week
         const weekInstance = {
           id: `${template.id}_${activeIsoWeek}`,
+          type: 'weekly_goal',
           title: template.title,
-          description: template.description,
+          description: template.description || '',
           weekId: activeIsoWeek,
           dreamId: template.dreamId,
           dreamTitle: template.dreamTitle,
@@ -395,9 +393,12 @@ const DreamsWeekAhead = () => {
         addWeeklyGoal(weekInstance);
       }
     });
-  }, [activeIsoWeek, activeTemplates, weeklyGoals, addWeeklyGoal]);
+  }, [activeIsoWeek, weeklyGoals, addWeeklyGoal]);
   
-  const visibleGoals = weekSpecificGoals;
+  // Get visible goals for this week (exclude templates from display)
+  const visibleGoals = weeklyGoals.filter(goal => 
+    goal.weekId === activeIsoWeek && goal.type !== 'weekly_goal_template'
+  );
   const progressPercentage = getProgressPercentage();
   const isWeekComplete = isWeekEditable(activeIsoWeek) && progressPercentage === 100 && visibleGoals.length > 0;
 

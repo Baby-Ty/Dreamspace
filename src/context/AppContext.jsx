@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { dreamCategories, scoringRules } from '../data/mockData';
 import databaseService from '../services/databaseService';
+import itemService from '../services/itemService';
 import { getCurrentIsoWeek, computeStreak, isMilestoneComplete } from '../utils/dateUtils';
 
 // Create the context
@@ -624,31 +625,88 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.REORDER_DREAMS, payload: list });
     },
 
-    addWeeklyGoal: (goalData) => {
-      // Validate weekId is present for all new goals
-      if (!goalData.weekId) {
-        console.error('weekId is required for weekly goals');
+    addWeeklyGoal: async (goalData) => {
+      // Validate weekId is present for week instances (but not templates)
+      if (goalData.type !== 'weekly_goal_template' && !goalData.weekId) {
+        console.error('weekId is required for weekly goal instances (non-template)');
         return;
       }
       
       const goal = {
-        id: `goal_${Date.now()}`,
+        id: goalData.id || `goal_${Date.now()}`,
         ...goalData,
-        completed: false,
-        createdAt: new Date().toISOString()
+        type: goalData.type || 'weekly_goal',
+        completed: goalData.completed !== undefined ? goalData.completed : false,
+        createdAt: goalData.createdAt || new Date().toISOString()
       };
+      
+      // Save to database first
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Saving goal to database:', goal.id, goal.type);
+        const result = await itemService.saveItem(userId, goal.type, goal);
+        if (!result.success) {
+          console.error('Failed to save goal to database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: goal });
     },
 
-    updateWeeklyGoal: (goal) => {
+    updateWeeklyGoal: async (goal) => {
+      // Save to database
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Updating goal in database:', goal.id);
+        const goalType = goal.type || 'weekly_goal';
+        const result = await itemService.saveItem(userId, goalType, goal);
+        if (!result.success) {
+          console.error('Failed to update goal in database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: goal });
     },
 
-    deleteWeeklyGoal: (goalId) => {
+    deleteWeeklyGoal: async (goalId) => {
+      // Delete from database
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('🗑️ Deleting goal from database:', goalId);
+        const result = await itemService.deleteItem(userId, goalId);
+        if (!result.success) {
+          console.error('Failed to delete goal from database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goalId });
     },
 
-    toggleWeeklyGoal: (goalId) => {
+    toggleWeeklyGoal: async (goalId) => {
+      // Find the goal to toggle
+      const goal = state.weeklyGoals.find(g => g.id === goalId);
+      if (!goal) {
+        console.error('Goal not found:', goalId);
+        return;
+      }
+      
+      const updatedGoal = { ...goal, completed: !goal.completed };
+      
+      // Save to database
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Toggling goal in database:', goalId, 'completed:', updatedGoal.completed);
+        const goalType = goal.type || 'weekly_goal';
+        const result = await itemService.saveItem(userId, goalType, updatedGoal);
+        if (!result.success) {
+          console.error('Failed to toggle goal in database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.TOGGLE_WEEKLY_GOAL, payload: goalId });
     },
 
