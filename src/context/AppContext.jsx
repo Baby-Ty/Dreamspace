@@ -125,23 +125,47 @@ const appReducer = (state, action) => {
       if (newDream.milestones && Array.isArray(newDream.milestones)) {
         newDream.milestones.forEach(milestone => {
           if (milestone.type === 'consistency' && !milestone.completed) {
-            // Create a recurring weekly goal for this milestone
-            const weeklyGoal = {
-              id: Date.now() + Math.random(), // Ensure unique ID
-              title: newDream.title,
-              description: `Track progress for ${milestone.text}`,
-              dreamId: newDream.id,
-              dreamTitle: newDream.title,
-              dreamCategory: newDream.category,
-              completed: false,
-              milestoneId: milestone.id,
-              recurrence: 'weekly',
-              active: true,
-              weekLog: {},
-              recurring: true,
-              createdAt: new Date().toISOString()
+            // Create week-specific instances for the next 12 weeks
+            const baseGoalId = `goal_milestone_${milestone.id}_${Date.now()}`;
+            const currentWeekIso = getCurrentIsoWeek();
+            
+            // Helper to get next N weeks
+            const getNextNWeeks = (startWeek, n) => {
+              const weeks = [startWeek];
+              let currentDate = new Date();
+              
+              for (let i = 1; i < n; i++) {
+                currentDate = new Date(currentDate);
+                currentDate.setDate(currentDate.getDate() + 7);
+                const year = currentDate.getFullYear();
+                const weekNum = Math.ceil(((currentDate - new Date(year, 0, 1)) / 86400000 + 1) / 7);
+                weeks.push(`${year}-W${weekNum.toString().padStart(2, '0')}`);
+              }
+              
+              return weeks;
             };
-            newWeeklyGoals.push(weeklyGoal);
+            
+            const weeksToCreate = getNextNWeeks(currentWeekIso, 12);
+            
+            // Create a goal instance for each week
+            weeksToCreate.forEach((weekId) => {
+              const weeklyGoal = {
+                id: `${baseGoalId}_${weekId}`,
+                title: newDream.title,
+                description: `Track progress for ${milestone.text}`,
+                weekId: weekId,  // CRITICAL: Each instance has its own weekId
+                dreamId: newDream.id,
+                dreamTitle: newDream.title,
+                dreamCategory: newDream.category,
+                completed: false,
+                milestoneId: milestone.id,
+                recurrence: 'weekly',
+                templateId: baseGoalId,
+                active: true,
+                createdAt: new Date().toISOString()
+              };
+              newWeeklyGoals.push(weeklyGoal);
+            });
           }
         });
       }

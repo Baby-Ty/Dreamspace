@@ -18,6 +18,7 @@ import {
   Repeat
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 import MilestoneAccordion from './MilestoneAccordion';
 
 const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
@@ -129,25 +130,50 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       updatedDream.history = [historyEntry, ...updatedDream.history];
       setLocalDream(updatedDream);
       
-      // Auto-create weekly recurring goal for consistency milestone
-      const weeklyGoal = {
-        id: Date.now() + Math.random(),
-        title: localDream.title,
-        description: `Track progress for ${milestone.text}`,
-        dreamId: localDream.id,
-        dreamTitle: localDream.title,
-        dreamCategory: localDream.category,
-        completed: false,
-        milestoneId: milestone.id,
-        recurrence: 'weekly',
-        active: true,
-        weekLog: {},
-        recurring: true,
-        createdAt: nowIso
+      // Auto-create weekly recurring goal instances for consistency milestone
+      // Create instances for the next 12 weeks
+      const baseGoalId = `goal_milestone_${milestone.id}_${Date.now()}`;
+      const currentWeekIso = getCurrentIsoWeek();
+      
+      // Helper to get next N weeks
+      const getNextNWeeks = (startWeek, n) => {
+        const weeks = [startWeek];
+        let currentDate = new Date();
+        
+        for (let i = 1; i < n; i++) {
+          currentDate = new Date(currentDate);
+          currentDate.setDate(currentDate.getDate() + 7);
+          const year = currentDate.getFullYear();
+          const weekNum = Math.ceil(((currentDate - new Date(year, 0, 1)) / 86400000 + 1) / 7);
+          weeks.push(`${year}-W${weekNum.toString().padStart(2, '0')}`);
+        }
+        
+        return weeks;
       };
       
-      // Add the goal to the global state
-      addWeeklyGoal(weeklyGoal);
+      const weeksToCreate = getNextNWeeks(currentWeekIso, 12);
+      
+      // Create a goal instance for each week
+      weeksToCreate.forEach((weekId) => {
+        const weeklyGoal = {
+          id: `${baseGoalId}_${weekId}`,
+          title: localDream.title,
+          description: `Track progress for ${milestone.text}`,
+          weekId: weekId,  // CRITICAL: Each instance has its own weekId
+          dreamId: localDream.id,
+          dreamTitle: localDream.title,
+          dreamCategory: localDream.category,
+          completed: false,
+          milestoneId: milestone.id,
+          recurrence: 'weekly',
+          templateId: baseGoalId,
+          active: true,
+          createdAt: nowIso
+        };
+        
+        // Add the goal to the global state
+        addWeeklyGoal(weeklyGoal);
+      });
     }
   };
 
@@ -321,25 +347,65 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       updateWeeklyGoal(updatedGoal);
     } else {
       // Create new goal
-      const newGoal = {
-        id: Date.now(),
-        title: goalFormData.title.trim(),
-        description: goalFormData.description.trim(),
-        completed: false,
-        dreamId: localDream.id,
-        dreamTitle: localDream.title,
-        dreamCategory: localDream.category,
-        milestoneId: goalFormData.milestoneId,
-        recurrence: goalFormData.recurrence,
-        active: true,
-        createdAt: new Date().toISOString()
-      };
-
-      if (newGoal.recurrence === 'weekly') {
-        newGoal.weekLog = {};
+      if (goalFormData.recurrence === 'weekly') {
+        // Create instances for next 12 weeks
+        const baseGoalId = `goal_${Date.now()}`;
+        const currentWeekIso = getCurrentIsoWeek();
+        
+        const getNextNWeeks = (startWeek, n) => {
+          const weeks = [startWeek];
+          let currentDate = new Date();
+          
+          for (let i = 1; i < n; i++) {
+            currentDate = new Date(currentDate);
+            currentDate.setDate(currentDate.getDate() + 7);
+            const year = currentDate.getFullYear();
+            const weekNum = Math.ceil(((currentDate - new Date(year, 0, 1)) / 86400000 + 1) / 7);
+            weeks.push(`${year}-W${weekNum.toString().padStart(2, '0')}`);
+          }
+          
+          return weeks;
+        };
+        
+        const weeksToCreate = getNextNWeeks(currentWeekIso, 12);
+        
+        weeksToCreate.forEach((weekId) => {
+          const newGoal = {
+            id: `${baseGoalId}_${weekId}`,
+            title: goalFormData.title.trim(),
+            description: goalFormData.description.trim(),
+            weekId: weekId,
+            completed: false,
+            dreamId: localDream.id,
+            dreamTitle: localDream.title,
+            dreamCategory: localDream.category,
+            milestoneId: goalFormData.milestoneId,
+            recurrence: 'weekly',
+            templateId: baseGoalId,
+            active: true,
+            createdAt: new Date().toISOString()
+          };
+          addWeeklyGoal(newGoal);
+        });
+      } else {
+        // One-time goal for current week
+        const currentWeekIso = getCurrentIsoWeek();
+        const newGoal = {
+          id: `goal_${Date.now()}`,
+          title: goalFormData.title.trim(),
+          description: goalFormData.description.trim(),
+          weekId: currentWeekIso,
+          completed: false,
+          dreamId: localDream.id,
+          dreamTitle: localDream.title,
+          dreamCategory: localDream.category,
+          milestoneId: goalFormData.milestoneId,
+          recurrence: 'once',
+          active: true,
+          createdAt: new Date().toISOString()
+        };
+        addWeeklyGoal(newGoal);
       }
-
-      addWeeklyGoal(newGoal);
     }
     
     // Reset form and close modal
