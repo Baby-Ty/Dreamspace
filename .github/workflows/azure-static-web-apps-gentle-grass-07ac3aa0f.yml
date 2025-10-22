@@ -45,10 +45,10 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/" # App source code path
-          api_location: "api" # Api source code path
+          api_location: "" # No API - using separate Function App
           output_location: "dist" # Built app content directory
           skip_app_build: true  # We already built above
-          skip_api_build: false  # Let Azure build the API
+          skip_api_build: true  # Skip API - using separate Function App
 
       - name: ⏳ Wait for deployment
         run: sleep 30
