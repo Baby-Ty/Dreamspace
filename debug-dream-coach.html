@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Dream Coach Loading Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 20px auto; padding: 20px; }
+        .test-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px 0; }
+        .test-btn:hover { background: #0056b3; }
+        .result { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; white-space: pre-wrap; font-family: monospace; }
+        .success { border-left: 4px solid green; }
+        .error { border-left: 4px solid red; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Dream Coach Loading Issue</h1>
+    <p>Testing the APIs that Dream Coach page uses for Sarah Johnson:</p>
+    
+    <button class="test-btn" onclick="testTeamMetrics()">Test Team Metrics API</button>
+    <div id="metricsResult" class="result"></div>
+    
+    <button class="test-btn" onclick="testCoachingAlerts()">Test Coaching Alerts API</button>
+    <div id="alertsResult" class="result"></div>
+    
+    <button class="test-btn" onclick="testBothAPIs()">Test Both APIs (Simulating Dream Coach)</button>
+    <div id="bothResult" class="result"></div>
+
+    <script>
+        const userId = 'sarah.johnson@netsurit.com';
+        
+        async function testTeamMetrics() {
+            const resultDiv = document.getElementById('metricsResult');
+            resultDiv.textContent = 'Testing team metrics API...\n';
+            
+            try {
+                console.log('🔍 Testing getTeamMetrics for:', userId);
+                const response = await fetch(`/api/getTeamMetrics/${userId}`);
+                
+                resultDiv.textContent += `Response status: ${response.status}\n`;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.textContent += `✅ SUCCESS\n\nFull response:\n${JSON.stringify(result, null, 2)}\n\n`;
+                resultDiv.textContent += `Metrics object:\n${JSON.stringify(result.metrics, null, 2)}`;
+                
+                console.log('✅ Team metrics test successful:', result);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent += `❌ ERROR: ${error.message}`;
+                console.error('❌ Team metrics test failed:', error);
+            }
+        }
+        
+        async function testCoachingAlerts() {
+            const resultDiv = document.getElementById('alertsResult');
+            resultDiv.textContent = 'Testing coaching alerts API...\n';
+            
+            try {
+                console.log('🔍 Testing getCoachingAlerts for:', userId);
+                const response = await fetch(`/api/getCoachingAlerts/${userId}`);
+                
+                resultDiv.textContent += `Response status: ${response.status}\n`;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.textContent += `✅ SUCCESS\n\nFull response:\n${JSON.stringify(result, null, 2)}`;
+                
+                console.log('✅ Coaching alerts test successful:', result);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent += `❌ ERROR: ${error.message}`;
+                console.error('❌ Coaching alerts test failed:', error);
+            }
+        }
+        
+        async function testBothAPIs() {
+            const resultDiv = document.getElementById('bothResult');
+            resultDiv.textContent = 'Testing both APIs together (simulating Dream Coach page)...\n';
+            
+            try {
+                console.log('🎯 Testing both APIs for Dream Coach simulation');
+                resultDiv.textContent += 'Calling both APIs simultaneously...\n';
+                
+                const [metricsResponse, alertsResponse] = await Promise.all([
+                    fetch(`/api/getTeamMetrics/${userId}`),
+                    fetch(`/api/getCoachingAlerts/${userId}`)
+                ]);
+                
+                resultDiv.textContent += `Metrics response: ${metricsResponse.status}\n`;
+                resultDiv.textContent += `Alerts response: ${alertsResponse.status}\n`;
+                
+                if (!metricsResponse.ok) {
+                    throw new Error(`Metrics API failed: ${metricsResponse.status}`);
+                }
+                
+                if (!alertsResponse.ok) {
+                    throw new Error(`Alerts API failed: ${alertsResponse.status}`);
+                }
+                
+                const [metricsResult, alertsResult] = await Promise.all([
+                    metricsResponse.json(),
+                    alertsResponse.json()
+                ]);
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent += `\n✅ BOTH APIS SUCCESSFUL!\n\n`;
+                resultDiv.textContent += `Team Metrics Structure:\n`;
+                resultDiv.textContent += `- Has metrics: ${!!metricsResult.metrics}\n`;
+                resultDiv.textContent += `- Team Size: ${metricsResult.metrics?.teamSize}\n`;
+                resultDiv.textContent += `- Average Score: ${metricsResult.metrics?.averageScore}\n`;
+                resultDiv.textContent += `- Total Dreams: ${metricsResult.metrics?.totalDreams}\n`;
+                resultDiv.textContent += `- Team Members: ${metricsResult.metrics?.teamMembers?.length}\n\n`;
+                resultDiv.textContent += `Coaching Alerts:\n`;
+                resultDiv.textContent += `- Alert count: ${alertsResult.alerts?.length || 0}\n\n`;
+                
+                // Simulate what Dream Coach does
+                const metrics = metricsResult.metrics;
+                const alerts = alertsResult.alerts || [];
+                
+                resultDiv.textContent += `🎯 Dream Coach would receive:\n`;
+                resultDiv.textContent += `- metrics: ${JSON.stringify(metrics, null, 2)}\n`;
+                resultDiv.textContent += `- alerts: ${JSON.stringify(alerts, null, 2)}`;
+                
+                console.log('✅ Both APIs test successful');
+                console.log('Metrics:', metrics);
+                console.log('Alerts:', alerts);
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent += `\n❌ ERROR: ${error.message}`;
+                console.error('❌ Both APIs test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>

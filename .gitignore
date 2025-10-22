@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Azure
+local.settings.json
+__blobstorage__/
+__queuestorage__/
+__azurite_db*__.json
+.python_packages/
+
+# Deployment artifacts
+*.zip
+DEPLOYMENT-SUCCESS*.txt
+DEPLOYMENT-FUNCTIONS*.txt
+function-logs.zip
+
+# Temporary files
+*.tmp
+.cache/
+.temp/
+temp/
+tmp/
+
+# Seed scripts with credentials (use environment variables instead)
+seed-*-direct.js
+seed-*-direct.ps1
+
+# Log files
+*.log
+logs/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Demo/test data files in root
+demo-data/
+*-demo.html
+
+# Updated placeholder files
+updated...
