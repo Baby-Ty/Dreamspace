@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Diagnostic - DreamSpace</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .endpoint {
+      background: #f8f9fa;
+      border-left: 4px solid #ddd;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .endpoint.checking {
+      border-color: #ffc107;
+    }
+
+    .endpoint.success {
+      border-color: #28a745;
+    }
+
+    .endpoint.error {
+      border-color: #dc3545;
+    }
+
+    .endpoint-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .endpoint-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status.checking {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .endpoint-url {
+      font-family: monospace;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .endpoint-response {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      background: #e7f3ff;
+      border-left: 4px solid #2196f3;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 4px;
+    }
+
+    .summary h3 {
+      color: #2196f3;
+      margin-bottom: 10px;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-link a {
+      color: #667eea;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 API Diagnostic Tool</h1>
+    <p class="subtitle">Check if your Azure Functions API is working correctly</p>
+
+    <button id="runTests" onclick="runAllTests()">
+      🚀 Run API Tests
+    </button>
+
+    <div id="results"></div>
+
+    <div class="back-link">
+      <a href="/">← Back to Login</a>
+    </div>
+  </div>
+
+  <script>
+    const endpoints = [
+      {
+        name: 'Health Check',
+        url: '/api/health',
+        method: 'GET',
+        description: 'Basic health check endpoint'
+      },
+      {
+        name: 'Get User Data (Sarah)',
+        url: '/api/getUserData/sarah.johnson@netsurit.com',
+        method: 'GET',
+        description: 'Load Sarah Johnson demo data'
+      },
+      {
+        name: 'Get All Users',
+        url: '/api/getAllUsers',
+        method: 'GET',
+        description: 'Retrieve all users from database'
+      }
+    ];
+
+    async function testEndpoint(endpoint) {
+      const resultDiv = document.getElementById(`endpoint-${endpoint.name.replace(/\s/g, '-')}`);
+      const statusSpan = resultDiv.querySelector('.status');
+      const responseDiv = resultDiv.querySelector('.endpoint-response');
+      
+      resultDiv.className = 'endpoint checking';
+      statusSpan.className = 'status checking';
+      statusSpan.textContent = 'Checking...';
+      responseDiv.textContent = 'Waiting for response...';
+
+      try {
+        const startTime = Date.now();
+        const response = await fetch(endpoint.url, {
+          method: endpoint.method,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const elapsed = Date.now() - startTime;
+
+        const contentType = response.headers.get('content-type');
+        const responseText = await response.text();
+
+        let resultText = `Status: ${response.status} ${response.statusText}\n`;
+        resultText += `Time: ${elapsed}ms\n`;
+        resultText += `Content-Type: ${contentType}\n\n`;
+
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const json = JSON.parse(responseText);
+            resultText += JSON.stringify(json, null, 2);
+          } catch (e) {
+            resultText += `Failed to parse JSON:\n${responseText}`;
+          }
+        } else {
+          resultText += `Response (first 500 chars):\n${responseText.substring(0, 500)}`;
+        }
+
+        responseDiv.textContent = resultText;
+
+        if (response.ok) {
+          resultDiv.className = 'endpoint success';
+          statusSpan.className = 'status success';
+          statusSpan.textContent = '✅ Success';
+          return { success: true, status: response.status };
+        } else {
+          resultDiv.className = 'endpoint error';
+          statusSpan.className = 'status error';
+          statusSpan.textContent = `❌ Error ${response.status}`;
+          return { success: false, status: response.status, error: responseText };
+        }
+      } catch (error) {
+        resultDiv.className = 'endpoint error';
+        statusSpan.className = 'status error';
+        statusSpan.textContent = '❌ Failed';
+        responseDiv.textContent = `Error: ${error.message}\n\nThis usually means:\n1. Azure Functions API is not deployed\n2. API URL is incorrect\n3. CORS is not configured\n4. Network connectivity issue`;
+        return { success: false, error: error.message };
+      }
+    }
+
+    async function runAllTests() {
+      const resultsDiv = document.getElementById('results');
+      const button = document.getElementById('runTests');
+      
+      button.disabled = true;
+      button.textContent = '⏳ Running Tests...';
+
+      // Create endpoint divs
+      resultsDiv.innerHTML = endpoints.map(endpoint => `
+        <div id="endpoint-${endpoint.name.replace(/\s/g, '-')}" class="endpoint">
+          <div class="endpoint-header">
+            <div>
+              <div class="endpoint-name">${endpoint.name}</div>
+              <div style="font-size: 12px; color: #666; margin-top: 4px;">${endpoint.description}</div>
+            </div>
+            <span class="status">Pending</span>
+          </div>
+          <div class="endpoint-url">${endpoint.method} ${endpoint.url}</div>
+          <div class="endpoint-response">Not tested yet</div>
+        </div>
+      `).join('');
+
+      // Run tests sequentially
+      const results = [];
+      for (const endpoint of endpoints) {
+        const result = await testEndpoint(endpoint);
+        results.push({ ...endpoint, ...result });
+        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+      }
+
+      // Show summary
+      const successCount = results.filter(r => r.success).length;
+      const summary = document.createElement('div');
+      summary.className = 'summary';
+      summary.innerHTML = `
+        <h3>Test Results Summary</h3>
+        <p><strong>${successCount} of ${endpoints.length}</strong> endpoints are working correctly.</p>
+        ${successCount === endpoints.length 
+          ? '<p style="color: #28a745; margin-top: 10px;">✅ All API endpoints are healthy!</p>'
+          : '<p style="color: #dc3545; margin-top: 10px;">⚠️ Some endpoints are not responding. See troubleshooting below.</p>'}
+      `;
+      resultsDiv.insertBefore(summary, resultsDiv.firstChild);
+
+      // Add troubleshooting section if there are failures
+      if (successCount < endpoints.length) {
+        const troubleshooting = document.createElement('div');
+        troubleshooting.className = 'endpoint error';
+        troubleshooting.innerHTML = `
+          <h3 style="margin-bottom: 15px;">🔧 Troubleshooting</h3>
+          <div style="font-size: 14px; line-height: 1.8;">
+            <p><strong>If all endpoints fail:</strong></p>
+            <ul style="margin: 10px 0 10px 20px;">
+              <li>Azure Functions are not deployed or not running</li>
+              <li>Check the API URL in your deployment</li>
+              <li>Verify COSMOS_ENDPOINT and COSMOS_KEY are set in Azure Function App settings</li>
+            </ul>
+            
+            <p style="margin-top: 15px;"><strong>If only some endpoints fail:</strong></p>
+            <ul style="margin: 10px 0 10px 20px;">
+              <li>Check which specific functions are deployed</li>
+              <li>Review function logs in Azure Portal</li>
+              <li>Verify database containers exist (users, items, teams)</li>
+            </ul>
+            
+            <p style="margin-top: 15px;"><strong>Quick fixes:</strong></p>
+            <ul style="margin: 10px 0 10px 20px;">
+              <li>Deploy Azure Functions: <code>npm run deploy</code> (if configured)</li>
+              <li>Check Function App logs in Azure Portal</li>
+              <li>Verify environment variables in Azure Function App → Configuration</li>
+              <li>Test locally: <code>cd api && func start</code></li>
+            </ul>
+          </div>
+        `;
+        resultsDiv.appendChild(troubleshooting);
+      }
+
+      button.disabled = false;
+      button.textContent = '🔄 Run Tests Again';
+    }
+  </script>
+</body>
+</html>
+

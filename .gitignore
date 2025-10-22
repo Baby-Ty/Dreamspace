@@ -1,54 +1,69 @@
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables (IMPORTANT: Keep API keys secure!)
+# Production builds
+dist/
+build/
+
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Build outputs
-dist/
-build/
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 
-# OS generated files
+# Azure
+local.settings.json
+__blobstorage__/
+__queuestorage__/
+__azurite_db*__.json
+.python_packages/
+
+# Deployment artifacts
+*.zip
+DEPLOYMENT-SUCCESS*.txt
+DEPLOYMENT-FUNCTIONS*.txt
+function-logs.zip
+
+# Temporary files
+*.tmp
+.cache/
+.temp/
+temp/
+tmp/
+
+# Seed scripts with credentials (use environment variables instead)
+seed-*-direct.js
+seed-*-direct.ps1
+
+# Log files
+*.log
+logs/
+
+# OS files
 Thumbs.db
 .DS_Store
 
-# Logs
-logs
-*.log
+# Demo/test data files in root
+demo-data/
+*-demo.html
 
-# Temporary folders
-tmp/
-temp/
-
-# Deployment credentials (NEVER COMMIT!)
-deployment-credentials-*.txt
-*.credentials.txt
-azure-credentials.json
+# Updated placeholder files
+updated...
