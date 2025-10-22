@@ -33,6 +33,14 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
   const [newNote, setNewNote] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState(null);
+  const [milestoneEditData, setMilestoneEditData] = useState({
+    text: '',
+    type: 'consistency',
+    targetWeeks: 12,
+    startDate: '',
+    endOnDreamComplete: false
+  });
   
   // Goal modal state
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -86,11 +94,19 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
 
   const addMilestone = () => {
     if (newMilestone.trim()) {
+      const nowIso = new Date().toISOString();
       const milestone = {
         id: Date.now(),
         text: newMilestone.trim(),
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: nowIso,
+        // Default to consistency milestone with 12 weeks
+        coachManaged: true,
+        type: 'consistency',
+        targetWeeks: 12,
+        startDate: nowIso,
+        endOnDreamComplete: false,
+        streakWeeks: 0
       };
       
       const updatedDream = {
@@ -112,6 +128,26 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       
       updatedDream.history = [historyEntry, ...updatedDream.history];
       setLocalDream(updatedDream);
+      
+      // Auto-create weekly recurring goal for consistency milestone
+      const weeklyGoal = {
+        id: Date.now() + Math.random(),
+        title: localDream.title,
+        description: `Track progress for ${milestone.text}`,
+        dreamId: localDream.id,
+        dreamTitle: localDream.title,
+        dreamCategory: localDream.category,
+        completed: false,
+        milestoneId: milestone.id,
+        recurrence: 'weekly',
+        active: true,
+        weekLog: {},
+        recurring: true,
+        createdAt: nowIso
+      };
+      
+      // Add the goal to the global state
+      addWeeklyGoal(weeklyGoal);
     }
   };
 
@@ -156,6 +192,62 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     
     updatedDream.history = [historyEntry, ...updatedDream.history];
     setLocalDream(updatedDream);
+  };
+
+  const startEditingMilestone = (milestone) => {
+    setEditingMilestone(milestone.id);
+    setMilestoneEditData({
+      text: milestone.text,
+      type: milestone.type || 'consistency',
+      targetWeeks: milestone.targetWeeks || 12,
+      startDate: milestone.startDate || new Date().toISOString(),
+      endOnDreamComplete: milestone.endOnDreamComplete || false
+    });
+  };
+
+  const cancelEditingMilestone = () => {
+    setEditingMilestone(null);
+    setMilestoneEditData({
+      text: '',
+      type: 'consistency',
+      targetWeeks: 12,
+      startDate: '',
+      endOnDreamComplete: false
+    });
+  };
+
+  const saveEditedMilestone = () => {
+    if (!milestoneEditData.text.trim()) return;
+
+    const updatedMilestones = localDream.milestones.map(milestone =>
+      milestone.id === editingMilestone
+        ? {
+            ...milestone,
+            text: milestoneEditData.text.trim(),
+            type: milestoneEditData.type,
+            targetWeeks: milestoneEditData.targetWeeks,
+            startDate: milestoneEditData.startDate,
+            endOnDreamComplete: milestoneEditData.endOnDreamComplete
+          }
+        : milestone
+    );
+
+    const updatedDream = { ...localDream, milestones: updatedMilestones };
+    setLocalDream(updatedDream);
+    setHasChanges(true);
+
+    // Add to history
+    const historyEntry = {
+      id: Date.now(),
+      type: 'milestone',
+      action: `Updated milestone: "${milestoneEditData.text}"`,
+      timestamp: new Date().toISOString()
+    };
+
+    updatedDream.history = [historyEntry, ...updatedDream.history];
+    setLocalDream(updatedDream);
+
+    cancelEditingMilestone();
   };
 
   const addNote = () => {
@@ -579,6 +671,12 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
               dreamId={localDream.id}
               dreamProgress={localDream.progress}
               weeklyGoals={weeklyGoals}
+              editingMilestone={editingMilestone}
+              onStartEditingMilestone={startEditingMilestone}
+              onCancelEditingMilestone={cancelEditingMilestone}
+              onSaveEditedMilestone={saveEditedMilestone}
+              milestoneEditData={milestoneEditData}
+              setMilestoneEditData={setMilestoneEditData}
             />
           )}
 
@@ -780,7 +878,13 @@ const MilestonesTab = ({
   onEditGoal,
   dreamId,
   dreamProgress,
-  weeklyGoals 
+  weeklyGoals,
+  editingMilestone,
+  onStartEditingMilestone,
+  onCancelEditingMilestone,
+  onSaveEditedMilestone,
+  milestoneEditData,
+  setMilestoneEditData
 }) => {
   const completedCount = milestones.filter(m => m.completed).length;
   
@@ -836,9 +940,16 @@ const MilestonesTab = ({
                 milestone={milestone}
                 linkedGoals={getLinkedGoals(milestone.id)}
                 onToggleMilestone={onToggleMilestone}
+                onDeleteMilestone={onDeleteMilestone}
                 onAddGoalToMilestone={onAddGoalToMilestone}
                 onEditGoal={onEditGoal}
                 dreamProgress={dreamProgress}
+                isEditing={editingMilestone === milestone.id}
+                onStartEditing={onStartEditingMilestone}
+                onCancelEditing={onCancelEditingMilestone}
+                onSaveEditing={onSaveEditedMilestone}
+                editData={milestoneEditData}
+                setEditData={setMilestoneEditData}
               />
             </div>
           ))

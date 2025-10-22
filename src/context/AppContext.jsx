@@ -118,12 +118,41 @@ const appReducer = (state, action) => {
       };
 
     case actionTypes.ADD_DREAM:
+      const newDream = action.payload;
+      const newWeeklyGoals = [];
+      
+      // Auto-create weekly goals for consistency milestones
+      if (newDream.milestones && Array.isArray(newDream.milestones)) {
+        newDream.milestones.forEach(milestone => {
+          if (milestone.type === 'consistency' && !milestone.completed) {
+            // Create a recurring weekly goal for this milestone
+            const weeklyGoal = {
+              id: Date.now() + Math.random(), // Ensure unique ID
+              title: newDream.title,
+              description: `Track progress for ${milestone.text}`,
+              dreamId: newDream.id,
+              dreamTitle: newDream.title,
+              dreamCategory: newDream.category,
+              completed: false,
+              milestoneId: milestone.id,
+              recurrence: 'weekly',
+              active: true,
+              weekLog: {},
+              recurring: true,
+              createdAt: new Date().toISOString()
+            };
+            newWeeklyGoals.push(weeklyGoal);
+          }
+        });
+      }
+      
       return {
         ...state,
         currentUser: {
           ...state.currentUser,
-          dreamBook: [...state.currentUser.dreamBook, action.payload]
-        }
+          dreamBook: [...state.currentUser.dreamBook, newDream]
+        },
+        weeklyGoals: [...state.weeklyGoals, ...newWeeklyGoals]
       };
 
     case actionTypes.DELETE_DREAM:

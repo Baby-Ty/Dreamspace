@@ -2,18 +2,21 @@ import { parseIsoWeek, getCurrentIsoWeek } from '../utils/dateUtils.js'
 
 /**
  * Expand recurring goals into per-week instances for given weeks.
+ * Only expands active recurring goals.
  * @param {Array} goals
  * @param {Array<string>} weeks
  * @returns {Array}
  */
 export const expandRecurringGoals = (goals, weeks) =>
-  goals.flatMap(goal =>
-    goal.recurring
-      ? weeks.map(week => ({ ...goal, week }))
-      : goal.week && weeks.includes(goal.week)
-      ? [goal]
-      : []
-  )
+  goals.flatMap(goal => {
+    // For recurring goals, only expand if active (default to true if not set)
+    if (goal.recurring) {
+      const isActive = goal.active !== false; // Default to true
+      return isActive ? weeks.map(week => ({ ...goal, week })) : [];
+    }
+    // For one-time goals, include if week matches
+    return goal.week && weeks.includes(goal.week) ? [goal] : [];
+  })
 
 /**
  * Returns goals visible in specified week.

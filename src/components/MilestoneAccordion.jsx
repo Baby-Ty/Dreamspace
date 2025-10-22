@@ -11,7 +11,10 @@ import {
   Trophy,
   Calendar,
   Plus,
-  Edit2
+  Edit2,
+  Save,
+  X,
+  Trash2
 } from 'lucide-react';
 import { formatIsoWeek } from '../utils/dateUtils';
 
@@ -23,9 +26,16 @@ function MilestoneAccordion({
   milestone, 
   linkedGoals = [],
   onToggleMilestone,
+  onDeleteMilestone,
   onAddGoalToMilestone,
   onEditGoal,
-  dreamProgress = 0
+  dreamProgress = 0,
+  isEditing = false,
+  onStartEditing,
+  onCancelEditing,
+  onSaveEditing,
+  editData,
+  setEditData
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -46,6 +56,89 @@ function MilestoneAccordion({
   };
 
   const consistencyProgress = getConsistencyProgress();
+  
+  // If editing, show edit form
+  if (isEditing) {
+    return (
+      <div className="rounded-2xl border-2 border-netsurit-red bg-white shadow-lg p-4">
+        <h4 className="font-semibold text-professional-gray-900 mb-3">Edit Milestone</h4>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-professional-gray-700 mb-1">
+              Milestone Text
+            </label>
+            <input
+              type="text"
+              value={editData.text}
+              onChange={(e) => setEditData({ ...editData, text: e.target.value })}
+              className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+              placeholder="Enter milestone text"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-professional-gray-700 mb-1">
+              Type
+            </label>
+            <select
+              value={editData.type}
+              onChange={(e) => setEditData({ ...editData, type: e.target.value })}
+              className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+            >
+              <option value="consistency">Consistency</option>
+              <option value="deadline">Deadline</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          
+          {editData.type === 'consistency' && (
+            <div>
+              <label className="block text-sm font-medium text-professional-gray-700 mb-1">
+                Target Weeks
+              </label>
+              <input
+                type="number"
+                value={editData.targetWeeks}
+                onChange={(e) => setEditData({ ...editData, targetWeeks: parseInt(e.target.value) || 12 })}
+                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                min="1"
+                max="52"
+              />
+            </div>
+          )}
+          
+          <div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={editData.endOnDreamComplete}
+                onChange={(e) => setEditData({ ...editData, endOnDreamComplete: e.target.checked })}
+                className="rounded border-professional-gray-300 text-netsurit-red focus:ring-netsurit-red"
+              />
+              <span className="text-sm text-professional-gray-700">End when dream is complete</span>
+            </label>
+          </div>
+          
+          <div className="flex space-x-2 pt-2">
+            <button
+              onClick={onSaveEditing}
+              className="flex-1 bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-coral transition-colors flex items-center justify-center space-x-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save</span>
+            </button>
+            <button
+              onClick={onCancelEditing}
+              className="flex-1 bg-professional-gray-200 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-professional-gray-300 transition-colors flex items-center justify-center space-x-2"
+            >
+              <X className="w-4 h-4" />
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -119,6 +212,38 @@ function MilestoneAccordion({
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-2">
+              {/* Edit Button */}
+              {onStartEditing && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEditing(milestone);
+                  }}
+                  className="flex-shrink-0 p-2 hover:bg-professional-gray-100 rounded-lg transition-colors"
+                  aria-label="Edit milestone"
+                  title="Edit milestone"
+                >
+                  <Edit2 className="w-4 h-4 text-professional-gray-600" aria-hidden="true" />
+                </button>
+              )}
+              
+              {/* Delete Button */}
+              {onDeleteMilestone && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete milestone "${milestone.text}"?`)) {
+                      onDeleteMilestone(milestone.id);
+                    }
+                  }}
+                  className="flex-shrink-0 p-2 hover:bg-red-100 rounded-lg transition-colors"
+                  aria-label="Delete milestone"
+                  title="Delete milestone"
+                >
+                  <Trash2 className="w-4 h-4 text-red-600" aria-hidden="true" />
+                </button>
+              )}
+              
               {/* Quick Add Goal Button (when no goals) */}
               {!hasLinkedGoals && onAddGoalToMilestone && (
                 <button
@@ -350,9 +475,16 @@ MilestoneAccordion.propTypes = {
   }).isRequired,
   linkedGoals: PropTypes.array,
   onToggleMilestone: PropTypes.func.isRequired,
+  onDeleteMilestone: PropTypes.func,
   onAddGoalToMilestone: PropTypes.func,
   onEditGoal: PropTypes.func,
-  dreamProgress: PropTypes.number
+  dreamProgress: PropTypes.number,
+  isEditing: PropTypes.bool,
+  onStartEditing: PropTypes.func,
+  onCancelEditing: PropTypes.func,
+  onSaveEditing: PropTypes.func,
+  editData: PropTypes.object,
+  setEditData: PropTypes.func
 };
 
 export default memo(MilestoneAccordion);

@@ -14,16 +14,27 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 
 // Helper to determine if data is in old monolithic format
 function isOldFormat(userData) {
+  // Check if data has currentUser wrapper (from AppContext)
+  if (userData.currentUser) {
+    return !!(userData.currentUser.dreamBook || userData.weeklyGoals || userData.scoringHistory || 
+              userData.currentUser.connects || userData.currentUser.careerGoals || userData.currentUser.developmentPlan);
+  }
+  
+  // Check direct properties (legacy format)
   return !!(userData.dreamBook || userData.weeklyGoals || userData.scoringHistory || 
             userData.connects || userData.careerGoals || userData.developmentPlan);
 }
 
 // Helper to extract profile data (no arrays)
 function extractProfile(userData) {
+  // If data is wrapped in currentUser, unwrap it
+  const userProfile = userData.currentUser || userData;
+  
   const {
     dreamBook, weeklyGoals, scoringHistory, connects, careerGoals, developmentPlan,
+    isAuthenticated, // Remove this from profile
     ...profile
-  } = userData;
+  } = userProfile;
   
   return {
     ...profile,
@@ -37,9 +48,14 @@ function extractItems(userId, userData) {
   const items = [];
   const timestamp = Date.now();
   
+  // Handle wrapped format (currentUser property)
+  const userProfile = userData.currentUser || userData;
+  const weeklyGoals = userData.weeklyGoals || userProfile.weeklyGoals || [];
+  const scoringHistory = userData.scoringHistory || userProfile.scoringHistory || [];
+  
   // Extract dreams
-  if (userData.dreamBook && Array.isArray(userData.dreamBook)) {
-    userData.dreamBook.forEach((dream, index) => {
+  if (userProfile.dreamBook && Array.isArray(userProfile.dreamBook)) {
+    userProfile.dreamBook.forEach((dream, index) => {
       items.push({
         type: 'dream',
         data: {
@@ -50,9 +66,9 @@ function extractItems(userId, userData) {
     });
   }
   
-  // Extract weekly goals
-  if (userData.weeklyGoals && Array.isArray(userData.weeklyGoals)) {
-    userData.weeklyGoals.forEach((goal, index) => {
+  // Extract weekly goals (can be at top level or in currentUser)
+  if (Array.isArray(weeklyGoals)) {
+    weeklyGoals.forEach((goal, index) => {
       items.push({
         type: 'weekly_goal',
         data: {
@@ -63,9 +79,9 @@ function extractItems(userId, userData) {
     });
   }
   
-  // Extract scoring history
-  if (userData.scoringHistory && Array.isArray(userData.scoringHistory)) {
-    userData.scoringHistory.forEach((entry, index) => {
+  // Extract scoring history (can be at top level or in currentUser)
+  if (Array.isArray(scoringHistory)) {
+    scoringHistory.forEach((entry, index) => {
       items.push({
         type: 'scoring_entry',
         data: {
@@ -77,8 +93,8 @@ function extractItems(userId, userData) {
   }
   
   // Extract connects
-  if (userData.connects && Array.isArray(userData.connects)) {
-    userData.connects.forEach((connect, index) => {
+  if (userProfile.connects && Array.isArray(userProfile.connects)) {
+    userProfile.connects.forEach((connect, index) => {
       items.push({
         type: 'connect',
         data: {
@@ -90,8 +106,8 @@ function extractItems(userId, userData) {
   }
   
   // Extract career goals
-  if (userData.careerGoals && Array.isArray(userData.careerGoals)) {
-    userData.careerGoals.forEach((goal, index) => {
+  if (userProfile.careerGoals && Array.isArray(userProfile.careerGoals)) {
+    userProfile.careerGoals.forEach((goal, index) => {
       items.push({
         type: 'career_goal',
         data: {
@@ -103,8 +119,8 @@ function extractItems(userId, userData) {
   }
   
   // Extract development plan
-  if (userData.developmentPlan && Array.isArray(userData.developmentPlan)) {
-    userData.developmentPlan.forEach((plan, index) => {
+  if (userProfile.developmentPlan && Array.isArray(userProfile.developmentPlan)) {
+    userProfile.developmentPlan.forEach((plan, index) => {
       items.push({
         type: 'development_plan',
         data: {

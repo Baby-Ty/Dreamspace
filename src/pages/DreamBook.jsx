@@ -107,10 +107,21 @@ const DreamBook = () => {
 
     // Generic template
     let description = `${item.title} — starter template. Customize goals, dates, and scope to fit your plan.`;
+    
+    // Create coach-managed consistency milestone (12 weeks by default)
     let milestones = [
-      { id: Date.now() + 1, text: 'Define what success looks like', completed: false, createdAt: nowIso },
-      { id: Date.now() + 2, text: 'Pick timeframe and rough budget (if relevant)', completed: false, createdAt: nowIso },
-      { id: Date.now() + 3, text: 'Decide the first small step for this week', completed: false, createdAt: nowIso },
+      { 
+        id: Date.now() + 1, 
+        text: item.title, 
+        completed: false, 
+        createdAt: nowIso,
+        coachManaged: true,
+        type: 'consistency',
+        targetWeeks: 12,
+        startDate: nowIso,
+        endOnDreamComplete: false,
+        streakWeeks: 0
+      }
     ];
     let notes = [
       { id: Date.now() + 4, text: 'You can change locations and details in this template.', timestamp: nowIso },
