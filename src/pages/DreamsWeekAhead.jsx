@@ -232,50 +232,31 @@ const DreamsWeekAhead = () => {
     const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
     
     if (goalFormData.recurrence === 'weekly') {
-      // Recurring goal: Create multiple instances based on duration
-      const currentWeek = getIsoWeek(activeWeek.start);
-      const baseGoalId = editingGoal?.templateId || `goal_${Date.now()}`;
+      // Recurring goal: Create ONLY a template, instances created on-demand
+      const templateId = editingGoal?.templateId || editingGoal?.id || `goal_template_${Date.now()}`;
       
-      // Determine how many weeks to create instances for
-      let weeksToCreate = [];
+      const template = {
+        id: templateId,
+        type: 'weekly_goal_template',
+        title: goalFormData.title.trim(),
+        description: goalFormData.description.trim(),
+        dreamId: selectedDream.id,
+        dreamTitle: selectedDream.title,
+        dreamCategory: selectedDream.category,
+        milestoneId: goalFormData.milestoneId || undefined,
+        recurrence: 'weekly',
+        active: true,
+        durationType: goalFormData.durationType || 'unlimited',
+        durationWeeks: goalFormData.durationWeeks,
+        startDate: editingGoal?.startDate || new Date().toISOString(),
+        createdAt: editingGoal?.createdAt || new Date().toISOString()
+      };
       
-      if (goalFormData.durationType === 'unlimited') {
-        // Create for next 12 weeks
-        weeksToCreate = getNextNWeeks(currentWeek, 12);
-      } else if (goalFormData.durationType === 'weeks' && goalFormData.durationWeeks) {
-        // Create for specified number of weeks
-        weeksToCreate = getNextNWeeks(currentWeek, goalFormData.durationWeeks);
-      } else if (goalFormData.durationType === 'milestone') {
-        // Create for next 12 weeks (will end when milestone completes)
-        weeksToCreate = getNextNWeeks(currentWeek, 12);
+      if (editingGoal) {
+        updateWeeklyGoal(template);
+      } else {
+        addWeeklyGoal(template);
       }
-      
-      // Create instances for each week
-      weeksToCreate.forEach((weekId, index) => {
-        const goalInstance = {
-          id: `${baseGoalId}_${weekId}`,
-          title: goalFormData.title.trim(),
-          description: goalFormData.description.trim(),
-          weekId: weekId,  // CRITICAL: Each instance has its own weekId
-          dreamId: selectedDream.id,
-          dreamTitle: selectedDream.title,
-          dreamCategory: selectedDream.category,
-          completed: false,
-          createdAt: new Date().toISOString(),
-          milestoneId: goalFormData.milestoneId || undefined,
-          recurrence: 'weekly',
-          templateId: baseGoalId,  // Link back to template
-          active: true
-        };
-        
-        if (editingGoal && editingGoal.weekId === weekId) {
-          // Update existing instance
-          updateWeeklyGoal({ ...goalInstance, id: editingGoal.id });
-        } else if (!editingGoal) {
-          // Create new instance
-          addWeeklyGoal(goalInstance);
-        }
-      });
       
     } else {
       // One-time goal: Create single instance for the active week
@@ -375,8 +356,48 @@ const DreamsWeekAhead = () => {
   };
 
   const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
-  // Filter goals by the active week's weekId
-  const visibleGoals = weeklyGoals.filter(goal => goal.weekId === activeIsoWeek);
+  
+  // Get visible goals for this week:
+  // 1. Goals with matching weekId (one-time or existing week instances)
+  // 2. Active templates that should appear this week (create instance on-demand)
+  const weekSpecificGoals = weeklyGoals.filter(goal => goal.weekId === activeIsoWeek);
+  const activeTemplates = weeklyGoals.filter(goal => 
+    goal.type === 'weekly_goal_template' && 
+    goal.active && 
+    goal.recurrence === 'weekly'
+  );
+  
+  // For each template, check if we need to create an instance for this week
+  useEffect(() => {
+    activeTemplates.forEach(template => {
+      // Check if instance already exists for this week
+      const instanceExists = weeklyGoals.some(g => 
+        g.templateId === template.id && g.weekId === activeIsoWeek
+      );
+      
+      if (!instanceExists && template.active) {
+        // Create instance on-demand for this week
+        const weekInstance = {
+          id: `${template.id}_${activeIsoWeek}`,
+          title: template.title,
+          description: template.description,
+          weekId: activeIsoWeek,
+          dreamId: template.dreamId,
+          dreamTitle: template.dreamTitle,
+          dreamCategory: template.dreamCategory,
+          completed: false,
+          milestoneId: template.milestoneId,
+          recurrence: 'weekly',
+          templateId: template.id,
+          active: true,
+          createdAt: new Date().toISOString()
+        };
+        addWeeklyGoal(weekInstance);
+      }
+    });
+  }, [activeIsoWeek, activeTemplates, weeklyGoals, addWeeklyGoal]);
+  
+  const visibleGoals = weekSpecificGoals;
   const progressPercentage = getProgressPercentage();
   const isWeekComplete = isWeekEditable(activeIsoWeek) && progressPercentage === 100 && visibleGoals.length > 0;
 

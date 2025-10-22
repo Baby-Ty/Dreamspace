@@ -138,14 +138,12 @@ function groupItemsByType(items) {
         grouped.dreamBook.push(cleanItem);
         break;
       case 'weekly_goal':
-        // Only include goals with weekId (new format)
-        if (cleanItem.weekId) {
-          grouped.weeklyGoals.push(cleanItem);
-        }
+        // Include week instances (have weekId)
+        grouped.weeklyGoals.push(cleanItem);
         break;
       case 'weekly_goal_template':
-        // Templates are not included in the grouped output
-        // They're used internally for creating instances
+        // Include templates - needed to generate week instances on-demand
+        grouped.weeklyGoals.push(cleanItem);
         break;
       case 'scoring_entry':
         grouped.scoringHistory.push(cleanItem);
