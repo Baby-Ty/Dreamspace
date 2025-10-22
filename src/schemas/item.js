@@ -11,7 +11,7 @@ import { CareerGoalSchema, DevelopmentPlanSchema } from './career.js';
 export const ItemBaseSchema = z.object({
   id: z.union([z.string(), z.number()]),
   userId: z.union([z.string(), z.number()]),
-  type: z.enum(['dream', 'weekly_goal', 'scoring_entry', 'connect', 'career_goal', 'development_plan']),
+  type: z.enum(['dream', 'weekly_goal', 'weekly_goal_template', 'scoring_entry', 'connect', 'career_goal', 'development_plan']),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()
 }).passthrough(); // Allow additional fields
@@ -31,20 +31,43 @@ export const DreamItemSchema = ItemBaseSchema.extend({
 }).passthrough();
 
 /**
+ * Weekly Goal Template - for recurring goals
+ * This defines the goal pattern, instances are created per week
+ */
+export const WeeklyGoalTemplateSchema = ItemBaseSchema.extend({
+  type: z.literal('weekly_goal_template'),
+  title: z.string(),
+  description: z.string().optional().default(''),
+  dreamId: z.union([z.string(), z.number()]).optional(),
+  dreamTitle: z.string().optional(),
+  dreamCategory: z.string().optional(),
+  milestoneId: z.union([z.string(), z.number()]).optional(),
+  recurrence: z.literal('weekly'),
+  active: z.boolean().default(true),
+  durationType: z.enum(['unlimited', 'weeks', 'milestone']).optional().default('unlimited'),
+  durationWeeks: z.number().optional(),
+  startDate: z.string().optional()
+}).passthrough();
+
+/**
  * Weekly Goal Item - extends base with goal-specific fields
+ * Each goal is specific to ONE week (weekId is required)
  */
 export const WeeklyGoalItemSchema = ItemBaseSchema.extend({
   type: z.literal('weekly_goal'),
   title: z.string(),
   description: z.string().optional().default(''),
   completed: z.boolean().default(false),
+  weekId: z.string(), // REQUIRED: ISO week format (e.g., "2025-W43")
   dreamId: z.union([z.string(), z.number()]).optional(),
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
   completedAt: z.string().optional(),
   milestoneId: z.union([z.string(), z.number()]).optional(),
-  recurrence: z.enum(['weekly', 'once']).optional().default('once'),
-  weekLog: z.record(z.boolean()).optional().default({}),
+  recurrence: z.enum(['weekly', 'once']).default('once'),
+  templateId: z.union([z.string(), z.number()]).optional(), // Link to template for recurring goals
+  // Legacy support - will be migrated
+  weekLog: z.record(z.boolean()).optional(),
   active: z.boolean().optional().default(true)
 }).passthrough();
 
@@ -99,6 +122,7 @@ export const DevelopmentPlanItemSchema = ItemBaseSchema.extend({
 export const ItemSchema = z.discriminatedUnion('type', [
   DreamItemSchema,
   WeeklyGoalItemSchema,
+  WeeklyGoalTemplateSchema,
   ScoringEntryItemSchema,
   ConnectItemSchema,
   CareerGoalItemSchema,

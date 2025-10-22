@@ -81,6 +81,19 @@ module.exports = async function (context, req) {
       updatedAt: new Date().toISOString()
     };
 
+    // Validation for weekly goals - must have weekId
+    if (type === 'weekly_goal' && !document.weekId) {
+      context.res = {
+        status: 400,
+        body: JSON.stringify({ 
+          error: 'weekId is required for weekly_goal type',
+          details: 'Each weekly goal must be associated with a specific week (e.g., "2025-W43")'
+        }),
+        headers
+      };
+      return;
+    }
+
     // Upsert the item
     const { resource } = await itemsContainer.items.upsert(document);
     

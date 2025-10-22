@@ -234,26 +234,47 @@ const appReducer = (state, action) => {
       };
 
     case actionTypes.LOG_WEEKLY_COMPLETION:
+      // DEPRECATED: This action is kept for backward compatibility
+      // New implementation uses weekId-specific goal instances
+      // Legacy behavior: update weekLog on the goal
       const { goalId, isoWeek, completed } = action.payload;
-      const updatedGoalsWithLog = state.weeklyGoals.map(goal => {
-        if (goal.id === goalId) {
-          const newWeekLog = { ...(goal.weekLog || {}), [isoWeek]: completed };
-          // Update completed status based on current week
-          const currentWeek = getCurrentIsoWeek();
-          const isCurrentWeekCompleted = newWeekLog[currentWeek] || false;
-          return {
-            ...goal,
-            weekLog: newWeekLog,
-            completed: isCurrentWeekCompleted,
-            completedAt: completed ? new Date().toISOString() : goal.completedAt
-          };
-        }
-        return goal;
-      });
-      return {
-        ...state,
-        weeklyGoals: updatedGoalsWithLog
-      };
+      
+      // Find if there's a week-specific instance
+      const weekSpecificGoal = state.weeklyGoals.find(g => g.id === goalId && g.weekId === isoWeek);
+      
+      if (weekSpecificGoal) {
+        // New format: update the specific week instance
+        const updatedGoalsNewFormat = state.weeklyGoals.map(goal =>
+          (goal.id === goalId && goal.weekId === isoWeek)
+            ? { ...goal, completed, completedAt: completed ? new Date().toISOString() : undefined }
+            : goal
+        );
+        return {
+          ...state,
+          weeklyGoals: updatedGoalsNewFormat
+        };
+      } else {
+        // Old format: update weekLog (for migration)
+        const updatedGoalsWithLog = state.weeklyGoals.map(goal => {
+          if (goal.id === goalId) {
+            const newWeekLog = { ...(goal.weekLog || {}), [isoWeek]: completed };
+            // Update completed status based on current week
+            const currentWeek = getCurrentIsoWeek();
+            const isCurrentWeekCompleted = newWeekLog[currentWeek] || false;
+            return {
+              ...goal,
+              weekLog: newWeekLog,
+              completed: isCurrentWeekCompleted,
+              completedAt: completed ? new Date().toISOString() : goal.completedAt
+            };
+          }
+          return goal;
+        });
+        return {
+          ...state,
+          weeklyGoals: updatedGoalsWithLog
+        };
+      }
 
     case actionTypes.UPDATE_MILESTONE_STREAK:
       const { dreamId, milestoneId: mId, newStreak } = action.payload;
@@ -600,11 +621,17 @@ export const AppProvider = ({ children, initialUser }) => {
     },
 
     addWeeklyGoal: (goalData) => {
+      // Validate weekId is present for all new goals
+      if (!goalData.weekId) {
+        console.error('weekId is required for weekly goals');
+        return;
+      }
+      
       const goal = {
-        id: Date.now(),
+        id: `goal_${Date.now()}`,
         ...goalData,
         completed: false,
-        dateCreated: new Date().toISOString().split('T')[0]
+        createdAt: new Date().toISOString()
       };
       dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: goal });
     },

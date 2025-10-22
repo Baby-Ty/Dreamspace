@@ -21,14 +21,13 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import HelpTooltip from '../components/HelpTooltip';
-import { getCurrentIsoWeek } from '../utils/dateUtils';
+import { getCurrentIsoWeek, getIsoWeek, parseIsoWeek } from '../utils/dateUtils';
 import {
   expandRecurringGoals,
   getVisibleGoalsForWeek,
   computeWeekProgress,
   isWeekEditable
 } from '../services/weekGoalService';
-import { getIsoWeek } from '../utils/dateUtils';
 
 const DreamsWeekAhead = () => {
   const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal, logWeeklyCompletion } = useApp();
@@ -100,10 +99,12 @@ const DreamsWeekAhead = () => {
     return `${formatDate(startOfWeek)} – ${formatDate(endOfWeek)}`;
   };
 
-  // Calculate progress percentage using current week's status
+  // Calculate progress percentage using active week's goals
   const getProgressPercentage = () => {
-    const currentWeek = getCurrentIsoWeek();
-    const { completed, total } = computeWeekProgress(currentWeek, weeklyGoals);
+    const weekIso = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+    const weekGoals = weeklyGoals.filter(g => g.weekId === weekIso);
+    const completed = weekGoals.filter(g => g.completed).length;
+    const total = weekGoals.length;
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
@@ -180,10 +181,12 @@ const DreamsWeekAhead = () => {
     return weeks;
   };
 
-  // Determine per-week progress via service
+  // Determine per-week progress by filtering goals for that week
   const getWeekProgress = (weekObj) => {
     const weekIso = getIsoWeek(weekObj.start);
-    const { completed, total } = computeWeekProgress(weekIso, weeklyGoals);
+    const weekGoals = weeklyGoals.filter(g => g.weekId === weekIso);
+    const completed = weekGoals.filter(g => g.completed).length;
+    const total = weekGoals.length;
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
@@ -227,51 +230,78 @@ const DreamsWeekAhead = () => {
   const handleSaveGoal = () => {
     if (!goalFormData.title.trim()) return;
 
-    const currentWeek = getCurrentIsoWeek();
-    const newGoal = {
-      id: Date.now(),
-      title: goalFormData.title.trim(),
-      description: goalFormData.description.trim(),
-      dreamId: selectedDream.id,
-      dreamTitle: selectedDream.title,
-      dreamCategory: selectedDream.category,
-      completed: false,
-      createdAt: new Date().toISOString(),
-      // New fields
-      milestoneId: goalFormData.milestoneId || undefined,
-      recurrence: goalFormData.recurrence || 'once',
-      active: true,
-      durationType: goalFormData.durationType || 'unlimited',
-      durationWeeks: goalFormData.durationWeeks || undefined,
-      // Set recurrence flag for service
-      recurring: goalFormData.recurrence === 'weekly'
-    };
-
-    // Assign week and weekLog based on recurrence
-    if (newGoal.recurrence === 'weekly') {
-      newGoal.recurring = true;
-      newGoal.weekLog = {};
-      // Set start date for duration tracking
-      if (newGoal.durationType === 'weeks' || newGoal.durationType === 'milestone') {
-        newGoal.startDate = new Date().toISOString();
+    // Get the active week's ISO week string
+    const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+    
+    if (goalFormData.recurrence === 'weekly') {
+      // Recurring goal: Create multiple instances based on duration
+      const currentWeek = getIsoWeek(activeWeek.start);
+      const baseGoalId = editingGoal?.templateId || `goal_${Date.now()}`;
+      
+      // Determine how many weeks to create instances for
+      let weeksToCreate = [];
+      
+      if (goalFormData.durationType === 'unlimited') {
+        // Create for next 12 weeks
+        weeksToCreate = getNextNWeeks(currentWeek, 12);
+      } else if (goalFormData.durationType === 'weeks' && goalFormData.durationWeeks) {
+        // Create for specified number of weeks
+        weeksToCreate = getNextNWeeks(currentWeek, goalFormData.durationWeeks);
+      } else if (goalFormData.durationType === 'milestone') {
+        // Create for next 12 weeks (will end when milestone completes)
+        weeksToCreate = getNextNWeeks(currentWeek, 12);
       }
-    } else {
-      // Non-recurring goal only for current week
-      newGoal.recurring = false;
-      newGoal.week = currentWeek;
-    }
-
-    if (editingGoal) {
-      // Preserve startDate when editing
-      updateWeeklyGoal({ 
-        ...newGoal, 
-        id: editingGoal.id,
-        startDate: editingGoal.startDate || newGoal.startDate,
-        weekLog: editingGoal.weekLog || newGoal.weekLog
+      
+      // Create instances for each week
+      weeksToCreate.forEach((weekId, index) => {
+        const goalInstance = {
+          id: `${baseGoalId}_${weekId}`,
+          title: goalFormData.title.trim(),
+          description: goalFormData.description.trim(),
+          weekId: weekId,  // CRITICAL: Each instance has its own weekId
+          dreamId: selectedDream.id,
+          dreamTitle: selectedDream.title,
+          dreamCategory: selectedDream.category,
+          completed: false,
+          createdAt: new Date().toISOString(),
+          milestoneId: goalFormData.milestoneId || undefined,
+          recurrence: 'weekly',
+          templateId: baseGoalId,  // Link back to template
+          active: true
+        };
+        
+        if (editingGoal && editingGoal.weekId === weekId) {
+          // Update existing instance
+          updateWeeklyGoal({ ...goalInstance, id: editingGoal.id });
+        } else if (!editingGoal) {
+          // Create new instance
+          addWeeklyGoal(goalInstance);
+        }
       });
-      setEditingGoal(null);
+      
     } else {
-      addWeeklyGoal(newGoal);
+      // One-time goal: Create single instance for the active week
+      const newGoal = {
+        id: editingGoal?.id || `goal_${Date.now()}`,
+        title: goalFormData.title.trim(),
+        description: goalFormData.description.trim(),
+        weekId: activeIsoWeek,  // CRITICAL: Must have weekId
+        dreamId: selectedDream.id,
+        dreamTitle: selectedDream.title,
+        dreamCategory: selectedDream.category,
+        completed: editingGoal?.completed || false,
+        createdAt: editingGoal?.createdAt || new Date().toISOString(),
+        milestoneId: goalFormData.milestoneId || undefined,
+        recurrence: 'once',
+        active: true
+      };
+
+      if (editingGoal) {
+        updateWeeklyGoal(newGoal);
+        setEditingGoal(null);
+      } else {
+        addWeeklyGoal(newGoal);
+      }
     }
 
     setShowGoalForm(false);
@@ -281,10 +311,23 @@ const DreamsWeekAhead = () => {
       description: '',
       milestoneId: null,
       recurrence: 'once',
-      weekLog: undefined,
       durationType: 'unlimited',
       durationWeeks: 4
     });
+  };
+  
+  // Helper to get next N weeks from a starting week
+  const getNextNWeeks = (startWeek, n) => {
+    const weeks = [startWeek];
+    let currentDate = parseIsoWeek(startWeek);
+    
+    for (let i = 1; i < n; i++) {
+      currentDate = new Date(currentDate);
+      currentDate.setDate(currentDate.getDate() + 7); // Add 7 days
+      weeks.push(getIsoWeek(currentDate));
+    }
+    
+    return weeks;
   };
 
   const handleEditGoal = (goal) => {
@@ -315,18 +358,9 @@ const DreamsWeekAhead = () => {
   };
 
   const toggleGoalCompletion = (goalId) => {
-    const goal = weeklyGoals.find(g => g.id === goalId);
-    const currentWeek = getCurrentIsoWeek();
-    
-    // Check if this is a recurring goal with weekLog
-    if (goal?.recurrence === 'weekly' && goal?.weekLog !== undefined) {
-      // Use logWeeklyCompletion for recurring goals
-      const currentStatus = goal.weekLog[currentWeek] || false;
-      logWeeklyCompletion(goalId, currentWeek, !currentStatus);
-    } else {
-      // Fall back to simple toggle for non-recurring goals
-      toggleWeeklyGoal(goalId);
-    }
+    // With week-specific instances, we just toggle the specific goal
+    // No need to check weekLog since each week has its own document
+    toggleWeeklyGoal(goalId);
   };
 
   const handleCloseForm = () => {
@@ -344,37 +378,28 @@ const DreamsWeekAhead = () => {
     });
   };
 
-  const activeIsoWeek = getCurrentIsoWeek();
-  const visibleGoals = getVisibleGoalsForWeek(activeIsoWeek, weeklyGoals);
+  const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+  // Filter goals by the active week's weekId
+  const visibleGoals = weeklyGoals.filter(goal => goal.weekId === activeIsoWeek);
   const progressPercentage = getProgressPercentage();
   const isWeekComplete = isWeekEditable(activeIsoWeek) && progressPercentage === 100 && visibleGoals.length > 0;
 
-  // Calculate goal KPIs
+  // Calculate goal KPIs for the active week
   const getGoalKPIs = () => {
-    const activeGoals = weeklyGoals.length;
-    const currentWeek = getCurrentIsoWeek();
-    
-    const completedGoals = weeklyGoals.filter(goal => {
-      if (goal.recurrence === 'weekly' && goal.weekLog) {
-        return goal.weekLog[currentWeek] === true;
-      }
-      return goal.completed;
-    }).length;
-    
+    const weekIso = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+    const weekGoals = weeklyGoals.filter(g => g.weekId === weekIso);
+    const activeGoals = weekGoals.length;
+    const completedGoals = weekGoals.filter(g => g.completed).length;
     const percentCompleted = activeGoals > 0 ? Math.round((completedGoals / activeGoals) * 100) : 0;
     
-    // Calculate total weeks (mock data - in real app, would track historical weeks)
-    // For now, we'll use the current week number of the year
-    const today = new Date();
-    const startOfYear = new Date(today.getFullYear(), 0, 1);
-    const dayOfYear = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
-    const totalWeeks = Math.ceil(dayOfYear / 7);
+    // Calculate total unique weeks that have goals
+    const uniqueWeeks = new Set(weeklyGoals.map(g => g.weekId)).size;
     
     return {
       activeGoals,
       percentCompleted,
       completedGoals,
-      totalWeeks
+      totalWeeks: uniqueWeeks
     };
   };
 
@@ -556,8 +581,8 @@ const DreamsWeekAhead = () => {
                   )}
                 </div>
                 <div className="flex justify-between text-sm text-professional-gray-600 mt-2">
-                  <span>{computeWeekProgress(activeIsoWeek, weeklyGoals).completed} completed</span>
-                  <span>{computeWeekProgress(activeIsoWeek, weeklyGoals).total} total goals</span>
+                  <span>{visibleGoals.filter(g => g.completed).length} completed</span>
+                  <span>{visibleGoals.length} total goals</span>
                 </div>
               </div>
             )}
@@ -669,12 +694,8 @@ const DreamCard = ({ dream, emoji, onAddGoal }) => {
 
 // Goal Item Component
 const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
-  const currentWeek = getCurrentIsoWeek();
-  
-  // Determine if goal is completed this week
-  const isCompleted = goal.recurrence === 'weekly' && goal.weekLog
-    ? (goal.weekLog[currentWeek] === true)
-    : goal.completed;
+  // With week-specific instances, completed status is directly on the goal
+  const isCompleted = goal.completed;
   
   return (
     <div className={`rounded-2xl border shadow-lg hover:shadow-xl transition-all duration-300 p-4 hover:scale-[1.02] ${

@@ -17,6 +17,107 @@ function isNewStructure(profile) {
   return profile && profile.dataStructureVersion === 2;
 }
 
+// Helper to migrate old weekLog pattern to new week-specific instances
+async function migrateWeekLogGoals(userId, items, context) {
+  const goalsToMigrate = items.filter(item => 
+    item.type === 'weekly_goal' && item.weekLog && Object.keys(item.weekLog).length > 0
+  );
+  
+  if (goalsToMigrate.length === 0) {
+    return items; // No migration needed
+  }
+  
+  context.log(`Migrating ${goalsToMigrate.length} goals with weekLog pattern`);
+  
+  const newItems = [...items.filter(item => !goalsToMigrate.includes(item))];
+  
+  for (const goal of goalsToMigrate) {
+    // Create template for recurring goals
+    if (goal.recurrence === 'weekly') {
+      const template = {
+        id: `${goal.id}_template`,
+        userId: userId,
+        type: 'weekly_goal_template',
+        title: goal.title,
+        description: goal.description || '',
+        dreamId: goal.dreamId,
+        dreamTitle: goal.dreamTitle,
+        dreamCategory: goal.dreamCategory,
+        milestoneId: goal.milestoneId,
+        recurrence: 'weekly',
+        active: goal.active !== false,
+        durationType: goal.durationType || 'unlimited',
+        durationWeeks: goal.durationWeeks,
+        startDate: goal.createdAt || new Date().toISOString(),
+        createdAt: goal.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Save template
+      await itemsContainer.items.upsert(template);
+      newItems.push(template);
+      
+      // Create instances for each week in weekLog
+      for (const [weekId, completed] of Object.entries(goal.weekLog)) {
+        const instance = {
+          id: `${goal.id}_${weekId}`,
+          userId: userId,
+          type: 'weekly_goal',
+          title: goal.title,
+          description: goal.description || '',
+          weekId: weekId,
+          completed: completed || false,
+          dreamId: goal.dreamId,
+          dreamTitle: goal.dreamTitle,
+          dreamCategory: goal.dreamCategory,
+          milestoneId: goal.milestoneId,
+          recurrence: 'weekly',
+          templateId: template.id,
+          createdAt: goal.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        await itemsContainer.items.upsert(instance);
+        newItems.push(instance);
+      }
+    } else {
+      // One-time goal with weekLog (unusual, but handle it)
+      // Just pick the first week from weekLog
+      const weekId = Object.keys(goal.weekLog)[0];
+      const instance = {
+        id: goal.id,
+        userId: userId,
+        type: 'weekly_goal',
+        title: goal.title,
+        description: goal.description || '',
+        weekId: weekId,
+        completed: goal.weekLog[weekId] || goal.completed || false,
+        dreamId: goal.dreamId,
+        dreamTitle: goal.dreamTitle,
+        dreamCategory: goal.dreamCategory,
+        milestoneId: goal.milestoneId,
+        recurrence: 'once',
+        createdAt: goal.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await itemsContainer.items.upsert(instance);
+      newItems.push(instance);
+    }
+    
+    // Delete old goal with weekLog
+    try {
+      await itemsContainer.item(goal.id, userId).delete();
+      context.log(`Deleted old weekLog goal: ${goal.id}`);
+    } catch (err) {
+      context.log.warn(`Could not delete old goal ${goal.id}:`, err.message);
+    }
+  }
+  
+  context.log(`Migration complete: created ${newItems.length - items.length + goalsToMigrate.length} new items`);
+  return newItems;
+}
+
 // Helper to group items by type
 function groupItemsByType(items) {
   const grouped = {
@@ -37,7 +138,14 @@ function groupItemsByType(items) {
         grouped.dreamBook.push(cleanItem);
         break;
       case 'weekly_goal':
-        grouped.weeklyGoals.push(cleanItem);
+        // Only include goals with weekId (new format)
+        if (cleanItem.weekId) {
+          grouped.weeklyGoals.push(cleanItem);
+        }
+        break;
+      case 'weekly_goal_template':
+        // Templates are not included in the grouped output
+        // They're used internally for creating instances
         break;
       case 'scoring_entry':
         grouped.scoringHistory.push(cleanItem);
@@ -124,8 +232,11 @@ module.exports = async function (context, req) {
       
       context.log(`Loaded ${items.length} items for user`);
       
+      // Migrate old weekLog pattern if found
+      const migratedItems = await migrateWeekLogGoals(userId, items, context);
+      
       // Group items by type
-      const grouped = groupItemsByType(items);
+      const grouped = groupItemsByType(migratedItems);
       
       // Combine profile and items into expected format
       const { _rid, _self, _etag, _attachments, _ts, lastUpdated, dataStructureVersion, ...cleanProfile } = profile;
