@@ -9,8 +9,8 @@ class DatabaseService {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
-    // Set API base URL
-    this.apiBase = '/api';
+    // Set API base URL - use separate Function App
+    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     
     // Debug logging
     console.log('🔍 Environment check:');
@@ -143,7 +143,10 @@ class DatabaseService {
     try {
       // The saveUserData endpoint now handles splitting data automatically
       // It detects old format and splits into profile + items
-      const response = await fetch(`${this.apiBase}/saveUserData/${userId}`, {
+      const url = `${this.apiBase}/saveUserData/${userId}`;
+      console.log('📡 Saving to:', url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -151,19 +154,38 @@ class DatabaseService {
         body: JSON.stringify(userData)
       });
 
+      // Get response text first to see what we're actually receiving
+      const responseText = await response.text();
+      console.log('📥 Save response status:', response.status, response.statusText);
+      console.log('📥 Save response content type:', response.headers.get('content-type'));
+      console.log('📥 Save response text (first 200 chars):', responseText.substring(0, 200));
+
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Data saved to Cosmos DB for user:', userId);
-        if (result.format === 'split') {
-          console.log(`📦 Data migrated to 3-container format: ${result.itemCount} items`);
+        // Try to parse the response as JSON
+        try {
+          const result = JSON.parse(responseText);
+          console.log('✅ Data saved to Cosmos DB for user:', userId);
+          if (result.format === 'split') {
+            console.log(`📦 Data migrated to 3-container format: ${result.itemCount} items`);
+          }
+          // Notify listeners that a save occurred
+          window.dispatchEvent(new Event('dreamspace:saved'));
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Failed to parse save response as JSON:', parseError);
+          console.error('Response was:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'API returned invalid JSON response');
         }
-        // Notify listeners that a save occurred
-        window.dispatchEvent(new Event('dreamspace:saved'));
-        return ok(result);
       } else {
-        const error = await response.json();
-        console.error('❌ Cosmos DB save error:', error);
-        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Unknown error');
+        // Try to parse error response
+        try {
+          const error = JSON.parse(responseText);
+          console.error('❌ Cosmos DB save error:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Unknown error');
+        } catch (parseError) {
+          console.error('❌ API error (non-JSON response):', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, `HTTP ${response.status}: ${response.statusText}`);
+        }
       }
     } catch (error) {
       console.error('❌ Cosmos DB save error:', error);
@@ -175,28 +197,50 @@ class DatabaseService {
     try {
       // The getUserData endpoint handles both old and new formats
       // It returns data in the old format (with arrays) regardless of storage format
-      const response = await fetch(`${this.apiBase}/getUserData/${userId}`);
+      const url = `${this.apiBase}/getUserData/${userId}`;
+      console.log('📡 Fetching from:', url);
+      
+      const response = await fetch(url);
+      
+      // Get response text first to see what we're actually receiving
+      const responseText = await response.text();
+      console.log('📥 Response status:', response.status, response.statusText);
+      console.log('📥 Response content type:', response.headers.get('content-type'));
+      console.log('📥 Response text (first 200 chars):', responseText.substring(0, 200));
       
       if (response.ok) {
-        const userData = await response.json();
-        console.log('✅ Data loaded from Cosmos DB for user:', userId);
-        
-        // Check if data structure version is indicated
-        if (userData.dataStructureVersion === 2) {
-          console.log('📦 User is on 3-container structure (v2)');
-        } else {
-          console.log('📦 User is on monolithic structure (v1)');
+        // Try to parse the response as JSON
+        try {
+          const userData = JSON.parse(responseText);
+          console.log('✅ Data loaded from Cosmos DB for user:', userId);
+          
+          // Check if data structure version is indicated
+          if (userData.dataStructureVersion === 2) {
+            console.log('📦 User is on 3-container structure (v2)');
+          } else {
+            console.log('📦 User is on monolithic structure (v1)');
+          }
+          
+          // Return in the expected format for demo login
+          return { success: true, data: userData };
+        } catch (parseError) {
+          console.error('❌ Failed to parse response as JSON:', parseError);
+          console.error('Response was:', responseText);
+          return fail(ErrorCodes.LOAD_ERROR, 'API returned invalid JSON response');
         }
-        
-        // Return in the expected format for demo login
-        return { success: true, data: userData };
       } else if (response.status === 404) {
         console.log('ℹ️ No data found in Cosmos DB for user:', userId);
         return fail(ErrorCodes.NOT_FOUND, 'User not found');
       } else {
-        const error = await response.json();
-        console.error('❌ Cosmos DB load error:', error);
-        return fail(ErrorCodes.LOAD_ERROR, error.error || 'Unknown error');
+        // Try to parse error response
+        try {
+          const error = JSON.parse(responseText);
+          console.error('❌ Cosmos DB load error:', error);
+          return fail(ErrorCodes.LOAD_ERROR, error.error || 'Unknown error');
+        } catch (parseError) {
+          console.error('❌ API error (non-JSON response):', responseText);
+          return fail(ErrorCodes.LOAD_ERROR, `HTTP ${response.status}: ${response.statusText}`);
+        }
       }
     } catch (error) {
       console.error('❌ Cosmos DB load error:', error);

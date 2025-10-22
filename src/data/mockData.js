@@ -395,8 +395,59 @@ export const allUsers = [
     email: "sarah.johnson@netsurit.com",
     office: "Cape Town",
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
-    dreamCategories: ["Learning", "Travel", "Health"],
-    latestDreamTitle: "Stick to a Gym Routine",
+    role: "coach",
+    jobTitle: "Senior Development Manager",
+    department: "Engineering",
+    dreamCategories: ["Learning", "Travel", "Health", "Career"],
+    score: 142,
+    dreamsCount: 3,
+    connectsCount: 8,
+    dreamBook: [
+      {
+        id: 1,
+        title: "Master Team Leadership",
+        category: "Career",
+        description: "Develop advanced leadership skills to effectively manage and inspire development teams.",
+        progress: 75,
+        image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=60&auto=format&fit=crop",
+        milestones: [
+          { id: 1, text: "Complete leadership training program", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+          { id: 2, text: "Implement weekly 1:1s with all team members", completed: true, createdAt: "2024-01-15T10:00:00Z" },
+          { id: 3, text: "Launch team mentorship program", completed: false, createdAt: "2024-02-01T10:00:00Z" }
+        ],
+        notes: [],
+        history: []
+      },
+      {
+        id: 2,
+        title: "Complete Advanced React Certification",
+        category: "Learning",
+        description: "Stay current with the latest React patterns and advanced techniques to guide team development.",
+        progress: 45,
+        image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=60&auto=format&fit=crop",
+        milestones: [
+          { id: 1, text: "Complete React 18 new features course", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+          { id: 2, text: "Build demo project with Next.js 14", completed: false, createdAt: "2024-01-15T10:00:00Z" }
+        ],
+        notes: [],
+        history: []
+      },
+      {
+        id: 3,
+        title: "Run Cape Town Marathon",
+        category: "Health",
+        description: "Train for and complete the Cape Town Marathon to maintain physical and mental health.",
+        progress: 30,
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=60&auto=format&fit=crop",
+        milestones: [
+          { id: 1, text: "Create 16-week training plan", completed: true, createdAt: "2024-01-05T10:00:00Z" },
+          { id: 2, text: "Complete first 10K training run", completed: true, createdAt: "2024-01-15T10:00:00Z" }
+        ],
+        notes: [],
+        history: []
+      }
+    ],
+    latestDreamTitle: "Master Team Leadership",
     sampleDreams: [
       { 
         id: 1,
