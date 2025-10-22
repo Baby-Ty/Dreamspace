@@ -31,14 +31,6 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🔍 Run linter (continue on error)
-        run: npm run lint || echo "⚠️ Linting had warnings, continuing..."
-        continue-on-error: true
-
-      - name: 🧪 Run tests (continue on error)
-        run: npm test || echo "⚠️ Tests had issues, continuing..."
-        continue-on-error: true
-
       - name: 🏗️ Build application
         run: npm run build
         env:
