@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Azure Functions API for DreamSpace Cosmos DB integration",
   "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "func start",
     "test": "echo \"No tests yet\""
