@@ -4,14 +4,14 @@
   "description": "Azure Functions API for DreamSpace Cosmos DB integration",
   "main": "index.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "func start",
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@azure/cosmos": "^4.5.1"
+    "@azure/cosmos": "^3.17.3"
   },
   "devDependencies": {
     "@azure/functions": "^4.0.0"
