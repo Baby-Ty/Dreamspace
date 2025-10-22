@@ -390,7 +390,8 @@ export const dreamCategories = [
 
 export const allUsers = [
   {
-    id: 1,
+    id: "sarah.johnson@netsurit.com",
+    userId: "sarah.johnson@netsurit.com",
     name: "Sarah Johnson",
     email: "sarah.johnson@netsurit.com",
     office: "Cape Town",
@@ -683,7 +684,8 @@ export const allUsers = [
     connectsCount: 1
   },
   {
-    id: 2,
+    id: "mike.chen@netsurit.com",
+    userId: "mike.chen@netsurit.com",
     name: "Mike Chen",
     email: "mike.chen@netsurit.com", 
     office: "Johannesburg",
@@ -849,7 +851,8 @@ export const allUsers = [
     connectsCount: 3
   },
   {
-    id: 3,
+    id: "emma.wilson@netsurit.com",
+    userId: "emma.wilson@netsurit.com",
     name: "Emma Wilson",
     email: "emma.wilson@netsurit.com",
     office: "Cape Town", 
@@ -920,7 +923,8 @@ export const allUsers = [
     connectsCount: 2
   },
   {
-    id: 4,
+    id: "james.rodriguez@netsurit.com",
+    userId: "james.rodriguez@netsurit.com",
     name: "James Rodriguez",
     email: "james.rodriguez@netsurit.com",
     office: "Durban",
