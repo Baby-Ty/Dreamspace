@@ -1,10 +1,10 @@
 {
-  "name": "dreamspace-api",
+  "name": "dreamspace-teams-bot",
   "version": "1.0.0",
-  "description": "Azure Functions API for DreamSpace Cosmos DB integration",
+  "description": "Teams bot for Dreamspace check-ins",
   "main": "index.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "func start",
@@ -18,3 +18,4 @@
     "@azure/functions": "^4.0.0"
   }
 }
+

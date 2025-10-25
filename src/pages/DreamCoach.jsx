@@ -23,7 +23,8 @@ import {
   Eye,
   UserCheck,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import peopleService from '../services/peopleService';
@@ -44,6 +45,10 @@ const DreamCoach = () => {
   const [teamNotes, setTeamNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Teams messaging state
+  const [sendingTeamsMessage, setSendingTeamsMessage] = useState(false);
+  const [teamsMessageResult, setTeamsMessageResult] = useState(null);
 
   // Load team data for current user
   useEffect(() => {
@@ -301,6 +306,47 @@ const DreamCoach = () => {
     setSelectedMember(member);
   };
 
+  // Send Teams check-in message
+  const sendTeamsCheckin = async (member) => {
+    setSendingTeamsMessage(true);
+    setTeamsMessageResult(null);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/sendTeamsMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            coachId: currentUser.id,
+            recipientIds: [member.id],
+            messageType: 'checkin_request',
+            messageData: {
+              message: `Hi ${member.name}! Time for your weekly check-in. Please share your wins and challenges this week.`
+            }
+          })
+        }
+      );
+      
+      const result = await response.json();
+      setTeamsMessageResult(result);
+      
+      // Auto-clear result after 5 seconds
+      setTimeout(() => setTeamsMessageResult(null), 5000);
+    } catch (error) {
+      console.error('Error sending Teams message:', error);
+      setTeamsMessageResult({ 
+        success: false, 
+        error: error.message 
+      });
+      
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setTeamsMessageResult(null), 5000);
+    } finally {
+      setSendingTeamsMessage(false);
+    }
+  };
+
   const MemberDetailModal = ({ member, onClose }) => {
     if (!member) return null;
 
@@ -444,6 +490,70 @@ const DreamCoach = () => {
                   <Calendar className="h-4 w-4" />
                   <span>Schedule Check-in</span>
                 </button>
+                <button 
+                  onClick={() => sendTeamsCheckin(member)}
+                  disabled={sendingTeamsMessage}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sendingTeamsMessage ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      <span>Send Teams Check-in</span>
+                    </>
+                  )}
+                </button>
+                
+                {/* Teams Message Result */}
+                {teamsMessageResult && (
+                  <div className={`p-3 rounded-lg text-sm animate-fade-in ${
+                    teamsMessageResult.success && teamsMessageResult.sent > 0
+                      ? 'bg-green-50 border border-green-200 text-green-800'
+                      : teamsMessageResult.notInstalled > 0
+                      ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                      : 'bg-red-50 border border-red-200 text-red-800'
+                  }`}>
+                    {teamsMessageResult.success && teamsMessageResult.sent > 0 && (
+                      <div>
+                        <div className="font-semibold flex items-center space-x-1">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>Sent to Teams!</span>
+                        </div>
+                        <div className="text-xs mt-1">
+                          {member.name} will receive the check-in card in Teams.
+                        </div>
+                      </div>
+                    )}
+                    
+                    {teamsMessageResult.notInstalled > 0 && (
+                      <div>
+                        <div className="font-semibold flex items-center space-x-1">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>Bot Not Installed</span>
+                        </div>
+                        <div className="text-xs mt-1">
+                          {member.name} needs to install the Dreamspace bot in Teams first.
+                        </div>
+                      </div>
+                    )}
+                    
+                    {teamsMessageResult.failed > 0 && (
+                      <div>
+                        <div className="font-semibold flex items-center space-x-1">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>Failed to Send</span>
+                        </div>
+                        <div className="text-xs mt-1">
+                          Please try again later or check the bot configuration.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

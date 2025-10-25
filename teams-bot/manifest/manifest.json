@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "{{MICROSOFT_APP_ID}}",
+  "packageName": "com.dreamspace.teamsbot",
+  "developer": {
+    "name": "Dreamspace",
+    "websiteUrl": "https://dreamspace.tylerstewart.co.za",
+    "privacyUrl": "https://dreamspace.tylerstewart.co.za/privacy",
+    "termsOfUseUrl": "https://dreamspace.tylerstewart.co.za/terms"
+  },
+  "name": {
+    "short": "Dreamspace",
+    "full": "Dreamspace Check-in Bot"
+  },
+  "description": {
+    "short": "Weekly check-ins and goal tracking",
+    "full": "Dreamspace bot helps you track weekly wins, challenges, and stay focused on goals through check-ins with your coach."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#ED1C24",
+  "bots": [
+    {
+      "botId": "{{MICROSOFT_APP_ID}}",
+      "scopes": [
+        "personal",
+        "team"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": [
+            "personal",
+            "team"
+          ],
+          "commands": [
+            {
+              "title": "checkin",
+              "description": "Start your weekly check-in"
+            },
+            {
+              "title": "help",
+              "description": "Show available commands"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity"
+  ],
+  "validDomains": [
+    "{{FUNCTION_APP_DOMAIN}}"
+  ]
+}
+
