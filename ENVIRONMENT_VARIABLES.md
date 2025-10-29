@@ -101,6 +101,7 @@ Environment variables for production are set in **Azure Portal**, not in `.env` 
 |----------|-------|
 | `COSMOS_ENDPOINT` | Same as frontend |
 | `COSMOS_KEY` | Same as frontend |
+| `AZURE_STORAGE_CONNECTION_STRING` | From Azure Portal → Storage Account → Access keys |
 
 ⚠️ **Note:** Backend uses `COSMOS_*` (without `VITE_` prefix)
 
@@ -151,6 +152,35 @@ Environment variables for production are set in **Azure Portal**, not in `.env` 
 - **Required:** No
 - **Default:** `users`
 - **Purpose:** Cosmos DB container name for user data
+
+---
+
+### 📦 Azure Blob Storage (Backend Only)
+
+#### `AZURE_STORAGE_CONNECTION_STRING`
+- **Type:** Connection string
+- **Required:** Yes (for image uploads)
+- **Purpose:** Azure Storage account connection string for blob storage
+- **Format:** `DefaultEndpointsProtocol=https;AccountName=xxx;AccountKey=xxx;EndpointSuffix=core.windows.net`
+- **Get it:** Azure Portal → Storage Account → Security + networking → Access keys
+- **Used by:** `uploadProfilePicture` and `uploadDreamPicture` Azure Functions
+- **Containers:** 
+  - `profile-pictures` - User profile pictures
+  - `dreams-pictures` - Dream images uploaded by users
+
+**Setup Steps:**
+1. Go to Azure Portal → Storage Account
+2. Navigate to **Security + networking** → **Access keys**
+3. Copy **Connection string** from key1 or key2
+4. Add to Function App Configuration as `AZURE_STORAGE_CONNECTION_STRING`
+5. Containers will be created automatically on first upload
+
+**Security Notes:**
+- This is a backend-only variable (NOT prefixed with `VITE_`)
+- Never expose storage keys to the frontend
+- Images are uploaded via API endpoints for security
+- Containers have public read access for viewing images
+- Images are organized by userId in the `dreams-pictures` container
 
 ---
 
@@ -363,9 +393,11 @@ VITE_COSMOS_ENDPOINT=https://your-account.documents.azure.com
 
 ### For Production Deployment  
 - [ ] Create Azure Cosmos DB account
+- [ ] Create Azure Storage Account (for image uploads)
+- [ ] Blob containers (`profile-pictures` and `dreams-pictures`) will be created automatically
 - [ ] Create App Registration in Entra ID
 - [ ] Set environment variables in Azure Static Web App Configuration
-- [ ] Set backend variables in Function App Configuration
+- [ ] Set backend variables in Function App Configuration (including `AZURE_STORAGE_CONNECTION_STRING`)
 - [ ] Deploy and verify with smoke tests
 
 ### Security Review

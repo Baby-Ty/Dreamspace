@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import StockPhotoSearch from '../components/StockPhotoSearch';
 import HelpTooltip from '../components/HelpTooltip';
+import itemService from '../services/itemService';
 
 const DreamBook = () => {
   const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams } = useApp();
@@ -21,6 +22,8 @@ const DreamBook = () => {
     isPublic: false,
     image: ''
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [tempDreamId, setTempDreamId] = useState(null);
   const editTitleRef = useRef(null);
 
   const maxDreams = 10;
@@ -230,6 +233,9 @@ const DreamBook = () => {
 
   const handleCreate = () => {
     setIsCreating(true);
+    // Generate a temporary dream ID for image uploads
+    const newTempId = `dream_${Date.now()}`;
+    setTempDreamId(newTempId);
     setFormData({
       title: '',
       category: dreamCategories?.[0] || 'Health',
@@ -242,7 +248,7 @@ const DreamBook = () => {
   const handleSave = () => {
     if (isCreating) {
       const newDream = {
-        id: `dream_${Date.now()}`,
+        id: tempDreamId, // Use the temp ID we created
         ...formData,
         progress: 0,
         milestones: [],
@@ -251,6 +257,7 @@ const DreamBook = () => {
       };
       addDream(newDream);
       setIsCreating(false);
+      setTempDreamId(null);
     } else {
       const updatedDream = dreams.find(d => d.id === editingDream);
       if (updatedDream) {
@@ -271,6 +278,7 @@ const DreamBook = () => {
   const handleCancel = () => {
     setIsCreating(false);
     setEditingDream(null);
+    setTempDreamId(null);
     setFormData({
       title: '',
       category: '',
@@ -286,15 +294,48 @@ const DreamBook = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // In a real app, you'd upload to a server and get back a URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData({ ...formData, image: e.target.result });
-      };
-      reader.readAsDataURL(file);
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+
+      try {
+        setUploadingImage(true);
+
+        // Determine the dream ID to use
+        const dreamId = isCreating ? tempDreamId : editingDream;
+
+        // Upload to blob storage
+        const result = await itemService.uploadDreamPicture(
+          currentUser.id,
+          dreamId,
+          file
+        );
+
+        if (result.success) {
+          setFormData({ ...formData, image: result.data.url });
+          console.log('✅ Dream image uploaded successfully');
+        } else {
+          console.error('Failed to upload image:', result.error);
+          alert('Failed to upload image. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -436,6 +477,7 @@ const DreamBook = () => {
                 dreamCategories={dreamCategories}
                 isEditing={true}
                 inputRef={editTitleRef}
+                uploadingImage={uploadingImage}
               />
             ) : (
               <DreamCard
@@ -507,6 +549,7 @@ const DreamBook = () => {
                 dreamCategories={dreamCategories}
                 isEditing={false}
                 inputRef={editTitleRef}
+                uploadingImage={uploadingImage}
               />
             </div>
           </div>
@@ -635,7 +678,7 @@ const DreamBook = () => {
   );
 };
 
-const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onOpenStockPhotoSearch, dreamCategories, isEditing, inputRef }) => {
+const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onOpenStockPhotoSearch, dreamCategories, isEditing, inputRef, uploadingImage }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.title.trim() && formData.description.trim()) {
@@ -653,7 +696,12 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
       {/* Image Upload */}
       <div className="space-y-3">
         <div className="relative">
-          {formData.image ? (
+          {uploadingImage ? (
+            <div className="w-full h-32 bg-professional-gray-100 rounded-lg flex flex-col items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-netsurit-red mb-2"></div>
+              <p className="text-sm text-professional-gray-600">Uploading image...</p>
+            </div>
+          ) : formData.image ? (
             <img
               src={formData.image}
               alt="Dream preview"
@@ -666,11 +714,11 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
             </div>
           )}
           
-          {formData.image && (
+          {formData.image && !uploadingImage && (
             <button
               type="button"
-              onClick={onCancel}
-              title="Close"
+              onClick={() => setFormData({ ...formData, image: '' })}
+              title="Remove image"
               className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-netsurit-red"
             >
               <X className="w-4 h-4 text-professional-gray-700" />
@@ -680,7 +728,7 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
 
         {/* Image Upload Options */}
         <div className="grid grid-cols-2 gap-2">
-          <label className="btn-secondary cursor-pointer flex items-center justify-center space-x-2 py-2">
+          <label className={`btn-secondary cursor-pointer flex items-center justify-center space-x-2 py-2 ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <Upload className="w-4 h-4" />
             <span className="text-sm">Upload File</span>
             <input
@@ -688,13 +736,15 @@ const DreamForm = ({ formData, setFormData, onSave, onCancel, onImageUpload, onO
               accept="image/*"
               onChange={onImageUpload}
               className="hidden"
+              disabled={uploadingImage}
             />
           </label>
           
           <button
             type="button"
             onClick={handleStockPhotoSearch}
-            className="btn-secondary flex items-center justify-center space-x-2 py-2"
+            disabled={uploadingImage}
+            className={`btn-secondary flex items-center justify-center space-x-2 py-2 ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Search className="w-4 h-4" />
             <span className="text-sm">Stock Photos</span>

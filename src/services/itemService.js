@@ -32,14 +32,34 @@ class ItemService {
         })
       });
 
+      // Get the response text first to check if it's empty
+      const responseText = await response.text();
+      
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Item saved:', result.id);
-        return ok(result);
+        // Check if response has content before parsing
+        if (!responseText || responseText.trim() === '') {
+          console.error('❌ Empty response from API');
+          return fail(ErrorCodes.SAVE_ERROR, 'Empty response from API');
+        }
+        
+        try {
+          const result = JSON.parse(responseText);
+          console.log('✅ Item saved:', result.id);
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Invalid JSON response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'Invalid JSON response from API');
+        }
       } else {
-        const error = await response.json();
-        console.error('❌ Error saving item:', error);
-        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to save item');
+        // Try to parse error response
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error saving item:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to save item');
+        } catch (parseError) {
+          console.error('❌ Error response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to save item');
+        }
       }
     } catch (error) {
       console.error('❌ Error saving item:', error);
@@ -134,21 +154,78 @@ class ItemService {
         })
       });
 
+      // Get the response text first to check if it's empty
+      const responseText = await response.text();
+      
       if (response.ok) {
-        const result = await response.json();
-        console.log(`✅ Batch saved: ${result.savedCount} items`);
-        if (result.errorCount > 0) {
-          console.warn(`⚠️ ${result.errorCount} items failed to save`);
+        // Check if response has content before parsing
+        if (!responseText || responseText.trim() === '') {
+          console.error('❌ Empty response from API');
+          return fail(ErrorCodes.SAVE_ERROR, 'Empty response from API');
         }
-        return ok(result);
+        
+        try {
+          const result = JSON.parse(responseText);
+          console.log(`✅ Batch saved: ${result.savedCount} items`);
+          if (result.errorCount > 0) {
+            console.warn(`⚠️ ${result.errorCount} items failed to save`);
+          }
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Invalid JSON response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'Invalid JSON response from API');
+        }
       } else {
-        const error = await response.json();
-        console.error('❌ Error batch saving items:', error);
-        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to batch save items');
+        // Try to parse error response
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error batch saving items:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to batch save items');
+        } catch (parseError) {
+          console.error('❌ Error response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to batch save items');
+        }
       }
     } catch (error) {
       console.error('❌ Error batch saving items:', error);
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to batch save items');
+    }
+  }
+
+  /**
+   * Upload a dream picture to blob storage
+   * @param {string} userId - User ID
+   * @param {string} dreamId - Dream ID
+   * @param {File} imageFile - Image file to upload
+   * @returns {Promise<{success: boolean, data?: {url: string}, error?: string}>}
+   */
+  async uploadDreamPicture(userId, dreamId, imageFile) {
+    try {
+      console.log('📸 Uploading dream picture:', { userId, dreamId, fileName: imageFile.name });
+
+      // Read the file as array buffer
+      const arrayBuffer = await imageFile.arrayBuffer();
+      
+      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${userId}/${dreamId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        },
+        body: arrayBuffer
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Dream picture uploaded:', result.url);
+        return ok({ url: result.url });
+      } else {
+        const error = await response.json();
+        console.error('❌ Error uploading dream picture:', error);
+        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to upload dream picture');
+      }
+    } catch (error) {
+      console.error('❌ Error uploading dream picture:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to upload dream picture');
     }
   }
 }
