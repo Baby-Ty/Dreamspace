@@ -74,8 +74,13 @@ module.exports = async function (context, req) {
           throw new Error('Each item must have type and data properties');
         }
 
+        // Ensure id is always a string (Cosmos DB requirement)
+        const itemId = data.id 
+          ? String(data.id) 
+          : `${type}_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         const document = {
-          id: data.id || `${type}_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: itemId,
           userId: userId,
           type: type,
           ...data,

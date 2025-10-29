@@ -60,7 +60,7 @@ function extractItems(userId, userData) {
         type: 'dream',
         data: {
           ...dream,
-          id: dream.id || `dream_${userId}_${timestamp}_${index}`
+          id: dream.id ? String(dream.id) : `dream_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -73,7 +73,7 @@ function extractItems(userId, userData) {
         type: 'weekly_goal',
         data: {
           ...goal,
-          id: goal.id || `weekly_goal_${userId}_${timestamp}_${index}`
+          id: goal.id ? String(goal.id) : `weekly_goal_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -86,7 +86,7 @@ function extractItems(userId, userData) {
         type: 'scoring_entry',
         data: {
           ...entry,
-          id: entry.id || `scoring_entry_${userId}_${timestamp}_${index}`
+          id: entry.id ? String(entry.id) : `scoring_entry_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -99,7 +99,7 @@ function extractItems(userId, userData) {
         type: 'connect',
         data: {
           ...connect,
-          id: connect.id || `connect_${userId}_${timestamp}_${index}`
+          id: connect.id ? String(connect.id) : `connect_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -112,7 +112,7 @@ function extractItems(userId, userData) {
         type: 'career_goal',
         data: {
           ...goal,
-          id: goal.id || `career_goal_${userId}_${timestamp}_${index}`
+          id: goal.id ? String(goal.id) : `career_goal_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -125,7 +125,7 @@ function extractItems(userId, userData) {
         type: 'development_plan',
         data: {
           ...plan,
-          id: plan.id || `development_plan_${userId}_${timestamp}_${index}`
+          id: plan.id ? String(plan.id) : `development_plan_${userId}_${timestamp}_${index}`
         }
       });
     });
@@ -207,8 +207,11 @@ module.exports = async function (context, req) {
       if (items.length > 0) {
         const savedItems = [];
         for (const item of items) {
+          // Ensure id is always a string (Cosmos DB requirement)
+          const itemId = String(item.data.id);
+          
           const document = {
-            id: item.data.id,
+            id: itemId,
             userId: userId,
             type: item.type,
             ...item.data,

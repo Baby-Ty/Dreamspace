@@ -109,9 +109,10 @@ const DreamBook = () => {
     let description = `${item.title} — starter template. Customize goals, dates, and scope to fit your plan.`;
     
     // Create coach-managed consistency milestone (12 weeks by default)
+    const baseId = Date.now();
     let milestones = [
       { 
-        id: Date.now() + 1, 
+        id: `milestone_${baseId}_1`, 
         text: item.title, 
         completed: false, 
         createdAt: nowIso,
@@ -124,21 +125,21 @@ const DreamBook = () => {
       }
     ];
     let notes = [
-      { id: Date.now() + 4, text: 'You can change locations and details in this template.', timestamp: nowIso },
+      { id: `note_${baseId}_1`, text: 'You can change locations and details in this template.', timestamp: nowIso },
     ];
 
     // Specific richer template for Patagonia
     if (item.title === 'Backpack Through Patagonia') {
       description = 'Backpack through Patagonia (Chile & Argentina). Suggested route: Torres del Paine → El Calafate / Perito Moreno → El Chaltén → Bariloche. Tweak locations, dates, and budget to suit you.';
       milestones = [
-        { id: Date.now() + 10, text: 'Pick travel window and budget', completed: false, createdAt: nowIso },
-        { id: Date.now() + 11, text: 'Plan high-level route (Chile ↔ Argentina)', completed: false, createdAt: nowIso },
-        { id: Date.now() + 12, text: 'Book flights (e.g., Punta Arenas / El Calafate)', completed: false, createdAt: nowIso },
-        { id: Date.now() + 13, text: 'Reserve camps/hostels (Torres del Paine, etc.)', completed: false, createdAt: nowIso },
-        { id: Date.now() + 14, text: 'Gear checklist (backpack, layers, boots, rain gear)', completed: false, createdAt: nowIso },
-        { id: Date.now() + 15, text: 'Create packing list and emergency contacts', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_1`, text: 'Pick travel window and budget', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_2`, text: 'Plan high-level route (Chile ↔ Argentina)', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_3`, text: 'Book flights (e.g., Punta Arenas / El Calafate)', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_4`, text: 'Reserve camps/hostels (Torres del Paine, etc.)', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_5`, text: 'Gear checklist (backpack, layers, boots, rain gear)', completed: false, createdAt: nowIso },
+        { id: `milestone_${baseId}_6`, text: 'Create packing list and emergency contacts', completed: false, createdAt: nowIso },
         { 
-          id: Date.now() + 16, 
+          id: `milestone_${baseId}_7`, 
           text: 'Physical prep - consistent cardio for 10 weeks', 
           completed: false, 
           createdAt: nowIso,
@@ -151,8 +152,8 @@ const DreamBook = () => {
         },
       ];
       notes = [
-        { id: Date.now() + 17, text: 'Swap locations freely (e.g., add Ushuaia).', timestamp: nowIso },
-        { id: Date.now() + 18, text: 'Coach tip: Build endurance gradually. Start with 2-3 cardio sessions per week.', timestamp: nowIso, isCoachNote: true },
+        { id: `note_${baseId}_1`, text: 'Swap locations freely (e.g., add Ushuaia).', timestamp: nowIso },
+        { id: `note_${baseId}_2`, text: 'Coach tip: Build endurance gradually. Start with 2-3 cardio sessions per week.', timestamp: nowIso, isCoachNote: true },
       ];
     }
 
@@ -241,7 +242,7 @@ const DreamBook = () => {
   const handleSave = () => {
     if (isCreating) {
       const newDream = {
-        id: Date.now(),
+        id: `dream_${Date.now()}`,
         ...formData,
         progress: 0,
         milestones: [],
@@ -595,7 +596,7 @@ const DreamBook = () => {
                           if (dreams.length >= maxDreams) return;
                           const tpl = buildTemplateFromInspiration(item);
                           const newDream = {
-                            id: Date.now(),
+                            id: `dream_${Date.now()}`,
                             title: item.title,
                             category: tpl.category,
                             description: tpl.description,

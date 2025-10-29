@@ -889,11 +889,12 @@ const VisionBuilderDemo = () => {
     return selections.dreams.map((dream, index) => {
       const milestone = selections.milestones[dream.id];
       const milestones = [];
+      const baseTimestamp = Date.now();
       
       if (milestone) {
         // Create milestone based on the pattern selected
         const milestoneData = {
-          id: Date.now() + index,
+          id: `milestone_${baseTimestamp}_${index}`,
           text: dream.title, // Use dream title as milestone text
           completed: false,
           createdAt: now,
@@ -909,7 +910,7 @@ const VisionBuilderDemo = () => {
       }
       
       return {
-        id: Date.now() + index * 1000,
+        id: `dream_${baseTimestamp}_${index}`,
         title: dream.title,
         category: dream.category,
         description: dream.why || '',

@@ -71,7 +71,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     
     // Add to history
     const historyEntry = {
-      id: Date.now(),
+      id: `history_${Date.now()}`,
       type: 'progress',
       action: `Progress updated to ${newProgress}%`,
       timestamp: new Date().toISOString(),
@@ -96,7 +96,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     if (newMilestone.trim()) {
       const nowIso = new Date().toISOString();
       const milestone = {
-        id: Date.now(),
+        id: `milestone_${Date.now()}`,
         text: newMilestone.trim(),
         completed: false,
         createdAt: nowIso,
@@ -120,7 +120,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       
       // Add to history
       const historyEntry = {
-        id: Date.now(),
+        id: `history_${Date.now()}`,
         type: 'milestone',
         action: `Added milestone: "${milestone.text}"`,
         timestamp: new Date().toISOString()
@@ -168,7 +168,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     
     // Add to history
     const historyEntry = {
-      id: Date.now(),
+      id: `history_${Date.now()}`,
       type: 'milestone',
       action: `${milestone.completed ? 'Uncompleted' : 'Completed'} milestone: "${milestone.text}"`,
       timestamp: new Date().toISOString()
@@ -187,7 +187,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
     
     // Add to history
     const historyEntry = {
-      id: Date.now(),
+      id: `history_${Date.now()}`,
       type: 'milestone',
       action: `Deleted milestone: "${milestone.text}"`,
       timestamp: new Date().toISOString()
@@ -241,7 +241,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
 
     // Add to history
     const historyEntry = {
-      id: Date.now(),
+      id: `history_${Date.now()}`,
       type: 'milestone',
       action: `Updated milestone: "${milestoneEditData.text}"`,
       timestamp: new Date().toISOString()
@@ -256,7 +256,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
   const addNote = () => {
     if (newNote.trim()) {
       const note = {
-        id: Date.now(),
+        id: `note_${Date.now()}`,
         text: newNote.trim(),
         timestamp: new Date().toISOString()
       };
@@ -272,7 +272,7 @@ const DreamTrackerModal = ({ dream, onClose, onUpdate }) => {
       
       // Add to history
       const historyEntry = {
-        id: Date.now(),
+        id: `history_${Date.now()}`,
         type: 'note',
         action: 'Added new note',
         timestamp: new Date().toISOString()

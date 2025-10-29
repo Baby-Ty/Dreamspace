@@ -72,8 +72,13 @@ module.exports = async function (context, req) {
 
   try {
     // Create the item document
+    // Ensure id is always a string (Cosmos DB requirement)
+    const itemId = itemData.id 
+      ? String(itemData.id) 
+      : `${type}_${userId}_${Date.now()}`;
+    
     const document = {
-      id: itemData.id || `${type}_${userId}_${Date.now()}`,
+      id: itemId,
       userId: userId,
       type: type,
       ...itemData,
