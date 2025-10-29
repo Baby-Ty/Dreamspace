@@ -604,16 +604,48 @@ export const AppProvider = ({ children, initialUser }) => {
 
   // Action creators
   const actions = {
-    updateDream: (dream) => {
+    updateDream: async (dream) => {
+      // Save to database first
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Updating dream in database:', dream.id);
+        const result = await itemService.saveItem(userId, 'dream', dream);
+        if (!result.success) {
+          console.error('Failed to update dream in database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
     },
 
-    addDream: (dream) => {
-      dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
+    addDream: async (dream) => {
+      // Save to database first
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Saving dream to database:', dream.id);
+        const result = await itemService.saveItem(userId, 'dream', dream);
+        if (!result.success) {
+          console.error('Failed to save dream to database:', result.error);
+          return;
+        }
+      }
       
+      dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
     },
 
-    deleteDream: (dreamId) => {
+    deleteDream: async (dreamId) => {
+      // Delete from database
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('🗑️ Deleting dream from database:', dreamId);
+        const result = await itemService.deleteItem(userId, dreamId);
+        if (!result.success) {
+          console.error('Failed to delete dream from database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.DELETE_DREAM, payload: dreamId });
     },
 
@@ -802,10 +834,22 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
     },
 
-    updateDreamProgress: (dreamId, newProgress) => {
+    updateDreamProgress: async (dreamId, newProgress) => {
       const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
       if (dream) {
         const updatedDream = { ...dream, progress: newProgress };
+        
+        // Save to database first
+        const userId = state.currentUser?.id;
+        if (userId) {
+          console.log('💾 Updating dream progress in database:', dreamId);
+          const result = await itemService.saveItem(userId, 'dream', updatedDream);
+          if (!result.success) {
+            console.error('Failed to update dream progress in database:', result.error);
+            return;
+          }
+        }
+        
         dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
         
         
