@@ -221,7 +221,7 @@ class DatabaseService {
             console.log('📦 User is on monolithic structure (v1)');
           }
           
-          // Return in the expected format for demo login
+          // Return in the expected format
           return { success: true, data: userData };
         } catch (parseError) {
           console.error('❌ Failed to parse response as JSON:', parseError);

@@ -1,3 +1,5 @@
+import { config } from '../utils/env.js';
+
 // MSAL configuration - improved for better reliability
 // Determine the correct redirect URI based on environment
 const getRedirectUri = () => {
@@ -21,10 +23,21 @@ const getRedirectUri = () => {
   return window.location.origin;
 };
 
+// Get authority URL based on tenant ID from environment
+const getAuthority = () => {
+  const tenantId = import.meta.env.VITE_AZURE_TENANT_ID;
+  if (tenantId) {
+    return `https://login.microsoftonline.com/${tenantId}`;
+  }
+  // Fallback to common for development
+  return 'https://login.microsoftonline.com/common';
+};
+
 export const msalConfig = {
   auth: {
-    clientId: "ebe60b7a-93c9-4b12-8375-4ab3181000e8", // Your Azure client ID
-    authority: "https://login.microsoftonline.com/common", 
+    // Use environment variable or fallback to hardcoded value for backward compatibility
+    clientId: import.meta.env.VITE_AZURE_CLIENT_ID || "ebe60b7a-93c9-4b12-8375-4ab3181000e8",
+    authority: getAuthority(), 
     redirectUri: getRedirectUri(),
     postLogoutRedirectUri: getRedirectUri(),
     navigateToLoginRequestUrl: false, // Avoid redirect loops

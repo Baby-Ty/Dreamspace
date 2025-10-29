@@ -14,12 +14,26 @@ yarn-error.log*
 dist/
 build/
 
-# Environment variables
+# Environment variables - ALL variants
 .env
+.env.*
+!.env.example
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+.env.staging
+.env.staging.local
+
+# Azure local settings (contains secrets)
+local.settings.json
+
+# Environment backup files
+.env.backup
+.env.*.backup
 
 # IDEs
 .vscode/
