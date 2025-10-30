@@ -4,10 +4,25 @@ This guide is for developers who have just cloned the repository and want to set
 
 ## Prerequisites
 
-- ✅ Node.js 20+ installed
-- ✅ Azure Functions Core Tools v4 installed
+### Required
+- ✅ **Node.js 20+** - [Download](https://nodejs.org/)
+- ✅ **Azure Functions Core Tools v4** - Install with:
+  ```powershell
+  npm install -g azure-functions-core-tools@4 --unsafe-perm true
+  ```
+- ✅ **Git repository cloned**
+
+### For Full Access
 - ✅ Access to Azure Portal (for Cosmos DB credentials)
-- ✅ Git repository cloned
+
+### Verify Installation
+```powershell
+node --version    # Should show v20.x or higher
+func --version    # Should show 4.x.x
+npm --version     # Should show 10.x or higher
+```
+
+⚠️ **If `func --version` fails**, see: `QUICK_FIX_FUNC_NOT_FOUND.md`
 
 ## Quick Setup (3 Options)
 
