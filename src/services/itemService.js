@@ -75,9 +75,10 @@ class ItemService {
    */
   async getItems(userId, type = null) {
     try {
+      const encodedUserId = encodeURIComponent(userId);
       const url = type 
-        ? `${this.apiBase}/getItems/${userId}?type=${type}`
-        : `${this.apiBase}/getItems/${userId}`;
+        ? `${this.apiBase}/getItems/${encodedUserId}?type=${encodeURIComponent(type)}`
+        : `${this.apiBase}/getItems/${encodedUserId}`;
 
       console.log('📂 Loading items:', { userId, type: type || 'all' });
 
@@ -111,7 +112,7 @@ class ItemService {
     try {
       console.log('🗑️ Deleting item:', { userId, itemId });
 
-      const response = await fetch(`${this.apiBase}/deleteItem/${itemId}?userId=${userId}`, {
+      const response = await fetch(`${this.apiBase}/deleteItem/${encodeURIComponent(itemId)}?userId=${encodeURIComponent(userId)}`, {
         method: 'DELETE'
       });
 
@@ -206,7 +207,7 @@ class ItemService {
       // Read the file as array buffer
       const arrayBuffer = await imageFile.arrayBuffer();
       
-      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${userId}/${dreamId}`, {
+      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream'

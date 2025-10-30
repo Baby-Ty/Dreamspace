@@ -9,6 +9,16 @@ const base = '/'
 export default defineConfig({
   plugins: [react()],
   base,
+  server: {
+    // Proxy API requests to Azure Functions running locally
+    proxy: {
+      '/api': {
+        target: 'http://localhost:7071',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

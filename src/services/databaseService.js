@@ -143,7 +143,8 @@ class DatabaseService {
     try {
       // The saveUserData endpoint now handles splitting data automatically
       // It detects old format and splits into profile + items
-      const url = `${this.apiBase}/saveUserData/${userId}`;
+      const encodedUserId = encodeURIComponent(userId);
+      const url = `${this.apiBase}/saveUserData/${encodedUserId}`;
       console.log('📡 Saving to:', url);
       
       const response = await fetch(url, {
@@ -197,7 +198,8 @@ class DatabaseService {
     try {
       // The getUserData endpoint handles both old and new formats
       // It returns data in the old format (with arrays) regardless of storage format
-      const url = `${this.apiBase}/getUserData/${userId}`;
+      const encodedUserId = encodeURIComponent(userId);
+      const url = `${this.apiBase}/getUserData/${encodedUserId}`;
       console.log('📡 Fetching from:', url);
       
       const response = await fetch(url);

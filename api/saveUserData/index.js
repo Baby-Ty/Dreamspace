@@ -186,6 +186,57 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // Check if user already exists and what version they're on
+    let existingProfile;
+    try {
+      const { resource } = await usersContainer.item(userId, userId).read();
+      existingProfile = resource;
+    } catch (error) {
+      if (error.code !== 404) {
+        throw error;
+      }
+      // User doesn't exist yet, will create below
+    }
+    
+    // If user is already on v2 OR data already has dataStructureVersion: 2, just update profile
+    const isV2 = existingProfile?.dataStructureVersion === 2 || userData.dataStructureVersion === 2;
+    
+    if (isV2) {
+      context.log('User on v2 architecture, updating profile only (items managed separately)');
+      
+      // Extract profile data without arrays
+      const userProfile = userData.currentUser || userData;
+      const {
+        dreamBook, weeklyGoals, scoringHistory, connects, careerGoals, developmentPlan,
+        isAuthenticated, // Remove this from profile
+        _rid, _self, _etag, _attachments, _ts, // Remove Cosmos metadata
+        ...profileData
+      } = userProfile;
+      
+      const updatedProfile = {
+        ...existingProfile, // Keep existing data
+        ...profileData, // Merge updates
+        id: userId,
+        userId: userId,
+        dataStructureVersion: 2,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      await usersContainer.items.upsert(updatedProfile);
+      context.log('✅ Profile updated (v2), items managed via itemService');
+      
+      context.res = {
+        status: 200,
+        body: JSON.stringify({ 
+          success: true, 
+          id: userId,
+          format: 'v2-profile-only'
+        }),
+        headers
+      };
+      return;
+    }
+    
     // Check if this is old format data that needs to be split
     if (isOldFormat(userData)) {
       context.log('Detected old format data, splitting into profile and items');

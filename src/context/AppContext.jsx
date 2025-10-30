@@ -509,6 +509,12 @@ export const AppProvider = ({ children, initialUser }) => {
 
   // Load persisted data on mount
   const userId = initialUser ? (initialUser.id || initialUser.userId) : null;
+  
+  // DEBUG: Log userId to see if it's email or GUID
+  console.log('🔍 AppContext userId:', userId);
+  console.log('🔍 initialUser.id:', initialUser?.id);
+  console.log('🔍 initialUser.aadObjectId:', initialUser?.aadObjectId);
+  
   useEffect(() => {
     if (!userId) return;
     
@@ -523,25 +529,47 @@ export const AppProvider = ({ children, initialUser }) => {
       const persistedData = await loadUserData(userId);
       console.log('📦 Persisted data loaded:', persistedData);
       
-      if (persistedData && persistedData.currentUser) {
-        console.log('✅ Found persisted data with currentUser, loading...');
-        console.log('📚 Dreams in persisted data:', persistedData.currentUser.dreamBook?.length || 0);
+      // Handle both wrapped and unwrapped data formats
+      let userData = null;
+      let weeklyGoalsData = [];
+      let scoringHistoryData = [];
+      
+      if (persistedData) {
+        // Check if data is wrapped in currentUser (old format)
+        if (persistedData.currentUser) {
+          console.log('📦 Found wrapped data format (currentUser property)');
+          userData = persistedData.currentUser;
+          weeklyGoalsData = persistedData.weeklyGoals || [];
+          scoringHistoryData = persistedData.scoringHistory || [];
+        } 
+        // Check if data is the user object directly (v2 format from Cosmos DB)
+        else if (persistedData.id && persistedData.email) {
+          console.log('📦 Found v2 data format (direct user object)');
+          userData = persistedData;
+          weeklyGoalsData = persistedData.weeklyGoals || [];
+          scoringHistoryData = persistedData.scoringHistory || [];
+        }
+      }
+      
+      if (userData) {
+        console.log('✅ Found persisted user data, loading...');
+        console.log('📚 Dreams in persisted data:', userData.dreamBook?.length || 0);
         
         // Ensure the persisted user data has all required fields
         const migratedUser = {
           ...createEmptyUser(initialUser),
-          ...persistedData.currentUser,
+          ...userData,
           // Ensure arrays exist
-          dreamBook: (persistedData.currentUser && persistedData.currentUser.dreamBook) || [],
-          careerGoals: (persistedData.currentUser && persistedData.currentUser.careerGoals) || [],
-          developmentPlan: (persistedData.currentUser && persistedData.currentUser.developmentPlan) || [],
-          connects: (persistedData.currentUser && persistedData.currentUser.connects) || [],
+          dreamBook: userData.dreamBook || [],
+          careerGoals: userData.careerGoals || [],
+          developmentPlan: userData.developmentPlan || [],
+          connects: userData.connects || [],
           // Use global dreamCategories, not per-user
           dreamCategories: dreamCategories,
           // Ensure career profile exists with proper structure
           careerProfile: {
             ...createEmptyUser().careerProfile,
-            ...(persistedData.currentUser && persistedData.currentUser.careerProfile)
+            ...(userData.careerProfile || {})
           }
         };
         
@@ -550,21 +578,22 @@ export const AppProvider = ({ children, initialUser }) => {
         dispatch({
           type: actionTypes.LOAD_PERSISTED_DATA,
           payload: {
-            ...persistedData,
+            isAuthenticated: true,
             currentUser: migratedUser,
-            weeklyGoals: Array.isArray(persistedData.weeklyGoals) ? persistedData.weeklyGoals : 
-                        (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [])
+            weeklyGoals: Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
+                        (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []),
+            scoringHistory: Array.isArray(scoringHistoryData) ? scoringHistoryData : []
           }
         });
       } else {
-        console.log('ℹ️ No persisted data found or missing currentUser structure');
+        console.log('ℹ️ No persisted data found or missing user structure');
       }
     };
     
     loadData();
   }, [userId]);
 
-  // Save to localStorage whenever state changes (debounced)
+  // Save profile data only (NOT items - those are saved via itemService)
   useEffect(() => {
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -575,20 +604,26 @@ export const AppProvider = ({ children, initialUser }) => {
     saveTimeoutRef.current = setTimeout(() => {
       // Only save if we have a user ID
       if (state.currentUser?.id) {
-        // Prepare data for persistence (exclude static data like dreamCategories)
-        const { dreamCategories: _, ...userDataWithoutCategories } = state.currentUser;
+        // In v2 architecture, we ONLY save profile data here
+        // Items (dreams, goals, etc.) are saved individually via itemService
+        const { 
+          dreamCategories,
+          dreamBook,
+          weeklyGoals: _wg,
+          scoringHistory: _sh,
+          connects,
+          careerGoals,
+          developmentPlan,
+          ...profileData 
+        } = state.currentUser;
+        
         const dataToSave = {
-          isAuthenticated: state.isAuthenticated,
-          currentUser: userDataWithoutCategories,
-          weeklyGoals: state.weeklyGoals,
-          scoringHistory: state.scoringHistory
+          ...profileData,
+          dataStructureVersion: 2, // Mark as v2 so backend knows not to migrate
+          lastUpdated: new Date().toISOString()
         };
         
-        console.log('💾 Saving user data:', {
-          userId: state.currentUser.id,
-          dreamsCount: userDataWithoutCategories.dreamBook?.length || 0,
-          weeklyGoalsCount: state.weeklyGoals?.length || 0
-        });
+        console.log('💾 Saving user profile (v2 - items saved separately via itemService)');
         
         saveUserData(dataToSave, state.currentUser.id);
       }
@@ -600,7 +635,7 @@ export const AppProvider = ({ children, initialUser }) => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [state.isAuthenticated, state.currentUser, state.weeklyGoals, state.scoringHistory]);
+  }, [state.isAuthenticated, state.currentUser.id, state.currentUser.name, state.currentUser.email, state.currentUser.office, state.currentUser.score]);
 
   // Action creators
   const actions = {
