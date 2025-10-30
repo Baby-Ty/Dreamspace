@@ -8,8 +8,24 @@ Write-Host ""
 # Check if local.settings.json exists
 if (-not (Test-Path "api/local.settings.json")) {
     Write-Host "ERROR: api/local.settings.json not found!" -ForegroundColor Red
-    Write-Host "This file contains your Cosmos DB credentials." -ForegroundColor Yellow
-    Write-Host "Please run the setup again or contact support." -ForegroundColor Yellow
+    Write-Host "" 
+    Write-Host "This file contains your Cosmos DB credentials and is not in git (for security)." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "To create it, follow these steps:" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "1. Copy the example file:" -ForegroundColor White
+    Write-Host "   Copy-Item api\local.settings.json.example api\local.settings.json" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "2. Get your Cosmos DB credentials from Azure Portal:" -ForegroundColor White
+    Write-Host "   - Go to: https://portal.azure.com" -ForegroundColor Gray
+    Write-Host "   - Navigate to: cosmos-dreamspace-prod-20251013" -ForegroundColor Gray
+    Write-Host "   - Click 'Keys' in the left menu" -ForegroundColor Gray
+    Write-Host "   - Copy the URI and PRIMARY KEY" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "3. Update api\local.settings.json with your credentials" -ForegroundColor White
+    Write-Host ""
+    Write-Host "For more details, see: LOCAL_DEV_SETUP.md" -ForegroundColor Cyan
+    Write-Host ""
     exit 1
 }
 
