@@ -1,7 +1,7 @@
 const { CosmosClient } = require('@azure/cosmos');
 
 // Initialize Cosmos client only if environment variables are present
-let client, database, usersContainer, itemsContainer;
+let client, database, usersContainer, dreamsContainer;
 if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   client = new CosmosClient({
     endpoint: process.env.COSMOS_ENDPOINT,
@@ -9,7 +9,7 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   });
   database = client.database('dreamspace');
   usersContainer = database.container('users');
-  itemsContainer = database.container('items');
+  dreamsContainer = database.container('dreams');
 }
 
 // Helper to determine if data is in old monolithic format
@@ -17,28 +17,31 @@ function isOldFormat(userData) {
   // Check if data has currentUser wrapper (from AppContext)
   if (userData.currentUser) {
     return !!(userData.currentUser.dreamBook || userData.weeklyGoals || userData.scoringHistory || 
-              userData.currentUser.connects || userData.currentUser.careerGoals || userData.currentUser.developmentPlan);
+              userData.currentUser.connects);
   }
   
   // Check direct properties (legacy format)
   return !!(userData.dreamBook || userData.weeklyGoals || userData.scoringHistory || 
-            userData.connects || userData.careerGoals || userData.developmentPlan);
+            userData.connects);
 }
 
-// Helper to extract profile data (no arrays)
+// Helper to extract profile data (no arrays, no career fields)
 function extractProfile(userData) {
   // If data is wrapped in currentUser, unwrap it
   const userProfile = userData.currentUser || userData;
   
+  // Remove all array fields and career-related fields (6-container architecture)
   const {
-    dreamBook, weeklyGoals, scoringHistory, connects, careerGoals, developmentPlan,
+    dreamBook, weeklyGoals, scoringHistory, connects,
+    careerGoals, developmentPlan, careerProfile, // Career fields removed
     isAuthenticated, // Remove this from profile
     ...profile
   } = userProfile;
   
   return {
     ...profile,
-    dataStructureVersion: 2,
+    dataStructureVersion: 3, // Use v3 for 6-container architecture
+    currentYear: new Date().getFullYear(),
     lastUpdated: new Date().toISOString()
   };
 }
@@ -105,31 +108,8 @@ function extractItems(userId, userData) {
     });
   }
   
-  // Extract career goals
-  if (userProfile.careerGoals && Array.isArray(userProfile.careerGoals)) {
-    userProfile.careerGoals.forEach((goal, index) => {
-      items.push({
-        type: 'career_goal',
-        data: {
-          ...goal,
-          id: goal.id ? String(goal.id) : `career_goal_${userId}_${timestamp}_${index}`
-        }
-      });
-    });
-  }
-  
-  // Extract development plan
-  if (userProfile.developmentPlan && Array.isArray(userProfile.developmentPlan)) {
-    userProfile.developmentPlan.forEach((plan, index) => {
-      items.push({
-        type: 'development_plan',
-        data: {
-          ...plan,
-          id: plan.id ? String(plan.id) : `development_plan_${userId}_${timestamp}_${index}`
-        }
-      });
-    });
-  }
+  // Career goals and development plan removed - not in this version
+  // They would go to their own dedicated containers if re-enabled in future
   
   return items;
 }
@@ -173,7 +153,7 @@ module.exports = async function (context, req) {
   }
 
   // Check if Cosmos DB is configured
-  if (!usersContainer || !itemsContainer) {
+  if (!usersContainer || !dreamsContainer) {
     context.res = {
       status: 500,
       body: JSON.stringify({ 
@@ -198,16 +178,16 @@ module.exports = async function (context, req) {
       // User doesn't exist yet, will create below
     }
     
-    // If user is already on v2 OR data already has dataStructureVersion: 2, just update profile
-    const isV2 = existingProfile?.dataStructureVersion === 2 || userData.dataStructureVersion === 2;
+    // If user is already on v2+ (or v3) OR data has dataStructureVersion >= 2, just update profile
+    const isV2Plus = existingProfile?.dataStructureVersion >= 2 || userData.dataStructureVersion >= 2;
     
-    if (isV2) {
-      context.log('User on v2 architecture, updating profile only (items managed separately)');
+    if (isV2Plus) {
+      context.log('User on v2+ architecture, updating profile only (items managed separately)');
       
-      // Extract profile data without arrays
+      // Extract profile data without arrays (6-container architecture - no career fields)
       const userProfile = userData.currentUser || userData;
       const {
-        dreamBook, weeklyGoals, scoringHistory, connects, careerGoals, developmentPlan,
+        dreamBook, weeklyGoals, scoringHistory, connects,
         isAuthenticated, // Remove this from profile
         _rid, _self, _etag, _attachments, _ts, // Remove Cosmos metadata
         ...profileData
@@ -218,19 +198,28 @@ module.exports = async function (context, req) {
         ...profileData, // Merge updates
         id: userId,
         userId: userId,
-        dataStructureVersion: 2,
+        dataStructureVersion: 3, // Use version 3 for 6-container architecture
+        currentYear: new Date().getFullYear(),
         lastUpdated: new Date().toISOString()
       };
       
+      context.log('💾 WRITE:', {
+        container: 'users',
+        partitionKey: userId,
+        id: updatedProfile.id,
+        operation: 'upsert',
+        dataStructureVersion: 3
+      });
+      
       await usersContainer.items.upsert(updatedProfile);
-      context.log('✅ Profile updated (v2), items managed via itemService');
+      context.log('✅ Profile updated (v3), items managed via dedicated services');
       
       context.res = {
         status: 200,
         body: JSON.stringify({ 
           success: true, 
           id: userId,
-          format: 'v2-profile-only'
+          format: 'v3-profile-only'
         }),
         headers
       };
@@ -245,8 +234,18 @@ module.exports = async function (context, req) {
       const profile = extractProfile(userData);
       profile.id = userId;
       profile.userId = userId;
+      profile.dataStructureVersion = 3; // Set to v3 for 6-container architecture
+      profile.currentYear = new Date().getFullYear();
       
       // Save profile to users container
+      context.log('💾 WRITE:', {
+        container: 'users',
+        partitionKey: userId,
+        id: profile.id,
+        operation: 'upsert',
+        dataStructureVersion: 3
+      });
+      
       const { resource: profileResource } = await usersContainer.items.upsert(profile);
       context.log('Profile saved:', profileResource.id);
       
@@ -254,26 +253,40 @@ module.exports = async function (context, req) {
       const items = extractItems(userId, userData);
       context.log(`Extracted ${items.length} items from user data`);
       
-      // Save items to items container (batch)
+      // Save items to dreams container (only dreams and templates go here now)
       if (items.length > 0) {
         const savedItems = [];
         for (const item of items) {
-          // Ensure id is always a string (Cosmos DB requirement)
-          const itemId = String(item.data.id);
-          
-          const document = {
-            id: itemId,
-            userId: userId,
-            type: item.type,
-            ...item.data,
-            createdAt: item.data.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          
-          const { resource } = await itemsContainer.items.upsert(document);
-          savedItems.push(resource.id);
+          // Only save dreams and templates to dreams container
+          // Other types should use their dedicated containers
+          if (item.type === 'dream' || item.type === 'weekly_goal_template') {
+            // Ensure id is always a string (Cosmos DB requirement)
+            const itemId = String(item.data.id);
+            
+            const document = {
+              id: itemId,
+              userId: userId,
+              type: item.type,
+              ...item.data,
+              createdAt: item.data.createdAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            
+            context.log('💾 WRITE:', {
+              container: 'dreams',
+              partitionKey: userId,
+              id: document.id,
+              operation: 'upsert',
+              type: item.type
+            });
+            
+            const { resource } = await dreamsContainer.items.upsert(document);
+            savedItems.push(resource.id);
+          } else {
+            context.log(`⚠️ Skipping item type ${item.type} - should use dedicated container`);
+          }
         }
-        context.log(`Saved ${savedItems.length} items to items container`);
+        context.log(`Saved ${savedItems.length} items to dreams container`);
       }
       
       context.res = {
@@ -294,9 +307,18 @@ module.exports = async function (context, req) {
         id: userId,
         userId: userId,
         ...userData,
-        dataStructureVersion: userData.dataStructureVersion || 2,
+        dataStructureVersion: userData.dataStructureVersion || 3, // Default to v3 for new saves
+        currentYear: new Date().getFullYear(),
         lastUpdated: new Date().toISOString()
       };
+
+      context.log('💾 WRITE:', {
+        container: 'users',
+        partitionKey: userId,
+        id: document.id,
+        operation: 'upsert',
+        dataStructureVersion: document.dataStructureVersion
+      });
 
       const { resource } = await usersContainer.items.upsert(document);
       

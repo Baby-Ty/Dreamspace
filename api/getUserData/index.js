@@ -1,7 +1,7 @@
 const { CosmosClient } = require('@azure/cosmos');
 
 // Initialize Cosmos client only if environment variables are present
-let client, database, usersContainer, itemsContainer;
+let client, database, usersContainer, dreamsContainer, connectsContainer, scoringContainer;
 if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   client = new CosmosClient({
     endpoint: process.env.COSMOS_ENDPOINT,
@@ -9,15 +9,24 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   });
   database = client.database('dreamspace');
   usersContainer = database.container('users');
-  itemsContainer = database.container('items');
+  dreamsContainer = database.container('dreams');
+  connectsContainer = database.container('connects');
+  scoringContainer = database.container('scoring');
 }
 
-// Helper to check if user is using new 3-container structure
+// Helper to check if user is using new 6-container structure
 function isNewStructure(profile) {
-  return profile && profile.dataStructureVersion === 2;
+  return profile && profile.dataStructureVersion >= 2;
 }
 
-// Helper to migrate old weekLog pattern to new week-specific instances
+// Helper to clean Cosmos metadata from documents
+function cleanCosmosMetadata(doc) {
+  const { _rid, _self, _etag, _attachments, _ts, userId, ...cleanDoc } = doc;
+  // Keep the type field - it's essential for filtering templates vs instances
+  return cleanDoc;
+}
+
+// Helper to migrate old weekLog pattern to new week-specific instances (DEPRECATED - for backward compatibility only)
 async function migrateWeekLogGoals(userId, items, context) {
   const goalsToMigrate = items.filter(item => 
     item.type === 'weekly_goal' && item.weekLog && Object.keys(item.weekLog).length > 0
@@ -179,7 +188,7 @@ module.exports = async function (context, req) {
   }
 
   // Check if Cosmos DB is configured
-  if (!usersContainer || !itemsContainer) {
+  if (!usersContainer || !dreamsContainer) {
     context.res = {
       status: 500,
       body: JSON.stringify({ 
@@ -216,40 +225,218 @@ module.exports = async function (context, req) {
       throw error;
     }
     
-    // Check if user is using new structure
+    // Ensure profile exists and is valid
+    if (!profile || !profile.id) {
+      context.log.error('Profile is null or invalid');
+      context.res = {
+        status: 500,
+        body: JSON.stringify({ error: 'Invalid profile data' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      };
+      return;
+    }
+    
+    // Auto-upgrade v1 users to v3 (6-container architecture)
+    if (!profile.dataStructureVersion || profile.dataStructureVersion < 3) {
+      context.log(`⬆️ Auto-upgrading user from v${profile.dataStructureVersion || 1} to v3`);
+      profile.dataStructureVersion = 3;
+      try {
+        await usersContainer.items.upsert(profile);
+        context.log('✅ User upgraded to v3 6-container architecture');
+      } catch (upgradeError) {
+        context.log.warn('Failed to upgrade user profile:', upgradeError.message);
+      }
+    }
+    
+    // Check if user is using new 6-container structure
     if (isNewStructure(profile)) {
-      context.log('User is using new 3-container structure, loading items');
+      context.log('User is using new 6-container structure, loading from all containers');
       
-      // Load all items for this user
-      const { resources: items } = await itemsContainer.items
-        .query({
+      const currentYear = new Date().getFullYear();
+      const weeksContainer = database.container(`weeks${currentYear}`);
+      
+      // Initialize week document if it doesn't exist
+      const weekDocId = `${userId}_${currentYear}`;
+      let weeksResult;
+      try {
+        weeksResult = await weeksContainer.item(weekDocId, userId).read();
+      } catch (error) {
+        if (error.code === 404) {
+          context.log(`Creating initial week document for ${userId} year ${currentYear}`);
+          // Create empty week document
+          const newWeekDoc = {
+            id: weekDocId,
+            userId: userId,
+            year: currentYear,
+            weeks: {},
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          const { resource } = await weeksContainer.items.create(newWeekDoc);
+          weeksResult = { status: 'fulfilled', value: { resource } };
+          context.log(`✅ Created week document for ${userId}`);
+        } else {
+          throw error;
+        }
+      }
+      
+      // Try to load aggregated dreams document (new format)
+      let dreamsDoc;
+      let needsMigration = false;
+      
+      try {
+        const { resource } = await dreamsContainer.item(userId, userId).read();
+        dreamsDoc = resource;
+        context.log(`✅ Loaded aggregated dreams document for ${userId}`);
+      } catch (error) {
+        if (error.code === 404) {
+          context.log(`No aggregated dreams document found, checking for old format`);
+          needsMigration = true;
+        } else {
+          throw error;
+        }
+      }
+      
+      // Fetch from all containers in parallel
+      const [
+        oldDreamsResult,
+        connectsResult,
+        scoringResult
+      ] = await Promise.allSettled([
+        // 1. Check for old individual documents (for migration)
+        needsMigration ? dreamsContainer.items.query({
           query: 'SELECT * FROM c WHERE c.userId = @userId',
           parameters: [{ name: '@userId', value: userId }]
-        })
-        .fetchAll();
+        }).fetchAll() : Promise.resolve({ resources: [] }),
+        
+        // 2. Connects from connects container
+        connectsContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.userId = @userId ORDER BY c.when DESC',
+          parameters: [{ name: '@userId', value: userId }]
+        }).fetchAll(),
+        
+        // 3. Current year scoring from scoring container
+        scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read()
+      ]);
       
-      context.log(`Loaded ${items.length} items for user`);
+      let dreamBook = [];
+      let templates = [];
       
-      // Migrate old weekLog pattern if found
-      const migratedItems = await migrateWeekLogGoals(userId, items, context);
+      if (dreamsDoc) {
+        // New format - extract from aggregated document
+        // Support both 'dreams' (new) and 'dreamBook' (legacy) field names
+        dreamBook = dreamsDoc.dreams || dreamsDoc.dreamBook || [];
+        templates = dreamsDoc.weeklyGoalTemplates || [];
+        context.log(`Using aggregated format: ${dreamBook.length} dreams, ${templates.length} templates`);
+      } else if (needsMigration && oldDreamsResult.status === 'fulfilled') {
+        // Old format - migrate to new structure
+        const oldItems = oldDreamsResult.value.resources || [];
+        context.log(`Migrating ${oldItems.length} old documents to new format`);
+        
+        dreamBook = oldItems
+          .filter(d => d.type === 'dream')
+          .map(cleanCosmosMetadata);
+        
+        templates = oldItems
+          .filter(d => d.type === 'weekly_goal_template')
+          .map(cleanCosmosMetadata);
+        
+        // Create aggregated document
+        if (dreamBook.length > 0 || templates.length > 0) {
+          const newDreamsDoc = {
+            id: userId,
+            userId: userId,
+            dreamBook: dreamBook,
+            weeklyGoalTemplates: templates,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          try {
+            await dreamsContainer.items.upsert(newDreamsDoc);
+            context.log(`✅ Created aggregated dreams document during migration`);
+            
+            // Delete old individual documents
+            for (const oldDoc of oldItems) {
+              try {
+                await dreamsContainer.item(oldDoc.id, userId).delete();
+                context.log(`Deleted old document: ${oldDoc.id}`);
+              } catch (deleteError) {
+                context.log.warn(`Could not delete old document ${oldDoc.id}:`, deleteError.message);
+              }
+            }
+          } catch (migrationError) {
+            context.log.error(`Migration failed:`, migrationError);
+          }
+        }
+      }
       
-      // Group items by type
-      const grouped = groupItemsByType(migratedItems);
+      // Extract connects
+      const connects = connectsResult.status === 'fulfilled' ? 
+        connectsResult.value.resources.map(cleanCosmosMetadata) : [];
       
-      // Combine profile and items into expected format
+      // Extract and flatten week goals from nested structure
+      let weeklyGoals = [...templates]; // Start with templates
+      
+      // weeksResult is already resolved from the try/catch above
+      if (weeksResult && weeksResult.value && weeksResult.value.resource) {
+        const weekDoc = weeksResult.value.resource;
+        context.log(`Processing week document with ${Object.keys(weekDoc.weeks || {}).length} weeks`);
+        // Flatten nested weeks structure: { "2025-W43": { goals: [...] } } → flat array with weekId
+        Object.entries(weekDoc.weeks || {}).forEach(([weekId, weekData]) => {
+          if (weekData.goals && Array.isArray(weekData.goals)) {
+            weekData.goals.forEach(goal => {
+              weeklyGoals.push({
+                ...goal,
+                type: goal.type || 'weekly_goal', // Ensure type is set for instances
+                weekId: weekId // Add weekId to each goal instance
+              });
+            });
+          }
+        });
+      } else if (weeksResult && weeksResult.status === 'fulfilled' && weeksResult.value.resource) {
+        // Handle Promise.allSettled format
+        const weekDoc = weeksResult.value.resource;
+        Object.entries(weekDoc.weeks || {}).forEach(([weekId, weekData]) => {
+          if (weekData.goals && Array.isArray(weekData.goals)) {
+            weekData.goals.forEach(goal => {
+              weeklyGoals.push({
+                ...goal,
+                type: goal.type || 'weekly_goal',
+                weekId: weekId
+              });
+            });
+          }
+        });
+      }
+      
+      // Extract scoring
+      let scoringHistory = [];
+      let totalScore = profile.score || 0;
+      if (scoringResult.status === 'fulfilled' && scoringResult.value.resource) {
+        const scoringDoc = scoringResult.value.resource;
+        scoringHistory = scoringDoc.entries || [];
+        totalScore = scoringDoc.totalScore || 0;
+      }
+      
+      // Combine into legacy format for backward compatibility
       const { _rid, _self, _etag, _attachments, _ts, lastUpdated, dataStructureVersion, ...cleanProfile } = profile;
       
       const userData = {
         ...cleanProfile,
-        ...grouped,
-        // Preserve arrays as empty if no items
-        dreamBook: grouped.dreamBook,
-        weeklyGoals: grouped.weeklyGoals,
-        scoringHistory: grouped.scoringHistory,
-        connects: grouped.connects,
-        careerGoals: grouped.careerGoals,
-        developmentPlan: grouped.developmentPlan
+        score: totalScore, // Override with score from scoring container
+        dreamBook,
+        weeklyGoals,
+        connects,
+        scoringHistory,
+        careerGoals: [], // Disabled in Phase 1
+        developmentPlan: [] // Disabled in Phase 1
       };
+      
+      context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`);
       
       context.res = {
         status: 200,

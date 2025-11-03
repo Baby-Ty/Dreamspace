@@ -162,6 +162,73 @@ export function getWeekRange(isoWeek) {
   return { start: weekStart, end: weekEnd };
 }
 
+/**
+ * Get next N ISO weeks starting from a given week
+ * @param {string} startWeekIso - Starting ISO week string (e.g., "2025-W43")
+ * @param {number} n - Number of weeks to generate
+ * @returns {string[]} Array of ISO week strings
+ * @example
+ * getNextNWeeks("2025-W43", 3) // ["2025-W43", "2025-W44", "2025-W45"]
+ */
+export function getNextNWeeks(startWeekIso, n) {
+  const weeks = [];
+  const { start } = getWeekRange(startWeekIso);
+  
+  for (let i = 0; i < n; i++) {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + (i * 7));
+    weeks.push(getIsoWeek(currentDate));
+  }
+  
+  return weeks;
+}
+
+/**
+ * Calculate all week ISO strings for a recurring goal template based on its duration settings
+ * @param {Object} template - Goal template with duration settings
+ * @param {string} template.durationType - 'unlimited', 'weeks', or 'milestone'
+ * @param {number} [template.durationWeeks] - Number of weeks (for durationType='weeks')
+ * @param {number} [template.targetMonths] - Number of months (for monthly goals)
+ * @param {string} [template.startDate] - ISO date string when goal starts
+ * @param {string} [template.recurrence] - 'weekly' or 'monthly'
+ * @returns {string[]} Array of ISO week strings where instances should be created
+ * @example
+ * calculateWeekInstancesForDuration({
+ *   durationType: 'weeks',
+ *   durationWeeks: 4,
+ *   startDate: '2025-11-03T00:00:00Z'
+ * }) // ["2025-W45", "2025-W46", "2025-W47", "2025-W48"]
+ */
+export function calculateWeekInstancesForDuration(template) {
+  const startDate = template.startDate ? new Date(template.startDate) : new Date();
+  const startWeek = getIsoWeek(startDate);
+  
+  // Handle different duration types
+  if (template.durationType === 'unlimited') {
+    // For unlimited goals, create instances for next 52 weeks (1 year)
+    return getNextNWeeks(startWeek, 52);
+  }
+  
+  if (template.durationType === 'weeks' && template.durationWeeks) {
+    // Create instances for specific number of weeks
+    return getNextNWeeks(startWeek, template.durationWeeks);
+  }
+  
+  if (template.durationType === 'milestone' || template.recurrence === 'monthly') {
+    // For monthly goals, calculate weeks based on targetMonths
+    if (template.targetMonths) {
+      // Approximate: ~4.33 weeks per month
+      const approximateWeeks = Math.ceil(template.targetMonths * 4.33);
+      return getNextNWeeks(startWeek, approximateWeeks);
+    }
+    // Default to 12 weeks for milestone-based goals
+    return getNextNWeeks(startWeek, 12);
+  }
+  
+  // Default fallback: create for 4 weeks
+  return getNextNWeeks(startWeek, 4);
+}
+
 export const dateUtils = {
   getIsoWeek,
   getCurrentIsoWeek,
@@ -169,6 +236,8 @@ export const dateUtils = {
   computeStreak,
   isMilestoneComplete,
   formatIsoWeek,
-  getWeekRange
+  getWeekRange,
+  getNextNWeeks,
+  calculateWeekInstancesForDuration
 };
 

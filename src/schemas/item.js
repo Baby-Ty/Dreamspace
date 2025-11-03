@@ -41,7 +41,7 @@ export const WeeklyGoalTemplateSchema = ItemBaseSchema.extend({
   dreamId: z.union([z.string(), z.number()]).optional(),
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
-  milestoneId: z.union([z.string(), z.number()]).optional(),
+  goalId: z.union([z.string(), z.number()]).optional(), // Link to goal (not milestone)
   recurrence: z.literal('weekly'),
   active: z.boolean().default(true),
   durationType: z.enum(['unlimited', 'weeks', 'milestone']).optional().default('unlimited'),
@@ -63,7 +63,7 @@ export const WeeklyGoalItemSchema = ItemBaseSchema.extend({
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
   completedAt: z.string().optional(),
-  milestoneId: z.union([z.string(), z.number()]).optional(),
+  goalId: z.union([z.string(), z.number()]).optional(), // Link to goal (not milestone)
   recurrence: z.enum(['weekly', 'once']).default('once'),
   templateId: z.union([z.string(), z.number()]).optional(), // Link to template for recurring goals
   // Legacy support - will be migrated

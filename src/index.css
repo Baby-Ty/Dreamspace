@@ -30,11 +30,15 @@ html, body, #root {
   }
   
   .sidebar-link {
-    @apply flex items-center px-4 py-2.5 text-professional-gray-700 hover:bg-professional-gray-100 hover:text-netsurit-red transition-colors rounded-lg;
+    @apply flex items-center px-4 py-2.5 text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg font-medium;
   }
   
   .sidebar-link.active {
-    @apply bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white hover:from-netsurit-red hover:to-netsurit-orange hover:text-white shadow-md;
+    @apply bg-netsurit-red text-white hover:bg-netsurit-red hover:text-white;
+  }
+  
+  .sidebar-link-disabled {
+    @apply flex items-center px-4 py-2.5 text-slate-400 rounded-lg font-medium cursor-not-allowed opacity-75;
   }
 
   /* Custom slider styling */

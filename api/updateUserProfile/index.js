@@ -73,66 +73,49 @@ module.exports = async function (context, req) {
       // User doesn't exist yet - that's okay, we'll create a new one
     }
 
-    // Create updated document with profile data
+    // Create updated document with ONLY profile data (6-container architecture)
+    // Arrays (dreams, connects, etc.) are stored in separate containers
     const updatedDocument = {
       id: userId,
       userId: userId,
-      // Keep existing data if it exists
-      ...(existingDocument || {}),
-      // Update with new profile data (both at root level and in currentUser for consistency)
+      // Basic profile fields
       name: profileData.displayName || profileData.name || existingDocument?.name || 'Unknown User',
       email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
       office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
       avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
-      // Additional profile fields from edit modal
+      // Additional profile fields
       title: profileData.title || existingDocument?.title || '',
       department: profileData.department || existingDocument?.department || '',
       manager: profileData.manager || existingDocument?.manager || '',
       roles: profileData.roles || existingDocument?.roles || { admin: false, coach: false, employee: true, people: false },
-      
-      // Update currentUser nested structure for consistency with getAllUsers API
-      currentUser: {
-        // Keep existing currentUser data
-        ...(existingDocument?.currentUser || {}),
-        // Update with new profile data
-        name: profileData.displayName || profileData.name || existingDocument?.currentUser?.name || existingDocument?.name || 'Unknown User',
-        email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.currentUser?.email || existingDocument?.email || '',
-        office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.currentUser?.office || existingDocument?.office || 'Remote',
-        avatar: profileData.picture || existingDocument?.currentUser?.avatar || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
-        title: profileData.title || existingDocument?.currentUser?.title || existingDocument?.title || '',
-        department: profileData.department || existingDocument?.currentUser?.department || existingDocument?.department || '',
-        manager: profileData.manager || existingDocument?.currentUser?.manager || existingDocument?.manager || '',
-        roles: profileData.roles || existingDocument?.currentUser?.roles || existingDocument?.roles || { admin: false, coach: false, employee: true, people: false },
-        // Keep existing currentUser fields
-        score: existingDocument?.currentUser?.score || existingDocument?.score || 0,
-        dreamBook: existingDocument?.currentUser?.dreamBook || existingDocument?.dreamBook || [],
-        dreamsCount: existingDocument?.currentUser?.dreamsCount || existingDocument?.dreamsCount || 0,
-        connectsCount: existingDocument?.currentUser?.connectsCount || existingDocument?.connectsCount || 0,
-        dreamCategories: existingDocument?.currentUser?.dreamCategories || existingDocument?.dreamCategories || [],
-        careerGoals: existingDocument?.currentUser?.careerGoals || existingDocument?.careerGoals || [],
-        connects: existingDocument?.currentUser?.connects || existingDocument?.connects || [],
-        lastUpdated: new Date().toISOString()
-      },
-      
-      // Initialize default fields if they don't exist
-      dreamBook: existingDocument?.dreamBook || [],
-      careerGoals: existingDocument?.careerGoals || [],
-      developmentPlan: existingDocument?.developmentPlan || [],
+      // Aggregates (no arrays, just counts)
       score: existingDocument?.score || 0,
-      connects: existingDocument?.connects || [],
-      dreamCategories: existingDocument?.dreamCategories || [],
       dreamsCount: existingDocument?.dreamsCount || 0,
       connectsCount: existingDocument?.connectsCount || 0,
+      weeksActiveCount: existingDocument?.weeksActiveCount || 0,
+      // Current year for convenience
+      currentYear: new Date().getFullYear(),
+      // Structure version
+      dataStructureVersion: 3,
+      // Metadata
       role: existingDocument?.role || 'user',
       isActive: existingDocument?.isActive !== false,
+      createdAt: existingDocument?.createdAt || new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
       profileUpdated: new Date().toISOString()
     };
 
+    context.log('💾 WRITE:', {
+      container: 'users',
+      partitionKey: userId,
+      id: updatedDocument.id,
+      operation: 'upsert',
+      dataStructureVersion: updatedDocument.dataStructureVersion
+    });
+    
     const { resource } = await container.items.upsert(updatedDocument);
     
-    context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name);
-    context.log('Updated office fields - root office:', resource.office, 'currentUser.office:', resource.currentUser?.office);
+    context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion);
     
     context.res = {
       status: 200,

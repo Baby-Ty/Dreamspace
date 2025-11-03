@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle, Sparkles } from 'lucide-react';
+import { BookOpen, Users, Trophy, Calendar, CheckCircle2, Circle, Clock, Plus, X, HelpCircle, Sparkles, Repeat } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DreamTrackerModal from '../components/DreamTrackerModal';
 import { getCurrentIsoWeek } from '../utils/dateUtils';
+import weekService from '../services/weekService';
 import GuideModal from '../components/GuideModal';
+import { isTemplateActiveForWeek } from '../utils/templateValidation';
 
 const Dashboard = () => {
   const { currentUser, weeklyGoals, toggleWeeklyGoal, addWeeklyGoal, updateDream } = useApp();
@@ -16,16 +18,128 @@ const Dashboard = () => {
   const [newGoal, setNewGoal] = useState({
     title: '',
     description: '',
-    dreamId: ''
+    dreamId: '',
+    recurrence: 'weekly',
+    targetWeeks: 12,
+    targetMonths: 6
   });
   const [selectedDream, setSelectedDream] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [currentWeekGoals, setCurrentWeekGoals] = useState([]);
+  const [isLoadingWeekGoals, setIsLoadingWeekGoals] = useState(true);
+
+  // Load current week's goals from weeks container
+  useEffect(() => {
+    const loadCurrentWeekGoals = async () => {
+      if (!currentUser?.id) return;
+      
+      setIsLoadingWeekGoals(true);
+      const currentWeekIso = getCurrentIsoWeek();
+      const currentYear = new Date().getFullYear();
+      
+      try {
+        console.log('📅 Dashboard: Loading current week goals for', currentWeekIso);
+        const weekDocResult = await weekService.getWeekGoals(currentUser.id, currentYear);
+        
+        if (weekDocResult.success && weekDocResult.data?.weeks?.[currentWeekIso]) {
+          const goals = weekDocResult.data.weeks[currentWeekIso].goals || [];
+          console.log('✅ Dashboard: Loaded', goals.length, 'goals for current week');
+          setCurrentWeekGoals(goals);
+        } else {
+          console.log('ℹ️ Dashboard: No goals found for current week');
+          setCurrentWeekGoals([]);
+        }
+      } catch (error) {
+        console.error('❌ Dashboard: Error loading week goals:', error);
+        setCurrentWeekGoals([]);
+      } finally {
+        setIsLoadingWeekGoals(false);
+      }
+    };
+    
+    loadCurrentWeekGoals();
+  }, [currentUser?.id]);
+
+  // Refresh goals when a goal is toggled
+  const handleToggleGoal = async (goalId) => {
+    const goal = currentWeekGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    // Update locally first for instant feedback
+    const updatedGoals = currentWeekGoals.map(g => 
+      g.id === goalId 
+        ? { ...g, completed: !g.completed, completedAt: !g.completed ? new Date().toISOString() : null }
+        : g
+    );
+    setCurrentWeekGoals(updatedGoals);
+    
+    // Save to backend
+    const currentWeekIso = getCurrentIsoWeek();
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      await weekService.saveWeekGoals(currentUser.id, currentYear, currentWeekIso, updatedGoals);
+      console.log('✅ Goal toggled:', goalId);
+    } catch (error) {
+      console.error('❌ Failed to toggle goal:', error);
+      // Revert on error
+      setCurrentWeekGoals(currentWeekGoals);
+    }
+  };
   
   const stats = {
     dreamsCreated: currentUser.dreamBook.length,
     connectsCompleted: currentUser.connects.length,
     scorecardPoints: currentUser.score
   };
+
+  // Auto-create current week instances from templates on mount
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    
+    const currentWeekIso = getCurrentIsoWeek();
+    const allTemplates = safeWeeklyGoals.filter(g => 
+      g.type === 'weekly_goal_template'
+    );
+    
+    // Get milestones for validation
+    const milestones = currentUser?.dreamBook
+      ?.flatMap(dream => dream.milestones || []) || [];
+    
+    // Filter valid templates for current week
+    const validTemplates = allTemplates.filter(template => {
+      const milestone = template.milestoneId 
+        ? milestones.find(m => m.id === template.milestoneId)
+        : null;
+      return isTemplateActiveForWeek(template, currentWeekIso, milestone);
+    });
+    
+    // Check each valid template and create instance if it doesn't exist
+    validTemplates.forEach(template => {
+      const instanceExists = safeWeeklyGoals.some(g => 
+        g.templateId === template.id && g.weekId === currentWeekIso
+      );
+      
+      if (!instanceExists) {
+        // Create instance for current week
+        const instance = {
+          id: `${template.id}_${currentWeekIso}`,
+          type: 'weekly_goal',
+          templateId: template.id,
+          title: template.title,
+          description: template.description,
+          dreamId: template.dreamId,
+          dreamTitle: template.dreamTitle,
+          dreamCategory: template.dreamCategory,
+          milestoneId: template.milestoneId,
+          weekId: currentWeekIso,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        addWeeklyGoal(instance);
+      }
+    });
+  }, [currentUser?.id, safeWeeklyGoals.length]);
 
   // Get current week range
   const getCurrentWeekRange = () => {
@@ -43,50 +157,93 @@ const Dashboard = () => {
     return `${formatDate(startOfWeek)} – ${formatDate(endOfWeek)}`;
   };
 
-  // Calculate weekly progress
-  const weeklyProgress = safeWeeklyGoals.length > 0 
-    ? Math.round((safeWeeklyGoals.filter(goal => goal.completed).length / safeWeeklyGoals.length) * 100)
+  // Calculate weekly progress for current week only
+  const weeklyProgress = currentWeekGoals.length > 0 
+    ? Math.round((currentWeekGoals.filter(goal => goal.completed).length / currentWeekGoals.length) * 100)
     : 0;
 
   // Handle adding new goal
-  const handleAddGoal = (e) => {
+  const handleAddGoal = async (e) => {
     e.preventDefault();
     if (newGoal.title.trim()) {
       // Convert dreamId to number for comparison (select returns string)
       const dreamId = newGoal.dreamId ? parseInt(newGoal.dreamId, 10) : null;
       const selectedDream = currentUser.dreamBook.find(dream => dream.id === dreamId);
       
-      const goalData = {
-        title: newGoal.title,
-        description: newGoal.description,
+      const currentWeekIso = getCurrentIsoWeek();
+      const templateId = `template_${Date.now()}`;
+      
+      // Create template for recurring goals (weekly/monthly)
+      const template = {
+        id: templateId,
+        type: 'weekly_goal_template',
+        title: newGoal.title.trim(),
+        description: newGoal.description.trim(),
         dreamId: dreamId,
-        completed: false,
-        createdAt: new Date().toISOString(),
-        weekId: getCurrentIsoWeek(),  // CRITICAL: Must use weekId, not week
-        recurrence: 'once'  // One-time goal for current week
+        dreamTitle: selectedDream?.title || '',
+        dreamCategory: selectedDream?.category || '',
+        recurrence: newGoal.recurrence,
+        active: true,
+        durationType: 'unlimited',
+        targetWeeks: newGoal.recurrence === 'weekly' ? newGoal.targetWeeks : undefined,
+        targetMonths: newGoal.recurrence === 'monthly' ? newGoal.targetMonths : undefined,
+        startDate: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
-
-      // Only add dream-specific data if a dream was actually selected
-      if (selectedDream) {
-        goalData.dreamTitle = selectedDream.title;
-        goalData.dreamCategory = selectedDream.category;
-      }
-
-      addWeeklyGoal(goalData);
-      setNewGoal({ title: '', description: '', dreamId: '' });
+      
+      // Save template
+      addWeeklyGoal(template);
+      
+      // Create instance for current week
+      const instance = {
+        id: `${templateId}_${currentWeekIso}`,
+        type: 'weekly_goal',
+        templateId: templateId,
+        title: template.title,
+        description: template.description,
+        dreamId: template.dreamId,
+        dreamTitle: template.dreamTitle,
+        dreamCategory: template.dreamCategory,
+        recurrence: template.recurrence,
+        weekId: currentWeekIso,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      addWeeklyGoal(instance);
+      
+      // Reset form
+      setNewGoal({ 
+        title: '', 
+        description: '', 
+        dreamId: '',
+        recurrence: 'weekly',
+        targetWeeks: 12,
+        targetMonths: 6
+      });
       setShowAddGoal(false);
+      
+      // Reload current week goals to show the new goal
+      window.location.reload();
     }
   };
 
   const handleCancelAddGoal = () => {
-    setNewGoal({ title: '', description: '', dreamId: '' });
+    setNewGoal({ 
+      title: '', 
+      description: '', 
+      dreamId: '',
+      recurrence: 'weekly',
+      targetWeeks: 12,
+      targetMonths: 6
+    });
     setShowAddGoal(false);
   };
 
 
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4 sm:space-y-5">
       {/* Enhanced Header with Stats */}
       <div className="mb-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -193,7 +350,7 @@ const Dashboard = () => {
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 text-center">
                 <span className="text-base font-bold text-professional-gray-800">
-                  {safeWeeklyGoals.filter(g => g.completed).length} of {safeWeeklyGoals.length} goals completed
+                  {currentWeekGoals.filter(g => g.completed).length} of {currentWeekGoals.length} goals completed
                   {weeklyProgress === 100 && <span className="ml-2 text-xl">🎉</span>}
                 </span>
               </div>
@@ -202,7 +359,7 @@ const Dashboard = () => {
 
           {/* Weekly Goals List */}
            <div className="flex-1 p-4 sm:p-5 overflow-hidden">
-            {safeWeeklyGoals.length === 0 && !showAddGoal ? (
+            {currentWeekGoals.length === 0 && !showAddGoal ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <div className="p-4 bg-professional-gray-100 rounded-full w-fit mx-auto mb-4 shadow-lg">
@@ -269,6 +426,63 @@ const Dashboard = () => {
                         </option>
                       ))}
                     </select>
+                    
+                    {/* Consistency Picker */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-professional-gray-700">How often?</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewGoal({ ...newGoal, recurrence: 'weekly' })}
+                          className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                            newGoal.recurrence === 'weekly'
+                              ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
+                              : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 hover:shadow-sm border-2 border-professional-gray-300'
+                          }`}
+                        >
+                          <Repeat className="w-4 h-4 mr-1.5" />
+                          <span>Weekly</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewGoal({ ...newGoal, recurrence: 'monthly' })}
+                          className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                            newGoal.recurrence === 'monthly'
+                              ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
+                              : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 hover:shadow-sm border-2 border-professional-gray-300'
+                          }`}
+                        >
+                          <Calendar className="w-4 h-4 mr-1.5" />
+                          <span>Monthly</span>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Duration Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-professional-gray-700">
+                        {newGoal.recurrence === 'monthly' ? 'Track for how many months?' : 'Track for how many weeks?'}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={newGoal.recurrence === 'monthly' ? 24 : 52}
+                        value={newGoal.recurrence === 'monthly' ? newGoal.targetMonths : newGoal.targetWeeks}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || (newGoal.recurrence === 'monthly' ? 6 : 12);
+                          setNewGoal({ 
+                            ...newGoal, 
+                            ...(newGoal.recurrence === 'monthly' 
+                              ? { targetMonths: value }
+                              : { targetWeeks: value })
+                          });
+                        }}
+                        className="w-32 px-4 py-3 border border-professional-gray-300 rounded-xl focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-lg font-semibold"
+                      />
+                      <p className="text-xs text-professional-gray-500">
+                        {newGoal.recurrence === 'monthly' ? 'Default: 6 months' : 'Default: 12 weeks'}
+                      </p>
+                    </div>
                     <div className="flex space-x-3">
                       <button
                         type="submit"
@@ -289,7 +503,7 @@ const Dashboard = () => {
 
                 {/* Goals List */}
                 <div className="flex-1 space-y-5 overflow-y-auto pr-2">
-                  {safeWeeklyGoals.map((goal) => (
+                  {currentWeekGoals.map((goal) => (
                     <div key={goal.id} className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg transform hover:scale-[1.02] ${
                       goal.completed 
                         ? 'bg-professional-gray-50 border-professional-gray-300 shadow-md' 
@@ -297,7 +511,7 @@ const Dashboard = () => {
                     }`}>
                       <div className="flex items-start space-x-5">
                         <button
-                          onClick={() => toggleWeeklyGoal(goal.id)}
+                          onClick={() => handleToggleGoal(goal.id)}
                           className="flex-shrink-0 mt-1 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full p-2 transition-all duration-200 hover:scale-110"
                           aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
                         >
@@ -329,7 +543,16 @@ const Dashboard = () => {
                               {goal.dreamTitle}
                             </div>
                           )}
-                          {!goal.dreamTitle && (
+                          {goal.goalTitle && !goal.dreamTitle && (
+                            <div className={`mt-3 px-3 py-1 rounded-full text-sm font-semibold w-fit ${
+                              goal.completed 
+                                ? 'bg-netsurit-light-coral/20 text-netsurit-red/70' 
+                                : 'bg-netsurit-light-coral/30 text-netsurit-red'
+                            }`}>
+                              📌 {goal.goalTitle}
+                            </div>
+                          )}
+                          {!goal.dreamTitle && !goal.goalTitle && (
                             <div className={`mt-3 px-3 py-1 rounded-full text-sm font-semibold w-fit ${
                               goal.completed 
                                 ? 'bg-netsurit-light-coral/20 text-netsurit-red/70' 
@@ -344,7 +567,7 @@ const Dashboard = () => {
                   ))}
 
                   {/* Add Goal Button (when goals exist) */}
-                  {safeWeeklyGoals.length > 0 && !showAddGoal && (
+                  {currentWeekGoals.length > 0 && !showAddGoal && (
                     <button
                       onClick={() => setShowAddGoal(true)}
                       className="w-full p-8 rounded-2xl border-3 border-dashed border-professional-gray-300 hover:border-netsurit-red hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-300 text-center group hover:shadow-lg transform hover:scale-[1.02]"

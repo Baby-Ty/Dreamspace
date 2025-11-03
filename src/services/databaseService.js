@@ -48,10 +48,10 @@ class DatabaseService {
   }
 
   /**
-   * Check if user is on new structure (v2)
+   * Check if user is on new structure (v2+)
    */
   isNewStructure(userData) {
-    return userData?.dataStructureVersion === 2;
+    return userData?.dataStructureVersion >= 2;
   }
 
   // Save user data
@@ -215,10 +215,13 @@ class DatabaseService {
         try {
           const userData = JSON.parse(responseText);
           console.log('✅ Data loaded from Cosmos DB for user:', userId);
+          console.log('📊 Dreams count:', userData.dreamBook?.length || 0);
+          console.log('📋 Weekly goals count:', userData.weeklyGoals?.length || 0);
+          console.log('🔗 Connects count:', userData.connects?.length || 0);
           
           // Check if data structure version is indicated
-          if (userData.dataStructureVersion === 2) {
-            console.log('📦 User is on 3-container structure (v2)');
+          if (userData.dataStructureVersion >= 2) {
+            console.log(`📦 User is on modern container structure (v${userData.dataStructureVersion})`);
           } else {
             console.log('📦 User is on monolithic structure (v1)');
           }

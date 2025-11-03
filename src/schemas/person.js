@@ -30,7 +30,7 @@ export const WeeklyGoalSchema = z.object({
   createdAt: z.string().optional(),
   completedAt: z.string().optional(),
   // Recurring goal fields
-  milestoneId: z.union([z.string(), z.number()]).optional(), // Link to milestone
+  goalId: z.union([z.string(), z.number()]).optional(), // Link to goal (not milestone)
   recurrence: z.enum(['weekly', 'once']).optional().default('once'),
   weekLog: z.record(z.boolean()).optional().default({}), // ISO week keys (e.g., "2025-W41": true)
   active: z.boolean().optional().default(true)

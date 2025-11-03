@@ -194,6 +194,61 @@ class ItemService {
   }
 
   /**
+   * Save dreams document (one document per user with dreams array)
+   * @param {string} userId - User ID
+   * @param {Array} dreams - Array of dreams with goals
+   * @param {Array} weeklyGoalTemplates - Array of goal templates (optional)
+   * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+   */
+  async saveDreams(userId, dreams, weeklyGoalTemplates = []) {
+    try {
+      console.log('💾 Saving dreams document:', { userId, dreamsCount: dreams.length, templatesCount: weeklyGoalTemplates.length });
+
+      const response = await fetch(`${this.apiBase}/saveDreams`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          dreams,
+          weeklyGoalTemplates
+        })
+      });
+
+      const responseText = await response.text();
+      
+      if (response.ok) {
+        if (!responseText || responseText.trim() === '') {
+          console.error('❌ Empty response from API');
+          return fail(ErrorCodes.SAVE_ERROR, 'Empty response from API');
+        }
+        
+        try {
+          const result = JSON.parse(responseText);
+          console.log('✅ Dreams document saved');
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Invalid JSON response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'Invalid JSON response from API');
+        }
+      } else {
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error saving dreams document:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to save dreams document');
+        } catch (parseError) {
+          console.error('❌ Error response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to save dreams document');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error saving dreams document:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save dreams document');
+    }
+  }
+
+  /**
    * Upload a dream picture to blob storage
    * @param {string} userId - User ID
    * @param {string} dreamId - Dream ID

@@ -11,51 +11,36 @@ import {
   LogOut,
   Star,
   Calendar,
-  Briefcase,
   Users2,
   UserCog
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';
+import QuoteDisplay from './QuoteDisplay';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { user, userRole, logout } = useAuth();
 
-  // Core navigation items (available to all users)
-  const coreNavigation = [
+  // Active navigation items (pilot scope)
+  const activeNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Week Ahead', href: '/dreams-week-ahead', icon: Calendar },
-    { name: 'Dream Connect', href: '/dream-connect', icon: Users },
-    { name: 'Career Book', href: '/career-book', icon: Briefcase },
-    { name: 'Scorecard', href: '/scorecard', icon: Trophy },
   ];
 
-  // Role-specific navigation items (displayed separately at bottom)
-  const roleNavigation = [
-    { name: 'Dream Coach', href: '/dream-coach', icon: Users2, roleLabel: 'Coach' },
+  // Coming soon items (visible but disabled)
+  const comingSoonNavigation = [
+    { name: 'Dream Connect', icon: Users },
+    { name: 'Scorecard', icon: Trophy },
+    { name: 'Dream Coach', icon: Users2 },
+  ];
+
+  // Bottom navigation (visible to all until RBAC is implemented)
+  const bottomNavigation = [
     { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
   ];
-
-  // TEMPORARILY DISABLED: Add role-specific navigation (RBAC will be re-enabled later)
-  // All users can now see coaching and admin pages for development/testing
-  // ADMIN PAGE TEMPORARILY HIDDEN
-  // roleNavigation.push({ name: 'Admin', href: '/admin', icon: Settings, roleLabel: 'Admin' });
-  
-  // Original RBAC logic (commented out for now):
-  // if (userRole === 'coach' || userRole === 'manager' || userRole === 'admin') {
-  //   roleNavigation.push({ name: 'Dream Coach', href: '/dream-coach', icon: Users2, roleLabel: 'Coach' });
-  // }
-  // 
-  // if (userRole === 'manager' || userRole === 'admin') {
-  //   roleNavigation.push({ name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' });
-  // }
-  // 
-  // if (userRole === 'admin') {
-  //   roleNavigation.push({ name: 'Admin', href: '/admin', icon: Settings, roleLabel: 'Admin' });
-  // }
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -104,9 +89,9 @@ const Layout = ({ children }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-5 space-y-1.5">
-            {/* Core navigation items */}
-            {coreNavigation.map((item) => {
+          <nav className="px-4 py-5 space-y-1">
+            {/* Active navigation items */}
+            {activeNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -121,31 +106,64 @@ const Layout = ({ children }) => {
               );
             })}
 
-            {/* Divider */}
-            <div className="pt-3.5 pb-2.5">
-              <div className="border-t border-gray-200"></div>
-            </div>
+            {/* Coming Soon Section */}
+            {comingSoonNavigation.length > 0 && (
+              <>
+                <div className="pt-4 pb-2">
+                  <div className="border-t border-gray-200"></div>
+                </div>
+                <div className="px-3 py-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Coming Soon
+                  </p>
+                </div>
+                {comingSoonNavigation.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.name}
+                      className="sidebar-link-disabled"
+                    >
+                      <Icon className="w-5 h-5 mr-3" />
+                      <span className="flex-1">{item.name}</span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
 
-            {/* Role-specific navigation items */}
-            {roleNavigation.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`sidebar-link pl-3 ${active ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Icon className="w-5 h-5 mr-3" />
-                  <span className="flex-1">{item.name}</span>
-                  <span className={`text-xs ${active ? 'text-white' : 'text-gray-500'}`}>
-                    {item.roleLabel}
-                  </span>
-                </Link>
-              );
-            })}
+            {/* Bottom Navigation */}
+            {bottomNavigation.length > 0 && (
+              <>
+                <div className="pt-4 pb-2">
+                  <div className="border-t border-gray-200"></div>
+                </div>
+                {bottomNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`sidebar-link ${active ? 'active' : ''}`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <Icon className="w-5 h-5 mr-3" />
+                      <span className="flex-1">{item.name}</span>
+                      {item.roleLabel && (
+                        <span className={`text-xs ${active ? 'text-white/80' : 'text-slate-500'}`}>
+                          {item.roleLabel}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
+
+          {/* Inspirational Quote */}
+          <QuoteDisplay />
 
           {/* User profile */}
           <div className="p-4 border-t border-gray-200">

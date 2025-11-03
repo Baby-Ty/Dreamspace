@@ -2,7 +2,11 @@ import React, { createContext, useContext, useReducer, useEffect, useRef } from 
 import { dreamCategories, scoringRules } from '../data/mockData';
 import databaseService from '../services/databaseService';
 import itemService from '../services/itemService';
+import connectService from '../services/connectService';
+import weekService from '../services/weekService';
+import scoringService from '../services/scoringService';
 import { getCurrentIsoWeek, computeStreak, isMilestoneComplete } from '../utils/dateUtils';
+import { checkAndDeactivateExpiredTemplates } from '../utils/templateValidation';
 
 // Create the context
 const AppContext = createContext();
@@ -28,14 +32,7 @@ const actionTypes = {
   LOAD_PERSISTED_DATA: 'LOAD_PERSISTED_DATA',
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
-  UPDATE_CAREER_GOAL: 'UPDATE_CAREER_GOAL',
-  UPDATE_DEVELOPMENT_PLAN: 'UPDATE_DEVELOPMENT_PLAN',
-  UPDATE_CAREER_PROFILE: 'UPDATE_CAREER_PROFILE',
-  ADD_CAREER_HIGHLIGHT: 'ADD_CAREER_HIGHLIGHT',
-  UPDATE_SKILL: 'UPDATE_SKILL',
-  ADD_SKILL: 'ADD_SKILL',
-  ADD_CAREER_GOAL: 'ADD_CAREER_GOAL',
-  ADD_DEVELOPMENT_PLAN: 'ADD_DEVELOPMENT_PLAN'
+  // Career-related action types removed - not in this version
 };
 
 // Create empty user template for real users
@@ -47,38 +44,13 @@ const createEmptyUser = (userInfo = {}) => ({
   office: userInfo.office || '',
   avatar: userInfo.avatar || '',
   dreamBook: userInfo.dreamBook || [],
-  careerGoals: userInfo.careerGoals || [],
-  developmentPlan: userInfo.developmentPlan || [],
   score: userInfo.score || 0,
   connects: userInfo.connects || [],
   // Use global dreamCategories - don't store per user
   dreamCategories: dreamCategories,
   dreamsCount: userInfo.dreamsCount || 0,
-  connectsCount: userInfo.connectsCount || 0,
-  careerProfile: userInfo.careerProfile || {
-    currentRole: {
-      jobTitle: '',
-      department: '',
-      startDate: '',
-      location: ''
-    },
-    aspirations: {
-      desiredJobTitle: '',
-      preferredDepartment: '',
-      interestedInRelocation: false,
-      preferredGeography: ''
-    },
-    preferences: {
-      wantToDo: [],
-      dontWantToDo: [],
-      motivators: []
-    },
-    careerHighlights: [],
-    skills: {
-      technical: [],
-      soft: []
-    }
-  }
+  connectsCount: userInfo.connectsCount || 0
+  // Career fields removed - not in this version
 });
 
 // Initial state
@@ -120,44 +92,14 @@ const appReducer = (state, action) => {
 
     case actionTypes.ADD_DREAM:
       const newDream = action.payload;
-      const newWeeklyGoals = [];
       
-      // Auto-create TEMPLATES ONLY for consistency milestones
-      // Week instances created on-demand when user views that week
-      if (newDream.milestones && Array.isArray(newDream.milestones)) {
-        newDream.milestones.forEach(milestone => {
-          if (milestone.type === 'consistency' && !milestone.completed) {
-            const templateId = `goal_milestone_${milestone.id}_${Date.now()}`;
-            const nowIso = new Date().toISOString();
-            
-            const template = {
-              id: templateId,
-              type: 'weekly_goal_template',
-              title: newDream.title,
-              description: `Track progress for ${milestone.text}`,
-              dreamId: newDream.id,
-              dreamTitle: newDream.title,
-              dreamCategory: newDream.category,
-              milestoneId: milestone.id,
-              recurrence: 'weekly',
-              active: true,
-              durationType: 'unlimited',
-              startDate: nowIso,
-              createdAt: nowIso
-            };
-            
-            newWeeklyGoals.push(template);
-          }
-        });
-      }
-      
+      // Goals are tracked directly by goalId - no templates needed
       return {
         ...state,
         currentUser: {
           ...state.currentUser,
           dreamBook: [...state.currentUser.dreamBook, newDream]
-        },
-        weeklyGoals: [...state.weeklyGoals, ...newWeeklyGoals]
+        }
       };
 
     case actionTypes.DELETE_DREAM:
@@ -281,35 +223,10 @@ const appReducer = (state, action) => {
         };
       }
 
+    // UPDATE_MILESTONE_STREAK is deprecated - goals track completion directly now
     case actionTypes.UPDATE_MILESTONE_STREAK:
-      const { dreamId, milestoneId: mId, newStreak } = action.payload;
-      const updatedDreamsWithStreak = state.currentUser.dreamBook.map(dream => {
-        if (dream.id === dreamId) {
-          const updatedMilestones = dream.milestones.map(milestone => {
-            if (milestone.id === mId) {
-              const isComplete = isMilestoneComplete(
-                { ...milestone, streakWeeks: newStreak },
-                dream.progress
-              );
-              return {
-                ...milestone,
-                streakWeeks: newStreak,
-                completed: isComplete
-              };
-            }
-            return milestone;
-          });
-          return { ...dream, milestones: updatedMilestones };
-        }
-        return dream;
-      });
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          dreamBook: updatedDreamsWithStreak
-        }
-      };
+      console.warn('UPDATE_MILESTONE_STREAK is deprecated - goals track completion directly');
+      return state;
 
     case actionTypes.SET_SCORING_HISTORY:
       return {
@@ -335,106 +252,7 @@ const appReducer = (state, action) => {
         isAuthenticated: false
       };
 
-    case actionTypes.UPDATE_CAREER_GOAL:
-      const updatedCareerGoals = state.currentUser.careerGoals.map(goal =>
-        goal.id === action.payload.id ? action.payload : goal
-      );
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerGoals: updatedCareerGoals
-        }
-      };
-
-    case actionTypes.UPDATE_DEVELOPMENT_PLAN:
-      const updatedDevelopmentPlan = state.currentUser.developmentPlan.map(item =>
-        item.id === action.payload.id ? action.payload : item
-      );
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          developmentPlan: updatedDevelopmentPlan
-        }
-      };
-
-    case actionTypes.UPDATE_CAREER_PROFILE:
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerProfile: {
-            ...state.currentUser.careerProfile,
-            ...action.payload
-          }
-        }
-      };
-
-    case actionTypes.ADD_CAREER_HIGHLIGHT:
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerProfile: {
-            ...state.currentUser.careerProfile,
-            careerHighlights: [...state.currentUser.careerProfile.careerHighlights, action.payload]
-          }
-        }
-      };
-
-    case actionTypes.UPDATE_SKILL:
-      const { skillType, skillIndex, skillData } = action.payload;
-      const updatedSkills = [...state.currentUser.careerProfile.skills[skillType]];
-      updatedSkills[skillIndex] = skillData;
-      
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerProfile: {
-            ...state.currentUser.careerProfile,
-            skills: {
-              ...state.currentUser.careerProfile.skills,
-              [skillType]: updatedSkills
-            }
-          }
-        }
-      };
-
-    case actionTypes.ADD_SKILL:
-      const { skillType: newSkillType, skill } = action.payload;
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerProfile: {
-            ...state.currentUser.careerProfile,
-            skills: {
-              ...state.currentUser.careerProfile.skills,
-              [newSkillType]: [...state.currentUser.careerProfile.skills[newSkillType], skill]
-            }
-          }
-        }
-      };
-
-    case actionTypes.ADD_CAREER_GOAL:
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          careerGoals: [...state.currentUser.careerGoals, action.payload]
-        }
-      };
-
-    case actionTypes.ADD_DEVELOPMENT_PLAN:
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          developmentPlan: [...state.currentUser.developmentPlan, action.payload]
-        }
-      };
+    // Career-related reducer cases removed - not in this version
 
     default:
       return state;
@@ -481,18 +299,13 @@ export const AppProvider = ({ children, initialUser }) => {
     ...initialUser,
     // Ensure arrays exist
     dreamBook: initialUser.dreamBook || [],
-    careerGoals: initialUser.careerGoals || [],
-    developmentPlan: initialUser.developmentPlan || [],
     score: initialUser.score || 0,
     connects: initialUser.connects || [],
     // Use global dreamCategories instead of per-user categories
     dreamCategories: dreamCategories,
     dreamsCount: initialUser.dreamsCount || 0,
-    connectsCount: initialUser.connectsCount || 0,
-    careerProfile: {
-      ...createEmptyUser().careerProfile,
-      ...initialUser.careerProfile
-    }
+    connectsCount: initialUser.connectsCount || 0
+    // Career fields removed - not in this version
   } : null;
 
   const initialStateWithUser = {
@@ -501,6 +314,24 @@ export const AppProvider = ({ children, initialUser }) => {
     weeklyGoals: Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [],
     isAuthenticated: !!initialUser
   };
+  
+  // Log weekly goals loading for debugging
+  console.log('🔍 AppContext initialUser:', {
+    hasDreamBook: !!initialUser?.dreamBook,
+    dreamBookLength: initialUser?.dreamBook?.length || 0,
+    hasWeeklyGoals: !!initialUser?.weeklyGoals,
+    weeklyGoalsLength: initialUser?.weeklyGoals?.length || 0,
+    dataVersion: initialUser?.dataStructureVersion
+  });
+  
+  if (initialUser?.weeklyGoals && initialUser.weeklyGoals.length > 0) {
+    console.log('✅ AppContext: Loaded', initialUser.weeklyGoals.length, 'weekly goals/templates from initialUser');
+    const templates = initialUser.weeklyGoals.filter(g => g.type === 'weekly_goal_template');
+    const instances = initialUser.weeklyGoals.filter(g => g.type === 'weekly_goal');
+    console.log('📋 AppContext: Found', templates.length, 'templates and', instances.length, 'instances');
+  } else {
+    console.log('⚠️ AppContext: No weekly goals in initialUser');
+  }
 
   const [state, dispatch] = useReducer(appReducer, initialStateWithUser);
   
@@ -554,6 +385,7 @@ export const AppProvider = ({ children, initialUser }) => {
       if (userData) {
         console.log('✅ Found persisted user data, loading...');
         console.log('📚 Dreams in persisted data:', userData.dreamBook?.length || 0);
+        console.log('📋 Weekly goals in persisted data:', weeklyGoalsData.length || 0);
         
         // Ensure the persisted user data has all required fields
         const migratedUser = {
@@ -561,27 +393,24 @@ export const AppProvider = ({ children, initialUser }) => {
           ...userData,
           // Ensure arrays exist
           dreamBook: userData.dreamBook || [],
-          careerGoals: userData.careerGoals || [],
-          developmentPlan: userData.developmentPlan || [],
           connects: userData.connects || [],
           // Use global dreamCategories, not per-user
-          dreamCategories: dreamCategories,
-          // Ensure career profile exists with proper structure
-          careerProfile: {
-            ...createEmptyUser().careerProfile,
-            ...(userData.careerProfile || {})
-          }
+          dreamCategories: dreamCategories
+          // Career fields removed - not in this version
         };
         
         console.log('📚 Dreams after migration:', migratedUser.dreamBook?.length || 0);
+        
+        const finalWeeklyGoals = Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
+                                 (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []);
+        console.log('📋 Loading', finalWeeklyGoals.length, 'weekly goals into state');
         
         dispatch({
           type: actionTypes.LOAD_PERSISTED_DATA,
           payload: {
             isAuthenticated: true,
             currentUser: migratedUser,
-            weeklyGoals: Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
-                        (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []),
+            weeklyGoals: finalWeeklyGoals,
             scoringHistory: Array.isArray(scoringHistoryData) ? scoringHistoryData : []
           }
         });
@@ -602,9 +431,10 @@ export const AppProvider = ({ children, initialUser }) => {
     
     // Set new timeout for debounced save
     saveTimeoutRef.current = setTimeout(() => {
-      // Only save if we have a user ID
-      if (state.currentUser?.id) {
-        // In v2 architecture, we ONLY save profile data here
+      // Only save if we have a user ID AND the user has been loaded from database
+      // Skip save if this is a fresh load (dataStructureVersion will be set by AuthContext initial save)
+      if (state.currentUser?.id && state.currentUser?.dataStructureVersion) {
+        // In v2+ architecture, we ONLY save profile data here
         // Items (dreams, goals, etc.) are saved individually via itemService
         const { 
           dreamCategories,
@@ -619,13 +449,15 @@ export const AppProvider = ({ children, initialUser }) => {
         
         const dataToSave = {
           ...profileData,
-          dataStructureVersion: 2, // Mark as v2 so backend knows not to migrate
+          dataStructureVersion: profileData.dataStructureVersion || 2, // Preserve existing version
           lastUpdated: new Date().toISOString()
         };
         
-        console.log('💾 Saving user profile (v2 - items saved separately via itemService)');
+        console.log('💾 Saving user profile (v2+ - items saved separately via itemService)');
         
         saveUserData(dataToSave, state.currentUser.id);
+      } else if (state.currentUser?.id && !state.currentUser?.dataStructureVersion) {
+        console.log('⏭️  Skipping auto-save for new user (already saved by AuthContext)');
       }
     }, 300); // 300ms debounce
     
@@ -637,51 +469,239 @@ export const AppProvider = ({ children, initialUser }) => {
     };
   }, [state.isAuthenticated, state.currentUser.id, state.currentUser.name, state.currentUser.email, state.currentUser.office, state.currentUser.score]);
 
+  // Helper function to create templates from dream goals
+  const createTemplatesFromDreamGoals = (dream) => {
+    if (!dream.goals || dream.goals.length === 0) {
+      return [];
+    }
+    
+    const templates = [];
+    
+    dream.goals.forEach(goal => {
+      // Only create templates for consistency type goals
+      if (goal.type === 'consistency' && goal.active !== false) {
+        const template = {
+          id: `template_${goal.id}`,
+          type: 'weekly_goal_template',
+          title: goal.title || dream.title,
+          description: goal.description || '',
+          dreamId: dream.id,
+          dreamTitle: dream.title,
+          dreamCategory: dream.category,
+          goalId: goal.id, // Link back to the goal in the dream
+          recurrence: goal.recurrence || 'weekly',
+          durationType: goal.recurrence === 'monthly' ? 'months' : 'weeks',
+          durationWeeks: goal.targetWeeks || (goal.targetMonths ? goal.targetMonths * 4 : 12),
+          durationMonths: goal.targetMonths,
+          startDate: goal.startDate || new Date().toISOString(),
+          active: true,
+          createdAt: goal.createdAt || new Date().toISOString()
+        };
+        
+        templates.push(template);
+        console.log(`📋 Created template for goal "${goal.title}"`);
+      }
+    });
+    
+    return templates;
+  };
+
   // Action creators
   const actions = {
     updateDream: async (dream) => {
-      // Save to database first
+      // Update local state first
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
+      
+      // Save entire dreams array to database (one doc per user)
       const userId = state.currentUser?.id;
       if (userId) {
-        console.log('💾 Updating dream in database:', dream.id);
-        const result = await itemService.saveItem(userId, 'dream', dream);
+        console.log('💾 Saving dreams document after update:', dream.id);
+        
+        // Get updated dreamBook from state (after dispatch)
+        const updatedDreams = state.currentUser.dreamBook.map(d => 
+          d.id === dream.id ? dream : d
+        );
+        
+        // Create templates for any NEW consistency goals in this dream
+        const templates = createTemplatesFromDreamGoals(dream);
+        console.log(`📋 Creating ${templates.length} templates for updated dream "${dream.title}"`);
+        
+        // Save dreams with templates
+        const result = await itemService.saveDreams(userId, updatedDreams, templates);
         if (!result.success) {
-          console.error('Failed to update dream in database:', result.error);
+          console.error('Failed to save dreams document:', result.error);
           return;
         }
+        
+        // Add new templates to local state so they're immediately available
+        templates.forEach(template => {
+          // Check if template already exists to avoid duplicates
+          const existingTemplate = state.weeklyGoals.find(g => g.id === template.id);
+          if (!existingTemplate) {
+            dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: template });
+          }
+        });
+        
+        // Bulk instantiate templates across all applicable weeks
+        if (templates.length > 0) {
+          console.log(`🔄 Bulk instantiating ${templates.length} new templates across applicable weeks...`);
+          const currentYear = new Date().getFullYear();
+          const bulkResult = await weekService.bulkInstantiateTemplates(
+            userId,
+            currentYear,
+            templates
+          );
+          
+          if (bulkResult.success) {
+            console.log(`✅ Created instances for ${bulkResult.data.weeksCreated} weeks (${bulkResult.data.instancesCreated} total instances)`);
+          } else {
+            console.warn('⚠️ Bulk instantiation failed:', bulkResult.error);
+          }
+        }
       }
-      
-      dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
     },
 
     addDream: async (dream) => {
-      // Save to database first
+      // Add to local state first
+      dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
+      
+      // Save entire dreams array to database (one doc per user)
       const userId = state.currentUser?.id;
       if (userId) {
-        console.log('💾 Saving dream to database:', dream.id);
-        const result = await itemService.saveItem(userId, 'dream', dream);
+        console.log('💾 Saving dreams document with new dream:', dream.id);
+        
+        // Get updated dreamBook from state (after dispatch)
+        const updatedDreams = [...state.currentUser.dreamBook, dream];
+        
+        // Create templates for any consistency goals in this dream
+        const templates = createTemplatesFromDreamGoals(dream);
+        console.log(`📋 Creating ${templates.length} templates for dream "${dream.title}"`);
+        
+        // Save dreams with templates
+        const result = await itemService.saveDreams(userId, updatedDreams, templates);
         if (!result.success) {
-          console.error('Failed to save dream to database:', result.error);
+          console.error('Failed to save dreams document:', result.error);
           return;
         }
+        
+        // Add templates to local state so they're immediately available
+        templates.forEach(template => {
+          dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: template });
+        });
+        
+        // Bulk instantiate templates across all applicable weeks
+        if (templates.length > 0) {
+          console.log(`🔄 Bulk instantiating ${templates.length} new templates across applicable weeks...`);
+          const bulkYear = new Date().getFullYear();
+          const bulkResult = await weekService.bulkInstantiateTemplates(
+            userId,
+            bulkYear,
+            templates
+          );
+          
+          if (bulkResult.success) {
+            console.log(`✅ Created instances for ${bulkResult.data.weeksCreated} weeks (${bulkResult.data.instancesCreated} total instances)`);
+          } else {
+            console.warn('⚠️ Bulk instantiation failed:', bulkResult.error);
+          }
+        }
+        
+        // Add scoring entry for new dream
+        const currentYear = new Date().getFullYear();
+        const points = scoringService.calculateDreamScoring(dream);
+        const entry = scoringService.createScoringEntry(
+          'dream',
+          points,
+          `Added dream: "${dream.title}"`,
+          { dreamId: dream.id }
+        );
+        
+        await scoringService.addScoringEntry(userId, currentYear, entry);
+        dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
+        
+        const newScore = state.currentUser.score + points;
+        dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
       }
-      
-      dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
     },
 
     deleteDream: async (dreamId) => {
-      // Delete from database
       const userId = state.currentUser?.id;
-      if (userId) {
-        console.log('🗑️ Deleting dream from database:', dreamId);
-        const result = await itemService.deleteItem(userId, dreamId);
-        if (!result.success) {
-          console.error('Failed to delete dream from database:', result.error);
-          return;
+      if (!userId) return;
+      
+      console.log('🗑️ Deleting dream and all associated goals:', dreamId);
+      
+      // Get updated dreamBook BEFORE dispatch (state hasn't updated yet)
+      const updatedDreams = state.currentUser.dreamBook.filter(d => d.id !== dreamId);
+      
+      // Find all templates associated with this dream
+      const templatesForDream = state.weeklyGoals.filter(g => 
+        g.type === 'weekly_goal_template' && g.dreamId === dreamId
+      );
+      const templateIds = templatesForDream.map(t => t.id);
+      
+      console.log(`Found ${templatesForDream.length} templates to delete:`, templateIds);
+      
+      // Find all week instances created from these templates
+      const instancesToDelete = state.weeklyGoals.filter(g => 
+        g.type === 'weekly_goal' && templateIds.includes(g.templateId)
+      );
+      
+      console.log(`Found ${instancesToDelete.length} week instances to delete`);
+      
+      // Delete from local state first
+      dispatch({ type: actionTypes.DELETE_DREAM, payload: dreamId });
+      
+      // Delete all templates from local state
+      templatesForDream.forEach(template => {
+        dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: template.id });
+      });
+      
+      // Delete all instances from local state
+      instancesToDelete.forEach(instance => {
+        dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: instance.id });
+      });
+      
+      // Get remaining templates (excluding ones from deleted dream)
+      const remainingTemplates = state.weeklyGoals.filter(g => 
+        g.type === 'weekly_goal_template' && g.dreamId !== dreamId
+      );
+      
+      // Save updated dreams array to database (one doc per user, without templates from this dream)
+      const result = await itemService.saveDreams(userId, updatedDreams, remainingTemplates);
+      if (!result.success) {
+        console.error('Failed to save dreams document after delete:', result.error);
+        return;
+      }
+      
+      // Delete all week instances from weeks containers (grouped by week)
+      const instancesByWeek = {};
+      instancesToDelete.forEach(instance => {
+        if (!instancesByWeek[instance.weekId]) {
+          instancesByWeek[instance.weekId] = [];
+        }
+        instancesByWeek[instance.weekId].push(instance.id);
+      });
+      
+      // For each week, remove the deleted instances
+      for (const [weekId, instanceIds] of Object.entries(instancesByWeek)) {
+        const year = parseInt(weekId.split('-')[0]);
+        
+        // Get all goals for this week EXCEPT the ones being deleted
+        const remainingGoalsForWeek = state.weeklyGoals.filter(g => 
+          g.weekId === weekId && 
+          g.type !== 'weekly_goal_template' && 
+          !instanceIds.includes(g.id)
+        );
+        
+        console.log(`Updating ${weekId}: removing ${instanceIds.length} goals, keeping ${remainingGoalsForWeek.length}`);
+        
+        const weekResult = await weekService.saveWeekGoals(userId, year, weekId, remainingGoalsForWeek);
+        if (!weekResult.success) {
+          console.error(`Failed to update ${weekId} after deleting goals:`, weekResult.error);
         }
       }
       
-      dispatch({ type: actionTypes.DELETE_DREAM, payload: dreamId });
+      console.log(`✅ Dream deleted with ${templatesForDream.length} templates and ${instancesToDelete.length} week instances`);
     },
 
     reorderDreams: (fromIndex, toIndex) => {
@@ -693,63 +713,222 @@ export const AppProvider = ({ children, initialUser }) => {
     },
 
     addWeeklyGoal: async (goalData) => {
-      // Validate weekId is present for week instances (but not templates)
-      if (goalData.type !== 'weekly_goal_template' && !goalData.weekId) {
-        console.error('weekId is required for weekly goal instances (non-template)');
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      // Determine if this is a template or instance
+      if (goalData.type === 'weekly_goal_template' || goalData.recurrence === 'weekly') {
+        // Template - save to dreams document
+        const template = {
+          id: goalData.id || `template_${Date.now()}`,
+          ...goalData,
+          type: 'weekly_goal_template',
+          createdAt: goalData.createdAt || new Date().toISOString()
+        };
+        
+        // Update local state first
+        dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: template });
+        
+        console.log('💾 Saving template to dreams document:', template.id);
+        
+        // Get all templates (including the new one we just added)
+        const allTemplates = [...state.weeklyGoals.filter(g => g.type === 'weekly_goal_template'), template];
+        
+        // Get all dreams
+        const allDreams = state.currentUser.dreamBook || [];
+        
+        // Save entire dreams document with all dreams and templates
+        const result = await itemService.saveDreams(userId, allDreams, allTemplates);
+        if (!result.success) {
+          console.error('Failed to save dreams document:', result.error);
+          return;
+        }
+        
+        // Bulk instantiate the new template across all applicable weeks
+        console.log('🔄 Bulk instantiating new template across applicable weeks...');
+        const currentYear = new Date().getFullYear();
+        const bulkResult = await weekService.bulkInstantiateTemplates(
+          userId,
+          currentYear,
+          [template] // Just instantiate the new template
+        );
+        
+        if (bulkResult.success) {
+          console.log(`✅ Created instances for ${bulkResult.data.weeksCreated} weeks (${bulkResult.data.instancesCreated} total instances)`);
+        } else {
+          console.warn('⚠️ Bulk instantiation failed:', bulkResult.error);
+        }
+      } else {
+        // Save instance to weeks container
+        if (!goalData.weekId) {
+          console.error('weekId is required for weekly goal instances');
+          return;
+        }
+        
+        const goal = {
+          id: goalData.id || `goal_${Date.now()}`,
+          ...goalData,
+          completed: goalData.completed !== undefined ? goalData.completed : false,
+          createdAt: goalData.createdAt || new Date().toISOString()
+        };
+        
+        // Extract year from weekId (e.g., "2025-W43" -> 2025)
+        const year = parseInt(goalData.weekId.split('-')[0]);
+        
+        console.log('💾 Saving goal to weeks container:', goal.id, goalData.weekId);
+        const result = await weekService.saveWeekGoals(userId, year, goalData.weekId, [goal]);
+        if (!result.success) {
+          console.error('Failed to save goal to weeks container:', result.error);
+          return;
+        }
+        
+        dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: { ...goal, weekId: goalData.weekId }});
+      }
+    },
+
+    addWeeklyGoalsBatch: async (goalsArray) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      if (!Array.isArray(goalsArray) || goalsArray.length === 0) {
+        console.error('addWeeklyGoalsBatch requires a non-empty array of goals');
         return;
       }
       
-      const goal = {
-        id: goalData.id || `goal_${Date.now()}`,
-        ...goalData,
-        type: goalData.type || 'weekly_goal',
-        completed: goalData.completed !== undefined ? goalData.completed : false,
-        createdAt: goalData.createdAt || new Date().toISOString()
-      };
+      console.log(`💾 Batch saving ${goalsArray.length} week goal instances`);
       
-      // Save to database first
-      const userId = state.currentUser?.id;
-      if (userId) {
-        console.log('💾 Saving goal to database:', goal.id, goal.type);
-        const result = await itemService.saveItem(userId, goal.type, goal);
+      // Group goals by weekId and year
+      const goalsByWeekAndYear = {};
+      
+      for (const goalData of goalsArray) {
+        if (!goalData.weekId) {
+          console.error('weekId is required for batch goal instances');
+          continue;
+        }
+        
+        const goal = {
+          id: goalData.id || `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          ...goalData,
+          completed: goalData.completed !== undefined ? goalData.completed : false,
+          createdAt: goalData.createdAt || new Date().toISOString()
+        };
+        
+        const year = parseInt(goalData.weekId.split('-')[0]);
+        const key = `${year}_${goalData.weekId}`;
+        
+        if (!goalsByWeekAndYear[key]) {
+          goalsByWeekAndYear[key] = { year, weekId: goalData.weekId, goals: [] };
+        }
+        
+        goalsByWeekAndYear[key].goals.push(goal);
+        
+        // Update local state
+        dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: { ...goal, weekId: goalData.weekId }});
+      }
+      
+      // Save each week's goals in a single API call
+      for (const [key, data] of Object.entries(goalsByWeekAndYear)) {
+        const { year, weekId, goals } = data;
+        console.log(`💾 Saving ${goals.length} goals to ${weekId}`);
+        
+        const result = await weekService.saveWeekGoals(userId, year, weekId, goals);
         if (!result.success) {
-          console.error('Failed to save goal to database:', result.error);
-          return;
+          console.error(`Failed to save goals for ${weekId}:`, result.error);
         }
       }
       
-      dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: goal });
+      console.log(`✅ Batch save complete: ${goalsArray.length} goals across ${Object.keys(goalsByWeekAndYear).length} weeks`);
     },
 
     updateWeeklyGoal: async (goal) => {
-      // Save to database
       const userId = state.currentUser?.id;
-      if (userId) {
-        console.log('💾 Updating goal in database:', goal.id);
-        const goalType = goal.type || 'weekly_goal';
-        const result = await itemService.saveItem(userId, goalType, goal);
+      if (!userId) return;
+      
+      // Update local state first
+      dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: goal });
+      
+      // Determine if this is a template or instance
+      if (goal.type === 'weekly_goal_template') {
+        // Template - save to dreams document
+        console.log('💾 Updating template in dreams document:', goal.id);
+        
+        // Get all templates (with the updated one from state)
+        const allTemplates = state.weeklyGoals
+          .filter(g => g.type === 'weekly_goal_template')
+          .map(g => g.id === goal.id ? goal : g);
+        
+        // Get all dreams
+        const allDreams = state.currentUser.dreamBook || [];
+        
+        // Save entire dreams document with all dreams and templates
+        const result = await itemService.saveDreams(userId, allDreams, allTemplates);
         if (!result.success) {
-          console.error('Failed to update goal in database:', result.error);
+          console.error('Failed to save dreams document:', result.error);
+          return;
+        }
+      } else if (goal.weekId) {
+        // Instance - save to weeks container
+        const year = parseInt(goal.weekId.split('-')[0]);
+        
+        // Get all goals for this week and update the specific one
+        const weekGoals = state.weeklyGoals.filter(g => g.weekId === goal.weekId && g.type !== 'weekly_goal_template');
+        const updatedWeekGoals = weekGoals.map(g => g.id === goal.id ? goal : g);
+        
+        console.log('💾 Updating goal in weeks container:', goal.id, goal.weekId);
+        const result = await weekService.saveWeekGoals(userId, year, goal.weekId, updatedWeekGoals);
+        if (!result.success) {
+          console.error('Failed to update goal in weeks container:', result.error);
           return;
         }
       }
-      
-      dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: goal });
     },
 
     deleteWeeklyGoal: async (goalId) => {
-      // Delete from database
       const userId = state.currentUser?.id;
-      if (userId) {
-        console.log('🗑️ Deleting goal from database:', goalId);
-        const result = await itemService.deleteItem(userId, goalId);
+      if (!userId) return;
+      
+      // Find the goal to determine if it's a template or instance
+      const goal = state.weeklyGoals.find(g => g.id === goalId);
+      if (!goal) {
+        console.error('Goal not found:', goalId);
+        return;
+      }
+      
+      // Update local state first
+      dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goalId });
+      
+      if (goal.type === 'weekly_goal_template') {
+        // Template - save dreams document without this template
+        console.log('🗑️ Deleting template from dreams document:', goalId);
+        
+        // Get all templates except the one being deleted
+        const remainingTemplates = state.weeklyGoals.filter(g => 
+          g.type === 'weekly_goal_template' && g.id !== goalId
+        );
+        
+        // Get all dreams
+        const allDreams = state.currentUser.dreamBook || [];
+        
+        // Save entire dreams document without the deleted template
+        const result = await itemService.saveDreams(userId, allDreams, remainingTemplates);
         if (!result.success) {
-          console.error('Failed to delete goal from database:', result.error);
+          console.error('Failed to save dreams document after delete:', result.error);
+          return;
+        }
+      } else if (goal.weekId) {
+        // Instance - save to weeks container without this goal
+        const year = parseInt(goal.weekId.split('-')[0]);
+        const updatedWeekGoals = state.weeklyGoals.filter(g => 
+          g.weekId === goal.weekId && g.type !== 'weekly_goal_template' && g.id !== goalId
+        );
+        
+        console.log('🗑️ Deleting goal instance from weeks container:', goalId);
+        const result = await weekService.saveWeekGoals(userId, year, goal.weekId, updatedWeekGoals);
+        if (!result.success) {
+          console.error('Failed to save week goals after delete:', result.error);
           return;
         }
       }
-      
-      dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goalId });
     },
 
     toggleWeeklyGoal: async (goalId) => {
@@ -760,17 +939,127 @@ export const AppProvider = ({ children, initialUser }) => {
         return;
       }
       
-      const updatedGoal = { ...goal, completed: !goal.completed };
-      
-      // Save to database
       const userId = state.currentUser?.id;
-      if (userId) {
-        console.log('💾 Toggling goal in database:', goalId, 'completed:', updatedGoal.completed);
-        const goalType = goal.type || 'weekly_goal';
-        const result = await itemService.saveItem(userId, goalType, updatedGoal);
+      if (!userId) return;
+      
+      // If it's a template, we need to work with the instance for current week
+      if (goal.type === 'weekly_goal_template') {
+        const currentWeekIso = getCurrentIsoWeek();
+        
+        // Find or create instance for current week
+        let instance = state.weeklyGoals.find(g => 
+          g.templateId === goal.id && g.weekId === currentWeekIso
+        );
+        
+        if (!instance) {
+          // Create new instance for this week
+          instance = {
+            id: `${goal.id}_${currentWeekIso}`,
+            type: 'weekly_goal',
+            templateId: goal.id,
+            title: goal.title,
+            description: goal.description,
+            dreamId: goal.dreamId,
+            dreamTitle: goal.dreamTitle,
+            dreamCategory: goal.dreamCategory,
+            goalId: goal.goalId,
+            weekId: currentWeekIso,
+            completed: true, // Mark as complete
+            completedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+          };
+          
+          console.log('✅ Creating new instance from template for current week:', currentWeekIso);
+          dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: instance });
+        } else {
+          // Toggle existing instance
+          const updatedInstance = {
+            ...instance,
+            completed: !instance.completed,
+            completedAt: !instance.completed ? new Date().toISOString() : undefined
+          };
+          
+          console.log('🔄 Toggling existing instance for week:', currentWeekIso);
+          dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: updatedInstance });
+          instance = updatedInstance;
+        }
+        
+        // Save the instance to weeks container
+        const year = parseInt(currentWeekIso.split('-')[0]);
+        const weekGoals = state.weeklyGoals.filter(g => 
+          g.weekId === currentWeekIso && g.type !== 'weekly_goal_template'
+        );
+        
+        // Add or update the instance in the list
+        const instanceExists = weekGoals.some(g => g.id === instance.id);
+        const updatedWeekGoals = instanceExists
+          ? weekGoals.map(g => g.id === instance.id ? instance : g)
+          : [...weekGoals, instance];
+        
+        console.log('💾 Saving instance to weeks container:', currentWeekIso, instance.id);
+        const result = await weekService.saveWeekGoals(userId, year, currentWeekIso, updatedWeekGoals);
         if (!result.success) {
-          console.error('Failed to toggle goal in database:', result.error);
+          console.error('Failed to save week goals:', result.error);
           return;
+        }
+        
+        // If goal was just completed, add scoring
+        if (instance.completed) {
+          const currentYear = new Date().getFullYear();
+          const points = scoringService.calculateWeekScoring(instance);
+          const entry = scoringService.createScoringEntry(
+            'week',
+            points,
+            `Completed: "${instance.title}"`,
+            { weekId: currentWeekIso, dreamId: instance.dreamId }
+          );
+          
+          await scoringService.addScoringEntry(userId, currentYear, entry);
+          dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
+          
+          const newScore = state.currentUser.score + points;
+          dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
+        }
+        
+      } else if (goal.weekId) {
+        // Regular instance - existing logic works fine
+        const updatedGoal = {
+          ...goal,
+          completed: !goal.completed,
+          completedAt: !goal.completed ? new Date().toISOString() : undefined
+        };
+        
+        dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: updatedGoal });
+        
+        const year = parseInt(goal.weekId.split('-')[0]);
+        const weekGoals = state.weeklyGoals.filter(g => 
+          g.weekId === goal.weekId && g.type !== 'weekly_goal_template'
+        );
+        const updatedWeekGoals = weekGoals.map(g => g.id === goalId ? updatedGoal : g);
+        
+        console.log('💾 Updating goal in weeks container:', goalId, goal.weekId);
+        const result = await weekService.saveWeekGoals(userId, year, goal.weekId, updatedWeekGoals);
+        if (!result.success) {
+          console.error('Failed to update goal in weeks container:', result.error);
+          return;
+        }
+        
+        // If goal was just completed, add scoring
+        if (updatedGoal.completed) {
+          const currentYear = new Date().getFullYear();
+          const points = scoringService.calculateWeekScoring(updatedGoal);
+          const entry = scoringService.createScoringEntry(
+            'week',
+            points,
+            `Completed: "${updatedGoal.title}"`,
+            { weekId: goal.weekId, dreamId: updatedGoal.dreamId }
+          );
+          
+          await scoringService.addScoringEntry(userId, currentYear, entry);
+          dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
+          
+          const newScore = state.currentUser.score + points;
+          dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
         }
       }
       
@@ -783,36 +1072,42 @@ export const AppProvider = ({ children, initialUser }) => {
         payload: { goalId, isoWeek, completed } 
       });
       
-      // Find the goal and its linked milestone
-      const goal = state.weeklyGoals.find(g => g.id === goalId);
-      if (goal?.milestoneId && goal?.dreamId) {
-        // Find the dream and milestone
-        const dream = state.currentUser.dreamBook.find(d => d.id === goal.dreamId);
+      // Find the goal and its linked goal (not milestone - deprecated)
+      const weeklyGoal = state.weeklyGoals.find(g => g.id === goalId);
+      if (weeklyGoal?.goalId && weeklyGoal?.dreamId) {
+        // Find the dream and goal
+        const dream = state.currentUser.dreamBook.find(d => d.id === weeklyGoal.dreamId);
         if (dream) {
-          const milestone = dream.milestones?.find(m => m.id === goal.milestoneId);
-          if (milestone?.coachManaged && milestone?.startDate) {
+          const goal = dream.goals?.find(g => g.id === weeklyGoal.goalId);
+          if (goal?.type === 'consistency' && goal?.startDate) {
             // Recompute streak
             const newStreak = computeStreak(
-              { ...(goal.weekLog || {}), [isoWeek]: completed },
-              milestone.startDate
+              { ...(weeklyGoal.weekLog || {}), [isoWeek]: completed },
+              goal.startDate
             );
             
-            // Update milestone streak
-            dispatch({
-              type: actionTypes.UPDATE_MILESTONE_STREAK,
-              payload: { dreamId: goal.dreamId, milestoneId: goal.milestoneId, newStreak }
-            });
-            
-            // Check if milestone just completed and add scoring entry
-            const wasComplete = milestone.streakWeeks >= milestone.targetWeeks;
-            const isNowComplete = newStreak >= milestone.targetWeeks;
-            
-            if (!wasComplete && isNowComplete) {
+            // Update goal completion status (if reached target)
+            if (goal.targetWeeks && newStreak >= goal.targetWeeks && !goal.completed) {
+              const updatedGoal = {
+                ...goal,
+                completed: true,
+                completedAt: new Date().toISOString()
+              };
+              
+              // Update dream with completed goal
+              const updatedDream = {
+                ...dream,
+                goals: dream.goals.map(g => g.id === goal.id ? updatedGoal : g)
+              };
+              
+              dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+              
+              // Add scoring entry for goal completion
               const scoringEntry = {
                 id: Date.now(),
-                type: 'milestoneCompleted',
-                title: `Completed milestone: "${milestone.text}"`,
-                points: state.scoringRules.milestoneCompleted || 15,
+                type: 'goalCompleted',
+                title: `Completed goal: "${goal.title}"`,
+                points: state.scoringRules.milestoneCompleted || 15, // Using milestone points for now
                 date: new Date().toISOString().split('T')[0],
                 category: dream.category
               };
@@ -833,7 +1128,7 @@ export const AppProvider = ({ children, initialUser }) => {
           title: `Completed weekly goal`,
           points: state.scoringRules.weeklyGoalCompleted || 3,
           date: new Date().toISOString().split('T')[0],
-          category: goal?.dreamCategory || 'General'
+          category: weeklyGoal?.dreamCategory || 'General'
         };
         dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
         
@@ -846,23 +1141,177 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
     },
 
-    addConnect: (connect) => {
+    addConnect: async (connect) => {
+      // Save to connects container first
+      const userId = state.currentUser?.id;
+      if (userId) {
+        console.log('💾 Saving connect to connects container:', connect.id);
+        const result = await connectService.saveConnect(userId, connect);
+        if (!result.success) {
+          console.error('Failed to save connect to database:', result.error);
+          return;
+        }
+      }
+      
       dispatch({ type: actionTypes.ADD_CONNECT, payload: connect });
       
-      // Add scoring entry for connect
-      const scoringEntry = {
-        id: Date.now(),
-        type: 'dreamConnect',
-        title: `Dream Connect with ${connect.withWhom}`,
-        points: state.scoringRules.dreamConnect,
-        date: new Date().toISOString().split('T')[0],
-        category: 'Connect'
-      };
-      dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: scoringEntry });
+      // Add scoring entry via scoring service
+      const currentYear = new Date().getFullYear();
+      const points = scoringService.calculateConnectScoring(connect);
+      const entry = scoringService.createScoringEntry(
+        'connect',
+        points,
+        `Dream Connect with ${connect.withWhom}`,
+        { connectId: connect.id, dreamId: connect.dreamId }
+      );
       
-      // Update user score
-      const newScore = state.currentUser.score + state.scoringRules.dreamConnect;
+      if (userId) {
+        await scoringService.addScoringEntry(userId, currentYear, entry);
+      }
+      
+      // Update local state
+      dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
+      const newScore = state.currentUser.score + points;
       dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
+    },
+
+    addGoal: async (dreamId, goal) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      console.log('💾 Adding goal to dream:', dreamId, goal.id);
+      
+      // Find the dream and add the goal
+      const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
+      if (!dream) {
+        console.error('Dream not found:', dreamId);
+        return;
+      }
+      
+      // Add history entry
+      const historyEntry = {
+        id: `history_${Date.now()}`,
+        type: 'goal',
+        action: `Added goal: "${goal.title}"`,
+        timestamp: new Date().toISOString()
+      };
+      
+      const updatedDream = {
+        ...dream,
+        goals: [...(dream.goals || []), goal],
+        history: [historyEntry, ...(dream.history || [])]
+      };
+      
+      // Update local state
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+      
+      // Save entire dreams array
+      const updatedDreams = state.currentUser.dreamBook.map(d => 
+        d.id === dreamId ? updatedDream : d
+      );
+      
+      // No templates needed - goals are tracked directly by goalId
+      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      if (!result.success) {
+        console.error('Failed to save dreams document after adding goal:', result.error);
+        return;
+      }
+      
+      console.log('✅ Goal and history saved to Cosmos DB');
+    },
+
+    updateGoal: async (dreamId, goal) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      console.log('💾 Updating goal in dream:', dreamId, goal.id);
+      
+      // Find the dream and update the goal
+      const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
+      if (!dream) {
+        console.error('Dream not found:', dreamId);
+        return;
+      }
+      
+      // Add history entry
+      const historyEntry = {
+        id: `history_${Date.now()}`,
+        type: 'goal',
+        action: `Updated goal: "${goal.title}"`,
+        timestamp: new Date().toISOString()
+      };
+      
+      const updatedDream = {
+        ...dream,
+        goals: (dream.goals || []).map(g => g.id === goal.id ? goal : g),
+        history: [historyEntry, ...(dream.history || [])]
+      };
+      
+      // Update local state
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+      
+      // Save entire dreams array
+      const updatedDreams = state.currentUser.dreamBook.map(d => 
+        d.id === dreamId ? updatedDream : d
+      );
+      
+      // No templates needed - goals are tracked directly by goalId
+      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      if (!result.success) {
+        console.error('Failed to save dreams document after updating goal:', result.error);
+        return;
+      }
+      
+      console.log('✅ Goal update and history saved to Cosmos DB');
+    },
+
+    deleteGoal: async (dreamId, goalId) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      console.log('🗑️ Deleting goal from dream:', dreamId, goalId);
+      
+      // Find the dream and remove the goal
+      const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
+      if (!dream) {
+        console.error('Dream not found:', dreamId);
+        return;
+      }
+      
+      // Find the goal title for history
+      const goal = dream.goals?.find(g => g.id === goalId);
+      const goalTitle = goal?.title || 'Unknown goal';
+      
+      // Add history entry
+      const historyEntry = {
+        id: `history_${Date.now()}`,
+        type: 'goal',
+        action: `Deleted goal: "${goalTitle}"`,
+        timestamp: new Date().toISOString()
+      };
+      
+      const updatedDream = {
+        ...dream,
+        goals: (dream.goals || []).filter(g => g.id !== goalId),
+        history: [historyEntry, ...(dream.history || [])]
+      };
+      
+      // Update local state
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+      
+      // Save entire dreams array
+      const updatedDreams = state.currentUser.dreamBook.map(d => 
+        d.id === dreamId ? updatedDream : d
+      );
+      
+      // No templates needed - goals are tracked directly by goalId
+      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      if (!result.success) {
+        console.error('Failed to save dreams document after deleting goal:', result.error);
+        return;
+      }
+      
+      console.log('✅ Goal deleted and history saved to Cosmos DB');
     },
 
     addScoringEntry: (entry) => {
@@ -874,19 +1323,25 @@ export const AppProvider = ({ children, initialUser }) => {
       if (dream) {
         const updatedDream = { ...dream, progress: newProgress };
         
-        // Save to database first
+        // Update local state first
+        dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+        
+        // Save entire dreams array to database
         const userId = state.currentUser?.id;
         if (userId) {
-          console.log('💾 Updating dream progress in database:', dreamId);
-          const result = await itemService.saveItem(userId, 'dream', updatedDream);
+          console.log('💾 Updating dream progress in dreams document:', dreamId);
+          
+          const updatedDreams = state.currentUser.dreamBook.map(d => 
+            d.id === dreamId ? updatedDream : d
+          );
+          
+          // No templates needed - goals are tracked directly by goalId
+          const result = await itemService.saveDreams(userId, updatedDreams, []);
           if (!result.success) {
             console.error('Failed to update dream progress in database:', result.error);
             return;
           }
         }
-        
-        dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
-        
         
         // Check if dream is completed
         if (newProgress === 100 && dream.progress !== 100) {
@@ -915,51 +1370,14 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.LOGOUT });
     },
 
-    updateCareerGoal: (goal) => {
-      dispatch({ type: actionTypes.UPDATE_CAREER_GOAL, payload: goal });
+    setWeeklyGoals: (goals) => {
+      dispatch({ type: actionTypes.SET_WEEKLY_GOALS, payload: goals });
     },
 
-    updateDevelopmentPlan: (item) => {
-      dispatch({ type: actionTypes.UPDATE_DEVELOPMENT_PLAN, payload: item });
-    },
-
-    updateCareerProfile: (profileData) => {
-      dispatch({ type: actionTypes.UPDATE_CAREER_PROFILE, payload: profileData });
-    },
-
-    addCareerHighlight: (highlight) => {
-      dispatch({ type: actionTypes.ADD_CAREER_HIGHLIGHT, payload: highlight });
-    },
-
-    updateSkill: (skillType, skillIndex, skillData) => {
-      dispatch({ type: actionTypes.UPDATE_SKILL, payload: { skillType, skillIndex, skillData } });
-    },
-
-    addSkill: (skillType, skill) => {
-      dispatch({ type: actionTypes.ADD_SKILL, payload: { skillType, skill } });
-    },
-
-    addCareerGoal: (goal) => {
-      dispatch({ type: actionTypes.ADD_CAREER_GOAL, payload: goal });
-    },
-
-    addDevelopmentPlan: (plan) => {
-      dispatch({ type: actionTypes.ADD_DEVELOPMENT_PLAN, payload: plan });
-    },
-
-    updateCareerProgress: (itemId, newProgress, type) => {
-      const collection = type === 'goal' ? state.currentUser.careerGoals : state.currentUser.developmentPlan;
-      const item = collection.find(item => item.id === itemId);
-      if (item) {
-        const updatedItem = { ...item, progress: newProgress };
-        if (type === 'goal') {
-          dispatch({ type: actionTypes.UPDATE_CAREER_GOAL, payload: updatedItem });
-        } else {
-          dispatch({ type: actionTypes.UPDATE_DEVELOPMENT_PLAN, payload: updatedItem });
-        }
-      }
-    }
+    // Career-related action creators removed - not in this version
   };
+
+  // Note: Templates removed - goals are tracked directly by goalId in weekly completions
 
   const value = {
     ...state,

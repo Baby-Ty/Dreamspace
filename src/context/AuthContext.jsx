@@ -65,13 +65,17 @@ export const AuthProvider = ({ children }) => {
       if (profileResult.success) {
         const profileData = profileResult.data;
         
-        // Try to get user photo using graph service
+        // Try to upload user photo to blob storage
         let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
-        const photoResult = await graph.getMyPhoto();
-        if (photoResult.success && photoResult.data) {
-          avatarUrl = photoResult.data;
+        const userId = profileData.userPrincipalName || profileData.mail || account.username;
+        
+        console.log('📸 Attempting to upload profile picture to blob storage...');
+        const uploadResult = await graph.uploadMyPhotoToStorage(userId);
+        if (uploadResult.success && uploadResult.data) {
+          avatarUrl = uploadResult.data;
+          console.log('✅ Profile picture uploaded to blob storage:', avatarUrl);
         } else {
-          console.log('No profile photo available, using generated avatar');
+          console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
         }
 
         // Create fresh profile for authenticated users
@@ -98,32 +102,74 @@ export const AuthProvider = ({ children }) => {
           const existingData = await databaseService.loadUserData(userData.id);
           
           // Unwrap the response - loadUserData returns { success: true, data: {...} }
-          if (existingData && existingData.success && existingData.data && existingData.data.currentUser) {
+          if (existingData && existingData.success && existingData.data) {
             // User data already exists, merge with existing data
             console.log('✅ Found existing user data, merging with current profile');
-            console.log('📚 Existing dreams count:', existingData.data.currentUser.dreamBook?.length || 0);
+            // Check old format with currentUser wrapper or new format direct data
+            const existingUser = existingData.data.currentUser || existingData.data;
+            console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
+            console.log('📊 Data structure version:', existingUser.dataStructureVersion || 1);
+            console.log('📋 Weekly goals/templates count:', existingUser.weeklyGoals?.length || 0);
             userData = {
-              ...existingData.data.currentUser,
-              // Update only basic profile info, keep dreams and other data
+              ...existingUser,
+              // Update only basic profile info, keep everything else (including weeklyGoals)
               name: userData.name,
               email: userData.email,
               office: userData.office,
               avatar: userData.avatar
             };
             console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
+            console.log('📋 Merged weekly goals count:', userData.weeklyGoals?.length || 0);
           } else {
-            // No existing data, save new user profile
-            console.log('🆕 No existing data found, saving new user profile');
-            const dataToSave = {
-              isAuthenticated: true,
-              currentUser: userData,
-              weeklyGoals: [],
-              scoringHistory: []
+            // No existing data, save new user profile (6-container architecture)
+            console.log('🆕 No existing data found, saving new user profile with 6-container structure');
+            // Save minimal profile (no arrays - those go to separate containers)
+            const minimalProfile = {
+              id: userData.id,
+              userId: userData.id,
+              name: userData.name,
+              email: userData.email,
+              office: userData.office,
+              avatar: userData.avatar,
+              score: 0,
+              dreamsCount: 0,
+              connectsCount: 0,
+              weeksActiveCount: 0,
+              currentYear: new Date().getFullYear(),
+              dataStructureVersion: 3,
+              role: 'user',
+              isActive: true,
+              createdAt: new Date().toISOString(),
+              lastUpdated: new Date().toISOString()
             };
             
-            const saveResult = await databaseService.saveUserData(userData.id, dataToSave);
+            const saveResult = await databaseService.saveUserData(userData.id, minimalProfile);
             if (saveResult.success) {
-              console.log('✅ New user profile saved successfully');
+              console.log('✅ New user profile saved successfully (6-container, v3)');
+              
+              // Create empty dreams document for new user
+              try {
+                const itemService = (await import('../services/itemService.js')).default;
+                await itemService.saveDreams(userData.id, [], []);
+                console.log('✅ Created empty dreams document for new user');
+              } catch (dreamsError) {
+                console.error('⚠️ Failed to create initial dreams document:', dreamsError);
+                // Continue anyway - it will be created when they add their first dream
+              }
+              
+              // Create empty weeks document for new user
+              try {
+                const weekService = (await import('../services/weekService.js')).default;
+                const currentYear = new Date().getFullYear();
+                await weekService.initializeWeekDocument(userData.id, currentYear);
+                console.log(`✅ Created empty weeks document for ${currentYear}`);
+              } catch (weeksError) {
+                console.error('⚠️ Failed to create initial weeks document:', weeksError);
+                // Continue anyway - it will be created when they save their first goal
+              }
+              
+              // Update userData with the saved profile properties to prevent duplicate saves
+              userData = { ...userData, ...minimalProfile };
             } else {
               console.log('ℹ️ Profile save failed but continuing with login:', saveResult.error);
             }

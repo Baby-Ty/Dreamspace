@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamSpace API Health Check</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .status-healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-degraded {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-unhealthy {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy .status-dot {
+            background: #28a745;
+        }
+
+        .status-degraded .status-dot {
+            background: #ffc107;
+        }
+
+        .status-unhealthy .status-dot {
+            background: #dc3545;
+        }
+
+        .result-content {
+            background: white;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        pre {
+            margin: 0;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .info-box li {
+            margin-bottom: 6px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .quick-link {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .quick-link:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 DreamSpace API Health Check</h1>
+        <p class="subtitle">Test your Azure Function App connection to Cosmos DB</p>
+
+        <div class="input-group">
+            <label for="apiUrl">Function App URL</label>
+            <input 
+                type="text" 
+                id="apiUrl" 
+                value="https://func-dreamspace-prod.azurewebsites.net/api"
+                placeholder="https://your-function-app.azurewebsites.net/api"
+            />
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="testHealth()" id="testBtn">
+                Test Health Endpoint
+            </button>
+            <button class="btn-secondary" onclick="clearResults()">
+                Clear Results
+            </button>
+        </div>
+
+        <div class="result" id="result">
+            <!-- Results will be inserted here -->
+        </div>
+
+        <div class="info-box">
+            <h3>📋 What This Tests</h3>
+            <ul>
+                <li><strong>API Connectivity:</strong> Can we reach your Function App?</li>
+                <li><strong>Cosmos DB Connection:</strong> Are the environment variables configured?</li>
+                <li><strong>Database Access:</strong> Can the API connect to Cosmos DB?</li>
+            </ul>
+        </div>
+
+        <div class="info-box" style="margin-top: 16px;">
+            <h3>🔧 If Health Check Fails</h3>
+            <ul>
+                <li>Check that <code>COSMOS_ENDPOINT</code> and <code>COSMOS_KEY</code> are set in Function App Configuration</li>
+                <li>Verify the Function App is running (Azure Portal → Function App → Overview)</li>
+                <li>Check Cosmos DB firewall settings allow Azure services</li>
+                <li>See <code>FIX_COSMOS_DB_API.md</code> for detailed troubleshooting</li>
+            </ul>
+        </div>
+
+        <div class="quick-links">
+            <a href="https://portal.azure.com" class="quick-link" target="_blank">
+                Open Azure Portal
+            </a>
+            <a href="FIX_COSMOS_DB_API.md" class="quick-link" target="_blank">
+                View Fix Guide
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testHealth() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const resultDiv = document.getElementById('result');
+            const testBtn = document.getElementById('testBtn');
+
+            if (!apiUrl) {
+                alert('Please enter a Function App URL');
+                return;
+            }
+
+            // Show loading state
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<span class="loader"></span>Testing...';
+            resultDiv.className = 'result show';
+            resultDiv.innerHTML = '<p style="color: #666;">⏳ Testing API health endpoint...</p>';
+
+            try {
+                const healthUrl = `${apiUrl}/health`;
+                const startTime = Date.now();
+                
+                const response = await fetch(healthUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const responseTime = Date.now() - startTime;
+                const data = await response.json();
+
+                // Determine status
+                let statusClass = 'status-unhealthy';
+                let statusText = 'Unhealthy';
+                if (data.status === 'healthy') {
+                    statusClass = 'status-healthy';
+                    statusText = 'Healthy';
+                } else if (data.status === 'degraded') {
+                    statusClass = 'status-degraded';
+                    statusText = 'Degraded';
+                }
+
+                let html = `
+                    <div class="status-indicator ${statusClass}">
+                        <span class="status-dot"></span>
+                        ${statusText} (${responseTime}ms)
+                    </div>
+                `;
+
+                // Show warning for non-healthy status
+                if (data.status !== 'healthy') {
+                    const message = data.checks?.cosmosdb?.message || 'API is not fully functional';
+                    html += `
+                        <div class="error-message">
+                            <strong>⚠️ Issue Detected:</strong><br/>
+                            ${message}
+                        </div>
+                    `;
+                }
+
+                // Show detailed results
+                html += `
+                    <div class="result-content">
+                        <strong>Detailed Response:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+
+                // Show recommendations
+                if (data.status === 'degraded' && data.checks?.cosmosdb?.message?.includes('not configured')) {
+                    html += `
+                        <div class="info-box" style="margin-top: 16px; background: #fff3cd; border-color: #ffc107;">
+                            <h3 style="color: #856404;">🔧 Action Required</h3>
+                            <ul style="color: #856404;">
+                                <li>Run <code>CONFIGURE_FUNCTION_APP_COSMOSDB.ps1</code> PowerShell script</li>
+                                <li>Or manually add environment variables in Azure Portal</li>
+                                <li>See <code>FIX_COSMOS_DB_API.md</code> for step-by-step instructions</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-indicator status-unhealthy">
+                        <span class="status-dot"></span>
+                        Connection Failed
+                    </div>
+                    <div class="error-message">
+                        <strong>❌ Error:</strong><br/>
+                        ${error.message}
+                    </div>
+                    <div class="result-content">
+                        <strong>Possible Causes:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px; color: #666;">
+                            <li>Function App URL is incorrect</li>
+                            <li>Function App is not running</li>
+                            <li>CORS not configured (if testing from localhost)</li>
+                            <li>Network connectivity issue</li>
+                        </ul>
+                    </div>
+                `;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.innerHTML = 'Test Health Endpoint';
+            }
+        }
+
+        function clearResults() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '';
+        }
+
+        // Allow Enter key to test
+        document.getElementById('apiUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testHealth();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+

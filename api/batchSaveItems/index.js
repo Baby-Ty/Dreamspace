@@ -1,14 +1,15 @@
 const { CosmosClient } = require('@azure/cosmos');
 
 // Initialize Cosmos client only if environment variables are present
-let client, database, itemsContainer;
+let client, database, dreamsContainer, connectsContainer;
 if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   client = new CosmosClient({
     endpoint: process.env.COSMOS_ENDPOINT,
     key: process.env.COSMOS_KEY
   });
   database = client.database('dreamspace');
-  itemsContainer = database.container('items');
+  dreamsContainer = database.container('dreams');
+  connectsContainer = database.container('connects');
 }
 
 module.exports = async function (context, req) {
@@ -49,7 +50,7 @@ module.exports = async function (context, req) {
   }
 
   // Check if Cosmos DB is configured
-  if (!itemsContainer) {
+  if (!dreamsContainer || !connectsContainer) {
     context.res = {
       status: 500,
       body: JSON.stringify({ 
@@ -74,6 +75,21 @@ module.exports = async function (context, req) {
           throw new Error('Each item must have type and data properties');
         }
 
+        // Route to correct container based on type
+        let targetContainer;
+        let containerName;
+        
+        if (type === 'dream' || type === 'weekly_goal_template') {
+          targetContainer = dreamsContainer;
+          containerName = 'dreams';
+        } else if (type === 'connect') {
+          targetContainer = connectsContainer;
+          containerName = 'connects';
+        } else {
+          // Other types should use their dedicated endpoints
+          throw new Error(`Type "${type}" should use dedicated endpoint (weekly goals → saveWeekGoals, scoring → saveScoring)`);
+        }
+
         // Ensure id is always a string (Cosmos DB requirement)
         const itemId = data.id 
           ? String(data.id) 
@@ -88,7 +104,15 @@ module.exports = async function (context, req) {
           updatedAt: new Date().toISOString()
         };
 
-        const { resource } = await itemsContainer.items.upsert(document);
+        context.log('💾 WRITE:', {
+          container: containerName,
+          partitionKey: userId,
+          id: document.id,
+          operation: 'upsert',
+          type: type
+        });
+
+        const { resource } = await targetContainer.items.upsert(document);
         savedItems.push({ id: resource.id, type: resource.type });
       } catch (error) {
         context.log.error('Error saving item:', error);

@@ -6,19 +6,27 @@ import { z } from 'zod';
  * Mirrors data structures used in DreamBook and related components
  */
 
-// Milestone schema
-export const MilestoneSchema = z.object({
+// Goal schema - simplified from milestones
+export const GoalSchema = z.object({
   id: z.union([z.string(), z.number()]),
-  text: z.string(),
-  completed: z.boolean().default(false),
-  createdAt: z.string().optional(),
-  // Coach-managed consistency tracking
-  coachManaged: z.boolean().optional().default(false),
-  type: z.enum(['consistency', 'deadline', 'general']).optional().default('general'),
-  targetWeeks: z.number().optional(), // N weeks for consistency milestone
+  title: z.string(),
+  description: z.string().optional(),
+  type: z.enum(['consistency', 'deadline']).default('consistency'),
+  // For consistency goals
+  recurrence: z.enum(['weekly', 'monthly']).optional(),
+  targetWeeks: z.number().optional(), // How many weeks to track (for weekly)
+  targetMonths: z.number().optional(), // How many months to track (for monthly)
   startDate: z.string().optional(), // ISO date when tracking starts
-  endOnDreamComplete: z.boolean().optional().default(false),
-  streakWeeks: z.number().optional().default(0) // Current consecutive weeks met
+  // For deadline goals
+  targetDate: z.string().optional(), // ISO date for deadline
+  // For monthly tracking (which month/week instances belong to)
+  monthId: z.string().optional(), // Format: "2025-11" for November 2025
+  weekId: z.string().optional(), // Format: "2025-W44" for week tracking
+  // Status
+  active: z.boolean().default(true),
+  completed: z.boolean().default(false),
+  completedAt: z.string().optional(),
+  createdAt: z.string().optional()
 });
 
 // Note/Comment schema (includes both user notes and coach notes)
@@ -39,7 +47,7 @@ export const NoteSchema = z.object({
 // History entry schema
 export const HistorySchema = z.object({
   id: z.union([z.string(), z.number()]),
-  type: z.enum(['progress', 'milestone', 'note', 'status', 'created']),
+  type: z.enum(['progress', 'goal', 'note', 'status', 'created']),
   action: z.string(),
   timestamp: z.string(),
   oldValue: z.any().optional(),
@@ -54,7 +62,7 @@ export const DreamSchema = z.object({
   description: z.string().optional().default(''),
   progress: z.number().min(0).max(100).default(0),
   image: z.string().url().optional(),
-  milestones: z.array(MilestoneSchema).default([]),
+  goals: z.array(GoalSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   history: z.array(HistorySchema).default([]),
   createdAt: z.string().optional(),
@@ -80,7 +88,7 @@ export function parseDream(data) {
       description: data?.description || '',
       progress: 0,
       image: data?.image,
-      milestones: [],
+      goals: [],
       notes: [],
       history: []
     };
@@ -103,14 +111,17 @@ export function parseDreamList(data) {
   }).filter(Boolean);
 }
 
-export function parseMilestone(data) {
+export function parseGoal(data) {
   try {
-    return MilestoneSchema.parse(data);
+    return GoalSchema.parse(data);
   } catch (error) {
-    console.warn('Failed to parse milestone:', error.message);
+    console.warn('Failed to parse goal:', error.message);
     return {
       id: data?.id || 0,
-      text: data?.text || '',
+      title: data?.title || '',
+      type: 'consistency',
+      recurrence: 'weekly',
+      active: true,
       completed: false
     };
   }

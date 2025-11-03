@@ -21,16 +21,19 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import HelpTooltip from '../components/HelpTooltip';
-import { getCurrentIsoWeek, getIsoWeek, parseIsoWeek } from '../utils/dateUtils';
+import { getCurrentIsoWeek, getIsoWeek, parseIsoWeek, calculateWeekInstancesForDuration, getWeekRange } from '../utils/dateUtils';
+import { getMonthIdFromWeek } from '../utils/monthUtils';
 import {
   expandRecurringGoals,
   getVisibleGoalsForWeek,
   computeWeekProgress,
   isWeekEditable
 } from '../services/weekGoalService';
+import weekService from '../services/weekService';
+import { isTemplateActiveForWeek } from '../utils/templateValidation';
 
 const DreamsWeekAhead = () => {
-  const { currentUser, weeklyGoals, addWeeklyGoal, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal, logWeeklyCompletion } = useApp();
+  const { currentUser, weeklyGoals, addWeeklyGoal, addWeeklyGoalsBatch, updateWeeklyGoal, deleteWeeklyGoal, toggleWeeklyGoal, logWeeklyCompletion, setWeeklyGoals } = useApp();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [selectedDream, setSelectedDream] = useState(null);
   const [editingGoal, setEditingGoal] = useState(null);
@@ -40,7 +43,8 @@ const DreamsWeekAhead = () => {
     milestoneId: null,
     recurrence: 'once',
     durationType: 'unlimited', // 'unlimited', 'weeks', 'milestone'
-    durationWeeks: 4
+    durationWeeks: 4,
+    targetMonths: 6
   });
 
   // Month and week selector state
@@ -62,6 +66,91 @@ const DreamsWeekAhead = () => {
     motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
   );
 
+  // Track if we're currently loading to prevent duplicate calls
+  const [isLoadingWeek, setIsLoadingWeek] = React.useState(false);
+  const [loadError, setLoadError] = React.useState(null);
+  
+  // Load goals for a specific week from weeks container or create from templates
+  const loadWeekGoals = async (weekObj) => {
+    if (!currentUser?.id || !weekObj || isLoadingWeek) {
+      console.log('⏭️ Skipping load:', { hasUser: !!currentUser?.id, hasWeek: !!weekObj, isLoading: isLoadingWeek });
+      return;
+    }
+    
+    const weekIso = getIsoWeek(weekObj.start);
+    const year = weekObj.start.getFullYear();
+    
+    console.log(`📅 Loading goals for week ${weekIso}, userId: ${currentUser.id}`);
+    setIsLoadingWeek(true);
+    setLoadError(null);
+    
+    try {
+      // Get templates from weeklyGoals and filter by validation rules
+      const allTemplates = weeklyGoals.filter(goal => 
+        goal.type === 'weekly_goal_template'
+      );
+      
+      // Get milestones for validation
+      const milestones = currentUser?.dreamBook
+        ?.flatMap(dream => dream.milestones || []) || [];
+      
+      // Filter templates based on duration and start date
+      const templates = allTemplates.filter(template => {
+        const milestone = template.milestoneId 
+          ? milestones.find(m => m.id === template.milestoneId)
+          : null;
+        return isTemplateActiveForWeek(template, weekIso, milestone);
+      });
+      
+      console.log(`📋 Found ${templates.length} valid templates for ${weekIso}`);
+      
+      // Load or create week goals
+      const result = await weekService.loadOrCreateWeekGoals(
+        currentUser.id,
+        year,
+        weekIso,
+        templates
+      );
+      
+      if (result.success) {
+        const weekGoals = result.data || [];
+        console.log(`✅ Loaded ${weekGoals.length} goal instances for ${weekIso}`);
+        
+        // Update state with loaded goals
+        // Keep templates and goals from other weeks, replace goals for this week
+        const otherWeekGoals = weeklyGoals.filter(g => 
+          (g.weekId && g.weekId !== weekIso) || g.type === 'weekly_goal_template'
+        );
+        
+        // Only add the newly loaded week goals if they're not duplicates
+        const uniqueWeekGoals = weekGoals.filter(newGoal => 
+          !otherWeekGoals.some(existing => existing.id === newGoal.id)
+        );
+        
+        const updatedGoals = [...otherWeekGoals, ...uniqueWeekGoals];
+        
+        console.log(`📊 State update: ${otherWeekGoals.length} existing + ${uniqueWeekGoals.length} new = ${updatedGoals.length} total`);
+        
+        // Update state using proper action
+        setWeeklyGoals(updatedGoals);
+        setLoadError(null);
+      } else {
+        const errorMsg = `Failed to load week goals: ${result.error}`;
+        console.error('❌', errorMsg);
+        setLoadError(errorMsg);
+      }
+    } catch (error) {
+      const errorMsg = `Error loading week goals: ${error.message}`;
+      console.error('❌', errorMsg, error);
+      setLoadError(errorMsg);
+    } finally {
+      setIsLoadingWeek(false);
+    }
+  };
+
+  // Track which weeks we've loaded to prevent re-loading
+  const loadedWeeksRef = React.useRef(new Set());
+  
   useEffect(() => {
     // Automatically set the current week as active when component loads
     const currentWeek = getCurrentWeek();
@@ -69,6 +158,19 @@ const DreamsWeekAhead = () => {
       setActiveWeek(currentWeek);
     }
   }, []);
+
+  // Load goals when active week changes
+  useEffect(() => {
+    if (activeWeek && currentUser?.id) {
+      const weekIso = getIsoWeek(activeWeek.start);
+      
+      // Only load if we haven't loaded this week yet
+      if (!loadedWeeksRef.current.has(weekIso)) {
+        loadedWeeksRef.current.add(weekIso);
+        loadWeekGoals(activeWeek);
+      }
+    }
+  }, [activeWeek?.id, currentUser?.id]);
 
   // Early return if data is not loaded yet
   if (!currentUser) {
@@ -130,51 +232,58 @@ const DreamsWeekAhead = () => {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  const getFourWeeksForMonth = (year, month) => {
+  // Helper function to format dates consistently
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // Get ISO weeks that overlap with a given month
+  const getIsoWeeksForMonth = (year, month) => {
+    const weeks = [];
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const totalDays = lastDay.getDate();
     
-    // Divide days roughly equally across 4 weeks
-    const baseDaysPerWeek = Math.floor(totalDays / 4);
-    const remainderDays = totalDays % 4;
+    // Find the Monday of the week containing the first day of the month
+    let current = new Date(firstDay);
+    // Go back to Monday (day 1 in ISO 8601, Sunday is 0 in JS)
+    const dayOfWeek = current.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days
+    current.setDate(current.getDate() - daysToMonday);
     
-    const weeks = [];
-    let currentDay = 1;
-    
-    for (let weekNum = 1; weekNum <= 4; weekNum++) {
-      let daysInThisWeek = baseDaysPerWeek;
+    // Collect all ISO weeks that touch this month
+    const seenWeeks = new Set();
+    while (current <= lastDay || (weeks.length === 0)) {
+      const weekStart = new Date(current);
+      const weekEnd = new Date(current);
+      weekEnd.setDate(weekEnd.getDate() + 6);
       
-      // Distribute remainder days to Week 1 and Week 4
-      if (weekNum === 1 && remainderDays >= 2) {
-        daysInThisWeek += Math.floor(remainderDays / 2);
-      } else if (weekNum === 4) {
-        daysInThisWeek += remainderDays - (remainderDays >= 2 ? Math.floor(remainderDays / 2) : 0);
-      } else if (weekNum === 2 && remainderDays === 1) {
-        daysInThisWeek += 1;
+      const weekIso = getIsoWeek(weekStart);
+      
+      // Only include if week overlaps with month and we haven't seen it yet
+      if (weekEnd >= firstDay && !seenWeeks.has(weekIso)) {
+        seenWeeks.add(weekIso);
+        const { week: weekNumber } = parseIsoWeek(weekIso);
+        
+        weeks.push({
+          id: weekIso,
+          weekNumber: weekNumber,
+          startDate: formatDate(weekStart),
+          endDate: formatDate(weekEnd),
+          range: `${formatDate(weekStart)} – ${formatDate(weekEnd)}`,
+          start: new Date(weekStart),
+          end: new Date(weekEnd)
+        });
       }
       
-      const startDate = new Date(year, month, currentDay);
-      const endDate = new Date(year, month, Math.min(currentDay + daysInThisWeek - 1, totalDays));
+      // Break if we've gone past the last day and have at least one week
+      if (weekStart > lastDay && weeks.length > 0) {
+        break;
+      }
       
-      const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      };
-      
-      weeks.push({
-        id: `${year}-${month}-week-${weekNum}`,
-        weekNumber: weekNum,
-        startDate: formatDate(startDate),
-        endDate: formatDate(endDate),
-        range: `${formatDate(startDate)} – ${formatDate(endDate)}`,
-        start: new Date(startDate),
-        end: new Date(endDate)
-      });
-      
-      currentDay += daysInThisWeek;
+      current.setDate(current.getDate() + 7);
     }
     
     return weeks;
@@ -192,19 +301,57 @@ const DreamsWeekAhead = () => {
   // Find which week contains today's date
   const getCurrentWeek = () => {
     const today = new Date();
+    const currentIsoWeek = getCurrentIsoWeek(); // e.g., "2025-W44"
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-    const currentDate = today.getDate();
     
-    const weeks = getFourWeeksForMonth(currentYear, currentMonth);
-    
+    // Check current month first
+    const weeks = getIsoWeeksForMonth(currentYear, currentMonth);
     for (const week of weeks) {
-      if (currentDate >= week.start.getDate() && currentDate <= week.end.getDate()) {
+      if (week.id === currentIsoWeek) {
         return week;
       }
     }
     
-    return null;
+    // If not found (ISO week spans months), check previous month
+    if (currentMonth > 0) {
+      const prevWeeks = getIsoWeeksForMonth(currentYear, currentMonth - 1);
+      for (const week of prevWeeks) {
+        if (week.id === currentIsoWeek) {
+          return week;
+        }
+      }
+    } else {
+      // Check December of previous year if we're in January
+      const prevWeeks = getIsoWeeksForMonth(currentYear - 1, 11);
+      for (const week of prevWeeks) {
+        if (week.id === currentIsoWeek) {
+          return week;
+        }
+      }
+    }
+    
+    // If still not found, check next month (edge case)
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    const nextWeeks = getIsoWeeksForMonth(nextYear, nextMonth);
+    for (const week of nextWeeks) {
+      if (week.id === currentIsoWeek) {
+        return week;
+      }
+    }
+    
+    // Fallback: create a week object for the current ISO week
+    const { start, end } = getWeekRange(currentIsoWeek);
+    return {
+      id: currentIsoWeek,
+      weekNumber: parseIsoWeek(currentIsoWeek).week,
+      startDate: formatDate(start),
+      endDate: formatDate(end),
+      range: `${formatDate(start)} – ${formatDate(end)}`,
+      start: start,
+      end: end
+    };
   };
 
   const handleAddGoal = (dream) => {
@@ -225,15 +372,15 @@ const DreamsWeekAhead = () => {
     });
   };
 
-  const handleSaveGoal = () => {
+  const handleSaveGoal = async () => {
     if (!goalFormData.title.trim()) return;
 
     // Get the active week's ISO week string
     const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
     
-    if (goalFormData.recurrence === 'weekly') {
-      // Recurring goal: Create ONLY a template, instances created on-demand
-      const templateId = editingGoal?.templateId || editingGoal?.id || `goal_template_${Date.now()}`;
+    if (goalFormData.recurrence === 'weekly' || goalFormData.recurrence === 'monthly') {
+      // Recurring goal: Create template and immediately create current week instance
+      const templateId = editingGoal?.templateId || editingGoal?.id || `template_${Date.now()}`;
       
       const template = {
         id: templateId,
@@ -244,10 +391,11 @@ const DreamsWeekAhead = () => {
         dreamTitle: selectedDream.title,
         dreamCategory: selectedDream.category,
         milestoneId: goalFormData.milestoneId || undefined,
-        recurrence: 'weekly',
+        recurrence: goalFormData.recurrence,
         active: true,
         durationType: goalFormData.durationType || 'unlimited',
-        durationWeeks: goalFormData.durationWeeks,
+        durationWeeks: goalFormData.recurrence === 'weekly' ? goalFormData.durationWeeks : undefined,
+        targetMonths: goalFormData.recurrence === 'monthly' ? goalFormData.targetMonths : undefined,
         startDate: editingGoal?.startDate || new Date().toISOString(),
         createdAt: editingGoal?.createdAt || new Date().toISOString()
       };
@@ -256,15 +404,48 @@ const DreamsWeekAhead = () => {
         updateWeeklyGoal(template);
       } else {
         addWeeklyGoal(template);
+        
+        // Create instances for ALL weeks in the duration
+        const weekIsoStrings = calculateWeekInstancesForDuration(template);
+        console.log(`Creating ${weekIsoStrings.length} week instances for template: ${templateId}`, weekIsoStrings);
+        
+        // Build all instances
+        const instances = weekIsoStrings.map(weekIso => ({
+          id: `${templateId}_${weekIso}`,
+          type: 'weekly_goal',
+          templateId: templateId,
+          title: template.title,
+          description: template.description,
+          dreamId: template.dreamId,
+          dreamTitle: template.dreamTitle,
+          dreamCategory: template.dreamCategory,
+          milestoneId: template.milestoneId,
+          recurrence: template.recurrence,
+          weekId: weekIso,
+          completed: false,
+          createdAt: new Date().toISOString()
+        }));
+        
+        // Batch save all instances efficiently
+        await addWeeklyGoalsBatch(instances);
+        
+        console.log(`✅ Created ${weekIsoStrings.length} instances for recurring goal`);
+        
+        // Force reload goals for the active week to show the new goal immediately
+        if (activeWeek) {
+          loadedWeeksRef.current.delete(activeIsoWeek);
+          await loadWeekGoals(activeWeek);
+        }
       }
       
     } else {
       // One-time goal: Create single instance for the active week
       const newGoal = {
         id: editingGoal?.id || `goal_${Date.now()}`,
+        type: 'weekly_goal', // Explicitly set type
         title: goalFormData.title.trim(),
         description: goalFormData.description.trim(),
-        weekId: activeIsoWeek,  // CRITICAL: Must have weekId
+        weekId: activeIsoWeek,  // Save to the week being viewed
         dreamId: selectedDream.id,
         dreamTitle: selectedDream.title,
         dreamCategory: selectedDream.category,
@@ -275,11 +456,20 @@ const DreamsWeekAhead = () => {
         active: true
       };
 
+      console.log(`Creating goal for active week: ${activeIsoWeek}`, newGoal);
+
       if (editingGoal) {
         updateWeeklyGoal(newGoal);
         setEditingGoal(null);
       } else {
-        addWeeklyGoal(newGoal);
+        // addWeeklyGoal will route to weekService for instances with weekId
+        await addWeeklyGoal(newGoal);
+        
+        // Force reload goals for the active week to show the new goal immediately
+        if (activeWeek) {
+          loadedWeeksRef.current.delete(activeIsoWeek);
+          await loadWeekGoals(activeWeek);
+        }
       }
     }
 
@@ -291,7 +481,8 @@ const DreamsWeekAhead = () => {
       milestoneId: null,
       recurrence: 'once',
       durationType: 'unlimited',
-      durationWeeks: 4
+      durationWeeks: 4,
+      targetMonths: 6
     });
   };
   
@@ -335,10 +526,152 @@ const DreamsWeekAhead = () => {
     }
   };
 
-  const toggleGoalCompletion = (goalId) => {
-    // With week-specific instances, we just toggle the specific goal
-    // No need to check weekLog since each week has its own document
-    toggleWeeklyGoal(goalId);
+  const toggleGoalCompletion = async (goalId) => {
+    if (!currentUser?.id || !activeWeek) return;
+    
+    const activeIsoWeek = getIsoWeek(activeWeek.start);
+    const year = activeWeek.start.getFullYear();
+    
+    // Find the goal and update it
+    const goalIndex = weeklyGoals.findIndex(g => g.id === goalId && g.weekId === activeIsoWeek);
+    if (goalIndex === -1) return;
+    
+    const goal = weeklyGoals[goalIndex];
+    const isMonthlyGoal = goal.recurrence === 'monthly';
+    const isDeadlineGoal = goal.type === 'deadline';
+    const newCompletedStatus = !goal.completed;
+    const completedAtValue = newCompletedStatus ? new Date().toISOString() : null;
+    
+    // For monthly goals, we need to update ALL weeks in the same month
+    // For deadline goals, we need to remove future weeks if completed
+    let updatedWeeklyGoals = [...weeklyGoals];
+    const weeksToSave = new Set();
+    const weeksToDelete = new Set();
+    
+    if (isMonthlyGoal && goal.templateId) {
+      // Get the month ID for the current week
+      const currentMonthId = getMonthIdFromWeek(activeIsoWeek);
+      console.log(`🗓️ Monthly goal toggle - marking all weeks in ${currentMonthId}`);
+      
+      // Find all instances of this template in the same month
+      updatedWeeklyGoals = updatedWeeklyGoals.map(g => {
+        if (g.templateId === goal.templateId && g.weekId) {
+          const goalMonthId = getMonthIdFromWeek(g.weekId);
+          if (goalMonthId === currentMonthId) {
+            // This goal instance is in the same month - update it
+            const [weekYear] = g.weekId.split('-W');
+            weeksToSave.add(`${weekYear}:${g.weekId}`);
+            return {
+              ...g,
+              completed: newCompletedStatus,
+              completedAt: completedAtValue
+            };
+          }
+        }
+        return g;
+      });
+    } else if (isDeadlineGoal && newCompletedStatus && goal.templateId) {
+      // Deadline goal completed - mark current week complete and remove future weeks
+      console.log(`📅 Deadline goal completed - removing future weeks`);
+      
+      updatedWeeklyGoals[goalIndex] = {
+        ...goal,
+        completed: true,
+        completedAt: completedAtValue
+      };
+      weeksToSave.add(`${year}:${activeIsoWeek}`);
+      
+      // Filter out future instances of this deadline goal
+      updatedWeeklyGoals = updatedWeeklyGoals.filter(g => {
+        if (g.templateId === goal.templateId && g.weekId && g.weekId !== activeIsoWeek) {
+          // This is a future instance - mark week for deletion
+          if (g.weekId > activeIsoWeek) {
+            const [weekYear] = g.weekId.split('-W');
+            weeksToDelete.add(`${weekYear}:${g.weekId}`);
+            console.log(`  🗑️ Removing future instance: ${g.weekId}`);
+            return false; // Remove from array
+          }
+        }
+        return true; // Keep in array
+      });
+    } else {
+      // Weekly goal or one-time goal - just update this specific instance
+      updatedWeeklyGoals[goalIndex] = {
+        ...goal,
+        completed: newCompletedStatus,
+        completedAt: completedAtValue
+      };
+      weeksToSave.add(`${year}:${activeIsoWeek}`);
+    }
+    
+    // Update local state optimistically for instant feedback
+    setWeeklyGoals(updatedWeeklyGoals);
+    
+    console.log(`🔄 Toggling goal ${goalId}:`, {
+      isMonthlyGoal,
+      isDeadlineGoal,
+      weeksToSave: Array.from(weeksToSave),
+      weeksToDelete: Array.from(weeksToDelete),
+      newStatus: newCompletedStatus
+    });
+    
+    try {
+      // Save each affected week (with updated goals)
+      for (const weekKey of weeksToSave) {
+        const [weekYear, weekId] = weekKey.split(':');
+        const weekGoals = updatedWeeklyGoals.filter(g => 
+          g.weekId === weekId && g.type !== 'weekly_goal_template'
+        );
+        
+        const result = await weekService.saveWeekGoals(
+          currentUser.id, 
+          parseInt(weekYear), 
+          weekId, 
+          weekGoals
+        );
+        
+        if (!result.success) {
+          console.error(`❌ Failed to save week ${weekId}:`, result.error);
+          // Revert on error
+          setWeeklyGoals(weeklyGoals);
+          return;
+        }
+      }
+      
+      // Delete future weeks for deadline goals (with goal removed)
+      for (const weekKey of weeksToDelete) {
+        const [weekYear, weekId] = weekKey.split(':');
+        const weekGoals = updatedWeeklyGoals.filter(g => 
+          g.weekId === weekId && g.type !== 'weekly_goal_template'
+        );
+        
+        // Save the week without the deadline goal
+        const result = await weekService.saveWeekGoals(
+          currentUser.id, 
+          parseInt(weekYear), 
+          weekId, 
+          weekGoals
+        );
+        
+        if (!result.success) {
+          console.error(`❌ Failed to delete from week ${weekId}:`, result.error);
+        }
+        
+        // Clear loaded weeks cache for deleted weeks
+        loadedWeeksRef.current.delete(weekId);
+      }
+      
+      console.log(`✅ Goal ${goalId} toggled successfully`);
+      
+      // Reload the active week to ensure consistency
+      loadedWeeksRef.current.delete(activeIsoWeek);
+      await loadWeekGoals(activeWeek);
+      
+    } catch (error) {
+      console.error(`❌ Error toggling goal:`, error);
+      // Revert on error
+      setWeeklyGoals(weeklyGoals);
+    }
   };
 
   const handleCloseForm = () => {
@@ -356,56 +689,46 @@ const DreamsWeekAhead = () => {
   };
 
   const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+  const currentWeekIso = getCurrentIsoWeek();
   
-  // For each template, check if we need to create an instance for this week
-  useEffect(() => {
-    const activeTemplates = weeklyGoals.filter(goal => 
-      goal.type === 'weekly_goal_template' && 
-      goal.active !== false &&
-      goal.recurrence === 'weekly'
-    );
-    
-    activeTemplates.forEach(template => {
-      // Check if instance already exists for this week
-      const instanceExists = weeklyGoals.some(g => 
-        g.templateId === template.id && g.weekId === activeIsoWeek
+  // For current week, show templates + instances; for other weeks, show only instances
+  const visibleGoals = (() => {
+    if (activeIsoWeek === currentWeekIso) {
+      // Current week: show valid active templates + current week instances
+      const allTemplates = weeklyGoals.filter(g => 
+        g.type === 'weekly_goal_template'
       );
       
-      if (!instanceExists) {
-        console.log('Creating instance for template:', template.id, 'week:', activeIsoWeek);
-        // Create instance on-demand for this week
-        const weekInstance = {
-          id: `${template.id}_${activeIsoWeek}`,
-          type: 'weekly_goal',
-          title: template.title,
-          description: template.description || '',
-          weekId: activeIsoWeek,
-          dreamId: template.dreamId,
-          dreamTitle: template.dreamTitle,
-          dreamCategory: template.dreamCategory,
-          completed: false,
-          milestoneId: template.milestoneId,
-          recurrence: 'weekly',
-          templateId: template.id,
-          active: true,
-          createdAt: new Date().toISOString()
-        };
-        addWeeklyGoal(weekInstance);
-      }
-    });
-  }, [activeIsoWeek, weeklyGoals, addWeeklyGoal]);
+      const milestones = currentUser?.dreamBook
+        ?.flatMap(dream => dream.milestones || []) || [];
+      
+      const validTemplates = allTemplates.filter(template => {
+        const milestone = template.milestoneId 
+          ? milestones.find(m => m.id === template.milestoneId)
+          : null;
+        return isTemplateActiveForWeek(template, currentWeekIso, milestone);
+      });
+      
+      const currentWeekInstances = weeklyGoals.filter(g => 
+        g.weekId === currentWeekIso && g.type !== 'weekly_goal_template'
+      );
+      
+      return [...validTemplates, ...currentWeekInstances];
+    } else {
+      // Other weeks: show only instances for that week
+      return weeklyGoals.filter(goal => 
+        goal.weekId === activeIsoWeek && goal.type !== 'weekly_goal_template'
+      );
+    }
+  })();
   
-  // Get visible goals for this week (exclude templates from display)
-  const visibleGoals = weeklyGoals.filter(goal => 
-    goal.weekId === activeIsoWeek && goal.type !== 'weekly_goal_template'
-  );
   const progressPercentage = getProgressPercentage();
   const isWeekComplete = isWeekEditable(activeIsoWeek) && progressPercentage === 100 && visibleGoals.length > 0;
 
   // Calculate goal KPIs for the active week
   const getGoalKPIs = () => {
     const weekIso = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
-    const weekGoals = weeklyGoals.filter(g => g.weekId === weekIso);
+    const weekGoals = weeklyGoals.filter(g => g.weekId === weekIso && g.type !== 'weekly_goal_template');
     const activeGoals = weekGoals.length;
     const completedGoals = weekGoals.filter(g => g.completed).length;
     const percentCompleted = activeGoals > 0 ? Math.round((completedGoals / activeGoals) * 100) : 0;
@@ -548,7 +871,7 @@ const DreamsWeekAhead = () => {
               Select Week - {getMonthNames()[activeMonth]} {new Date().getFullYear()}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {getFourWeeksForMonth(new Date().getFullYear(), activeMonth).map((week) => (
+              {getIsoWeeksForMonth(new Date().getFullYear(), activeMonth).map((week) => (
                 <WeekCard
                   key={week.id}
                   week={week}

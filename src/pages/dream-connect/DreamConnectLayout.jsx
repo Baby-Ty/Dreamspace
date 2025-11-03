@@ -90,20 +90,24 @@ export default function DreamConnectLayout() {
     if (!selectedUser || !requestMessage.trim()) return;
 
     try {
-      // Create connect entry
+      // Create connect entry (matches new 6-container schema)
       const connectData = {
-        id: Date.now(),
+        id: `connect_${Date.now()}`,
+        type: 'connect',
+        withWhom: selectedUser.name,
+        when: new Date().toISOString().split('T')[0], // ISO date (YYYY-MM-DD)
+        notes: requestMessage,
+        dreamId: undefined, // Optional - can be linked to a specific dream
+        // Additional metadata for display (not part of core schema but preserved as passthrough)
         name: selectedUser.name,
         category: categoryFilter !== 'All' 
           ? mapCategory(categoryFilter) 
           : (selectedUser.sharedCategories?.[0] || 'Shared interests'),
-        withWhom: selectedUser.name,
-        date: new Date().toISOString().split('T')[0],
-        notes: requestMessage,
         avatar: selectedUser.avatar,
         office: selectedUser.office,
         schedulingOption,
-        uploadSelfie
+        uploadSelfie,
+        createdAt: new Date().toISOString()
       };
 
       console.log('✅ Dream Connect request created:', {
@@ -113,8 +117,8 @@ export default function DreamConnectLayout() {
         uploadSelfie
       });
 
-      // Add connect to user's connects
-      addConnect(connectData);
+      // Add connect via AppContext (will save to connects container + add scoring)
+      await addConnect(connectData);
 
       // Close modal
       handleCloseModal();

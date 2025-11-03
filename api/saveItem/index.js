@@ -1,14 +1,14 @@
 const { CosmosClient } = require('@azure/cosmos');
 
 // Initialize Cosmos client only if environment variables are present
-let client, database, itemsContainer;
+let client, database, dreamsContainer;
 if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   client = new CosmosClient({
     endpoint: process.env.COSMOS_ENDPOINT,
     key: process.env.COSMOS_KEY
   });
   database = client.database('dreamspace');
-  itemsContainer = database.container('items');
+  dreamsContainer = database.container('dreams');
 }
 
 module.exports = async function (context, req) {
@@ -57,8 +57,39 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // Validate type - this endpoint is deprecated for 6-container architecture
+  // All dreams and templates should be saved via saveDreams endpoint
+  if (type === 'dream' || type === 'weekly_goal_template') {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ 
+        error: 'Invalid endpoint for saving dreams/templates',
+        details: `Dreams and weekly goal templates must be saved together using the saveDreams endpoint (one document per user). Use POST /saveDreams with { userId, dreams: [...], weeklyGoalTemplates: [...] }. This ensures proper 6-container architecture where dreams container has one document per user.`
+      }),
+      headers
+    };
+    return;
+  }
+  
+  // For other types, reject with proper routing information
+  const validEndpoints = {
+    'connect': 'saveConnect',
+    'weekly_goal': 'saveWeekGoals (for week instances)',
+    'scoring_entry': 'saveScoring'
+  };
+  
+  context.res = {
+    status: 400,
+    body: JSON.stringify({ 
+      error: 'Invalid type for saveItem endpoint',
+      details: `Type '${type}' is not supported by this endpoint. Use dedicated endpoints: ${JSON.stringify(validEndpoints, null, 2)}`
+    }),
+    headers
+  };
+  return;
+
   // Check if Cosmos DB is configured
-  if (!itemsContainer) {
+  if (!dreamsContainer) {
     context.res = {
       status: 500,
       body: JSON.stringify({ 
@@ -86,21 +117,16 @@ module.exports = async function (context, req) {
       updatedAt: new Date().toISOString()
     };
 
-    // Validation for weekly goals - must have weekId
-    if (type === 'weekly_goal' && !document.weekId) {
-      context.res = {
-        status: 400,
-        body: JSON.stringify({ 
-          error: 'weekId is required for weekly_goal type',
-          details: 'Each weekly goal must be associated with a specific week (e.g., "2025-W43")'
-        }),
-        headers
-      };
-      return;
-    }
-
-    // Upsert the item
-    const { resource } = await itemsContainer.items.upsert(document);
+    // Upsert the item to dreams container
+    context.log('💾 WRITE:', {
+      container: 'dreams',
+      partitionKey: userId,
+      id: document.id,
+      operation: 'upsert',
+      type: type
+    });
+    
+    const { resource } = await dreamsContainer.items.upsert(document);
     
     context.log('Successfully saved item:', resource.id);
     
