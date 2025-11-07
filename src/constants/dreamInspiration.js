@@ -120,3 +120,6 @@ export const buildTemplateFromInspiration = (item) => {
   return { category, description, milestones, notes };
 };
 
+
+
+

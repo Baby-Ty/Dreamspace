@@ -68,8 +68,8 @@ export function GraphService(authedFetch, getToken = null) {
 
     /**
      * Upload current user's profile photo to Azure Blob Storage
-     * Returns the permanent blob storage URL, or null if not available
      * @param {string} userId - User ID for the blob filename
+     * @returns {Promise<{success: boolean, data?: string}>} - Blob storage URL or null
      */
     async uploadMyPhotoToStorage(userId) {
       if (!getToken) {
@@ -81,12 +81,13 @@ export function GraphService(authedFetch, getToken = null) {
       }
 
       try {
+        // Get the photo from Microsoft Graph API
         const token = await getToken();
         if (!token) {
+          console.log('No token available for photo fetch');
           return ok(null);
         }
 
-        // Fetch the photo from Microsoft Graph
         const response = await fetch(`${GRAPH_API_BASE}/me/photo/$value`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -94,46 +95,45 @@ export function GraphService(authedFetch, getToken = null) {
         });
 
         if (!response.ok) {
-          // Photo not available is not an error - return success with null
           console.log('No profile photo available from Microsoft 365');
           return ok(null);
         }
 
+        // Convert the photo blob to an ArrayBuffer
         const photoBlob = await response.blob();
-        
-        // Convert blob to buffer for upload
         const arrayBuffer = await photoBlob.arrayBuffer();
-        const buffer = new Uint8Array(arrayBuffer);
 
-        // Get API base URL from environment or use default
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
-        
-        // Upload to Azure Blob Storage via our API
-        const uploadResponse = await fetch(`${apiBaseUrl}/uploadProfilePicture/${encodeURIComponent(userId)}`, {
+        // Determine API base URL (live site vs development)
+        const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+        const apiBase = isLiveSite 
+          ? 'https://func-dreamspace-prod.azurewebsites.net/api' 
+          : '/api';
+
+        // Upload to Azure Blob Storage via Azure Function
+        const uploadResponse = await fetch(`${apiBase}/uploadProfilePicture/${encodeURIComponent(userId)}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'image/jpeg'
+            'Content-Type': 'application/octet-stream'
           },
-          body: buffer
+          body: arrayBuffer
         });
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          console.error('Failed to upload photo to blob storage:', errorData);
-          return fail(ErrorCodes.NETWORK, 'Failed to upload profile picture', errorData);
+          const errorText = await uploadResponse.text();
+          console.log('Failed to upload photo to storage:', errorText);
+          return ok(null);
         }
 
         const result = await uploadResponse.json();
-        
         if (result.success && result.url) {
-          console.log('Successfully uploaded profile picture to blob storage:', result.url);
+          console.log('Profile photo uploaded to blob storage:', result.url);
           return ok(result.url);
-        } else {
-          return fail(ErrorCodes.NETWORK, 'Upload succeeded but no URL returned');
         }
+
+        return ok(null);
       } catch (error) {
         console.log('Error uploading photo to storage, using fallback:', error.message);
-        return ok(null); // Return null instead of failing to allow graceful degradation
+        return ok(null);
       }
     },
 

@@ -27,7 +27,7 @@ module.exports = async function (context, req) {
 
   const userId = context.bindingData.userId;
 
-  context.log('Uploading profile picture for userId:', userId);
+  context.log('Uploading profile picture for user:', userId);
 
   if (!userId) {
     context.res = {
@@ -44,7 +44,7 @@ module.exports = async function (context, req) {
       status: 500,
       body: JSON.stringify({ 
         error: 'Blob storage not configured', 
-        details: 'AZURE_STORAGE_CONNECTION_STRING environment variable is required' 
+        details: 'AZURE_STORAGE_CONNECTION_STRING environment variable is required'
       }),
       headers
     };
@@ -73,17 +73,27 @@ module.exports = async function (context, req) {
       access: 'blob' // Public read access for blobs
     });
 
-    // Create a safe filename from userId (replace special characters)
+    // Create a safe filename from userId
     const safeUserId = userId.replace(/[^a-zA-Z0-9-_@.]/g, '_');
     const blobName = `${safeUserId}.jpg`;
 
     // Get blob client
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
+    // Detect content type from the buffer (basic detection)
+    let contentType = 'image/jpeg';
+    if (imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50) {
+      contentType = 'image/png';
+    } else if (imageBuffer[0] === 0x47 && imageBuffer[1] === 0x49) {
+      contentType = 'image/gif';
+    } else if (imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49) {
+      contentType = 'image/webp';
+    }
+
     // Upload the image
     const uploadOptions = {
       blobHTTPHeaders: {
-        blobContentType: 'image/jpeg'
+        blobContentType: contentType
       }
     };
 
@@ -115,7 +125,3 @@ module.exports = async function (context, req) {
     };
   }
 };
-
-
-
-

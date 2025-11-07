@@ -1,10 +1,15 @@
-// People Hub service for DreamSpace - handles team management and coaching data
+// DoD: no fetch in UI; <400 lines; early return for loading/error; 
+//      a11y roles/labels; minimal props; data-testid for key nodes.
+
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 
+/**
+ * People Service for DreamSpace
+ * Handles core user and team relationship data
+ */
 class PeopleService {
   constructor() {
-    // Always use Cosmos DB on the live site, regardless of environment variables
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
     this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
@@ -18,7 +23,10 @@ class PeopleService {
     });
   }
 
-  // Get all users with their team assignments and roles
+  /**
+   * Get all users with their team assignments and roles
+   * @returns {Promise<{success: boolean, data?: array, error?: object}>}
+   */
   async getAllUsers() {
     try {
       if (this.useCosmosDB) {
@@ -50,7 +58,10 @@ class PeopleService {
     }
   }
 
-  // Get team relationships and coaching assignments
+  /**
+   * Get team relationships and coaching assignments
+   * @returns {Promise<{success: boolean, data?: array, error?: object}>}
+   */
   async getTeamRelationships() {
     try {
       if (this.useCosmosDB) {
@@ -82,186 +93,12 @@ class PeopleService {
     }
   }
 
-  // Get coaching alerts for a specific manager
-  async getCoachingAlerts(managerId) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getCoachingAlerts/${managerId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Retrieved coaching alerts from Cosmos DB:', result.alerts?.length || 0);
-        return ok(result.alerts || []);
-      } else {
-        // Fallback to localStorage for development
-        const alerts = await this.getLocalStorageCoachingAlerts(managerId);
-        console.log('📱 Retrieved coaching alerts from localStorage:', alerts.length);
-        return ok(alerts);
-      }
-    } catch (error) {
-      console.error('❌ Error fetching coaching alerts:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch coaching alerts');
-    }
-  }
-
-  // Get team metrics for a specific manager
-  async getTeamMetrics(managerId) {
-    console.log('🔍 getTeamMetrics called:', {
-      managerId,
-      useCosmosDB: this.useCosmosDB,
-      environment: import.meta.env.VITE_APP_ENV,
-      cosmosEndpoint: import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET'
-    });
-    
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getTeamMetrics/${managerId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Retrieved team metrics from Cosmos DB for manager:', managerId);
-        console.log('🔍 Team metrics response:', {
-          hasResult: !!result,
-          hasMetrics: !!result.metrics,
-          metricsType: typeof result.metrics,
-          teamSize: result.metrics?.teamSize,
-          teamMembers: result.metrics?.teamMembers?.length
-        });
-        return ok(result.metrics);
-      } else {
-        // Fallback to localStorage for development
-        const metrics = await this.getLocalStorageTeamMetrics(managerId);
-        console.log('📱 Retrieved team metrics from localStorage for manager:', managerId);
-        return ok(metrics);
-      }
-    } catch (error) {
-      console.error('❌ Error fetching team metrics:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch team metrics');
-    }
-  }
-
-  // Promote user to coach
-  async promoteUserToCoach(userId, teamName) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/promoteUserToCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            teamName,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ User promoted to coach in Cosmos DB:', userId);
-        return ok(result);
-      } else {
-        // Handle locally for development
-        const success = await this.promoteUserLocalStorage(userId, teamName);
-        console.log('📱 User promoted to coach in localStorage:', userId);
-        return ok({ success });
-      }
-    } catch (error) {
-      console.error('❌ Error promoting user to coach:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to promote user to coach');
-    }
-  }
-
-  // Assign user to existing coach
-  async assignUserToCoach(userId, coachId) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/assignUserToCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            coachId,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ User assigned to coach in Cosmos DB:', { userId, coachId });
-        return ok(result);
-      } else {
-        // Handle locally for development
-        const success = await this.assignUserLocalStorage(userId, coachId);
-        console.log('📱 User assigned to coach in localStorage:', { userId, coachId });
-        return ok({ success });
-      }
-    } catch (error) {
-      console.error('❌ Error assigning user to coach:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to assign user to coach');
-    }
-  }
-
-  // Unassign user from coach/team
-  async unassignUserFromTeam(userId, coachId) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/unassignUserFromTeam`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            coachId,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ User unassigned from coach in Cosmos DB:', { userId, coachId });
-        return ok(result);
-      } else {
-        // Handle locally for development
-        const success = await this.unassignUserLocalStorage(userId, coachId);
-        console.log('📱 User unassigned from coach in localStorage:', { userId, coachId });
-        return ok({ success });
-      }
-    } catch (error) {
-      console.error('❌ Error unassigning user from coach:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to unassign user from coach');
-    }
-  }
-
-  // Update user profile
+  /**
+   * Update user profile
+   * @param {string} userId - User ID
+   * @param {object} profileData - Profile data to update
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
   async updateUserProfile(userId, profileData) {
     try {
       if (this.useCosmosDB) {
@@ -292,46 +129,12 @@ class PeopleService {
     }
   }
 
-  // Replace team coach
-  async replaceTeamCoach(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/replaceTeamCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            oldCoachId,
-            newCoachId,
-            teamName,
-            demoteOption,
-            assignToTeamId,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Coach replaced in Cosmos DB:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
-        return ok(result);
-      } else {
-        // Handle locally for development
-        const success = await this.replaceCoachLocalStorage(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
-        console.log('📱 Coach replaced in localStorage:', { oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId });
-        return ok({ success });
-      }
-    } catch (error) {
-      console.error('❌ Error replacing team coach:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to replace team coach');
-    }
-  }
-
   // === LOCAL STORAGE FALLBACK METHODS (Development Mode) ===
 
+  /**
+   * Get users from localStorage (development mode)
+   * @returns {Promise<array>}
+   */
   async getLocalStorageUsers() {
     const stored = localStorage.getItem('dreamspace_all_users');
     if (stored) {
@@ -349,6 +152,10 @@ class PeopleService {
     }
   }
 
+  /**
+   * Get teams from localStorage (development mode)
+   * @returns {Promise<array>}
+   */
   async getLocalStorageTeams() {
     const stored = localStorage.getItem('dreamspace_team_relationships');
     if (stored) {
@@ -366,75 +173,12 @@ class PeopleService {
     }
   }
 
-  async getLocalStorageCoachingAlerts(managerId) {
-    // Use mock data function for alerts in development
-    try {
-      const { getCoachingAlerts } = await import('../data/mockData.js');
-      return getCoachingAlerts(managerId);
-    } catch (error) {
-      console.error('Error loading coaching alerts:', error);
-      return [];
-    }
-  }
-
-  async getLocalStorageTeamMetrics(managerId) {
-    // Use mock data function for metrics in development
-    try {
-      const { getTeamMetrics } = await import('../data/mockData.js');
-      return getTeamMetrics(managerId);
-    } catch (error) {
-      console.error('Error loading team metrics:', error);
-      return null;
-    }
-  }
-
-  async promoteUserLocalStorage(userId, teamName) {
-    const teams = await this.getLocalStorageTeams();
-    const users = await this.getLocalStorageUsers();
-    
-    // Add new team relationship
-    const newTeam = {
-      managerId: userId,
-      teamMembers: [],
-      teamName: teamName,
-      managerRole: "Dream Coach",
-      createdAt: new Date().toISOString()
-    };
-    
-    teams.push(newTeam);
-    localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
-    
-    return true;
-  }
-
-  async assignUserLocalStorage(userId, coachId) {
-    const teams = await this.getLocalStorageTeams();
-    
-    // Find the coach's team and add the user
-    const coachTeam = teams.find(t => t.managerId === coachId);
-    if (coachTeam && !coachTeam.teamMembers.includes(userId)) {
-      coachTeam.teamMembers.push(userId);
-      localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
-      return true;
-    }
-    
-    return false;
-  }
-
-  async unassignUserLocalStorage(userId, coachId) {
-    const teams = await this.getLocalStorageTeams();
-    
-    // Find the coach's team and remove the user
-    const coachTeam = teams.find(t => t.managerId === coachId);
-    if (coachTeam && coachTeam.teamMembers.includes(userId)) {
-      coachTeam.teamMembers = coachTeam.teamMembers.filter(id => id !== userId);
-      localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
-      return true;
-    }
-    
-    return false;
-  }
-
+  /**
+   * Update user profile in localStorage (development mode)
+   * @param {string} userId - User ID
+   * @param {object} profileData - Profile data
+   * @returns {Promise<boolean>}
+   */
   async updateUserProfileLocalStorage(userId, profileData) {
     const users = await this.getLocalStorageUsers();
     
@@ -459,43 +203,10 @@ class PeopleService {
     return false;
   }
 
-  async replaceCoachLocalStorage(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
-    const teams = await this.getLocalStorageTeams();
-    
-    // Find the old coach's team
-    const oldTeamIndex = teams.findIndex(t => t.managerId === oldCoachId);
-    if (oldTeamIndex === -1) return false;
-    
-    const oldTeam = teams[oldTeamIndex];
-    
-    // Check if new coach already has a team
-    const newTeamIndex = teams.findIndex(t => t.managerId === newCoachId);
-    let mergedMembers = [...oldTeam.teamMembers];
-    
-    if (newTeamIndex !== -1) {
-      // Merge teams - combine members and remove new coach's old team
-      const existingMembers = new Set(teams[newTeamIndex].teamMembers);
-      mergedMembers = [
-        ...teams[newTeamIndex].teamMembers,
-        ...oldTeam.teamMembers.filter(member => !existingMembers.has(member))
-      ];
-      teams.splice(newTeamIndex, 1); // Remove new coach's old team
-    }
-    
-    // Update the team with new coach
-    teams[oldTeamIndex] = {
-      ...oldTeam,
-      managerId: newCoachId,
-      teamName: teamName || `Coach ${newCoachId}'s Team`,
-      teamMembers: mergedMembers,
-      lastModified: new Date().toISOString()
-    };
-    
-    localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
-    return true;
-  }
-
-  // Initialize localStorage with mock data if empty (development mode)
+  /**
+   * Initialize localStorage with mock data if empty (development mode)
+   * @returns {Promise<void>}
+   */
   async initializeLocalStorage() {
     if (this.useCosmosDB) return; // Skip in production
     
@@ -514,6 +225,64 @@ class PeopleService {
     } catch (error) {
       console.error('❌ Error initializing localStorage:', error);
     }
+  }
+
+  // === LEGACY METHODS (For backwards compatibility) ===
+  // These methods now delegate to the new services
+  // Import them at runtime to avoid circular dependencies
+
+  /**
+   * @deprecated Use coachingService.getTeamMetrics() instead
+   */
+  async getTeamMetrics(managerId) {
+    console.warn('⚠️ peopleService.getTeamMetrics() is deprecated. Use coachingService.getTeamMetrics() instead');
+    const { coachingService } = await import('./coachingService.js');
+    return coachingService.getTeamMetrics(managerId);
+  }
+
+  /**
+   * @deprecated Use coachingService.getCoachingAlerts() instead
+   */
+  async getCoachingAlerts(managerId) {
+    console.warn('⚠️ peopleService.getCoachingAlerts() is deprecated. Use coachingService.getCoachingAlerts() instead');
+    const { coachingService } = await import('./coachingService.js');
+    return coachingService.getCoachingAlerts(managerId);
+  }
+
+  /**
+   * @deprecated Use userManagementService.promoteUserToCoach() instead
+   */
+  async promoteUserToCoach(userId, teamName) {
+    console.warn('⚠️ peopleService.promoteUserToCoach() is deprecated. Use userManagementService.promoteUserToCoach() instead');
+    const { userManagementService } = await import('./userManagementService.js');
+    return userManagementService.promoteUserToCoach(userId, teamName);
+  }
+
+  /**
+   * @deprecated Use userManagementService.assignUserToCoach() instead
+   */
+  async assignUserToCoach(userId, coachId) {
+    console.warn('⚠️ peopleService.assignUserToCoach() is deprecated. Use userManagementService.assignUserToCoach() instead');
+    const { userManagementService } = await import('./userManagementService.js');
+    return userManagementService.assignUserToCoach(userId, coachId);
+  }
+
+  /**
+   * @deprecated Use userManagementService.unassignUserFromTeam() instead
+   */
+  async unassignUserFromTeam(userId, coachId) {
+    console.warn('⚠️ peopleService.unassignUserFromTeam() is deprecated. Use userManagementService.unassignUserFromTeam() instead');
+    const { userManagementService } = await import('./userManagementService.js');
+    return userManagementService.unassignUserFromTeam(userId, coachId);
+  }
+
+  /**
+   * @deprecated Use userManagementService.replaceTeamCoach() instead
+   */
+  async replaceTeamCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId) {
+    console.warn('⚠️ peopleService.replaceTeamCoach() is deprecated. Use userManagementService.replaceTeamCoach() instead');
+    const { userManagementService } = await import('./userManagementService.js');
+    return userManagementService.replaceTeamCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
   }
 }
 

@@ -11,7 +11,7 @@ import { mockDreams } from '../constants/dreamInspiration';
  * Handles all state, handlers, and drag & drop for the Dream Book feature
  */
 export function useDreamBook() {
-  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams } = useApp();
+  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, addWeeklyGoal, addWeeklyGoalsBatch, weeklyGoals, deleteWeeklyGoal } = useApp();
   
   // Form and modal state
   const [editingDream, setEditingDream] = useState(null);
@@ -116,7 +116,7 @@ export function useDreamBook() {
     });
   }, [dreamCategories]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (isCreating) {
       const newDream = {
         id: tempDreamId,
@@ -152,11 +152,70 @@ export function useDreamBook() {
         }
         
         newDream.goals = [goal];
+        
+        // Create weekly goal instances using the SAME pattern as Week Ahead
+        console.log('📅 Creating weekly goal instances for first goal');
+        const { getCurrentIsoWeek, getNextNWeeks } = await import('../utils/dateUtils');
+        
+        try {
+          if (formData.firstGoal.consistency === 'weekly') {
+            // Create template for weekly recurring goals (same as Week Ahead)
+            const template = {
+              id: goalId,
+              type: 'weekly_goal_template',
+              goalType: 'consistency',
+              title: goal.title,
+              description: '',
+              dreamId: tempDreamId,
+              dreamTitle: formData.title,
+              dreamCategory: formData.category,
+              recurrence: 'weekly',
+              targetWeeks: formData.firstGoal.targetWeeks,
+              active: true,
+              startDate: new Date().toISOString(),
+              createdAt: new Date().toISOString()
+            };
+            
+            console.log('✨ Creating weekly recurring template:', template.id);
+            await addWeeklyGoal(template);
+            console.log('✅ Weekly template created');
+            
+          } else if (formData.firstGoal.consistency === 'monthly') {
+            // Create instances for monthly goals (same as Week Ahead)
+            const currentWeekIso = getCurrentIsoWeek();
+            const months = formData.firstGoal.targetMonths;
+            const totalWeeks = months * 4;
+            const weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
+            
+            const instances = weekIsoStrings.map(weekIso => ({
+              id: `${goalId}_${weekIso}`,
+              type: 'weekly_goal',
+              goalType: 'consistency',
+              title: goal.title,
+              description: '',
+              dreamId: tempDreamId,
+              dreamTitle: formData.title,
+              dreamCategory: formData.category,
+              recurrence: 'monthly',
+              targetMonths: months,
+              weekId: weekIso,
+              completed: false,
+              createdAt: new Date().toISOString()
+            }));
+            
+            console.log(`📅 Creating ${instances.length} monthly goal instances`);
+            await addWeeklyGoalsBatch(instances);
+            console.log('✅ Monthly instances created');
+          }
+        } catch (error) {
+          console.error('❌ Failed to create weekly goal instances:', error);
+          // Continue anyway - goal is saved to dream
+        }
       } else {
         newDream.goals = [];
       }
 
-      addDream(newDream);
+      await addDream(newDream);
       setIsCreating(false);
       setTempDreamId(null);
     } else {
@@ -210,11 +269,58 @@ export function useDreamBook() {
     });
   }, []);
 
-  const handleDelete = useCallback((dreamId) => {
-    if (window.confirm('Are you sure you want to delete this dream?')) {
-      deleteDream(dreamId);
+  const handleDelete = useCallback(async (dreamId) => {
+    if (!window.confirm('Are you sure you want to delete this dream? This will also remove all associated weekly goals.')) {
+      return;
     }
-  }, [deleteDream]);
+    
+    console.log(`🗑️ Deleting dream ${dreamId} and all associated weekly goals`);
+    
+    try {
+      // Find the dream to get its goals
+      const dream = dreams.find(d => d.id === dreamId);
+      
+      if (dream && dream.goals && dream.goals.length > 0) {
+        console.log(`🧹 Cleaning up ${dream.goals.length} goals from weekly goals`);
+        
+        // Delete all weekly goals (templates and instances) associated with this dream's goals
+        for (const goal of dream.goals) {
+          // Find all weekly goals (templates and instances) that match this goal
+          const relatedWeeklyGoals = weeklyGoals.filter(wg => 
+            wg.goalId === goal.id || wg.id === goal.id || wg.dreamId === dreamId
+          );
+          
+          console.log(`🗑️ Found ${relatedWeeklyGoals.length} weekly goals for goal ${goal.id}`);
+          
+          // Delete each one (deleteWeeklyGoal handles templates vs instances)
+          for (const weeklyGoal of relatedWeeklyGoals) {
+            await deleteWeeklyGoal(weeklyGoal.id);
+          }
+        }
+      }
+      
+      // Also clean up any weekly goals directly associated with the dream (without goalId)
+      const dreamWeeklyGoals = weeklyGoals.filter(wg => wg.dreamId === dreamId);
+      console.log(`🗑️ Found ${dreamWeeklyGoals.length} direct dream weekly goals`);
+      
+      for (const weeklyGoal of dreamWeeklyGoals) {
+        await deleteWeeklyGoal(weeklyGoal.id);
+      }
+      
+      // Finally, delete the dream itself
+      await deleteDream(dreamId);
+      
+      console.log(`✅ Successfully deleted dream ${dreamId} and all associated weekly goals`);
+      
+      // Dispatch custom event to trigger refresh in other components (dashboard, week ahead)
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goals-updated'));
+      }, 100);
+    } catch (error) {
+      console.error('❌ Error deleting dream:', error);
+      alert(`Failed to delete dream: ${error.message}`);
+    }
+  }, [dreams, weeklyGoals, deleteDream, deleteWeeklyGoal]);
 
   // Image upload handler
   const handleImageUpload = useCallback(async (e) => {

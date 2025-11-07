@@ -5,6 +5,8 @@ import { MsalProvider } from '@azure/msal-react';
 import { msalConfig } from './auth/authConfig';
 import App from './App.jsx'
 import './index.css'
+// Initialize Application Insights monitoring
+import './config/appInsights';
 
 console.log('🚀 Initializing DreamSpace App...');
 console.log('MSAL Config:', { 

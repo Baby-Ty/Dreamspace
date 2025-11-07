@@ -1,3 +1,6 @@
+// DoD: no fetch in UI; <400 lines; early return for loading/error; 
+//      a11y roles/labels; minimal props; data-testid for key nodes.
+
 // Database service for DreamSpace - handles Cosmos DB data persistence
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';

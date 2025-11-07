@@ -1121,7 +1121,7 @@ const VisionBuilderDemo = () => {
               console.log('Raw Selections:', selections);
               console.log('============================');
               
-              // Save Dreams to DreamBook
+              // Save Dreams to DreamBook using SAME pattern as Week Ahead
               try {
                 const userId = currentUser?.id;
                 if (!userId) {
@@ -1132,51 +1132,10 @@ const VisionBuilderDemo = () => {
                 
                 console.log('💾 Starting save process...', { userId, dreamsCount: dreamsForApp.length });
                 
-                // Create weekly goal templates for consistency goals
-                // These are needed for Week Ahead view to show weekly checkboxes
-                const templates = [];
-                for (const dream of dreamsForApp) {
-                  if (!dream.goals || dream.goals.length === 0) {
-                    console.log(`ℹ️ Dream "${dream.title}" has no goals, skipping templates`);
-                    continue;
-                  }
-                  
-                  for (const goal of dream.goals) {
-                    if (goal.type === 'consistency') {
-                      console.log('📋 Creating weekly template for consistency goal:', goal.title);
-                      
-                      const template = {
-                        id: `template_${goal.id}`,
-                        title: goal.title,
-                        description: goal.description || '',
-                        dreamId: dream.id,
-                        dreamTitle: dream.title,
-                        dreamCategory: dream.category,
-                        goalId: goal.id, // Link back to the dream goal
-                        recurrence: goal.recurrence || 'weekly',
-                        durationType: goal.recurrence === 'monthly' ? 'months' : 'weeks',
-                        durationWeeks: goal.targetWeeks || (goal.targetMonths ? goal.targetMonths * 4 : 12),
-                        durationMonths: goal.targetMonths,
-                        startDate: goal.startDate,
-                        active: true,
-                        createdAt: new Date().toISOString()
-                      };
-                      
-                      templates.push(template);
-                      console.log(`✅ Created weekly template: ${goal.title}`);
-                    }
-                  }
-                }
-                
-                // Save dreams with embedded goals AND weekly templates
-                // Dreams = track overall progress, Templates = generate weekly checkboxes
-                console.log('💾 Saving dreams + templates to Cosmos DB...', { 
-                  dreamsCount: dreamsForApp.length, 
-                  templatesCount: templates.length 
-                });
-                
-                // Import itemService dynamically
+                // Import needed services and utils
                 const itemService = (await import('../services/itemService')).default;
+                const { getCurrentIsoWeek, getNextNWeeks } = await import('../utils/dateUtils');
+                const { useApp: useAppImport } = await import('../context/AppContext');
                 
                 // Get existing dreams from currentUser
                 const existingDreams = currentUser?.dreamBook || [];
@@ -1184,43 +1143,109 @@ const VisionBuilderDemo = () => {
                 // Combine existing + new dreams
                 const allDreams = [...existingDreams, ...dreamsForApp];
                 
-                // Save to dreams container with templates
-                const result = await itemService.saveDreams(userId, allDreams, templates);
+                // Save dreams to Cosmos DB (without templates - we'll handle goals differently)
+                const result = await itemService.saveDreams(userId, allDreams);
                 
                 if (!result.success) {
                   throw new Error(result.error || 'Failed to save dreams to database');
                 }
                 
-                console.log('✅ All dreams and templates saved successfully to Cosmos DB!');
+                console.log('✅ All dreams saved successfully to Cosmos DB!');
                 
-                // Bulk instantiate templates across all 52 weeks
-                if (templates.length > 0) {
-                  console.log('🔄 Bulk instantiating templates across 52 weeks...');
-                  const weekService = (await import('../services/weekService')).default;
-                  const currentYear = new Date().getFullYear();
+                // Create weekly goals using the SAME pattern as Week Ahead
+                for (const dream of dreamsForApp) {
+                  if (!dream.goals || dream.goals.length === 0) {
+                    continue;
+                  }
                   
-                  const bulkResult = await weekService.bulkInstantiateTemplates(
-                    userId,
-                    currentYear,
-                    templates
-                  );
-                  
-                  if (bulkResult.success) {
-                    console.log(`✅ Created instances for ${bulkResult.data.weeksCreated} weeks (${bulkResult.data.instancesCreated} total instances)`);
-                  } else {
-                    console.warn('⚠️ Bulk instantiation failed, but dreams were saved:', bulkResult.error);
-                    // Don't throw - allow user to continue even if bulk instantiation fails
+                  for (const goal of dream.goals) {
+                    const currentWeekIso = getCurrentIsoWeek();
+                    
+                    if (goal.type === 'consistency' && goal.recurrence === 'weekly') {
+                      // Create template for weekly recurring goals (SAME as Week Ahead)
+                      const template = {
+                        id: goal.id,
+                        type: 'weekly_goal_template',
+                        goalType: 'consistency',
+                        title: goal.title,
+                        description: goal.description || '',
+                        dreamId: dream.id,
+                        dreamTitle: dream.title,
+                        dreamCategory: dream.category,
+                        recurrence: 'weekly',
+                        targetWeeks: goal.targetWeeks,
+                        active: true,
+                        startDate: goal.startDate || new Date().toISOString(),
+                        createdAt: goal.createdAt
+                      };
+                      
+                      console.log('✨ Creating weekly recurring template:', template.id);
+                      await addWeeklyGoal(template);
+                      console.log('✅ Weekly template created');
+                      
+                    } else if (goal.type === 'consistency' && goal.recurrence === 'monthly') {
+                      // Create instances for monthly goals (SAME as Week Ahead)
+                      const months = goal.targetMonths || 6;
+                      const totalWeeks = months * 4;
+                      const weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
+                      
+                      const instances = weekIsoStrings.map(weekIso => ({
+                        id: `${goal.id}_${weekIso}`,
+                        type: 'weekly_goal',
+                        goalType: 'consistency',
+                        goalId: goal.id,
+                        title: goal.title,
+                        description: goal.description || '',
+                        dreamId: dream.id,
+                        dreamTitle: dream.title,
+                        dreamCategory: dream.category,
+                        recurrence: 'monthly',
+                        targetMonths: months,
+                        weekId: weekIso,
+                        completed: false,
+                        createdAt: goal.createdAt
+                      }));
+                      
+                      console.log(`📅 Creating ${instances.length} monthly goal instances`);
+                      await addWeeklyGoalsBatch(instances);
+                      console.log('✅ Monthly instances created');
+                      
+                    } else if (goal.type === 'deadline' && goal.targetDate) {
+                      // Create instances for deadline goals (SAME as Week Ahead)
+                      const targetDate = new Date(goal.targetDate);
+                      const currentDate = new Date();
+                      const daysUntilDeadline = Math.ceil((targetDate - currentDate) / (1000 * 60 * 60 * 24));
+                      const weeksUntilDeadline = Math.ceil(daysUntilDeadline / 7);
+                      const weekIsoStrings = getNextNWeeks(currentWeekIso, Math.max(1, weeksUntilDeadline));
+                      
+                      const instances = weekIsoStrings.map(weekIso => ({
+                        id: `${goal.id}_${weekIso}`,
+                        type: 'deadline',
+                        goalType: 'deadline',
+                        goalId: goal.id,
+                        title: goal.title,
+                        description: goal.description || '',
+                        dreamId: dream.id,
+                        dreamTitle: dream.title,
+                        dreamCategory: dream.category,
+                        targetDate: goal.targetDate,
+                        weekId: weekIso,
+                        completed: false,
+                        createdAt: goal.createdAt
+                      }));
+                      
+                      console.log(`📅 Creating ${instances.length} deadline goal instances`);
+                      await addWeeklyGoalsBatch(instances);
+                      console.log('✅ Deadline instances created');
+                    }
                   }
                 }
                 
-                // Reload page to fetch fresh data from Cosmos DB
-                // This ensures the dreams and templates are loaded into local state
                 console.log('✅ Complete! Reloading to display your dreams...');
                 window.location.href = '/';
                 
               } catch (error) {
                 console.error('❌ Error saving dreams:', error);
-                console.error('❌ Error stack:', error.stack);
                 alert(`⚠️ There was an error saving your Dreams: ${error.message}\n\nPlease check the console for details.`);
               }
             }}

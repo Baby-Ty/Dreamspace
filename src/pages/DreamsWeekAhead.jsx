@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -19,6 +19,7 @@ import {
   Clock,
   Repeat
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
 import HelpTooltip from '../components/HelpTooltip';
 import { getCurrentIsoWeek, getIsoWeek, parseIsoWeek, calculateWeekInstancesForDuration, getWeekRange } from '../utils/dateUtils';
@@ -40,11 +41,11 @@ const DreamsWeekAhead = () => {
   const [goalFormData, setGoalFormData] = useState({
     title: '',
     description: '',
-    milestoneId: null,
-    recurrence: 'once',
-    durationType: 'unlimited', // 'unlimited', 'weeks', 'milestone'
-    durationWeeks: 4,
-    targetMonths: 6
+    type: 'consistency', // 'consistency' or 'deadline'
+    recurrence: 'weekly', // 'weekly' or 'monthly'
+    targetWeeks: 12,
+    targetMonths: 6,
+    targetDate: ''
   });
 
   // Month and week selector state
@@ -134,6 +135,9 @@ const DreamsWeekAhead = () => {
         // Update state using proper action
         setWeeklyGoals(updatedGoals);
         setLoadError(null);
+        
+        // Mark week as loaded only after successful load
+        loadedWeeksRef.current.add(weekIso);
       } else {
         const errorMsg = `Failed to load week goals: ${result.error}`;
         console.error('❌', errorMsg);
@@ -159,18 +163,48 @@ const DreamsWeekAhead = () => {
     }
   }, []);
 
-  // Load goals when active week changes
+  // Listen for goals-updated events to refresh week ahead
+  useEffect(() => {
+    const handleGoalsUpdated = () => {
+      console.log('📢 Goals updated event received, reloading week ahead');
+      if (activeWeek) {
+        const weekIso = getIsoWeek(activeWeek.start);
+        // Clear the loaded flag to force reload
+        loadedWeeksRef.current.delete(weekIso);
+        // Reload the active week
+        loadWeekGoals(activeWeek);
+      }
+    };
+    
+    window.addEventListener('goals-updated', handleGoalsUpdated);
+    
+    return () => {
+      window.removeEventListener('goals-updated', handleGoalsUpdated);
+    };
+  }, [activeWeek, loadWeekGoals]);
+
+  // Load goals when active week changes or when weeklyGoals (templates) are loaded
   useEffect(() => {
     if (activeWeek && currentUser?.id) {
       const weekIso = getIsoWeek(activeWeek.start);
       
+      // Clear loaded state when weeklyGoals changes (templates loaded from AppContext)
+      // This ensures we reload when templates become available
+      if (weeklyGoals.length > 0 && loadedWeeksRef.current.has(weekIso)) {
+        const currentWeekGoals = weeklyGoals.filter(g => g.weekId === weekIso);
+        // If we have templates but no instances for this week, clear the loaded flag
+        if (currentWeekGoals.length === 0) {
+          loadedWeeksRef.current.delete(weekIso);
+        }
+      }
+      
       // Only load if we haven't loaded this week yet
       if (!loadedWeeksRef.current.has(weekIso)) {
-        loadedWeeksRef.current.add(weekIso);
+        // Don't add to loaded set until load completes
         loadWeekGoals(activeWeek);
       }
     }
-  }, [activeWeek?.id, currentUser?.id]);
+  }, [activeWeek?.id, currentUser?.id, weeklyGoals.length]);
 
   // Early return if data is not loaded yet
   if (!currentUser) {
@@ -355,72 +389,108 @@ const DreamsWeekAhead = () => {
   };
 
   const handleAddGoal = (dream) => {
-    // Create a copy of the dream and ensure milestones array exists
-    const dreamWithMilestones = dream ? {
-      ...dream,
-      milestones: dream.milestones || []
-    } : null;
-    setSelectedDream(dreamWithMilestones);
+    setSelectedDream(dream);
     setShowGoalForm(true);
     setGoalFormData({ 
       title: '', 
       description: '',
-      milestoneId: null,
-      recurrence: 'once',
-      durationType: 'unlimited',
-      durationWeeks: 4
+      type: 'consistency',
+      recurrence: 'weekly',
+      targetWeeks: 12,
+      targetMonths: 6,
+      targetDate: ''
     });
   };
 
   const handleSaveGoal = async () => {
     if (!goalFormData.title.trim()) return;
+    
+    // Validation for deadline goals
+    if (goalFormData.type === 'deadline' && !goalFormData.targetDate) {
+      console.error('Deadline goal requires a target date');
+      return;
+    }
 
     // Get the active week's ISO week string
     const activeIsoWeek = activeWeek ? getIsoWeek(activeWeek.start) : getCurrentIsoWeek();
+    const currentWeekIso = getCurrentIsoWeek();
     
-    if (goalFormData.recurrence === 'weekly' || goalFormData.recurrence === 'monthly') {
-      // Recurring goal: Create template and immediately create current week instance
-      const templateId = editingGoal?.templateId || editingGoal?.id || `template_${Date.now()}`;
-      
-      const template = {
-        id: templateId,
-        type: 'weekly_goal_template',
+    const goalId = editingGoal?.id || `goal_${Date.now()}`;
+    
+    if (editingGoal) {
+      // Update existing goal
+      const updatedGoal = {
+        ...editingGoal,
         title: goalFormData.title.trim(),
         description: goalFormData.description.trim(),
-        dreamId: selectedDream.id,
-        dreamTitle: selectedDream.title,
-        dreamCategory: selectedDream.category,
-        milestoneId: goalFormData.milestoneId || undefined,
-        recurrence: goalFormData.recurrence,
-        active: true,
-        durationType: goalFormData.durationType || 'unlimited',
-        durationWeeks: goalFormData.recurrence === 'weekly' ? goalFormData.durationWeeks : undefined,
-        targetMonths: goalFormData.recurrence === 'monthly' ? goalFormData.targetMonths : undefined,
-        startDate: editingGoal?.startDate || new Date().toISOString(),
-        createdAt: editingGoal?.createdAt || new Date().toISOString()
+        type: goalFormData.type,
+        recurrence: goalFormData.type === 'consistency' ? goalFormData.recurrence : undefined,
+        targetWeeks: goalFormData.type === 'consistency' && goalFormData.recurrence === 'weekly' ? goalFormData.targetWeeks : undefined,
+        targetMonths: goalFormData.type === 'consistency' && goalFormData.recurrence === 'monthly' ? goalFormData.targetMonths : undefined,
+        targetDate: goalFormData.type === 'deadline' ? goalFormData.targetDate : undefined,
       };
       
-      if (editingGoal) {
-        updateWeeklyGoal(template);
-      } else {
-        addWeeklyGoal(template);
+      updateWeeklyGoal(updatedGoal);
+    } else {
+      // Create new goal
+      // For weekly consistency goals, create a template that auto-generates instances
+      // For monthly consistency goals and deadline goals, create instances directly
+      
+      if (goalFormData.type === 'consistency' && goalFormData.recurrence === 'weekly') {
+        // Create a template for weekly recurring goals
+        const template = {
+          id: goalId,
+          type: 'weekly_goal_template',
+          goalType: 'consistency',
+          title: goalFormData.title.trim(),
+          description: goalFormData.description.trim(),
+          dreamId: selectedDream.id,
+          dreamTitle: selectedDream.title,
+          dreamCategory: selectedDream.category,
+          recurrence: 'weekly',
+          targetWeeks: goalFormData.targetWeeks,
+          active: true,
+          startDate: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        };
         
-        // Create instances for ALL weeks in the duration
-        const weekIsoStrings = calculateWeekInstancesForDuration(template);
-        console.log(`Creating ${weekIsoStrings.length} week instances for template: ${templateId}`, weekIsoStrings);
+        console.log('✨ Creating weekly recurring template:', template.id);
+        await addWeeklyGoal(template);
+        console.log('✅ Weekly template created - instances will be auto-generated per week');
+        
+      } else {
+        // For monthly consistency goals and deadline goals, create instances directly
+        let weekIsoStrings = [];
+        
+        if (goalFormData.type === 'consistency' && goalFormData.recurrence === 'monthly') {
+          // For monthly goals, create 4 weeks per month
+          const months = goalFormData.targetMonths || 6;
+          const totalWeeks = months * 4;
+          weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
+        } else if (goalFormData.type === 'deadline') {
+          // For deadline goals, calculate weeks until target date
+          const targetDate = new Date(goalFormData.targetDate);
+          const currentDate = new Date();
+          const daysUntilDeadline = Math.ceil((targetDate - currentDate) / (1000 * 60 * 60 * 24));
+          const weeksUntilDeadline = Math.ceil(daysUntilDeadline / 7);
+          weekIsoStrings = getNextNWeeks(currentWeekIso, Math.max(1, weeksUntilDeadline));
+        }
+        
+        console.log(`📅 Creating ${weekIsoStrings.length} week instances for ${goalFormData.type} goal: ${goalId}`, weekIsoStrings);
         
         // Build all instances
         const instances = weekIsoStrings.map(weekIso => ({
-          id: `${templateId}_${weekIso}`,
-          type: 'weekly_goal',
-          templateId: templateId,
-          title: template.title,
-          description: template.description,
-          dreamId: template.dreamId,
-          dreamTitle: template.dreamTitle,
-          dreamCategory: template.dreamCategory,
-          milestoneId: template.milestoneId,
-          recurrence: template.recurrence,
+          id: `${goalId}_${weekIso}`,
+          type: goalFormData.type === 'deadline' ? 'deadline' : 'weekly_goal',
+          goalType: goalFormData.type,
+          title: goalFormData.title.trim(),
+          description: goalFormData.description.trim(),
+          dreamId: selectedDream.id,
+          dreamTitle: selectedDream.title,
+          dreamCategory: selectedDream.category,
+          recurrence: goalFormData.type === 'consistency' ? goalFormData.recurrence : undefined,
+          targetDate: goalFormData.type === 'deadline' ? goalFormData.targetDate : undefined,
+          targetMonths: goalFormData.type === 'consistency' ? goalFormData.targetMonths : undefined,
           weekId: weekIso,
           completed: false,
           createdAt: new Date().toISOString()
@@ -429,47 +499,7 @@ const DreamsWeekAhead = () => {
         // Batch save all instances efficiently
         await addWeeklyGoalsBatch(instances);
         
-        console.log(`✅ Created ${weekIsoStrings.length} instances for recurring goal`);
-        
-        // Force reload goals for the active week to show the new goal immediately
-        if (activeWeek) {
-          loadedWeeksRef.current.delete(activeIsoWeek);
-          await loadWeekGoals(activeWeek);
-        }
-      }
-      
-    } else {
-      // One-time goal: Create single instance for the active week
-      const newGoal = {
-        id: editingGoal?.id || `goal_${Date.now()}`,
-        type: 'weekly_goal', // Explicitly set type
-        title: goalFormData.title.trim(),
-        description: goalFormData.description.trim(),
-        weekId: activeIsoWeek,  // Save to the week being viewed
-        dreamId: selectedDream.id,
-        dreamTitle: selectedDream.title,
-        dreamCategory: selectedDream.category,
-        completed: editingGoal?.completed || false,
-        createdAt: editingGoal?.createdAt || new Date().toISOString(),
-        milestoneId: goalFormData.milestoneId || undefined,
-        recurrence: 'once',
-        active: true
-      };
-
-      console.log(`Creating goal for active week: ${activeIsoWeek}`, newGoal);
-
-      if (editingGoal) {
-        updateWeeklyGoal(newGoal);
-        setEditingGoal(null);
-      } else {
-        // addWeeklyGoal will route to weekService for instances with weekId
-        await addWeeklyGoal(newGoal);
-        
-        // Force reload goals for the active week to show the new goal immediately
-        if (activeWeek) {
-          loadedWeeksRef.current.delete(activeIsoWeek);
-          await loadWeekGoals(activeWeek);
-        }
+        console.log(`✅ Created ${weekIsoStrings.length} instances for ${goalFormData.type} goal`);
       }
     }
 
@@ -478,12 +508,16 @@ const DreamsWeekAhead = () => {
     setGoalFormData({ 
       title: '', 
       description: '',
-      milestoneId: null,
-      recurrence: 'once',
-      durationType: 'unlimited',
-      durationWeeks: 4,
-      targetMonths: 6
+      type: 'consistency',
+      recurrence: 'weekly',
+      targetWeeks: 12,
+      targetMonths: 6,
+      targetDate: ''
     });
+    
+    // FORCE RELOAD: Clear cache and reload current week to show new goal
+    loadedWeeksRef.current.delete(activeIsoWeek);
+    await loadWeekGoals(activeWeek);
   };
   
   // Helper to get next N weeks from a starting week
@@ -503,19 +537,15 @@ const DreamsWeekAhead = () => {
   const handleEditGoal = (goal) => {
     setEditingGoal(goal);
     const dream = currentUser.dreamBook.find(d => d.id === goal.dreamId);
-    // Create a copy of the dream and ensure milestones array exists
-    const dreamWithMilestones = dream ? {
-      ...dream,
-      milestones: dream.milestones || []
-    } : null;
-    setSelectedDream(dreamWithMilestones);
+    setSelectedDream(dream);
     setGoalFormData({
       title: goal.title,
       description: goal.description || '',
-      milestoneId: goal.milestoneId || null,
-      recurrence: goal.recurrence || 'once',
-      durationType: goal.durationType || 'unlimited',
-      durationWeeks: goal.durationWeeks || 4
+      type: goal.type || 'consistency',
+      recurrence: goal.recurrence || 'weekly',
+      targetWeeks: goal.targetWeeks || 12,
+      targetMonths: goal.targetMonths || 6,
+      targetDate: goal.targetDate || ''
     });
     setShowGoalForm(true);
   };
@@ -681,10 +711,11 @@ const DreamsWeekAhead = () => {
     setGoalFormData({ 
       title: '', 
       description: '',
-      milestoneId: null,
-      recurrence: 'once',
-      durationType: 'unlimited',
-      durationWeeks: 4
+      type: 'consistency',
+      recurrence: 'weekly',
+      targetWeeks: 12,
+      targetMonths: 6,
+      targetDate: ''
     });
   };
 
@@ -713,7 +744,28 @@ const DreamsWeekAhead = () => {
         g.weekId === currentWeekIso && g.type !== 'weekly_goal_template'
       );
       
-      return [...validTemplates, ...currentWeekInstances];
+      // For monthly goals, we MUST show instances (not templates) because each week needs
+      // independent completion status. When completed in one week, all weeks in that month update.
+      const weeklyTemplates = validTemplates.filter(t => t.recurrence !== 'monthly');
+      const monthlyTemplateIds = new Set(
+        validTemplates.filter(t => t.recurrence === 'monthly').map(t => t.id)
+      );
+      
+      // Create a set of weekly template IDs that are being shown
+      const visibleTemplateIds = new Set(weeklyTemplates.map(t => t.id));
+      
+      // Filter out instances that are duplicates of visible weekly templates
+      // But KEEP monthly instances even if template is active
+      const uniqueInstances = currentWeekInstances.filter(instance => {
+        // If this is a monthly goal instance, always show it
+        if (instance.recurrence === 'monthly' || monthlyTemplateIds.has(instance.templateId)) {
+          return true;
+        }
+        // For weekly goals, filter out if template is visible
+        return !instance.templateId || !visibleTemplateIds.has(instance.templateId);
+      });
+      
+      return [...weeklyTemplates, ...uniqueInstances];
     } else {
       // Other weeks: show only instances for that week
       return weeklyGoals.filter(goal => 
@@ -1037,6 +1089,47 @@ const DreamCard = ({ dream, emoji, onAddGoal }) => {
 const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
   // With week-specific instances, completed status is directly on the goal
   const isCompleted = goal.completed;
+  const buttonRef = useRef(null);
+
+  /**
+   * Triggers subtle confetti animation at button position
+   * @param {HTMLElement} button - The button element to position confetti
+   */
+  const triggerConfetti = (button) => {
+    if (!button) return;
+    
+    const rect = button.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+    // Subtle confetti burst
+    confetti({
+      particleCount: 40,
+      spread: 60,
+      origin: { x, y },
+      colors: ['#E5002B', '#FF6B6B', '#FFA07A', '#FFD700'],
+      ticks: 100,
+      gravity: 1.2,
+      scalar: 0.7,
+      drift: 0,
+      startVelocity: 20,
+    });
+  };
+
+  /**
+   * Handle goal toggle with celebration animation
+   */
+  const handleToggleWithCelebration = () => {
+    // Only celebrate when marking as complete (not when unchecking)
+    if (!isCompleted) {
+      triggerConfetti(buttonRef.current);
+    }
+    
+    // Call the original toggle function
+    if (onToggle) {
+      onToggle();
+    }
+  };
   
   return (
     <div className={`rounded-2xl border shadow-lg hover:shadow-xl transition-all duration-300 p-4 hover:scale-[1.02] ${
@@ -1046,7 +1139,8 @@ const GoalItem = ({ goal, emoji, onToggle, onEdit, onDelete }) => {
     }`}>
       <div className="flex items-start space-x-3">
         <button
-          onClick={onToggle}
+          ref={buttonRef}
+          onClick={handleToggleWithCelebration}
           className="flex-shrink-0 mt-1"
           aria-label={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
@@ -1217,8 +1311,8 @@ const GoalFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50 rounded-t-2xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-3">
@@ -1268,145 +1362,130 @@ const GoalFormModal = ({
               />
             </div>
 
-            {/* Link to Milestone */}
+            {/* Goal Type */}
             <div>
               <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                Link to Milestone (optional)
+                Goal Type <span className="text-netsurit-red">*</span>
               </label>
-              <select
-                value={goalFormData.milestoneId ? String(goalFormData.milestoneId) : ''}
-                onChange={(e) => setGoalFormData({ ...goalFormData, milestoneId: e.target.value ? Number(e.target.value) : null })}
-                className="input-field"
-                aria-label="Select milestone"
-              >
-                <option value="">No milestone</option>
-                {selectedDream?.milestones && selectedDream.milestones.length > 0 ? (
-                  selectedDream.milestones.map((milestone) => (
-                    <option key={milestone.id} value={String(milestone.id)}>
-                      {milestone.text}
-                      {milestone.coachManaged ? ' ⭐ (Coach Milestone)' : ''}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>No milestones available - add milestones in dream first</option>
-                )}
-              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setGoalFormData({ ...goalFormData, type: 'consistency' })}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    goalFormData.type === 'consistency'
+                      ? 'bg-netsurit-red text-white shadow-md'
+                      : 'bg-white border border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red'
+                  }`}
+                >
+                  <Repeat className="w-4 h-4 mx-auto mb-1" />
+                  Consistency
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGoalFormData({ ...goalFormData, type: 'deadline' })}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    goalFormData.type === 'deadline'
+                      ? 'bg-netsurit-red text-white shadow-md'
+                      : 'bg-white border border-professional-gray-300 text-professional-gray-700 hover:border-netsurit-red'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4 mx-auto mb-1" />
+                  Deadline
+                </button>
+              </div>
               <p className="text-xs text-professional-gray-500 mt-1">
-                {selectedDream?.milestones && selectedDream.milestones.length > 0 
-                  ? 'Link this goal to track progress toward a specific milestone'
-                  : '💡 Tip: Add milestones to your dream first to link goals to them'}
+                {goalFormData.type === 'consistency' && 'Track this goal weekly or monthly over time'}
+                {goalFormData.type === 'deadline' && 'Complete this goal by a specific date'}
               </p>
             </div>
 
-            {/* Make Recurring */}
-            <div className="flex items-start space-x-3 p-3 bg-netsurit-light-coral/20 rounded-lg border border-netsurit-coral/30">
-              <input
-                type="checkbox"
-                id="recurring"
-                checked={goalFormData.recurrence === 'weekly'}
-                onChange={(e) => setGoalFormData({ 
-                  ...goalFormData, 
-                  recurrence: e.target.checked ? 'weekly' : 'once'
-                })}
-                className="mt-1 h-4 w-4 text-netsurit-red border-gray-300 rounded focus:ring-netsurit-red"
-                aria-label="Make goal recurring"
-              />
-              <div className="flex-1">
-                <label htmlFor="recurring" className="text-sm font-medium text-professional-gray-900 cursor-pointer flex items-center space-x-2">
-                  <span className="flex items-center justify-center w-5 h-5 rounded bg-netsurit-warm-orange/20">
-                    <Repeat className="w-3.5 h-3.5 text-netsurit-orange" />
-                  </span>
-                  <span>Make this a recurring weekly goal</span>
-                </label>
-                <p className="text-xs text-professional-gray-600 mt-1">
-                  Track completion each week instead of just this week
+            {/* Consistency Options */}
+            {goalFormData.type === 'consistency' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-professional-gray-700 mb-1">
+                      How often?
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGoalFormData({ ...goalFormData, recurrence: 'weekly' })}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                          goalFormData.recurrence === 'weekly'
+                            ? 'bg-professional-gray-700 text-white shadow-md'
+                            : 'bg-white border border-professional-gray-300 text-professional-gray-700 hover:border-professional-gray-500'
+                        }`}
+                      >
+                        Weekly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGoalFormData({ ...goalFormData, recurrence: 'monthly' })}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                          goalFormData.recurrence === 'monthly'
+                            ? 'bg-professional-gray-700 text-white shadow-md'
+                            : 'bg-white border border-professional-gray-300 text-professional-gray-700 hover:border-professional-gray-500'
+                        }`}
+                      >
+                        Monthly
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-professional-gray-700 mb-1">
+                      {goalFormData.recurrence === 'monthly' ? 'Duration (months)' : 'Track for how many weeks?'}
+                    </label>
+                    <input
+                      type="number"
+                      value={goalFormData.recurrence === 'monthly' ? goalFormData.targetMonths : goalFormData.targetWeeks}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        setGoalFormData({
+                          ...goalFormData,
+                          ...(goalFormData.recurrence === 'monthly' 
+                            ? { targetMonths: value }
+                            : { targetWeeks: value }
+                          )
+                        });
+                      }}
+                      min="1"
+                      max={goalFormData.recurrence === 'monthly' ? 24 : 52}
+                      className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-professional-gray-500">
+                  {goalFormData.recurrence === 'weekly' && 'Goal will show up every week for the duration'}
+                  {goalFormData.recurrence === 'monthly' && 'Goal will show every week; completing it marks the entire month'}
                 </p>
               </div>
-            </div>
+            )}
 
-            {/* Duration Options - Only show when recurring */}
-            {goalFormData.recurrence === 'weekly' && (
-              <div className="space-y-3 p-3 bg-professional-gray-50 rounded-lg border border-professional-gray-200">
-                <label className="block text-sm font-medium text-professional-gray-700">
-                  Duration
+            {/* Deadline Options */}
+            {goalFormData.type === 'deadline' && (
+              <div>
+                <label className="block text-sm font-medium text-professional-gray-700 mb-2">
+                  Target Date <span className="text-netsurit-red">*</span>
                 </label>
-                
-                <div className="space-y-2">
-                  {/* Unlimited */}
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="durationType"
-                      value="unlimited"
-                      checked={goalFormData.durationType === 'unlimited'}
-                      onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
-                      className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
-                    />
-                    <div className="flex-1">
-                      <span className="text-sm text-professional-gray-900 font-medium">Ongoing</span>
-                      <p className="text-xs text-professional-gray-600">Track this goal indefinitely</p>
-                    </div>
-                  </label>
-
-                  {/* Specific number of weeks */}
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="durationType"
-                      value="weeks"
-                      checked={goalFormData.durationType === 'weeks'}
-                      onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
-                      className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-professional-gray-900 font-medium">For</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="52"
-                          value={goalFormData.durationWeeks}
-                          onChange={(e) => setGoalFormData({ 
-                            ...goalFormData, 
-                            durationWeeks: parseInt(e.target.value) || 1,
-                            durationType: 'weeks'
-                          })}
-                          onClick={(e) => {
-                            setGoalFormData({ ...goalFormData, durationType: 'weeks' });
-                          }}
-                          className="w-16 px-2 py-1 text-sm border border-professional-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-netsurit-red"
-                        />
-                        <span className="text-sm text-professional-gray-900 font-medium">weeks</span>
-                      </div>
-                      <p className="text-xs text-professional-gray-600 mt-1">Goal will end after this many weeks</p>
-                    </div>
-                  </label>
-
-                  {/* Until milestone complete */}
-                  {goalFormData.milestoneId && (
-                    <label className="flex items-start space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="durationType"
-                        value="milestone"
-                        checked={goalFormData.durationType === 'milestone'}
-                        onChange={(e) => setGoalFormData({ ...goalFormData, durationType: e.target.value })}
-                        className="mt-0.5 h-4 w-4 text-netsurit-red border-gray-300 focus:ring-netsurit-red"
-                      />
-                      <div className="flex-1">
-                        <span className="text-sm text-professional-gray-900 font-medium">Until milestone complete</span>
-                        <p className="text-xs text-professional-gray-600">Track until the linked milestone is marked complete</p>
-                      </div>
-                    </label>
-                  )}
-                </div>
+                <input
+                  type="date"
+                  value={goalFormData.targetDate}
+                  onChange={(e) => setGoalFormData({ ...goalFormData, targetDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
+                  required={goalFormData.type === 'deadline'}
+                />
+                <p className="text-xs text-professional-gray-500 mt-1">
+                  Goal will appear each week until this date
+                </p>
               </div>
             )}
 
             <div className="flex space-x-3 pt-3">
               <button
                 type="submit"
-                disabled={!goalFormData.title.trim()}
+                disabled={!goalFormData.title.trim() || (goalFormData.type === 'deadline' && !goalFormData.targetDate)}
                 className="flex-1 inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />

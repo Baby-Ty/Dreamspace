@@ -109,17 +109,15 @@ export const AuthProvider = ({ children }) => {
             const existingUser = existingData.data.currentUser || existingData.data;
             console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
             console.log('📊 Data structure version:', existingUser.dataStructureVersion || 1);
-            console.log('📋 Weekly goals/templates count:', existingUser.weeklyGoals?.length || 0);
             userData = {
               ...existingUser,
-              // Update only basic profile info, keep everything else (including weeklyGoals)
+              // Update only basic profile info, keep everything else
               name: userData.name,
               email: userData.email,
               office: userData.office,
               avatar: userData.avatar
             };
             console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
-            console.log('📋 Merged weekly goals count:', userData.weeklyGoals?.length || 0);
           } else {
             // No existing data, save new user profile (6-container architecture)
             console.log('🆕 No existing data found, saving new user profile with 6-container structure');
@@ -155,17 +153,6 @@ export const AuthProvider = ({ children }) => {
               } catch (dreamsError) {
                 console.error('⚠️ Failed to create initial dreams document:', dreamsError);
                 // Continue anyway - it will be created when they add their first dream
-              }
-              
-              // Create empty weeks document for new user
-              try {
-                const weekService = (await import('../services/weekService.js')).default;
-                const currentYear = new Date().getFullYear();
-                await weekService.initializeWeekDocument(userData.id, currentYear);
-                console.log(`✅ Created empty weeks document for ${currentYear}`);
-              } catch (weeksError) {
-                console.error('⚠️ Failed to create initial weeks document:', weeksError);
-                // Continue anyway - it will be created when they save their first goal
               }
               
               // Update userData with the saved profile properties to prevent duplicate saves

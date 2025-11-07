@@ -55,12 +55,17 @@ module.exports = async function (context, req) {
   try {
     // Get the appropriate year container
     const containerName = `weeks${year}`;
+    context.log(`📦 Accessing container: ${containerName}`);
+    
+    // Check if container exists, if not this will throw
     const weeksContainer = database.container(containerName);
     
     const documentId = `${userId}_${year}`;
+    context.log(`📄 Document ID: ${documentId}, Partition Key: ${userId}`);
     
     // Try to read the document
     try {
+      context.log(`🔍 Attempting to read document from ${containerName}...`);
       const { resource } = await weeksContainer.item(documentId, userId).read();
       
       // Check if resource exists
@@ -107,8 +112,27 @@ module.exports = async function (context, req) {
         };
         
         try {
-          const { resource: newResource } = await weeksContainer.items.create(newWeekDoc);
-          context.log(`✅ Created week document for ${userId}`);
+          context.log(`📝 Upserting week document:`, {
+            id: newWeekDoc.id,
+            userId: newWeekDoc.userId,
+            year: newWeekDoc.year,
+            container: containerName
+          });
+          
+          // Use upsert instead of create - more reliable
+          const { resource: newResource } = await weeksContainer.items.upsert(newWeekDoc);
+          
+          if (!newResource) {
+            context.log.error(`❌ Upsert returned success but resource is null`);
+            throw new Error('Upsert succeeded but returned null resource');
+          }
+          
+          context.log(`✅ Upserted week document for ${userId}:`, {
+            id: newResource.id,
+            userId: newResource.userId,
+            year: newResource.year,
+            weeksCount: Object.keys(newResource.weeks || {}).length
+          });
           
           // Clean up Cosmos metadata from the newly created document
           const { _rid, _self, _etag, _attachments, _ts, ...cleanDoc } = newResource;
@@ -118,9 +142,16 @@ module.exports = async function (context, req) {
             body: JSON.stringify(cleanDoc),
             headers
           };
-        } catch (createError) {
-          context.log.error(`Failed to create week document:`, createError);
-          throw createError;
+        } catch (upsertError) {
+          context.log.error(`❌ Failed to upsert week document:`, {
+            error: upsertError.message,
+            code: upsertError.code,
+            statusCode: upsertError.statusCode,
+            userId: userId,
+            documentId: documentId,
+            container: containerName
+          });
+          throw upsertError;
         }
       } else {
         throw error;

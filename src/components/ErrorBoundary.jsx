@@ -1,5 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Component } from 'react';
+import { trackError } from '../config/appInsights';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -13,6 +14,12 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error(error, info);
+    
+    // Track error in Application Insights
+    trackError(error, {
+      componentStack: info.componentStack,
+      errorBoundary: this.props.name || 'ErrorBoundary',
+    });
   }
 
   render() {

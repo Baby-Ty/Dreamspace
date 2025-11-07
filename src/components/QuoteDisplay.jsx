@@ -56,17 +56,17 @@ const QuoteDisplay = () => {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 min-h-[140px]">
-      <div className="max-w-[190px] text-center">
-        <p 
-          className={`text-xs text-gray-500 leading-relaxed font-light transition-opacity duration-300 ${
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-5 min-h-[140px]">
+      <div className="max-w-[220px] text-center space-y-2.5">
+        <p
+          className={`text-sm italic text-gray-500 leading-6 font-normal transition-opacity duration-300 ${
             isRotating ? 'opacity-0' : 'opacity-100'
           }`}
         >
           "{currentQuote.text}"
         </p>
-        <p 
-          className={`text-[11px] text-gray-400 mt-2.5 transition-opacity duration-300 ${
+        <p
+          className={`text-xs text-gray-500 font-normal tracking-tight transition-opacity duration-300 ${
             isRotating ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -75,7 +75,7 @@ const QuoteDisplay = () => {
       </div>
       <button
         onClick={rotateQuote}
-        className="mt-5 p-1 opacity-20 hover:opacity-60 transition-all duration-300"
+        className="mt-4 p-1 opacity-20 hover:opacity-60 transition-all duration-300"
         aria-label="Rotate quote"
         tabIndex={0}
       >
