@@ -220,6 +220,12 @@ class DatabaseService {
           console.log('✅ Data loaded from Cosmos DB for user:', userId);
           console.log('📊 Dreams count:', userData.dreamBook?.length || 0);
           console.log('📋 Weekly goals count:', userData.weeklyGoals?.length || 0);
+          console.log('📋 Weekly goals breakdown:', {
+            total: userData.weeklyGoals?.length || 0,
+            templates: userData.weeklyGoals?.filter(g => g.type === 'weekly_goal_template').length || 0,
+            instances: userData.weeklyGoals?.filter(g => g.type !== 'weekly_goal_template').length || 0
+          });
+          console.log('📋 Raw weeklyGoals sample:', userData.weeklyGoals?.slice(0, 3));
           console.log('🔗 Connects count:', userData.connects?.length || 0);
           
           // Check if data structure version is indicated

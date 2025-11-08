@@ -19,8 +19,69 @@ export function useDreamTracker(dream, onUpdate) {
     addWeeklyGoal,
     addWeeklyGoalsBatch,
     weeklyGoals,
+    updateWeeklyGoal,
     deleteWeeklyGoal
   } = useApp();
+  
+  // Get templates for this dream from weeklyGoals + legacy goals from dream.goals
+  const dreamGoals = useMemo(() => {
+    console.log(`🔍 [useDreamTracker] Loading goals for dream "${dream.title}" (${dream.id})`);
+    
+    // Source 1: Templates from weeklyGoals (new way)
+    // ✅ Match by dreamId (preferred) OR dreamTitle (fallback)
+    const templates = weeklyGoals.filter(g => {
+      if (g.type !== 'weekly_goal_template') return false;
+      
+      // Match by dreamId (preferred) OR dreamTitle (fallback)
+      const matchesId = g.dreamId === dream.id;
+      const matchesTitle = g.dreamTitle === dream.title;
+      
+      if (matchesId) {
+        console.log(`  ✅ Template "${g.title}" matches by dreamId (${g.dreamId})`);
+        return true;
+      }
+      
+      if (matchesTitle) {
+        // Accept any dreamTitle match, even if dreamId is different or missing
+        console.log(`  ✅ Template "${g.title}" matches by dreamTitle (dreamId: ${g.dreamId || 'missing'})`);
+        return true;
+      }
+      
+      return false;
+    });
+    
+    // Source 2: Legacy goals from dream.goals array (old way + non-template goals)
+    const legacyGoals = (dream.goals || []).filter(g => g && g.id);
+    
+    // Source 3: Check if any templates are missing from weeklyGoals but exist in dream.goals
+    // This handles cases where goal was created but template wasn't properly saved
+    
+    // Combine all sources, removing duplicates by ID
+    const templateIds = new Set(templates.map(t => t.id));
+    const uniqueLegacyGoals = legacyGoals.filter(g => !templateIds.has(g.id));
+    
+    const combined = [...templates, ...uniqueLegacyGoals];
+    
+    console.log(`  📊 Goal loading summary:`, {
+      dreamId: dream.id,
+      dreamTitle: dream.title,
+      templatesFound: templates.length,
+      legacyGoalsFound: legacyGoals.length,
+      uniqueLegacyGoals: uniqueLegacyGoals.length,
+      totalGoals: combined.length
+    });
+    
+    if (combined.length > 0) {
+      console.log(`  📋 Goals list:`, combined.map(g => ({ 
+        id: g.id, 
+        title: g.title, 
+        type: g.type, 
+        source: g.type === 'weekly_goal_template' ? 'template' : 'legacy'
+      })));
+    }
+    
+    return combined;
+  }, [weeklyGoals, dream.id, dream.goals, dream.title]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState('overview');
@@ -214,15 +275,30 @@ export function useDreamTracker(dream, onUpdate) {
   }, [newGoalData, localDream.id, addGoal, createWeeklyEntries]);
 
   const toggleGoal = useCallback((goalId) => {
-    const goal = localDream.goals.find(g => g.id === goalId);
-    const updatedGoal = { 
-      ...goal, 
-      completed: !goal.completed, 
-      completedAt: !goal.completed ? new Date().toISOString() : null 
-    };
+    const goal = dreamGoals.find(g => g.id === goalId);
+    if (!goal) return;
     
-    updateGoal(localDream.id, updatedGoal);
-  }, [localDream.goals, localDream.id, updateGoal]);
+    // Check if this is a template or legacy goal
+    const isTemplate = goal.type === 'weekly_goal_template';
+    
+    if (isTemplate) {
+      // Templates use 'active' field
+      const updatedGoal = { 
+        ...goal, 
+        active: !goal.active,
+        updatedAt: new Date().toISOString()
+      };
+      updateWeeklyGoal(updatedGoal);
+    } else {
+      // Legacy goals use 'completed' field
+      const updatedGoal = { 
+        ...goal, 
+        completed: !goal.completed,
+        completedAt: !goal.completed ? new Date().toISOString() : null 
+      };
+      updateGoal(localDream.id, updatedGoal);
+    }
+  }, [dreamGoals, localDream.id, updateWeeklyGoal, updateGoal]);
 
   const handleDeleteGoal = useCallback(async (goalId) => {
     console.log(`🗑️ Deleting goal ${goalId} from dream and all weekly goals`);
@@ -262,10 +338,14 @@ export function useDreamTracker(dream, onUpdate) {
 
   const startEditingGoal = useCallback((goal) => {
     setEditingGoal(goal.id);
+    
+    // Handle both templates (goalType) and legacy goals (type)
+    const goalType = goal.type === 'weekly_goal_template' ? goal.goalType : goal.type;
+    
     setGoalEditData({
       title: goal.title,
       description: goal.description || '',
-      type: goal.type || 'consistency',
+      type: goalType || 'consistency',
       recurrence: goal.recurrence || 'weekly',
       targetWeeks: goal.targetWeeks || 12,
       targetMonths: goal.targetMonths || 6,
@@ -282,7 +362,11 @@ export function useDreamTracker(dream, onUpdate) {
   const saveEditedGoal = useCallback(async () => {
     if (!goalEditData.title.trim()) return;
 
-    const goal = localDream.goals.find(g => g.id === editingGoal);
+    const goal = dreamGoals.find(g => g.id === editingGoal);
+    if (!goal) return;
+    
+    const isTemplate = goal.type === 'weekly_goal_template';
+    
     const updatedGoal = {
       ...goal,
       title: goalEditData.title.trim(),
@@ -292,12 +376,17 @@ export function useDreamTracker(dream, onUpdate) {
       targetWeeks: goalEditData.type === 'consistency' && goalEditData.recurrence === 'weekly' ? parseInt(goalEditData.targetWeeks) : undefined,
       targetMonths: goalEditData.type === 'consistency' && goalEditData.recurrence === 'monthly' ? parseInt(goalEditData.targetMonths) : undefined,
       startDate: goalEditData.startDate,
-      targetDate: goalEditData.type === 'deadline' ? goalEditData.targetDate : undefined
+      targetDate: goalEditData.type === 'deadline' ? goalEditData.targetDate : undefined,
+      updatedAt: new Date().toISOString()
     };
 
-    console.log('💾 Updating goal in dream:', updatedGoal);
+    console.log(`💾 Updating ${isTemplate ? 'template' : 'legacy goal'}:`, updatedGoal);
 
-    await updateGoal(localDream.id, updatedGoal);
+    if (isTemplate) {
+      await updateWeeklyGoal(updatedGoal);
+    } else {
+      await updateGoal(localDream.id, updatedGoal);
+    }
 
     // Re-create weekly entries if needed
     if (updatedGoal.type === 'consistency' || updatedGoal.type === 'deadline') {
@@ -310,7 +399,7 @@ export function useDreamTracker(dream, onUpdate) {
     }
 
     cancelEditingGoal();
-  }, [goalEditData, editingGoal, localDream, updateGoal, createWeeklyEntries, cancelEditingGoal]);
+  }, [goalEditData, editingGoal, dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, createWeeklyEntries, cancelEditingGoal]);
 
   // Note handlers
   const addNote = useCallback(() => {
@@ -357,9 +446,17 @@ export function useDreamTracker(dream, onUpdate) {
   const getProgressColor = useCallback((progress) => progress >= 80 ? 'bg-netsurit-red' : progress >= 50 ? 'bg-netsurit-coral' : progress >= 20 ? 'bg-netsurit-orange' : 'bg-professional-gray-400', []);
   const formatDate = useCallback((timestamp) => new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), []);
 
-  // Calculated values
-  const completedGoals = useMemo(() => localDream.goals?.filter(g => g.completed).length || 0, [localDream.goals]);
-  const totalGoals = useMemo(() => localDream.goals?.length || 0, [localDream.goals]);
+  // Calculated values - handle both templates (active) and legacy goals (completed)
+  const completedGoals = useMemo(() => {
+    return dreamGoals.filter(g => {
+      if (g.type === 'weekly_goal_template') {
+        return g.active !== false; // Templates use 'active'
+      }
+      return g.completed; // Legacy goals use 'completed'
+    }).length;
+  }, [dreamGoals]);
+  
+  const totalGoals = useMemo(() => dreamGoals.length, [dreamGoals]);
 
   return {
     // State
@@ -403,6 +500,7 @@ export function useDreamTracker(dream, onUpdate) {
     // Calculated
     completedGoals,
     totalGoals,
+    dreamGoals, // Goals filtered from templates
   };
 }
 

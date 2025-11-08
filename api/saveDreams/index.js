@@ -125,6 +125,8 @@ module.exports = async function (context, req) {
       })),
       weeklyGoalTemplates: (weeklyGoalTemplates || []).map(template => ({
         id: template.id,
+        type: 'weekly_goal_template', // ✅ CRITICAL: Must include type so frontend can identify templates
+        goalType: template.goalType, // consistency or deadline
         title: template.title,
         description: template.description,
         dreamId: template.dreamId,

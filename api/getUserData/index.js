@@ -19,6 +19,64 @@ function isNewStructure(profile) {
   return profile && profile.dataStructureVersion >= 2;
 }
 
+// Helper to generate all ISO weeks for a given year (52 or 53 weeks)
+function getAllWeeksForYear(year) {
+  // Helper: Get ISO week string from a date
+  function getIsoWeek(date) {
+    const target = new Date(date.valueOf());
+    const dayNr = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    const weekNumber = 1 + Math.ceil((firstThursday - target) / 604800000);
+    const isoYear = target.getFullYear();
+    return `${isoYear}-W${String(weekNumber).padStart(2, '0')}`;
+  }
+
+  // Helper: Get week range from ISO week
+  function getWeekRange(isoWeek) {
+    const match = isoWeek.match(/^(\d{4})-W(\d{2})$/);
+    if (!match) {
+      return { start: new Date(), end: new Date() };
+    }
+    const year = parseInt(match[1], 10);
+    const week = parseInt(match[2], 10);
+    
+    const jan4 = new Date(year, 0, 4);
+    const firstMonday = new Date(jan4);
+    firstMonday.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+    
+    const weekStart = new Date(firstMonday);
+    weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    
+    return { start: weekStart, end: weekEnd };
+  }
+
+  const weeks = [];
+  
+  // Start from week 1 of the year
+  const firstWeek = `${year}-W01`;
+  const { start } = getWeekRange(firstWeek);
+  
+  // Keep generating weeks until we reach the next year
+  let currentDate = new Date(start);
+  let currentWeekIso = getIsoWeek(currentDate);
+  
+  while (currentWeekIso.startsWith(`${year}-`)) {
+    weeks.push(currentWeekIso);
+    currentDate.setDate(currentDate.getDate() + 7);
+    currentWeekIso = getIsoWeek(currentDate);
+  }
+  
+  return weeks;
+}
+
 // Helper to clean Cosmos metadata from documents
 function cleanCosmosMetadata(doc) {
   const { _rid, _self, _etag, _attachments, _ts, userId, ...cleanDoc } = doc;
@@ -263,22 +321,63 @@ module.exports = async function (context, req) {
       let weeksResult;
       try {
         weeksResult = await weeksContainer.item(weekDocId, userId).read();
+        context.log(`📂 Found existing week document for ${userId}, checking weeks...`);
+        
+        // Ensure all weeks for the year are initialized in existing document
+        if (weeksResult.resource) {
+          const allWeeks = getAllWeeksForYear(currentYear);
+          context.log(`📅 Generated ${allWeeks.length} weeks for year ${currentYear}`);
+          context.log(`📊 Current weeks in document: ${Object.keys(weeksResult.resource.weeks || {}).length}`);
+          
+          let updated = false;
+          let addedCount = 0;
+          allWeeks.forEach(weekId => {
+            if (!weeksResult.resource.weeks[weekId]) {
+              weeksResult.resource.weeks[weekId] = { goals: [] };
+              updated = true;
+              addedCount++;
+            }
+          });
+          
+          if (updated) {
+            weeksResult.resource.updatedAt = new Date().toISOString();
+            await weeksContainer.items.upsert(weeksResult.resource);
+            context.log(`✅ Added ${addedCount} missing weeks (total: ${Object.keys(weeksResult.resource.weeks).length})`);
+          } else {
+            context.log(`✅ All ${allWeeks.length} weeks already exist in document`);
+          }
+        }
       } catch (error) {
         if (error.code === 404) {
-          context.log(`Creating initial week document for ${userId} year ${currentYear}`);
-          // Create empty week document
+          context.log(`📝 Week document does not exist - creating for ${userId} year ${currentYear}`);
+          
+          // Generate all weeks for the year
+          const allWeeks = getAllWeeksForYear(currentYear);
+          context.log(`📅 Generated ${allWeeks.length} weeks for initialization`);
+          
+          const weeks = {};
+          allWeeks.forEach(weekId => {
+            weeks[weekId] = { goals: [] };
+          });
+          
+          context.log(`📦 Prepared weeks object with ${Object.keys(weeks).length} entries`);
+          
+          // Create week document with ALL weeks initialized
           const newWeekDoc = {
             id: weekDocId,
             userId: userId,
             year: currentYear,
-            weeks: {},
+            weeks: weeks,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
+          
+          context.log(`💾 Creating week document in container weeks${currentYear}...`);
           const { resource } = await weeksContainer.items.create(newWeekDoc);
           weeksResult = { status: 'fulfilled', value: { resource } };
-          context.log(`✅ Created week document for ${userId}`);
+          context.log(`✅ Created week document with ${allWeeks.length} weeks initialized for ${userId}`);
         } else {
+          context.log.error(`❌ Error reading week document: ${error.code} - ${error.message}`);
           throw error;
         }
       }
@@ -423,10 +522,11 @@ module.exports = async function (context, req) {
       }
       
       // Combine into legacy format for backward compatibility
-      const { _rid, _self, _etag, _attachments, _ts, lastUpdated, dataStructureVersion, ...cleanProfile } = profile;
+      const { _rid, _self, _etag, _attachments, _ts, lastUpdated, ...cleanProfile } = profile;
       
       const userData = {
         ...cleanProfile,
+        dataStructureVersion: profile.dataStructureVersion, // ✅ Keep this so frontend knows structure
         score: totalScore, // Override with score from scoring container
         dreamBook,
         weeklyGoals,

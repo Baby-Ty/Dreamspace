@@ -95,8 +95,23 @@ const DreamsWeekAhead = () => {
       const milestones = currentUser?.dreamBook
         ?.flatMap(dream => dream.milestones || []) || [];
       
+      // ✅ FIX: Filter out orphaned templates (templates without a corresponding dream)
+      const validTemplates = allTemplates.filter(template => {
+        // Check if the dream exists
+        const dreamExists = currentUser?.dreamBook?.some(dream => 
+          dream.id === template.dreamId || dream.title === template.dreamTitle
+        );
+        
+        if (!dreamExists) {
+          console.warn(`⚠️ Orphaned template detected (no dream found): "${template.title}" (dreamId: ${template.dreamId})`);
+          return false; // Filter out orphaned template
+        }
+        
+        return true;
+      });
+      
       // Filter templates based on duration and start date
-      const templates = allTemplates.filter(template => {
+      const templates = validTemplates.filter(template => {
         const milestone = template.milestoneId 
           ? milestones.find(m => m.id === template.milestoneId)
           : null;
@@ -389,6 +404,15 @@ const DreamsWeekAhead = () => {
   };
 
   const handleAddGoal = (dream) => {
+    console.log('🎯 handleAddGoal called with dream:', { id: dream?.id, title: dream?.title, fullDream: dream });
+    
+    // ✅ Validate dream object has required fields
+    if (!dream || !dream.id) {
+      console.error('❌ Invalid dream object passed to handleAddGoal:', dream);
+      alert('Error: Invalid dream selected. Please try again.');
+      return;
+    }
+    
     setSelectedDream(dream);
     setShowGoalForm(true);
     setGoalFormData({ 
@@ -404,6 +428,13 @@ const DreamsWeekAhead = () => {
 
   const handleSaveGoal = async () => {
     if (!goalFormData.title.trim()) return;
+    
+    // ✅ CRITICAL: Validate that selectedDream exists and has an ID for new goals
+    if (!editingGoal && (!selectedDream || !selectedDream.id)) {
+      console.error('❌ Cannot create goal: No dream selected or dream missing ID', { selectedDream });
+      alert('Error: Please select a dream before creating a goal.');
+      return;
+    }
     
     // Validation for deadline goals
     if (goalFormData.type === 'deadline' && !goalFormData.targetDate) {
@@ -437,7 +468,7 @@ const DreamsWeekAhead = () => {
       // For monthly consistency goals and deadline goals, create instances directly
       
       if (goalFormData.type === 'consistency' && goalFormData.recurrence === 'weekly') {
-        // Create a template for weekly recurring goals
+// Create a template for weekly recurring goals
         const template = {
           id: goalId,
           type: 'weekly_goal_template',
@@ -454,7 +485,18 @@ const DreamsWeekAhead = () => {
           createdAt: new Date().toISOString()
         };
         
+        console.log('🎯 Creating goal for dream:', {
+          dreamId: selectedDream.id,
+          dreamTitle: selectedDream.title,
+          dreamCategory: selectedDream.category,
+          goalType: goalFormData.type,
+          recurrence: goalFormData.recurrence
+        });
         console.log('✨ Creating weekly recurring template:', template.id);
+        console.log('   📌 Dream ID:', selectedDream.id);
+        console.log('   📌 Dream Title:', selectedDream.title);
+        console.log('   📌 Dream Category:', selectedDream.category);
+        console.log('   ✅ Template object:', template);
         await addWeeklyGoal(template);
         console.log('✅ Weekly template created - instances will be auto-generated per week');
         
@@ -476,7 +518,17 @@ const DreamsWeekAhead = () => {
           weekIsoStrings = getNextNWeeks(currentWeekIso, Math.max(1, weeksUntilDeadline));
         }
         
+        console.log('🎯 Creating goal for dream:', {
+          dreamId: selectedDream.id,
+          dreamTitle: selectedDream.title,
+          dreamCategory: selectedDream.category,
+          goalType: goalFormData.type,
+          recurrence: goalFormData.recurrence
+        });
         console.log(`📅 Creating ${weekIsoStrings.length} week instances for ${goalFormData.type} goal: ${goalId}`, weekIsoStrings);
+        console.log('   📌 Dream ID:', selectedDream.id);
+        console.log('   📌 Dream Title:', selectedDream.title);
+        console.log('   📌 Dream Category:', selectedDream.category);
         
         // Build all instances
         const instances = weekIsoStrings.map(weekIso => ({
@@ -495,6 +547,8 @@ const DreamsWeekAhead = () => {
           completed: false,
           createdAt: new Date().toISOString()
         }));
+        
+        console.log('   ✅ First instance sample:', instances[0]);
         
         // Batch save all instances efficiently
         await addWeeklyGoalsBatch(instances);
@@ -730,10 +784,25 @@ const DreamsWeekAhead = () => {
         g.type === 'weekly_goal_template'
       );
       
+      // ✅ FIX: Filter out orphaned templates (templates without a corresponding dream)
+      const nonOrphanedTemplates = allTemplates.filter(template => {
+        // Check if the dream exists
+        const dreamExists = currentUser?.dreamBook?.some(dream => 
+          dream.id === template.dreamId || dream.title === template.dreamTitle
+        );
+        
+        if (!dreamExists) {
+          console.warn(`⚠️ Hiding orphaned template in UI: "${template.title}" (dreamId: ${template.dreamId})`);
+          return false; // Filter out orphaned template
+        }
+        
+        return true;
+      });
+      
       const milestones = currentUser?.dreamBook
         ?.flatMap(dream => dream.milestones || []) || [];
       
-      const validTemplates = allTemplates.filter(template => {
+      const validTemplates = nonOrphanedTemplates.filter(template => {
         const milestone = template.milestoneId 
           ? milestones.find(m => m.id === template.milestoneId)
           : null;

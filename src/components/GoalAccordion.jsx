@@ -37,8 +37,16 @@ function GoalAccordion({
     return null;
   }
 
-  const isConsistency = goal.type === 'consistency';
-  const isDeadline = goal.type === 'deadline';
+  // Templates use 'active' field, instances use 'completed'
+  const isTemplate = goal.type === 'weekly_goal_template';
+  // For templates: active=true means goal is active (NOT crossed out), active=false means inactive (crossed out)
+  // For instances: completed=true means done (crossed out)
+  const isChecked = isTemplate ? goal.active === false : goal.completed;
+  
+  // Handle goalType for templates, type for legacy goals
+  const actualType = isTemplate ? goal.goalType : goal.type;
+  const isConsistency = actualType === 'consistency';
+  const isDeadline = actualType === 'deadline';
   const isWeekly = goal.recurrence === 'weekly';
   const isMonthly = goal.recurrence === 'monthly';
   
@@ -181,7 +189,7 @@ function GoalAccordion({
   return (
     <div
       className={`rounded-2xl border-2 shadow-lg transition-all duration-300 ${
-        goal.completed
+        isChecked
           ? 'bg-professional-gray-50 border-professional-gray-300'
           : 'bg-white border-professional-gray-200 hover:border-professional-gray-300 hover:shadow-xl'
       }`}
@@ -195,10 +203,10 @@ function GoalAccordion({
             onToggleGoal(goal.id);
           }}
           className="flex-shrink-0 mt-1"
-          aria-label={goal.completed ? 'Mark goal incomplete' : 'Mark goal complete'}
+          aria-label={isChecked ? (isTemplate ? 'Deactivate goal' : 'Mark goal incomplete') : (isTemplate ? 'Activate goal' : 'Mark goal complete')}
           data-testid={`goal-toggle-${goal.id}`}
         >
-          {goal.completed ? (
+          {isChecked ? (
             <CheckCircle2 className="w-6 h-6 text-professional-gray-600" aria-hidden="true" />
           ) : (
             <Circle className="w-6 h-6 text-professional-gray-400 hover:text-professional-gray-600 transition-colors duration-200" aria-hidden="true" />
@@ -210,7 +218,7 @@ function GoalAccordion({
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <p className={`font-medium ${
-                goal.completed 
+                isChecked 
                   ? 'text-professional-gray-700 line-through' 
                   : 'text-professional-gray-900'
               }`}>
@@ -307,7 +315,7 @@ function GoalAccordion({
           </div>
 
           {/* Consistency Progress Bar - would be calculated from weekly completions */}
-          {isConsistency && goal.targetWeeks && !goal.completed && (
+          {isConsistency && goal.targetWeeks && !isChecked && (
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs text-professional-gray-600 mb-1">
                 <span className="flex items-center space-x-1">

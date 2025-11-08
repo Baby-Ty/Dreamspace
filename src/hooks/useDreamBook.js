@@ -216,6 +216,12 @@ export function useDreamBook() {
       }
 
       await addDream(newDream);
+
+      // Dispatch event to notify other components (like dashboard) that dreams have been updated
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('dreams-updated'));
+      }, 100);
+
       setIsCreating(false);
       setTempDreamId(null);
     } else {

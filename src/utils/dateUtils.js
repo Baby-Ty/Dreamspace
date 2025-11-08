@@ -184,6 +184,33 @@ export function getNextNWeeks(startWeekIso, n) {
 }
 
 /**
+ * Get all ISO weeks for a given year (52 or 53 weeks)
+ * @param {number} year - Year to generate weeks for (e.g., 2025)
+ * @returns {string[]} Array of all ISO week strings for the year
+ * @example
+ * getAllWeeksForYear(2025) // ["2025-W01", "2025-W02", ..., "2025-W52"]
+ */
+export function getAllWeeksForYear(year) {
+  const weeks = [];
+  
+  // Start from week 1 of the year
+  const firstWeek = `${year}-W01`;
+  const { start } = getWeekRange(firstWeek);
+  
+  // Keep generating weeks until we reach the next year
+  let currentDate = new Date(start);
+  let currentWeekIso = getIsoWeek(currentDate);
+  
+  while (currentWeekIso.startsWith(`${year}-`)) {
+    weeks.push(currentWeekIso);
+    currentDate.setDate(currentDate.getDate() + 7);
+    currentWeekIso = getIsoWeek(currentDate);
+  }
+  
+  return weeks;
+}
+
+/**
  * Calculate all week ISO strings for a recurring goal template based on its duration settings
  * @param {Object} template - Goal template with duration settings
  * @param {string} template.durationType - 'unlimited', 'weeks', or 'milestone'
@@ -238,6 +265,7 @@ export const dateUtils = {
   formatIsoWeek,
   getWeekRange,
   getNextNWeeks,
+  getAllWeeksForYear,
   calculateWeekInstancesForDuration
 };
 

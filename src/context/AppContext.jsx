@@ -308,10 +308,25 @@ export const AppProvider = ({ children, initialUser }) => {
     // Career fields removed - not in this version
   } : null;
 
+  const weeklyGoalsFromAPI = Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [];
+  
+  console.log('🚀 AppContext initializing with data from API:');
+  console.log('   👤 User:', userToUse?.email || 'none');
+  console.log('   📚 Dreams:', userToUse?.dreamBook?.length || 0);
+  console.log('   📋 Weekly goals from API:', weeklyGoalsFromAPI.length);
+  console.log('   📋 Templates from API:', weeklyGoalsFromAPI.filter(g => g.type === 'weekly_goal_template').length);
+  
+  if (weeklyGoalsFromAPI.filter(g => g.type === 'weekly_goal_template').length > 0) {
+    console.log('   📋 API Template details:', weeklyGoalsFromAPI
+      .filter(g => g.type === 'weekly_goal_template')
+      .map(t => ({ id: t.id, dreamId: t.dreamId, dreamTitle: t.dreamTitle, title: t.title }))
+    );
+  }
+  
   const initialStateWithUser = {
     ...initialState,
     currentUser: userToUse,
-    weeklyGoals: Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : [],
+    weeklyGoals: weeklyGoalsFromAPI,
     isAuthenticated: !!initialUser
   };
 
@@ -328,41 +343,8 @@ export const AppProvider = ({ children, initialUser }) => {
   console.log('🔍 initialUser.id:', initialUser?.id);
   console.log('🔍 initialUser.aadObjectId:', initialUser?.aadObjectId);
   
-  // Initialize weeks document on mount
-  useEffect(() => {
-    if (!userId) return;
-    
-    const initializeWeeksDocument = async () => {
-      const currentYear = new Date().getFullYear();
-      console.log(`📅 Initializing weeks document for ${userId}, year ${currentYear}`);
-      
-      try {
-        const weekService = (await import('../services/weekService.js')).default;
-        const result = await weekService.getWeekGoals(userId, currentYear);
-        
-        if (result.success) {
-          console.log(`✅ Weeks document verified/created for ${userId}:`, {
-            documentId: result.data?.id,
-            year: result.data?.year,
-            weeksCount: Object.keys(result.data?.weeks || {}).length
-          });
-          
-          // Verify document actually exists by checking the structure
-          if (!result.data || !result.data.id) {
-            console.error('⚠️ Document created but has invalid structure:', result.data);
-          }
-        } else {
-          console.error('❌ Failed to initialize weeks document:', result.error);
-          alert(`Failed to initialize weeks document: ${result.error}. Goals may not work correctly.`);
-        }
-      } catch (error) {
-        console.error('❌ Error initializing weeks document:', error);
-        alert(`Error initializing weeks document: ${error.message}. Goals may not work correctly.`);
-      }
-    };
-    
-    initializeWeeksDocument();
-  }, [userId]);
+  // Note: All weeks initialization is now handled by getUserData API on login
+  // No separate frontend call needed
   
   useEffect(() => {
     if (!userId) return;
@@ -418,13 +400,28 @@ export const AppProvider = ({ children, initialUser }) => {
         
         console.log('📚 Dreams after migration:', migratedUser.dreamBook?.length || 0);
         
+        const finalWeeklyGoals = Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
+                                (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []);
+        
+        console.log('📦 Loading persisted data into state:');
+        console.log('   📚 Dreams:', migratedUser.dreamBook?.length || 0);
+        console.log('   📋 Weekly goals total:', finalWeeklyGoals.length);
+        console.log('   📋 Templates:', finalWeeklyGoals.filter(g => g.type === 'weekly_goal_template').length);
+        console.log('   📋 Instances:', finalWeeklyGoals.filter(g => g.type !== 'weekly_goal_template').length);
+        
+        if (finalWeeklyGoals.filter(g => g.type === 'weekly_goal_template').length > 0) {
+          console.log('   📋 Template details:', finalWeeklyGoals
+            .filter(g => g.type === 'weekly_goal_template')
+            .map(t => ({ id: t.id, dreamId: t.dreamId, dreamTitle: t.dreamTitle, title: t.title }))
+          );
+        }
+        
         dispatch({
           type: actionTypes.LOAD_PERSISTED_DATA,
           payload: {
             isAuthenticated: true,
             currentUser: migratedUser,
-            weeklyGoals: Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
-                        (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []),
+            weeklyGoals: finalWeeklyGoals,
             scoringHistory: Array.isArray(scoringHistoryData) ? scoringHistoryData : []
           }
         });
@@ -435,6 +432,53 @@ export const AppProvider = ({ children, initialUser }) => {
     
     loadData();
   }, [userId]);
+
+  // Bulk instantiate existing templates when weeklyGoals are loaded
+  useEffect(() => {
+    if (!userId || !state.weeklyGoals || state.weeklyGoals.length === 0) return;
+    
+    const instantiateExistingTemplates = async () => {
+      // Find all templates
+      const templates = state.weeklyGoals.filter(g => g.type === 'weekly_goal_template');
+      
+      if (templates.length === 0) {
+        console.log('ℹ️ No templates found to instantiate on login');
+        return;
+      }
+      
+      console.log(`🚀 Found ${templates.length} templates to bulk instantiate on login:`, templates.map(t => ({ id: t.id, targetWeeks: t.targetWeeks })));
+      
+      const currentYear = new Date().getFullYear();
+      
+      // Map templates to format expected by bulkInstantiateTemplates API
+      const templatesForAPI = templates.map(template => ({
+        ...template,
+        durationType: template.targetWeeks ? 'weeks' : 'unlimited',
+        durationWeeks: template.targetWeeks || 52
+      }));
+      
+      console.log('📤 Sending templates to bulkInstantiateTemplates API:', templatesForAPI.map(t => ({ id: t.id, durationType: t.durationType, durationWeeks: t.durationWeeks })));
+      
+      const result = await weekService.bulkInstantiateTemplates(
+        userId, 
+        currentYear, 
+        templatesForAPI
+      );
+      
+      console.log('📥 Bulk instantiation result on login:', result);
+      
+      if (result.success) {
+        console.log(`✅ Bulk instantiation complete on login:`, result.data);
+      } else {
+        console.error('❌ Bulk instantiation failed on login:', result.error);
+      }
+    };
+    
+    // Run once after templates are loaded, with a slight delay to avoid race conditions
+    const timeoutId = setTimeout(instantiateExistingTemplates, 1000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [userId, state.weeklyGoals.length]); // Only re-run if weeklyGoals count changes
 
   // Save profile data only (NOT items - those are saved via itemService)
   useEffect(() => {
@@ -485,6 +529,15 @@ export const AppProvider = ({ children, initialUser }) => {
 
   // Action creators
   const actions = {
+    /**
+     * Update a dream and preserve all weekly goal templates
+     * @param {Object} dream - Dream object with nested goals
+     * @returns {Promise<void>}
+     * 
+     * NOTE: This function saves the entire dreams document including:
+     * 1. All dreams (updated dream + unchanged dreams)
+     * 2. All weekly goal templates (preserved from state)
+     */
     updateDream: async (dream) => {
       // Update local state first
       dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
@@ -499,8 +552,14 @@ export const AppProvider = ({ children, initialUser }) => {
           d.id === dream.id ? dream : d
         );
         
-        // No templates needed - goals are tracked directly by goalId
-        const result = await itemService.saveDreams(userId, updatedDreams, []);
+        // ✅ CRITICAL: Preserve all existing weekly goal templates
+        const templates = state.weeklyGoals?.filter(g => 
+          g.type === 'weekly_goal_template'
+        ) || [];
+        
+        console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+        
+        const result = await itemService.saveDreams(userId, updatedDreams, templates);
         if (!result.success) {
           console.error('Failed to save dreams document:', result.error);
           return;
@@ -508,6 +567,16 @@ export const AppProvider = ({ children, initialUser }) => {
       }
     },
 
+    /**
+     * Add a new dream and preserve all weekly goal templates
+     * @param {Object} dream - Dream object to add
+     * @returns {Promise<void>}
+     * 
+     * NOTE: This function saves the entire dreams document including:
+     * 1. All dreams (existing dreams + new dream)
+     * 2. All weekly goal templates (preserved from state)
+     * 3. Awards points for creating the dream
+     */
     addDream: async (dream) => {
       // Add to local state first
       dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
@@ -520,8 +589,14 @@ export const AppProvider = ({ children, initialUser }) => {
         // Get updated dreamBook from state (after dispatch)
         const updatedDreams = [...state.currentUser.dreamBook, dream];
         
-        // No templates needed - goals are tracked directly by goalId in weekly completions
-        const result = await itemService.saveDreams(userId, updatedDreams, []);
+        // ✅ CRITICAL: Preserve all existing weekly goal templates
+        const templates = state.weeklyGoals?.filter(g => 
+          g.type === 'weekly_goal_template'
+        ) || [];
+        
+        console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+        
+        const result = await itemService.saveDreams(userId, updatedDreams, templates);
         if (!result.success) {
           console.error('Failed to save dreams document:', result.error);
           return;
@@ -545,6 +620,16 @@ export const AppProvider = ({ children, initialUser }) => {
       }
     },
 
+    /**
+     * Delete a dream and remove its associated weekly goal templates
+     * @param {string} dreamId - ID of the dream to delete
+     * @returns {Promise<void>}
+     * 
+     * NOTE: This function removes:
+     * 1. The dream itself
+     * 2. Weekly goal templates linked to this dream
+     * 3. Does NOT remove week instances (they persist as history)
+     */
     deleteDream: async (dreamId) => {
       // Delete from local state first
       dispatch({ type: actionTypes.DELETE_DREAM, payload: dreamId });
@@ -557,8 +642,14 @@ export const AppProvider = ({ children, initialUser }) => {
         // Get updated dreamBook from state (after dispatch)
         const updatedDreams = state.currentUser.dreamBook.filter(d => d.id !== dreamId);
         
-        // No templates needed - goals are tracked directly by goalId
-        const result = await itemService.saveDreams(userId, updatedDreams, []);
+        // Keep templates that aren't tied to the deleted dream
+        const remainingTemplates = state.weeklyGoals?.filter(g => 
+          g.type === 'weekly_goal_template' && g.dreamId !== dreamId
+        ) || [];
+        
+        console.log('📝 Saving after dream delete:', { dreamsCount: updatedDreams.length, templatesCount: remainingTemplates.length });
+        
+        const result = await itemService.saveDreams(userId, updatedDreams, remainingTemplates);
         if (!result.success) {
           console.error('Failed to save dreams document after delete:', result.error);
           return;
@@ -566,6 +657,15 @@ export const AppProvider = ({ children, initialUser }) => {
       }
     },
 
+    /**
+     * Reorder dreams in the dream book (drag & drop)
+     * @param {number} fromIndex - Source index
+     * @param {number} toIndex - Destination index
+     * @returns {void}
+     * 
+     * NOTE: This is a client-side only operation for UI state.
+     * The order is persisted when dreams are next saved.
+     */
     reorderDreams: (fromIndex, toIndex) => {
       const list = [...state.currentUser.dreamBook];
       if (fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) return;
@@ -574,13 +674,30 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.REORDER_DREAMS, payload: list });
     },
 
+    /**
+     * Add a weekly goal (either template or instance)
+     * @param {Object} goalData - Goal data with type, dreamId, etc.
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Handles two types:
+     * 1. weekly_goal_template: Saves to dreams container, then bulk instantiates
+     * 2. weekly_goal: Saves instance to weeks{year} container
+     */
     addWeeklyGoal: async (goalData) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
       
+      console.log('📝 addWeeklyGoal called:', {
+        goalId: goalData.id,
+        type: goalData.type,
+        dreamId: goalData.dreamId,
+        dreamTitle: goalData.dreamTitle,
+        dreamCategory: goalData.dreamCategory
+      });
+      
       // Determine if this is a template or instance
       if (goalData.type === 'weekly_goal_template') {
-        // Template - save individually to dreams container via itemService
+        // Template - save via saveDreams endpoint with all dreams and templates
         const template = {
           id: goalData.id || `template_${Date.now()}`,
           ...goalData,
@@ -590,12 +707,116 @@ export const AppProvider = ({ children, initialUser }) => {
         
         dispatch({ type: actionTypes.ADD_WEEKLY_GOAL, payload: template });
         
-        console.log('💾 Saving template individually:', template.id);
+        console.log('💾 Saving template via saveDreams:', template.id);
+        console.log('   📌 Template object:', template);
+        console.log('   📌 DreamId:', template.dreamId);
+        console.log('   📌 DreamTitle:', template.dreamTitle);
         
-        const result = await itemService.saveItem(userId, 'weekly_goal_template', template);
+        // Get all current dreams and templates
+        const dreams = state.currentUser?.dreamBook || [];
+        const existingTemplates = state.weeklyGoals?.filter(g => g.type === 'weekly_goal_template') || [];
+        const allTemplates = [...existingTemplates, template];
+        
+        console.log('📝 Saving to dreams container:');
+        console.log('   📚 Dreams count:', dreams.length);
+        console.log('   📋 Templates count:', allTemplates.length);
+        console.log('   📋 All templates:', allTemplates.map(t => ({ id: t.id, dreamId: t.dreamId, title: t.title })));
+        
+        const result = await itemService.saveDreams(userId, dreams, allTemplates);
         if (!result.success) {
-          console.error('Failed to save template:', result.error);
+          console.error('❌ Failed to save template:', result.error);
           return;
+        }
+        
+        console.log('✅ Template saved successfully to dreams container');
+        console.log('   📊 Server response:', result);
+        
+        // ✅ CRITICAL FIX: Also add to parent dream's goals[] array for Dream Detail display
+        if (template.dreamId) {
+          const dreamToUpdate = state.currentUser.dreamBook?.find(d => d.id === template.dreamId);
+          if (dreamToUpdate) {
+            const goalForDream = {
+              id: template.id,
+              title: template.title,
+              description: template.description || '',
+              type: template.goalType || 'consistency',
+              recurrence: template.recurrence,
+              targetWeeks: template.targetWeeks || template.durationWeeks,
+              targetMonths: template.targetMonths,
+              startDate: template.startDate,
+              active: true,
+              completed: false,
+              createdAt: template.createdAt || new Date().toISOString()
+            };
+            
+            // Check if already exists in dream.goals (avoid duplicates)
+            const existsInDream = dreamToUpdate.goals?.some(g => g.id === template.id);
+            if (!existsInDream) {
+              console.log('📝 Adding goal to dream.goals[] for Dream Detail display:', {
+                dreamId: template.dreamId,
+                goalId: template.id,
+                goalTitle: template.title
+              });
+              
+              const updatedDream = {
+                ...dreamToUpdate,
+                goals: [...(dreamToUpdate.goals || []), goalForDream]
+              };
+              
+              // Update state immediately
+              dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+              
+              // Save the updated dream back to database
+              const updatedDreams = state.currentUser.dreamBook.map(d => 
+                d.id === template.dreamId ? updatedDream : d
+              );
+              
+              // Save with all templates (including the one just added)
+              const allTemplatesAfterAdd = state.weeklyGoals.filter(g => 
+                g.type === 'weekly_goal_template'
+              );
+              allTemplatesAfterAdd.push(template); // Include the new template
+              
+              console.log('💾 Saving updated dream with new goal in goals[] array');
+              await itemService.saveDreams(userId, updatedDreams, allTemplatesAfterAdd);
+            } else {
+              console.log('ℹ️  Goal already exists in dream.goals[], skipping duplicate');
+            }
+          } else {
+            console.warn('⚠️  Parent dream not found for template.dreamId:', template.dreamId);
+          }
+        }
+        
+        // Bulk instantiate the template across all target weeks
+        console.log('🚀 Bulk instantiating template across weeks:', {
+          templateId: template.id,
+          targetWeeks: template.targetWeeks,
+          startDate: template.startDate
+        });
+        const currentYear = new Date().getFullYear();
+        
+        // Map template to format expected by bulkInstantiateTemplates API
+        const templateForAPI = {
+          ...template,
+          durationType: template.targetWeeks ? 'weeks' : 'unlimited',
+          durationWeeks: template.targetWeeks || 52
+        };
+        
+        console.log('📤 Sending to bulkInstantiateTemplates API:', templateForAPI);
+        
+        const instantiateResult = await weekService.bulkInstantiateTemplates(
+          userId, 
+          currentYear, 
+          [templateForAPI]
+        );
+        
+        console.log('📥 bulkInstantiateTemplates result:', instantiateResult);
+        
+        if (!instantiateResult.success) {
+          console.error('❌ Failed to bulk instantiate template:', instantiateResult.error);
+          // Don't fail the entire operation - template is saved, instances can be created on-demand
+        } else {
+          console.log('✅ Template instantiated across all target weeks:', instantiateResult.data);
         }
       } else {
         // Instance - save to weeks container
@@ -639,6 +860,15 @@ export const AppProvider = ({ children, initialUser }) => {
       }
     },
 
+    /**
+     * Batch add multiple weekly goals (templates and/or instances)
+     * @param {Array<Object>} goals - Array of goal objects to add
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Optimized for bulk operations, groups instances by week.
+     * Templates are saved individually to dreams container.
+     * Instances are batched by week to weeks{year} container.
+     */
     addWeeklyGoalsBatch: async (goals) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -713,6 +943,15 @@ export const AppProvider = ({ children, initialUser }) => {
       console.log(`✅ Batch add complete: ${templates.length} templates, ${Object.keys(goalsByWeek).length} weeks`);
     },
 
+    /**
+     * Update a weekly goal (either template or instance)
+     * @param {Object} goal - Updated goal object
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Handles two types:
+     * 1. weekly_goal_template: Updates in dreams container
+     * 2. weekly_goal: Updates instance in weeks{year} container
+     */
     updateWeeklyGoal: async (goal) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -721,10 +960,16 @@ export const AppProvider = ({ children, initialUser }) => {
       
       // Determine if this is a template or instance
       if (goal.type === 'weekly_goal_template') {
-        // Template - save individually
-        console.log('💾 Updating template individually:', goal.id);
+        // Template - save via saveDreams with all dreams and templates
+        console.log('💾 Updating template via saveDreams:', goal.id);
         
-        const result = await itemService.saveItem(userId, 'weekly_goal_template', goal);
+        // Get all current dreams and templates
+        const dreams = state.currentUser?.dreamBook || [];
+        const allTemplates = state.weeklyGoals?.filter(g => g.type === 'weekly_goal_template') || [];
+        
+        console.log('📝 Saving:', { dreamsCount: dreams.length, templatesCount: allTemplates.length });
+        
+        const result = await itemService.saveDreams(userId, dreams, allTemplates);
         if (!result.success) {
           console.error('Failed to save template:', result.error);
           return;
@@ -746,6 +991,15 @@ export const AppProvider = ({ children, initialUser }) => {
       }
     },
 
+    /**
+     * Delete a weekly goal (either template or instance)
+     * @param {string} goalId - ID of the goal to delete
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Handles two types:
+     * 1. weekly_goal_template: Deletes template and ALL its instances
+     * 2. weekly_goal: Deletes only this specific instance
+     */
     deleteWeeklyGoal: async (goalId) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -758,11 +1012,18 @@ export const AppProvider = ({ children, initialUser }) => {
       }
       
       if (goal.type === 'weekly_goal_template') {
-        // Template - delete from dreams container and all instances
+        // Template - delete from dreams container via saveDreams
         console.log('🗑️ Deleting template and all instances:', goalId);
         
-        // Delete the template
-        const result = await itemService.deleteItem(userId, goalId);
+        // Get all current dreams and templates (excluding the one being deleted)
+        const dreams = state.currentUser?.dreamBook || [];
+        const allTemplates = state.weeklyGoals?.filter(g => 
+          g.type === 'weekly_goal_template' && g.id !== goalId
+        ) || [];
+        
+        console.log('📝 Saving without deleted template:', { dreamsCount: dreams.length, templatesCount: allTemplates.length });
+        
+        const result = await itemService.saveDreams(userId, dreams, allTemplates);
         if (!result.success) {
           console.error('Failed to delete template:', result.error);
           return;
@@ -1065,6 +1326,15 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
     },
 
+    /**
+     * Add a goal to a dream and preserve all weekly goal templates
+     * @param {string} dreamId - ID of the dream to add goal to
+     * @param {Object} goal - Goal object to add
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Goals nested in dreams are long-term goals, separate from weekly goal templates.
+     * This function preserves both dream goals and weekly goal templates.
+     */
     addGoal: async (dreamId, goal) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -1091,14 +1361,29 @@ export const AppProvider = ({ children, initialUser }) => {
         d.id === dreamId ? updatedDream : d
       );
       
-      // No templates needed - goals are tracked directly by goalId
-      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      // ✅ CRITICAL: Preserve all existing weekly goal templates
+      const templates = state.weeklyGoals?.filter(g => 
+        g.type === 'weekly_goal_template'
+      ) || [];
+      
+      console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+      
+      const result = await itemService.saveDreams(userId, updatedDreams, templates);
       if (!result.success) {
         console.error('Failed to save dreams document after adding goal:', result.error);
         return;
       }
     },
 
+    /**
+     * Update a goal within a dream and preserve all weekly goal templates
+     * @param {string} dreamId - ID of the dream containing the goal
+     * @param {Object} goal - Updated goal object
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Goals nested in dreams are long-term goals, separate from weekly goal templates.
+     * This function preserves both dream goals and weekly goal templates.
+     */
     updateGoal: async (dreamId, goal) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -1125,14 +1410,29 @@ export const AppProvider = ({ children, initialUser }) => {
         d.id === dreamId ? updatedDream : d
       );
       
-      // No templates needed - goals are tracked directly by goalId
-      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      // ✅ CRITICAL: Preserve all existing weekly goal templates
+      const templates = state.weeklyGoals?.filter(g => 
+        g.type === 'weekly_goal_template'
+      ) || [];
+      
+      console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+      
+      const result = await itemService.saveDreams(userId, updatedDreams, templates);
       if (!result.success) {
         console.error('Failed to save dreams document after updating goal:', result.error);
         return;
       }
     },
 
+    /**
+     * Delete a goal from a dream and preserve all weekly goal templates
+     * @param {string} dreamId - ID of the dream containing the goal
+     * @param {string} goalId - ID of the goal to delete
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Goals nested in dreams are long-term goals, separate from weekly goal templates.
+     * This function preserves both dream goals and weekly goal templates.
+     */
     deleteGoal: async (dreamId, goalId) => {
       const userId = state.currentUser?.id;
       if (!userId) return;
@@ -1159,8 +1459,14 @@ export const AppProvider = ({ children, initialUser }) => {
         d.id === dreamId ? updatedDream : d
       );
       
-      // No templates needed - goals are tracked directly by goalId
-      const result = await itemService.saveDreams(userId, updatedDreams, []);
+      // ✅ CRITICAL: Preserve all existing weekly goal templates
+      const templates = state.weeklyGoals?.filter(g => 
+        g.type === 'weekly_goal_template'
+      ) || [];
+      
+      console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+      
+      const result = await itemService.saveDreams(userId, updatedDreams, templates);
       if (!result.success) {
         console.error('Failed to save dreams document after deleting goal:', result.error);
         return;
@@ -1171,6 +1477,15 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.ADD_SCORING_ENTRY, payload: entry });
     },
 
+    /**
+     * Update dream progress and preserve all weekly goal templates
+     * @param {string} dreamId - ID of the dream to update
+     * @param {number} newProgress - New progress value (0-100)
+     * @returns {Promise<void>}
+     * 
+     * NOTE: Awards bonus points when dream reaches 100% completion.
+     * This function preserves both dreams and weekly goal templates.
+     */
     updateDreamProgress: async (dreamId, newProgress) => {
       const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
       if (dream) {
@@ -1188,8 +1503,14 @@ export const AppProvider = ({ children, initialUser }) => {
             d.id === dreamId ? updatedDream : d
           );
           
-          // No templates needed - goals are tracked directly by goalId
-          const result = await itemService.saveDreams(userId, updatedDreams, []);
+          // ✅ CRITICAL: Preserve all existing weekly goal templates
+          const templates = state.weeklyGoals?.filter(g => 
+            g.type === 'weekly_goal_template'
+          ) || [];
+          
+          console.log('📝 Saving:', { dreamsCount: updatedDreams.length, templatesCount: templates.length });
+          
+          const result = await itemService.saveDreams(userId, updatedDreams, templates);
           if (!result.success) {
             console.error('Failed to update dream progress in database:', result.error);
             return;

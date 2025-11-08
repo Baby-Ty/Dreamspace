@@ -51,7 +51,7 @@ const VisionBuilderDemo = () => {
     "Key Themes",
     "Aspirations",
     "Dream Templates",
-    "Milestones",
+    "Goals",
     "Review"
   ];
 
@@ -147,7 +147,7 @@ const VisionBuilderDemo = () => {
     ]
   };
 
-  const milestonePatterns = [
+  const goalPatterns = [
     { id: 'consistency', label: 'Consistency (12 weeks)', icon: Repeat, description: 'Build a habit over time' },
     { id: 'deadline', label: 'Deadline (pick a date)', icon: Calendar, description: 'Target a specific date' },
     { id: 'general', label: 'General (done when done)', icon: Target, description: 'Flexible completion' }
@@ -631,19 +631,19 @@ const VisionBuilderDemo = () => {
   );
 
   const renderMilestones = () => {
-    // Show all 3 dreams at once with their milestone selections
+    // Show all 3 dreams at once with their goal selections
     return (
       <div className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-bold text-professional-gray-900 mb-2 text-center">
-          How will you track progress?
+          Set up your goals
         </h2>
         <p className="text-professional-gray-600 mb-8 text-center">
-          Choose a milestone pattern for each Dream
+          Choose how you want to track each Dream
         </p>
 
         <div className="space-y-6">
           {selections.dreams.map((dream, index) => {
-            const selectedMilestone = selections.milestones[dream.id];
+            const selectedGoal = selections.milestones[dream.id];
             
             if (!dream) return null;
 
@@ -658,24 +658,25 @@ const VisionBuilderDemo = () => {
                     <h3 className="font-bold text-professional-gray-900 text-lg mb-1">{dream.title}</h3>
                     <p className="text-sm text-professional-gray-600">{dream.why}</p>
                   </div>
-                  {selectedMilestone && (
+                  {selectedGoal && (
                     <CheckCircle2 className="h-6 w-6 text-netsurit-red flex-shrink-0" />
                   )}
                 </div>
 
-                {/* Milestone options */}
+                {/* Goal options */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {milestonePatterns.map((pattern) => {
+                  {goalPatterns.map((pattern) => {
                     const Icon = pattern.icon;
-                    const isSelected = selectedMilestone?.type === pattern.id;
+                    const isSelected = selectedGoal?.type === pattern.id;
                     return (
                       <button
                         key={pattern.id}
                         onClick={() => handleMilestonePattern(dream.id, { 
                           type: pattern.id, 
                           targetWeeks: 12,
-                          frequency: 1,
-                          period: 'week'
+                          targetMonths: 6,
+                          period: 'week',
+                          goalTitle: selectedGoal?.goalTitle || dream.title
                         })}
                         className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                           isSelected
@@ -691,80 +692,127 @@ const VisionBuilderDemo = () => {
                   })}
                 </div>
 
-                {/* Expanded options when milestone is selected */}
-                {selectedMilestone && (
+                {/* Expanded options when goal is selected */}
+                {selectedGoal && (
                   <div className="mt-4 p-4 bg-professional-gray-50 rounded-xl border border-professional-gray-200">
-                    {selectedMilestone.type === 'consistency' && (
+                    {selectedGoal.type === 'consistency' && (
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold text-professional-gray-900 mb-3">Consistency Settings</p>
+                        <p className="text-sm font-semibold text-professional-gray-900 mb-3">Goal Details</p>
+                        
+                        {/* Goal Title Input */}
+                        <div className="space-y-1">
+                          <label className="text-sm text-professional-gray-700 font-medium">Goal Title</label>
+                          <input
+                            type="text"
+                            value={selectedGoal.goalTitle || dream.title}
+                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedGoal, goalTitle: e.target.value })}
+                            placeholder="e.g., Practice Spanish daily"
+                            className="w-full px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
+                          />
+                        </div>
+                        
+                        {/* Duration Settings */}
                         <div className="flex items-center space-x-3">
-                          <span className="text-sm text-professional-gray-700">Track</span>
+                          <span className="text-sm text-professional-gray-700">Track for</span>
                           <button
                             onClick={() => {
-                              const current = selectedMilestone.frequency || 1;
-                              handleMilestonePattern(dream.id, { ...selectedMilestone, frequency: Math.max(1, current - 1) });
+                              const current = selectedGoal.period === 'month' 
+                                ? (selectedGoal.targetMonths || 6)
+                                : (selectedGoal.targetWeeks || 12);
+                              const newValue = Math.max(1, current - 1);
+                              handleMilestonePattern(dream.id, { 
+                                ...selectedGoal, 
+                                targetWeeks: selectedGoal.period === 'week' ? newValue : selectedGoal.targetWeeks,
+                                targetMonths: selectedGoal.period === 'month' ? newValue : selectedGoal.targetMonths
+                              });
                             }}
                             className="w-8 h-8 rounded-full bg-white border-2 border-professional-gray-300 hover:border-netsurit-red flex items-center justify-center"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
                           <span className="text-lg font-bold text-netsurit-red min-w-[2rem] text-center">
-                            {selectedMilestone.frequency || 1}
+                            {selectedGoal.period === 'month' 
+                              ? (selectedGoal.targetMonths || 6) 
+                              : (selectedGoal.targetWeeks || 12)}
                           </span>
                           <button
                             onClick={() => {
-                              const current = selectedMilestone.frequency || 1;
-                              handleMilestonePattern(dream.id, { ...selectedMilestone, frequency: current + 1 });
+                              const current = selectedGoal.period === 'month' 
+                                ? (selectedGoal.targetMonths || 6)
+                                : (selectedGoal.targetWeeks || 12);
+                              const newValue = current + 1;
+                              handleMilestonePattern(dream.id, { 
+                                ...selectedGoal, 
+                                targetWeeks: selectedGoal.period === 'week' ? newValue : selectedGoal.targetWeeks,
+                                targetMonths: selectedGoal.period === 'month' ? newValue : selectedGoal.targetMonths
+                              });
                             }}
                             className="w-8 h-8 rounded-full bg-white border-2 border-professional-gray-300 hover:border-netsurit-red flex items-center justify-center"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
-                          <span className="text-sm text-professional-gray-700">times per</span>
                           <select
-                            value={selectedMilestone.period || 'week'}
-                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedMilestone, period: e.target.value })}
+                            value={selectedGoal.period || 'week'}
+                            onChange={(e) => handleMilestonePattern(dream.id, { 
+                              ...selectedGoal, 
+                              period: e.target.value,
+                              targetWeeks: e.target.value === 'week' ? (selectedGoal.targetWeeks || 12) : undefined,
+                              targetMonths: e.target.value === 'month' ? (selectedGoal.targetMonths || 6) : undefined
+                            })}
                             className="px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
                           >
-                            <option value="week">Week</option>
-                            <option value="month">Month</option>
+                            <option value="week">Weeks</option>
+                            <option value="month">Months</option>
                           </select>
                         </div>
                         <p className="text-xs text-professional-gray-500 mt-2">
-                          Track for {selectedMilestone.targetWeeks || 12} weeks
+                          Goal will be tracked once per {selectedGoal.period || 'week'} for the duration
                         </p>
                       </div>
                     )}
 
-                    {selectedMilestone.type === 'deadline' && (
+                    {selectedGoal.type === 'deadline' && (
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold text-professional-gray-900 mb-3">Deadline Settings</p>
+                        <p className="text-sm font-semibold text-professional-gray-900 mb-3">Deadline Goal Settings</p>
+                        
+                        {/* Goal Title Input */}
+                        <div className="space-y-1">
+                          <label className="text-sm text-professional-gray-700 font-medium">Goal Title</label>
+                          <input
+                            type="text"
+                            value={selectedGoal.goalTitle || dream.title}
+                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedGoal, goalTitle: e.target.value })}
+                            placeholder="e.g., Complete Spanish course"
+                            className="w-full px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
+                          />
+                        </div>
+                        
                         <div className="flex items-center space-x-3">
-                          <span className="text-sm text-professional-gray-700">Milestone every</span>
+                          <span className="text-sm text-professional-gray-700">Check-in every</span>
                           <button
                             onClick={() => {
-                              const current = selectedMilestone.frequency || 1;
-                              handleMilestonePattern(dream.id, { ...selectedMilestone, frequency: Math.max(1, current - 1) });
+                              const current = selectedGoal.frequency || 1;
+                              handleMilestonePattern(dream.id, { ...selectedGoal, frequency: Math.max(1, current - 1) });
                             }}
                             className="w-8 h-8 rounded-full bg-white border-2 border-professional-gray-300 hover:border-netsurit-red flex items-center justify-center"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
                           <span className="text-lg font-bold text-netsurit-red min-w-[2rem] text-center">
-                            {selectedMilestone.frequency || 1}
+                            {selectedGoal.frequency || 1}
                           </span>
                           <button
                             onClick={() => {
-                              const current = selectedMilestone.frequency || 1;
-                              handleMilestonePattern(dream.id, { ...selectedMilestone, frequency: current + 1 });
+                              const current = selectedGoal.frequency || 1;
+                              handleMilestonePattern(dream.id, { ...selectedGoal, frequency: current + 1 });
                             }}
                             className="w-8 h-8 rounded-full bg-white border-2 border-professional-gray-300 hover:border-netsurit-red flex items-center justify-center"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
                           <select
-                            value={selectedMilestone.period || 'week'}
-                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedMilestone, period: e.target.value })}
+                            value={selectedGoal.period || 'week'}
+                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedGoal, period: e.target.value })}
                             className="px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
                           >
                             <option value="day">Days</option>
@@ -776,17 +824,30 @@ const VisionBuilderDemo = () => {
                           <span className="text-sm text-professional-gray-700">Target date:</span>
                           <input
                             type="date"
-                            value={selectedMilestone.targetDate || ''}
-                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedMilestone, targetDate: e.target.value })}
+                            value={selectedGoal.targetDate || ''}
+                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedGoal, targetDate: e.target.value })}
                             className="px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
                           />
                         </div>
                       </div>
                     )}
 
-                    {selectedMilestone.type === 'general' && (
+                    {selectedGoal.type === 'general' && (
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold text-professional-gray-900 mb-2">General Milestone</p>
+                        <p className="text-sm font-semibold text-professional-gray-900 mb-2">General Goal</p>
+                        
+                        {/* Goal Title Input */}
+                        <div className="space-y-1 mb-3">
+                          <label className="text-sm text-professional-gray-700 font-medium">Goal Title</label>
+                          <input
+                            type="text"
+                            value={selectedGoal.goalTitle || dream.title}
+                            onChange={(e) => handleMilestonePattern(dream.id, { ...selectedGoal, goalTitle: e.target.value })}
+                            placeholder="e.g., Become fluent in Spanish"
+                            className="w-full px-3 py-2 rounded-lg border-2 border-professional-gray-300 focus:border-netsurit-red focus:outline-none"
+                          />
+                        </div>
+                        
                         <p className="text-xs text-professional-gray-600">
                           You'll manually mark this as complete when you're satisfied with your progress.
                         </p>
@@ -897,11 +958,15 @@ const VisionBuilderDemo = () => {
       
       if (goalPattern) {
         // Create goal based on the pattern selected
+        const duration = goalPattern.period === 'month' 
+          ? `${goalPattern.targetMonths || 6} months`
+          : `${goalPattern.targetWeeks || 12} weeks`;
+        
         const goalData = {
           id: `goal_${baseTimestamp}_${index}`,
-          title: dream.title, // Use dream title as goal text
+          title: goalPattern.goalTitle || dream.title, // Use custom goal title if provided, otherwise dream title
           description: goalPattern.type === 'consistency' 
-            ? `Track ${goalPattern.frequency || 1}x per ${goalPattern.period || 'week'} for ${goalPattern.targetWeeks || 12} weeks`
+            ? `Track ${goalPattern.period === 'month' ? 'monthly' : 'weekly'} for ${duration}`
             : goalPattern.type === 'deadline'
             ? `Complete by ${goalPattern.targetDate || 'target date'}`
             : 'Complete when ready',
@@ -1089,14 +1154,22 @@ const VisionBuilderDemo = () => {
                       <h3 className="font-semibold text-professional-gray-900 mb-1">{dream.title}</h3>
                       <p className="text-sm text-professional-gray-600 mb-2">{dream.why}</p>
                       {milestone && (
-                        <div className="flex items-center space-x-2 text-xs text-professional-gray-700">
-                          <Repeat className="h-3 w-3 text-netsurit-coral" />
-                          <span>
-                            {milestone.type === 'consistency' && `Track ${milestone.frequency || 1}x per ${milestone.period || 'week'} for ${milestone.targetWeeks || 12} weeks`}
-                            {milestone.type === 'deadline' && `Milestone every ${milestone.frequency || 1} ${milestone.period || 'week'}${milestone.frequency > 1 ? 's' : ''}`}
-                            {milestone.type === 'general' && 'General milestone - mark complete when satisfied'}
-                          </span>
-                        </div>
+                        <>
+                          {milestone.goalTitle && milestone.goalTitle !== dream.title && (
+                            <div className="flex items-center space-x-2 text-sm text-professional-gray-800 font-medium mb-1">
+                              <Target className="h-3 w-3 text-netsurit-red" />
+                              <span>Goal: {milestone.goalTitle}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center space-x-2 text-xs text-professional-gray-700">
+                            <Repeat className="h-3 w-3 text-netsurit-coral" />
+                            <span>
+                              {milestone.type === 'consistency' && `Track ${milestone.period === 'month' ? 'monthly' : 'weekly'} for ${milestone.period === 'month' ? (milestone.targetMonths || 6) + ' months' : (milestone.targetWeeks || 12) + ' weeks'}`}
+                              {milestone.type === 'deadline' && `Complete by ${milestone.targetDate || 'target date'}`}
+                              {milestone.type === 'general' && 'General goal - mark complete when satisfied'}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -1143,26 +1216,17 @@ const VisionBuilderDemo = () => {
                 // Combine existing + new dreams
                 const allDreams = [...existingDreams, ...dreamsForApp];
                 
-                // Save dreams to Cosmos DB (without templates - we'll handle goals differently)
-                const result = await itemService.saveDreams(userId, allDreams);
+                // Collect all weekly goal templates
+                const templates = [];
                 
-                if (!result.success) {
-                  throw new Error(result.error || 'Failed to save dreams to database');
-                }
-                
-                console.log('✅ All dreams saved successfully to Cosmos DB!');
-                
-                // Create weekly goals using the SAME pattern as Week Ahead
                 for (const dream of dreamsForApp) {
                   if (!dream.goals || dream.goals.length === 0) {
                     continue;
                   }
                   
                   for (const goal of dream.goals) {
-                    const currentWeekIso = getCurrentIsoWeek();
-                    
                     if (goal.type === 'consistency' && goal.recurrence === 'weekly') {
-                      // Create template for weekly recurring goals (SAME as Week Ahead)
+                      // Create template for weekly recurring goals
                       const template = {
                         id: goal.id,
                         type: 'weekly_goal_template',
@@ -1178,10 +1242,35 @@ const VisionBuilderDemo = () => {
                         startDate: goal.startDate || new Date().toISOString(),
                         createdAt: goal.createdAt
                       };
-                      
-                      console.log('✨ Creating weekly recurring template:', template.id);
-                      await addWeeklyGoal(template);
-                      console.log('✅ Weekly template created');
+                      templates.push(template);
+                      console.log('✨ Prepared weekly template:', template.id);
+                    }
+                  }
+                }
+                
+                // ✅ FIX: Save dreams WITH templates (dual-save for consistency)
+                const result = await itemService.saveDreams(userId, allDreams, templates);
+                
+                if (!result.success) {
+                  throw new Error(result.error || 'Failed to save dreams to database');
+                }
+                
+                console.log('✅ All dreams saved successfully to Cosmos DB with templates!');
+                
+                // Create weekly goal INSTANCES for monthly and deadline goals
+                // Note: Weekly templates are already saved above via saveDreams()
+                for (const dream of dreamsForApp) {
+                  if (!dream.goals || dream.goals.length === 0) {
+                    continue;
+                  }
+                  
+                  for (const goal of dream.goals) {
+                    const currentWeekIso = getCurrentIsoWeek();
+                    
+                    // Skip weekly consistency goals - already saved as templates
+                    if (goal.type === 'consistency' && goal.recurrence === 'weekly') {
+                      console.log('⏭️  Skipping weekly template (already saved):', goal.id);
+                      continue;
                       
                     } else if (goal.type === 'consistency' && goal.recurrence === 'monthly') {
                       // Create instances for monthly goals (SAME as Week Ahead)

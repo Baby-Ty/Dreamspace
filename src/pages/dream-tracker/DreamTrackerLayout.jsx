@@ -64,6 +64,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
     // Calculated
     completedGoals,
     totalGoals,
+    dreamGoals,
   } = useDreamTracker(dream, onUpdate);
 
   return (
@@ -224,7 +225,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
 
             {activeTab === 'goals' && (
               <GoalsTab
-                goals={localDream.goals}
+                goals={dreamGoals}
                 isAddingGoal={isAddingGoal}
                 setIsAddingGoal={setIsAddingGoal}
                 newGoalData={newGoalData}

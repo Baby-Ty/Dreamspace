@@ -74,6 +74,11 @@ class WeekService {
   }
 
   /**
+   * Note: initializeAllWeeks is no longer needed as a separate method.
+   * All weeks initialization is now handled automatically by the getUserData API on login.
+   */
+
+  /**
    * Get week goals document for a user/year
    * Uses caching to prevent duplicate requests and improve performance
    * @param {string} userId - User ID
@@ -187,6 +192,66 @@ class WeekService {
     } catch (error) {
       console.error('❌ Error saving week goals:', error);
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save week goals');
+    }
+  }
+
+  /**
+   * Bulk instantiate templates across all their target weeks
+   * Creates goal instances for all weeks where templates should be active
+   * @param {string} userId - User ID
+   * @param {number} year - Year (e.g., 2025)
+   * @param {array} templates - Array of template objects to instantiate
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async bulkInstantiateTemplates(userId, year, templates) {
+    try {
+      console.log(`🚀 Bulk instantiating ${templates.length} templates for ${year}`);
+
+      const response = await fetch(`${this.apiBase}/bulkInstantiateTemplates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          year,
+          templates
+        })
+      });
+
+      const responseText = await response.text();
+      
+      if (response.ok) {
+        if (!responseText || responseText.trim() === '') {
+          console.error('❌ Empty response from API');
+          return fail(ErrorCodes.SAVE_ERROR, 'Empty response from API');
+        }
+        
+        try {
+          const result = JSON.parse(responseText);
+          console.log(`✅ Bulk instantiation complete:`, result);
+          
+          // Invalidate cache after successful instantiation
+          requestCache.invalidate(`weekGoals:${userId}:${year}`);
+          
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Invalid JSON response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'Invalid JSON response from API');
+        }
+      } else {
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error bulk instantiating templates:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to bulk instantiate templates');
+        } catch (parseError) {
+          console.error('❌ Error response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to bulk instantiate templates');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error bulk instantiating templates:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to bulk instantiate templates');
     }
   }
 

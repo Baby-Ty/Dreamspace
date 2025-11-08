@@ -11,6 +11,7 @@ import WeekGoalsWidget from './WeekGoalsWidget';
 import DashboardDreamCard from './DashboardDreamCard';
 import DreamTrackerModal from '../../components/DreamTrackerModal';
 import GuideModal from '../../components/GuideModal';
+import UserMigrationButton from '../../components/UserMigrationButton';
 
 /**
  * Dashboard Layout Component
@@ -29,6 +30,7 @@ export default function DashboardLayout() {
     setNewGoal,
     handleToggleGoal,
     handleAddGoal,
+    loadCurrentWeekGoals,
     getCurrentWeekRange,
   } = useDashboardData();
 
@@ -57,6 +59,13 @@ export default function DashboardLayout() {
     setSelectedDream(dream);
   }, []);
 
+  const handleDreamUpdate = useCallback(() => {
+    // Refresh dashboard data when dream is updated
+    console.log('🔄 Dream updated, refreshing dashboard...');
+    // Force refresh of current week goals
+    loadCurrentWeekGoals();
+  }, [loadCurrentWeekGoals]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5" data-testid="dashboard-layout">
       {/* Header Section */}
@@ -65,6 +74,11 @@ export default function DashboardLayout() {
         stats={stats}
         onShowGuide={() => setShowGuide(true)}
       />
+
+      {/* V1 to V3 Migration Banner - Only show for v1 users */}
+      {currentUser.dataStructureVersion && currentUser.dataStructureVersion < 3 && (
+        <UserMigrationButton userId={currentUser.id} />
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6">
@@ -160,6 +174,7 @@ export default function DashboardLayout() {
         <DreamTrackerModal
           dream={selectedDream}
           onClose={() => setSelectedDream(null)}
+          onUpdate={handleDreamUpdate}
         />
       )}
 

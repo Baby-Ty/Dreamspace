@@ -20,6 +20,7 @@ export function useDashboardData() {
   // State
   const [currentWeekGoals, setCurrentWeekGoals] = useState([]);
   const [isLoadingWeekGoals, setIsLoadingWeekGoals] = useState(true);
+  const [dreamsUpdateTrigger, setDreamsUpdateTrigger] = useState(0); // Force re-render when dreams update
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: '',
@@ -157,15 +158,20 @@ export function useDashboardData() {
     e.preventDefault();
     if (!newGoal.title.trim()) return;
     
-    // Convert dreamId to number for comparison (select returns string)
-    const dreamId = newGoal.dreamId ? parseInt(newGoal.dreamId, 10) : null;
+    // Dream IDs are strings like "dream_1234567890", don't parseInt!
+    const dreamId = newGoal.dreamId || null;
     const selectedDream = currentUser?.dreamBook?.find(dream => dream.id === dreamId);
     
     const currentWeekIso = getCurrentIsoWeek();
     const { getNextNWeeks } = await import('../utils/dateUtils');
     const goalId = `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('📝 Adding goal from dashboard with consistency:', newGoal.consistency);
+    console.log('📝 Adding goal from dashboard:', {
+      consistency: newGoal.consistency,
+      dreamId: dreamId,
+      selectedDream: selectedDream?.title,
+      hasDream: !!selectedDream
+    });
     
     try {
       if (newGoal.consistency === 'weekly') {
@@ -244,11 +250,19 @@ export function useDashboardData() {
       console.log('📢 Goals updated event received, reloading dashboard goals');
       loadCurrentWeekGoals();
     };
-    
+
+    const handleDreamsUpdated = () => {
+      console.log('📢 Dreams updated event received, forcing dashboard re-render');
+      // Force a re-render by updating the trigger state
+      setDreamsUpdateTrigger(prev => prev + 1);
+    };
+
     window.addEventListener('goals-updated', handleGoalsUpdated);
-    
+    window.addEventListener('dreams-updated', handleDreamsUpdated);
+
     return () => {
       window.removeEventListener('goals-updated', handleGoalsUpdated);
+      window.removeEventListener('dreams-updated', handleDreamsUpdated);
     };
   }, [loadCurrentWeekGoals]);
 
@@ -310,25 +324,28 @@ export function useDashboardData() {
   return {
     // Loading state
     isLoadingWeekGoals,
-    
+
     // Data
     currentWeekGoals,
     stats,
     weeklyProgress,
-    
+
     // Form state
     showAddGoal,
     setShowAddGoal,
     newGoal,
     setNewGoal,
-    
+
     // Actions
     handleToggleGoal,
     handleAddGoal,
     loadCurrentWeekGoals,
-    
+
     // Helpers
     getCurrentWeekRange,
+
+    // Force re-render trigger (not used directly by components)
+    dreamsUpdateTrigger,
   };
 }
 

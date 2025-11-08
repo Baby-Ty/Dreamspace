@@ -116,7 +116,7 @@ module.exports = async function (context, req) {
         type: goal.type || 'weekly_goal', // Ensure type is always set
         templateId: goal.templateId,
         dreamId: goal.dreamId,
-        milestoneId: goal.milestoneId,
+        goalId: goal.goalId || goal.milestoneId, // goalId is the new standard, support legacy milestoneId
         title: goal.title,
         description: goal.description,
         dreamTitle: goal.dreamTitle,

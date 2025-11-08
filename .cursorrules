@@ -1,0 +1,314 @@
+# DreamSpace Cursor AI Rules
+
+## Core Principles
+- Favor small, incremental changes over large rewrites
+- Never suggest full file rewrites unless explicitly requested
+- Always verify current code before generating changes
+- Preserve existing patterns and conventions
+- No new files without explicit user approval
+- Azure + Cosmos DB accuracy is critical
+
+## Definition of Done (DoD)
+Every file MUST have this comment at the top and comply:
+```javascript
+// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
+```
+
+### DoD Requirements
+1. **No fetch in UI**: All network calls in services/hooks only
+2. **< 400 lines**: Keep files under 400 lines
+3. **Early returns**: Handle loading/error at component top
+4. **A11y**: ARIA roles, labels, semantic HTML
+5. **Minimal props**: Components take only what they need
+6. **Test IDs**: Key nodes have `data-testid` attributes
+
+## Architecture Pattern: Three Layers
+
+```
+pages/FeatureName.jsx (thin wrapper, 3-10 lines)
+    ↓
+pages/feature-name/FeatureNameLayout.jsx (orchestration, <200 lines)
+    ↓ uses
+hooks/useFeatureName.js (data layer, <250 lines)
+    ↓ uses
+services/featureService.js (API calls, <200 lines)
+    ↓ composes
+pages/feature-name/ComponentA.jsx (presentation, <150 lines)
+pages/feature-name/ComponentB.jsx (presentation, <150 lines)
+```
+
+### Rules
+- **Pages**: Thin wrapper that re-exports Layout
+- **Layout**: Orchestrates child components, uses hooks for data
+- **Hooks**: Encapsulate data fetching, business logic, memoization
+- **Services**: All API calls, return `{ success, data?, error? }`
+- **Components**: Pure presentation, minimal props
+
+## Tech Stack
+
+### Frontend
+- React 18 + Vite
+- Tailwind CSS (Netsurit color palette)
+- Lucide React icons
+- React Router DOM v6
+- MSAL for Azure AD auth
+- Zod for validation
+
+### Backend
+- Azure Functions (Node.js 20+)
+- Azure Cosmos DB (6-container architecture)
+- Azure Application Insights
+
+### State Management
+- React Context + useReducer
+- localStorage fallback for dev
+
+## Database: Cosmos DB Containers
+
+### Container Structure (6-Container Architecture)
+1. **users** - `/userId` or `/id` - User profiles ONLY (no arrays)
+2. **dreams** - `/userId` - Aggregated dreams document + weekly goal templates per user
+3. **connects** - `/userId` - Individual connect documents
+4. **scoring** - `/userId` - Yearly scoring rollups (e.g., `{userId}_2025_scoring`)
+5. **teams** - `/managerId` - Team relationships and coaching assignments
+6. **weeks{year}** - `/userId` - Year-specific week documents (e.g., `weeks2025` container)
+
+### Critical DB Rules
+- Users container: Profile data only, no large arrays
+- Dreams container: One aggregated document per user with `dreamBook` and `weeklyGoalTemplates` arrays
+- Weeks containers: Nested structure `{ weeks: { "2025-W43": { goals: [...] } } }`
+- Always use partition key when querying: `userId` or `managerId`
+- Week documents: `{userId}_{year}` format for document ID
+
+## File Organization
+
+```
+src/
+├── pages/           # Page entry points (thin wrappers)
+│   ├── FeatureName.jsx
+│   └── feature-name/    # Feature subdirectory
+│       ├── FeatureNameLayout.jsx
+│       └── ComponentA.jsx
+├── components/      # Shared components (modals, layout)
+├── hooks/           # Custom data hooks (useFeatureName)
+├── services/        # API layer (featureService.js)
+├── context/         # React Context (AppContext, AuthContext)
+├── schemas/         # Zod schemas for validation
+├── utils/           # Utilities (logger, dateUtils, env)
+├── constants/       # Constants (errors, categories)
+└── data/            # Mock data for development
+
+api/
+├── functionName/    # Azure Function endpoint
+│   ├── index.js
+│   └── function.json
+└── utils/           # Shared utilities (cosmosProvider)
+```
+
+## Naming Conventions
+
+### Files
+- Components: `PascalCase.jsx`
+- Hooks: `useCamelCase.js`
+- Services: `camelCaseService.js`
+- Utilities: `camelCase.js`
+- Multi-word folders: `kebab-case/`
+
+### Code
+- Functions/variables: `camelCase`
+- Components: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Private functions: `_camelCase` (prefix with underscore)
+
+### Component Suffixes
+- `Layout` - Orchestration components
+- `Modal` - Modal dialogs
+- `Tab` - Tab content components
+- `Widget` - Dashboard widgets
+- `Card` - Card components
+- `List` - List components
+
+## Error Handling
+
+### Services MUST Return
+```javascript
+import { ok, fail } from '../utils/errorHandling.js';
+import { ErrorCodes } from '../constants/errors.js';
+
+// Success
+return ok(data);
+
+// Failure
+return fail(ErrorCodes.NETWORK, 'Failed to fetch');
+```
+
+### Response Format
+```javascript
+{ success: true, data: {...} }
+{ success: false, error: 'Error message' }
+```
+
+### No Throw in Services
+- Never use `throw` in service functions
+- Always return `ok()` or `fail()`
+- Use error codes from `constants/errors.js`
+
+## Logging Standards
+
+```javascript
+import { logger } from '../utils/logger.js';
+
+logger.debug('module', 'Verbose dev info', { data });
+logger.info('module', 'General info', { data });
+logger.warn('module', 'Potential issue', { data });
+logger.error('module', 'Error occurred', { data });
+logger.critical('module', 'Severe failure', { data });
+```
+
+### Logger Rules
+- Always specify module name (e.g., 'auth', 'api', 'db')
+- Include structured data object for context
+- Use appropriate log level
+- Integrates with Azure Application Insights
+
+## UI & Styling
+
+### Tailwind Colors
+- Netsurit palette: `netsurit-red`, `netsurit-coral`, `netsurit-orange`
+- Legacy dream colors: `dream-blue`, `dream-purple`, `dream-teal`, `dream-pink`
+- Professional grays: `professional-gray-{50-900}`
+
+### Accessibility (a11y)
+- Semantic HTML: `<nav>`, `<main>`, `<article>`, `<section>`
+- ARIA labels on interactive elements: `aria-label`, `role`
+- Keyboard navigation: Tab, Enter, Escape
+- Focus management for modals
+- Test with screen reader or verify structure
+
+### Components
+- Use Lucide React icons (not Font Awesome or others)
+- Responsive: mobile-first with Tailwind breakpoints
+- Loading states: early return pattern
+- Error states: user-friendly messages
+
+## Code Quality Rules
+
+### Before Generating Code
+1. Read the relevant existing files first
+2. Understand current patterns
+3. Propose small changes, not rewrites
+4. Ask clarifying questions if unclear
+
+### When Editing
+- Preserve indentation (spaces, not tabs)
+- Keep existing code style
+- Don't change unrelated code
+- Use `search_replace` for targeted edits
+
+### Validation
+- Use Zod schemas from `src/schemas/`
+- Parse/validate all external data
+- Provide fallback defaults
+
+### Testing
+- Write tests for new functionality
+- Use `data-testid` for test selection
+- Vitest + React Testing Library
+- Tests live alongside code or in `__tests__`
+
+## API Conventions
+
+### Azure Functions
+- HTTP trigger, anonymous auth
+- Route: `/api/functionName/{param?}`
+- CORS headers: `Access-Control-Allow-Origin: *`
+- Return JSON with proper content-type
+
+### Cosmos DB Operations
+- Use `cosmosProvider.js` for client initialization
+- Always include partition key in queries
+- Use batch operations when possible
+- Handle 404 gracefully (user not found is common)
+
+### Example Function Structure
+```javascript
+const { CosmosClient } = require('@azure/cosmos');
+
+module.exports = async function (context, req) {
+  const userId = context.bindingData.userId;
+  
+  if (!userId) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ error: 'User ID required' }),
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    };
+    return;
+  }
+  
+  try {
+    // ... logic
+    context.res = {
+      status: 200,
+      body: JSON.stringify({ success: true, data }),
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    };
+  } catch (error) {
+    context.log.error('Error:', error);
+    context.res = {
+      status: 500,
+      body: JSON.stringify({ error: 'Internal server error', details: error.message }),
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    };
+  }
+};
+```
+
+## Human-First UX Principles
+
+- Clear, friendly error messages (no technical jargon)
+- Loading states for all async operations
+- Confirmation dialogs for destructive actions
+- Auto-save with visual feedback
+- Optimistic UI updates where possible
+- Mobile-responsive design
+- Minimal friction in user flows
+
+## Anti-Patterns (DO NOT DO)
+
+❌ Fetch calls in components
+❌ Files over 400 lines
+❌ Throwing errors in services
+❌ Missing DoD comment
+❌ Hardcoded API URLs (use env.js)
+❌ Direct localStorage access in components
+❌ Missing ARIA attributes
+❌ Prop drilling (use context or composition)
+❌ Full file rewrites without approval
+❌ New files without approval
+❌ Changing file structure without approval
+
+## When Uncertain
+
+1. Read existing similar code first
+2. Ask the user for clarification
+3. Propose the smallest possible change
+4. Verify current behavior before suggesting changes
+5. Reference existing patterns from the codebase
+
+## Summary Checklist
+
+Before every code generation:
+- [ ] Read existing code first
+- [ ] DoD comment at top
+- [ ] File < 400 lines
+- [ ] No fetch in UI
+- [ ] Early returns for loading/error
+- [ ] ARIA attributes
+- [ ] Minimal props
+- [ ] data-testid on key elements
+- [ ] Error handling with ok/fail
+- [ ] Logging with logger utility
+- [ ] Zod validation for external data
+- [ ] Small, targeted changes only
+
