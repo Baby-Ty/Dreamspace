@@ -616,11 +616,68 @@ const DreamsWeekAhead = () => {
     const activeIsoWeek = getIsoWeek(activeWeek.start);
     const year = activeWeek.start.getFullYear();
     
-    // Find the goal and update it
-    const goalIndex = weeklyGoals.findIndex(g => g.id === goalId && g.weekId === activeIsoWeek);
-    if (goalIndex === -1) return;
+    // Find the goal - could be a template (no weekId) or an instance (has weekId)
+    let goal = weeklyGoals.find(g => g.id === goalId && g.weekId === activeIsoWeek);
+    let isTemplate = false;
     
-    const goal = weeklyGoals[goalIndex];
+    // If not found as an instance, check if it's a template
+    if (!goal) {
+      goal = weeklyGoals.find(g => g.id === goalId && g.type === 'weekly_goal_template');
+      isTemplate = true;
+      
+      // If it's a template, we need to create an instance for this week
+      if (goal) {
+        console.log(`📝 Creating instance from template ${goalId} for week ${activeIsoWeek}`);
+        const instance = {
+          id: `${goal.id}_${activeIsoWeek}`,
+          type: 'weekly_goal',
+          templateId: goal.id,
+          goalType: goal.goalType || 'consistency',
+          title: goal.title,
+          description: goal.description || '',
+          dreamId: goal.dreamId,
+          dreamTitle: goal.dreamTitle,
+          dreamCategory: goal.dreamCategory,
+          recurrence: goal.recurrence,
+          weekId: activeIsoWeek,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Get existing goals for this week and add the new instance
+        const existingWeekGoals = weeklyGoals.filter(g => 
+          g.weekId === activeIsoWeek && g.type !== 'weekly_goal_template'
+        );
+        const allWeekGoals = [...existingWeekGoals, instance];
+        
+        // Save all goals for this week to weeks container
+        const result = await weekService.saveWeekGoals(
+          currentUser.id,
+          year,
+          activeIsoWeek,
+          allWeekGoals
+        );
+        
+        if (!result.success) {
+          console.error('❌ Failed to create instance:', result.error);
+          return;
+        }
+        
+        // Add to local state
+        const updatedGoals = [...weeklyGoals, instance];
+        setWeeklyGoals(updatedGoals);
+        
+        // Now toggle the newly created instance
+        goal = instance;
+      }
+    }
+    
+    if (!goal) {
+      console.error('❌ Goal not found:', goalId);
+      return;
+    }
+    
+    const goalIndex = weeklyGoals.findIndex(g => g.id === goal.id);
     const isMonthlyGoal = goal.recurrence === 'monthly';
     const isDeadlineGoal = goal.type === 'deadline';
     const newCompletedStatus = !goal.completed;
