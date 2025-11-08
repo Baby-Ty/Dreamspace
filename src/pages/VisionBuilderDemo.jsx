@@ -27,7 +27,7 @@ import { useApp } from '../context/AppContext';
 
 const VisionBuilderDemo = () => {
   const navigate = useNavigate();
-  const { addDream, addWeeklyGoal, currentUser } = useApp();
+  const { addDream, addWeeklyGoal, addWeeklyGoalsBatch, currentUser } = useApp();
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState({
     vibe: null,
