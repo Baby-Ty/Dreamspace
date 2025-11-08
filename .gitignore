@@ -81,3 +81,24 @@ demo-data/
 
 # Updated placeholder files
 updated...
+
+# Documentation with sensitive info logs
+docs-deployment/
+docs-implementation-history/
+docs-new-tenant-deployment/
+docs-reference/
+BULK_INSTANTIATION_TROUBLESHOOTING.md
+CODING_STANDARDS_COMPLIANCE_REPORT.md
+CONTEXT.md
+GOAL_DATA_FLOW_FIXES.md
+MIGRATION_INSTRUCTIONS.md
+MONITORING_CHECKLIST.md
+MONITORING_SETUP_COMPLETE.md
+MONTHLY_GOALS_SUMMARY.md
+ORPHANED_GOALS_FIXES.md
+QUICK_TEST_GUIDE.md
+README_START_HERE.md
+REFACTORING_PROGRESS_SUMMARY.md
+START_HERE_MONITORING.md
+VISION_BUILDER_GOALS_UPDATE.md
+.cursorrules
