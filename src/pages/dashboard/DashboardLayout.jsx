@@ -104,9 +104,9 @@ export default function DashboardLayout() {
             <h2 className="text-xl font-bold text-professional-gray-900">My Dreams</h2>
             <Link 
               to="/dream-book"
-              className="text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="text-sm bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white px-4 py-2 rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              View All
+              View Dreams
             </Link>
           </div>
 
