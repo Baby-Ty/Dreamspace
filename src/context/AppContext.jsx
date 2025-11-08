@@ -5,7 +5,7 @@ import itemService from '../services/itemService';
 import connectService from '../services/connectService';
 import weekService from '../services/weekService';
 import scoringService from '../services/scoringService';
-import { getCurrentIsoWeek, computeStreak, isMilestoneComplete } from '../utils/dateUtils';
+import { getCurrentIsoWeek, computeStreak, isMilestoneComplete, parseIsoWeek } from '../utils/dateUtils';
 import { checkAndDeactivateExpiredTemplates } from '../utils/templateValidation';
 
 // Create the context
@@ -628,7 +628,7 @@ export const AppProvider = ({ children, initialUser }) => {
      * NOTE: This function removes:
      * 1. The dream itself
      * 2. Weekly goal templates linked to this dream
-     * 3. Does NOT remove week instances (they persist as history)
+     * 3. Weekly goal instances from current week and all future weeks
      */
     deleteDream: async (dreamId) => {
       // Delete from local state first
@@ -654,6 +654,83 @@ export const AppProvider = ({ children, initialUser }) => {
           console.error('Failed to save dreams document after delete:', result.error);
           return;
         }
+
+        // Delete goals from current week and all future weeks
+        console.log('🗑️ Deleting weekly goal instances for dream:', dreamId);
+        const currentIsoWeek = getCurrentIsoWeek();
+        const currentWeekParsed = parseIsoWeek(currentIsoWeek);
+        const currentYear = new Date().getFullYear();
+        
+        // Helper function to check if week is current or future
+        const isCurrentOrFutureWeek = (weekId) => {
+          const weekParsed = parseIsoWeek(weekId);
+          // Compare year first, then week number
+          if (weekParsed.year > currentWeekParsed.year) return true;
+          if (weekParsed.year < currentWeekParsed.year) return false;
+          return weekParsed.week >= currentWeekParsed.week;
+        };
+        
+        // Load week document for current year
+        const weekDocResult = await weekService.getWeekGoals(userId, currentYear);
+        if (weekDocResult.success && weekDocResult.data?.weeks) {
+          const weeks = weekDocResult.data.weeks;
+          
+          // Process each week
+          for (const [weekId, weekData] of Object.entries(weeks)) {
+            // Only process current and future weeks
+            if (isCurrentOrFutureWeek(weekId)) {
+              const goals = weekData.goals || [];
+              const filteredGoals = goals.filter(g => g.dreamId !== dreamId);
+              
+              // Only save if we actually removed goals
+              if (filteredGoals.length < goals.length) {
+                const removedCount = goals.length - filteredGoals.length;
+                console.log(`🗑️ Removing ${removedCount} goal(s) from ${weekId}`);
+                
+                const saveResult = await weekService.saveWeekGoals(userId, currentYear, weekId, filteredGoals);
+                if (!saveResult.success) {
+                  console.error(`Failed to save updated goals for ${weekId}:`, saveResult.error);
+                }
+                
+                // Update local state - dispatch DELETE for each removed goal
+                goals.filter(g => g.dreamId === dreamId).forEach(goal => {
+                  dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
+                });
+              }
+            }
+          }
+        }
+        
+        // Also check next year if we're in Q4
+        if (currentWeekParsed.week >= 40) {
+          const nextYear = currentYear + 1;
+          const nextYearDocResult = await weekService.getWeekGoals(userId, nextYear);
+          if (nextYearDocResult.success && nextYearDocResult.data?.weeks) {
+            const weeks = nextYearDocResult.data.weeks;
+            
+            for (const [weekId, weekData] of Object.entries(weeks)) {
+              const goals = weekData.goals || [];
+              const filteredGoals = goals.filter(g => g.dreamId !== dreamId);
+              
+              if (filteredGoals.length < goals.length) {
+                const removedCount = goals.length - filteredGoals.length;
+                console.log(`🗑️ Removing ${removedCount} goal(s) from ${weekId} (next year)`);
+                
+                const saveResult = await weekService.saveWeekGoals(userId, nextYear, weekId, filteredGoals);
+                if (!saveResult.success) {
+                  console.error(`Failed to save updated goals for ${weekId}:`, saveResult.error);
+                }
+                
+                // Update local state
+                goals.filter(g => g.dreamId === dreamId).forEach(goal => {
+                  dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
+                });
+              }
+            }
+          }
+        }
+        
+        console.log('✅ Dream and associated goals deleted successfully');
       }
     },
 
