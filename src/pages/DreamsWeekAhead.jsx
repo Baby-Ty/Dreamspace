@@ -877,21 +877,32 @@ const DreamsWeekAhead = () => {
         validTemplates.filter(t => t.recurrence === 'monthly').map(t => t.id)
       );
       
-      // Create a set of weekly template IDs that are being shown
-      const visibleTemplateIds = new Set(weeklyTemplates.map(t => t.id));
-      
-      // Filter out instances that are duplicates of visible weekly templates
-      // But KEEP monthly instances even if template is active
-      const uniqueInstances = currentWeekInstances.filter(instance => {
-        // If this is a monthly goal instance, always show it
-        if (instance.recurrence === 'monthly' || monthlyTemplateIds.has(instance.templateId)) {
-          return true;
-        }
-        // For weekly goals, filter out if template is visible
-        return !instance.templateId || !visibleTemplateIds.has(instance.templateId);
+      // ✅ FIX: For weekly templates, show instance if it exists, otherwise show template
+      // This ensures the completion status (checkmark) displays correctly
+      const weeklyTemplatesOrInstances = weeklyTemplates.map(template => {
+        // Check if an instance exists for this template in the current week
+        const instance = currentWeekInstances.find(inst => 
+          inst.templateId === template.id && inst.weekId === currentWeekIso
+        );
+        
+        // If instance exists, show it instead of the template (preserves completion status)
+        // Otherwise, show the template (which will create an instance when toggled)
+        return instance || template;
       });
       
-      return [...weeklyTemplates, ...uniqueInstances];
+      // Get monthly instances (these always show as instances, not templates)
+      const monthlyInstances = currentWeekInstances.filter(instance => 
+        instance.recurrence === 'monthly' || monthlyTemplateIds.has(instance.templateId)
+      );
+      
+      // Get any other instances that don't belong to templates (orphaned instances)
+      const instanceTemplateIds = new Set(currentWeekInstances.map(i => i.templateId).filter(Boolean));
+      const templateIds = new Set(validTemplates.map(t => t.id));
+      const orphanedInstances = currentWeekInstances.filter(instance => 
+        !instance.templateId || !templateIds.has(instance.templateId)
+      );
+      
+      return [...weeklyTemplatesOrInstances, ...monthlyInstances, ...orphanedInstances];
     } else {
       // Other weeks: show only instances for that week
       return weeklyGoals.filter(goal => 
