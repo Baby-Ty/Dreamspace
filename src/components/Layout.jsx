@@ -12,7 +12,8 @@ import {
   Calendar,
   Users2,
   UserCog,
-  FileText
+  FileText,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';
@@ -32,9 +33,9 @@ const Layout = ({ children }) => {
 
   // Coming soon items (visible but disabled)
   const comingSoonNavigation = [
-    { name: 'Dream Connect', icon: Users },
-    { name: 'Scorecard', icon: Trophy },
-    { name: 'Dream Coach', icon: Users2 },
+    { name: 'Dream Connect', icon: Users, previewHref: '/dream-connect' },
+    { name: 'Scorecard', icon: Trophy, previewHref: '/scorecard' },
+    { name: 'Dream Coach', icon: Users2, previewHref: '/dream-coach' },
   ];
 
   // Bottom navigation (visible to all until RBAC is implemented)
@@ -119,6 +120,11 @@ const Layout = ({ children }) => {
                 </div>
                 {comingSoonNavigation.map((item) => {
                   const Icon = item.icon;
+                  // Only show Dream Coach preview for coaches and admins
+                  const isDreamCoach = item.name === 'Dream Coach';
+                  const isCoachOrAdmin = userRole === 'coach' || userRole === 'admin' || userRole === 'manager';
+                  const showPreview = item.previewHref && (!isDreamCoach || isCoachOrAdmin);
+                  
                   return (
                     <div
                       key={item.name}
@@ -126,6 +132,20 @@ const Layout = ({ children }) => {
                     >
                       <Icon className="w-5 h-5 mr-3" />
                       <span className="flex-1">{item.name}</span>
+                      {showPreview && (
+                        <Link
+                          to={item.previewHref}
+                          className="p-1.5 rounded-md text-gray-400 hover:text-netsurit-coral hover:bg-gray-100 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSidebarOpen(false);
+                          }}
+                          title={`Preview ${item.name}`}
+                          aria-label={`Preview ${item.name}`}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                      )}
                     </div>
                   );
                 })}

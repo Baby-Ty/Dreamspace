@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { X, Users2, AlertTriangle, ArrowRight, Crown, Search, UserCheck } from 'lucide-react';
+import { X, Users2, AlertTriangle, ArrowRight, Crown, Search, UserCheck, UserX } from 'lucide-react';
 
 const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onConfirm }) => {
   const [selectedReplacementId, setSelectedReplacementId] = useState('');
   const [newTeamName, setNewTeamName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [demoteCoachOption, setDemoteCoachOption] = useState('unassigned'); // 'unassigned', 'assign-to-team'
+  const [demoteCoachOption, setDemoteCoachOption] = useState('unassigned'); // 'unassigned', 'assign-to-team', 'disband-team'
   const [assignToTeamId, setAssignToTeamId] = useState('');
 
   const selectedReplacement = availableReplacements.find(r => r.id === selectedReplacementId);
@@ -28,7 +28,16 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
   const availableCoachesForAssignment = coaches.filter(c => c.id !== coach.id);
 
   const handleConfirm = () => {
-    if (selectedReplacementId) {
+    // For disband team, no replacement is needed
+    if (demoteCoachOption === 'disband-team') {
+      onConfirm(
+        coach.id, 
+        null, // No replacement coach
+        null, // No team name
+        demoteCoachOption,
+        null
+      );
+    } else if (selectedReplacementId) {
       onConfirm(
         coach.id, 
         selectedReplacementId, 
@@ -83,7 +92,8 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
             </div>
           </div>
 
-          {/* Replacement Search */}
+          {/* Replacement Search - Only show if not disbanding team */}
+          {demoteCoachOption !== 'disband-team' && (
           <div className="mb-6">
             <label className="block text-sm font-medium text-professional-gray-900 mb-3">
               Select New Coach
@@ -153,6 +163,7 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
               )}
             </div>
           </div>
+          )}
 
           {/* Coach Demotion Options */}
           <div className="mb-6">
@@ -204,6 +215,36 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
                 </div>
               </div>
 
+              {/* Option 3: Disband Team */}
+              <div 
+                onClick={() => {
+                  setDemoteCoachOption('disband-team');
+                  setSelectedReplacementId(''); // Clear replacement selection
+                }}
+                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                  demoteCoachOption === 'disband-team' 
+                    ? 'border-netsurit-red bg-netsurit-red/5' 
+                    : 'border-professional-gray-300 hover:bg-professional-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    demoteCoachOption === 'disband-team' ? 'border-netsurit-red bg-netsurit-red' : 'border-professional-gray-300'
+                  }`}>
+                    {demoteCoachOption === 'disband-team' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-medium text-professional-gray-900">Disband Team</h4>
+                      <UserX className="w-4 h-4 text-professional-gray-400" />
+                    </div>
+                    <p className="text-sm text-professional-gray-600">
+                      Move <strong>all team members and coach</strong> to unassigned pool
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Team Selection (if assign-to-team is selected) */}
               {demoteCoachOption === 'assign-to-team' && (
                 <div className="ml-7 mt-3">
@@ -224,7 +265,8 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
             </div>
           </div>
 
-          {/* New Team Name (Optional) */}
+          {/* New Team Name (Optional) - Only show if not disbanding team */}
+          {demoteCoachOption !== 'disband-team' && (
           <div className="mb-6">
             <label className="block text-sm font-medium text-professional-gray-900 mb-2">
               New Team Name (Optional)
@@ -240,28 +282,40 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
               If left blank, will default to "{selectedReplacement?.name || 'New Coach'}'s Team"
             </p>
           </div>
+          )}
 
           {/* Preview of Changes */}
-          {selectedReplacement && (
+          {(selectedReplacement || demoteCoachOption === 'disband-team') && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start space-x-3">
                 <ArrowRight className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-medium text-blue-800 mb-2">What will happen:</h4>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• <strong>{selectedReplacement.name}</strong> will become the new coach</li>
-                    <li>• All {coach.teamMetrics?.teamSize || 0} team members will be reassigned</li>
-                    {selectedReplacement.role === 'coach' && selectedReplacement.teamMetrics?.teamSize > 0 && (
-                      <li>• Teams will be merged (total: {(coach.teamMetrics?.teamSize || 0) + (selectedReplacement.teamMetrics?.teamSize || 0)} members)</li>
-                    )}
-                    {selectedReplacement.role !== 'coach' && (
-                      <li>• <strong>{selectedReplacement.name}</strong> will be promoted to coach role</li>
-                    )}
-                    {demoteCoachOption === 'unassigned' && (
-                      <li>• <strong>{coach.name}</strong> will move to the unassigned users pool</li>
-                    )}
-                    {demoteCoachOption === 'assign-to-team' && assignToTeamId && (
-                      <li>• <strong>{coach.name}</strong> will join <strong>{availableCoachesForAssignment.find(c => c.id === assignToTeamId)?.name}'s</strong> team as a member</li>
+                    {demoteCoachOption === 'disband-team' ? (
+                      <>
+                        <li>• <strong>{coach.teamName}</strong> will be disbanded and deleted</li>
+                        <li>• <strong>{coach.name}</strong> will be demoted and move to unassigned pool</li>
+                        <li>• All <strong>{coach.teamMetrics?.teamSize || 0} team members</strong> will move to unassigned pool</li>
+                        <li>• No replacement coach will be assigned</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• <strong>{selectedReplacement.name}</strong> will become the new coach</li>
+                        <li>• All {coach.teamMetrics?.teamSize || 0} team members will be reassigned</li>
+                        {selectedReplacement.role === 'coach' && selectedReplacement.teamMetrics?.teamSize > 0 && (
+                          <li>• Teams will be merged (total: {(coach.teamMetrics?.teamSize || 0) + (selectedReplacement.teamMetrics?.teamSize || 0)} members)</li>
+                        )}
+                        {selectedReplacement.role !== 'coach' && (
+                          <li>• <strong>{selectedReplacement.name}</strong> will be promoted to coach role</li>
+                        )}
+                        {demoteCoachOption === 'unassigned' && (
+                          <li>• <strong>{coach.name}</strong> will move to the unassigned users pool</li>
+                        )}
+                        {demoteCoachOption === 'assign-to-team' && assignToTeamId && (
+                          <li>• <strong>{coach.name}</strong> will join <strong>{availableCoachesForAssignment.find(c => c.id === assignToTeamId)?.name}'s</strong> team as a member</li>
+                        )}
+                      </>
                     )}
                   </ul>
                 </div>
@@ -292,14 +346,18 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
             </button>
             <button
               onClick={handleConfirm}
-              disabled={!selectedReplacementId || (demoteCoachOption === 'assign-to-team' && !assignToTeamId)}
+              disabled={
+                demoteCoachOption === 'disband-team' 
+                  ? false 
+                  : (!selectedReplacementId || (demoteCoachOption === 'assign-to-team' && !assignToTeamId))
+              }
               className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedReplacementId && (demoteCoachOption !== 'assign-to-team' || assignToTeamId)
+                (demoteCoachOption === 'disband-team' || (selectedReplacementId && (demoteCoachOption !== 'assign-to-team' || assignToTeamId)))
                   ? 'bg-netsurit-orange hover:bg-netsurit-warm-orange text-white'
                   : 'bg-professional-gray-300 text-professional-gray-500 cursor-not-allowed'
               }`}
             >
-              Replace Coach
+              {demoteCoachOption === 'disband-team' ? 'Disband Team' : 'Replace Coach'}
             </button>
           </div>
         </div>

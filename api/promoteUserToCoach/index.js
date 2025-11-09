@@ -73,6 +73,8 @@ module.exports = async function (context, req) {
 
     const user = users[0];
 
+    context.log(`Found user: id=${user.id}, userId=${user.userId}, currentRole=${user.role}`);
+
     // Update user role to coach
     const updatedUser = {
       ...user,
@@ -82,7 +84,15 @@ module.exports = async function (context, req) {
       promotedAt: new Date().toISOString()
     };
 
-    await usersContainer.item(user.id, user.userId).replace(updatedUser);
+    context.log(`Attempting to update user document with id=${user.id}, partition key=${user.userId}`);
+    
+    try {
+      const replaceResult = await usersContainer.item(user.id, user.userId).replace(updatedUser);
+      context.log(`✅ User document updated successfully. Status: ${replaceResult.statusCode}`);
+    } catch (replaceError) {
+      context.log.error(`❌ Failed to update user document:`, replaceError);
+      throw new Error(`Failed to update user document: ${replaceError.message}`);
+    }
 
     // Create new team relationship
     const teamId = `team_${userId}_${Date.now()}`;
@@ -99,9 +109,17 @@ module.exports = async function (context, req) {
       createdBy: 'system', // Could be replaced with actual admin user ID
     };
 
-    await teamsContainer.items.create(teamRelationship);
+    context.log(`Creating team document with managerId=${userId}`);
+    
+    try {
+      const createResult = await teamsContainer.items.create(teamRelationship);
+      context.log(`✅ Team document created successfully. Status: ${createResult.statusCode}`);
+    } catch (createError) {
+      context.log.error(`❌ Failed to create team document:`, createError);
+      throw new Error(`Failed to create team document: ${createError.message}`);
+    }
 
-    context.log(`Successfully promoted user ${userId} to coach with team: ${teamName}`);
+    context.log(`✅ Successfully promoted user ${userId} to coach with team: ${teamName}`);
 
     context.res = {
       status: 200,

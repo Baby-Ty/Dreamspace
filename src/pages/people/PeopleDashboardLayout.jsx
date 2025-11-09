@@ -215,15 +215,26 @@ export default function PeopleDashboardLayout() {
       );
       
       if (result.success) {
-        console.log('✅ Successfully replaced coach');
+        if (demoteOption === 'disband-team') {
+          logger.info('people-dashboard', 'Team disbanded successfully', { 
+            oldCoachId, 
+            disbandedTeam: result.data?.disbandedTeam 
+          });
+          showToast(`Team "${result.data?.disbandedTeam || 'team'}" has been disbanded. All members moved to unassigned.`, 'success');
+        } else {
+          logger.info('people-dashboard', 'Successfully replaced coach', { oldCoachId, newCoachId });
+          showToast('Coach replaced successfully', 'success');
+        }
         await refreshData();
         setShowReplaceCoachModal(false);
         setSelectedCoachToReplace(null);
       } else {
-        console.error('❌ Failed to replace coach:', result.error);
+        logger.error('people-dashboard', 'Failed to replace/disband team', { error: result.error, oldCoachId });
+        showToast(result.error || 'Failed to complete operation. Please try again.', 'error');
       }
     } catch (err) {
-      console.error('❌ Error replacing coach:', err);
+      logger.error('people-dashboard', 'Error replacing/disbanding team', { error: err.message, oldCoachId });
+      showToast('Error completing operation. Please try again.', 'error');
     } finally {
       setActionLoading(false);
     }

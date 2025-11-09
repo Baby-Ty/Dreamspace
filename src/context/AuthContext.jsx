@@ -216,8 +216,22 @@ export const AuthProvider = ({ children }) => {
 
   const determineUserRoleFromToken = (account, profile, userData) => {
     try {
+      // PRIORITY 1: Check role from Cosmos DB userData (set via People Hub promotion)
+      if (userData?.role) {
+        console.log('User role from Cosmos DB:', userData.role);
+        // Map database roles
+        if (userData.role === 'admin') return 'admin';
+        if (userData.role === 'coach' || userData.role === 'manager') return 'coach';
+        if (userData.role === 'user' || userData.role === 'employee') return 'employee';
+      }
       
-      // Get roles from the ID token claims (Entra App Roles)
+      // PRIORITY 2: Check if user has isCoach flag (legacy support)
+      if (userData?.isCoach === true) {
+        console.log('User has isCoach flag set to true');
+        return 'coach';
+      }
+      
+      // PRIORITY 3: Get roles from the ID token claims (Entra App Roles)
       const idTokenClaims = account?.idTokenClaims;
       const roles = idTokenClaims?.roles || [];
       
@@ -228,12 +242,12 @@ export const AuthProvider = ({ children }) => {
       if (roles.includes('DreamSpace.Admin') || roles.includes('Admin')) {
         return 'admin';
       } else if (roles.includes('DreamSpace.Manager') || roles.includes('Manager')) {
-        return 'manager';
+        return 'coach';
       } else if (roles.includes('DreamSpace.Coach') || roles.includes('Coach')) {
         return 'coach';
       }
       
-      // Fallback to job title-based logic if no app roles are assigned
+      // PRIORITY 4: Fallback to job title-based logic if no app roles are assigned
       if (profile) {
         const jobTitle = profile.jobTitle?.toLowerCase() || '';
         const department = profile.department?.toLowerCase() || '';
@@ -241,7 +255,7 @@ export const AuthProvider = ({ children }) => {
         if (jobTitle.includes('admin') || jobTitle.includes('administrator')) {
           return 'admin';
         } else if (jobTitle.includes('manager') || jobTitle.includes('lead') || department.includes('management')) {
-          return 'manager';
+          return 'coach';
         } else if (jobTitle.includes('coach') || jobTitle.includes('mentor')) {
           return 'coach';
         }
@@ -315,6 +329,57 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Refresh user role from database (useful after promotions)
+  const refreshUserRole = useCallback(async () => {
+    if (!user?.id) {
+      console.warn('No user ID available for refresh');
+      return;
+    }
+    
+    try {
+      console.log('🔄 Refreshing user role from database...');
+      const existingData = await databaseService.loadUserData(user.id);
+      
+      if (existingData && existingData.success && existingData.data) {
+        const existingUser = existingData.data.currentUser || existingData.data;
+        
+        // Update user with fresh data from database
+        const updatedUser = {
+          ...user,
+          role: existingUser.role,
+          isCoach: existingUser.isCoach
+        };
+        
+        // Determine new role
+        const newRole = determineUserRoleFromToken(accounts[0], null, existingUser);
+        
+        console.log('✅ User role refreshed:', { oldRole: userRole, newRole });
+        setUser(updatedUser);
+        setUserRole(newRole);
+        
+        return { success: true, role: newRole };
+      }
+      
+      return { success: false, error: 'Failed to load user data' };
+    } catch (error) {
+      console.error('❌ Error refreshing user role:', error);
+      return { success: false, error: error.message };
+    }
+  }, [user, accounts, userRole]);
+
+  // Refresh user role when window regains focus (useful after promotions)
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (user?.id && accounts.length > 0) {
+        console.log('🔄 Window regained focus, checking for role updates...');
+        await refreshUserRole();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, accounts, refreshUserRole]);
+
   const value = {
     user,
     userRole,
@@ -323,6 +388,7 @@ export const AuthProvider = ({ children }) => {
     loginError,
     login,
     logout,
+    refreshUserRole,
     clearLoginError: () => setLoginError(null),
     getToken,
     graph

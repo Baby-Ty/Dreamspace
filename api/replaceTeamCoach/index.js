@@ -29,16 +29,26 @@ module.exports = async function (context, req) {
 
   const { oldCoachId, newCoachId, teamName, demoteOption = 'unassigned', assignToTeamId } = req.body;
 
-  if (!oldCoachId || !newCoachId) {
+  if (!oldCoachId) {
     context.res = {
       status: 400,
-      body: JSON.stringify({ error: 'Both old coach ID and new coach ID are required' }),
+      body: JSON.stringify({ error: 'Old coach ID is required' }),
       headers
     };
     return;
   }
 
-  if (oldCoachId === newCoachId) {
+  // For disband-team option, newCoachId can be null
+  if (demoteOption !== 'disband-team' && !newCoachId) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ error: 'New coach ID is required unless disbanding team' }),
+      headers
+    };
+    return;
+  }
+
+  if (newCoachId && oldCoachId === newCoachId) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'Old coach and new coach cannot be the same' }),
@@ -61,7 +71,7 @@ module.exports = async function (context, req) {
   }
 
   try {
-    context.log(`Replacing coach ${oldCoachId} with ${newCoachId} for team: ${teamName || 'unnamed'}`);
+    context.log(`${demoteOption === 'disband-team' ? 'Disbanding' : 'Replacing'} team for coach ${oldCoachId}${newCoachId ? ` with ${newCoachId}` : ''}`);
 
     // Find the old coach's team
     const oldTeamQuery = {
@@ -84,6 +94,72 @@ module.exports = async function (context, req) {
     }
 
     const oldTeam = oldTeams[0];
+
+    // SPECIAL CASE: Disband team - move everyone to unassigned
+    if (demoteOption === 'disband-team') {
+      context.log(`Disbanding team: ${oldTeam.teamName} with ${oldTeam.teamMembers.length} members`);
+      
+      // Get old coach user profile
+      const oldCoachQuery = {
+        query: 'SELECT * FROM c WHERE c.userId = @userId',
+        parameters: [{ name: '@userId', value: oldCoachId }]
+      };
+      const { resources: oldCoaches } = await usersContainer.items.query(oldCoachQuery).fetchAll();
+      
+      if (oldCoaches.length > 0) {
+        const oldCoachUser = oldCoaches[0];
+        // Demote coach to user and clear assignments
+        const updatedOldCoach = {
+          ...oldCoachUser,
+          role: 'user',
+          isCoach: false,
+          assignedCoachId: null,
+          assignedTeamName: null,
+          demotedAt: new Date().toISOString(),
+          lastModified: new Date().toISOString()
+        };
+        await usersContainer.item(oldCoachUser.id, oldCoachUser.userId).replace(updatedOldCoach);
+        context.log(`Demoted coach ${oldCoachId} to user`);
+      }
+      
+      // Move all team members to unassigned
+      for (const memberId of oldTeam.teamMembers) {
+        const memberQuery = {
+          query: 'SELECT * FROM c WHERE c.userId = @userId',
+          parameters: [{ name: '@userId', value: memberId }]
+        };
+        const { resources: members } = await usersContainer.items.query(memberQuery).fetchAll();
+        
+        if (members.length > 0) {
+          const member = members[0];
+          const updatedMember = {
+            ...member,
+            assignedCoachId: null,
+            assignedTeamName: null,
+            lastModified: new Date().toISOString()
+          };
+          await usersContainer.item(member.id, member.userId).replace(updatedMember);
+          context.log(`Moved member ${memberId} to unassigned`);
+        }
+      }
+      
+      // Delete the team
+      await teamsContainer.item(oldTeam.id, oldTeam.managerId).delete();
+      context.log(`Deleted team ${oldTeam.id}`);
+      
+      context.res = {
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          message: 'Team disbanded successfully',
+          disbandedTeam: oldTeam.teamName,
+          membersUnassigned: oldTeam.teamMembers.length + 1, // +1 for coach
+          timestamp: new Date().toISOString()
+        }),
+        headers
+      };
+      return;
+    }
 
     // Check if new coach already has a team
     const newTeamQuery = {
