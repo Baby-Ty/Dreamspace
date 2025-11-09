@@ -1,6 +1,101 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
-import { Filter, MapPin, RefreshCw, Search, X } from 'lucide-react';
+import { Filter, MapPin, RefreshCw, Search, X, Globe } from 'lucide-react';
+
+/**
+ * SVG Flag Components - Cross-browser compatible
+ * Simplified, clean flag designs for better clarity at small sizes
+ */
+const FlagIcon = ({ countryCode, className = '' }) => {
+  const flags = {
+    'All': (
+      <Globe className={className} strokeWidth={2} />
+    ),
+    'ZA': ( // South Africa
+      <svg className={className} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="za-clip">
+            <rect width="900" height="600" rx="20"/>
+          </clipPath>
+        </defs>
+        <g clipPath="url(#za-clip)">
+          <rect fill="#002395" width="900" height="600"/>
+          <rect fill="#DE3831" y="200" width="900" height="200"/>
+          <path d="M0,0 L0,600 L450,300 Z" fill="#007A4D"/>
+          <path d="M0,50 L0,550 L400,300 Z" fill="#FFB612"/>
+          <rect fill="#FFFFFF" y="240" width="900" height="120"/>
+        </g>
+      </svg>
+    ),
+    'US': ( // United States
+      <svg className={className} viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="us-clip">
+            <rect width="760" height="400" rx="20"/>
+          </clipPath>
+        </defs>
+        <g clipPath="url(#us-clip)">
+          <rect fill="#B22234" width="760" height="400"/>
+          <rect fill="#fff" y="30" width="760" height="30"/>
+          <rect fill="#fff" y="92" width="760" height="30"/>
+          <rect fill="#fff" y="154" width="760" height="30"/>
+          <rect fill="#fff" y="216" width="760" height="30"/>
+          <rect fill="#fff" y="278" width="760" height="30"/>
+          <rect fill="#fff" y="340" width="760" height="30"/>
+          <rect fill="#3C3B6E" width="304" height="216"/>
+        </g>
+      </svg>
+    ),
+    'MX': ( // Mexico
+      <svg className={className} viewBox="0 0 840 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="mx-clip">
+            <rect width="840" height="480" rx="20"/>
+          </clipPath>
+        </defs>
+        <g clipPath="url(#mx-clip)">
+          <rect fill="#006847" width="280" height="480"/>
+          <rect fill="#FFFFFF" x="280" width="280" height="480"/>
+          <rect fill="#CE1126" x="560" width="280" height="480"/>
+        </g>
+      </svg>
+    ),
+    'BR': ( // Brazil
+      <svg className={className} viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="br-clip">
+            <rect width="720" height="480" rx="20"/>
+          </clipPath>
+        </defs>
+        <g clipPath="url(#br-clip)">
+          <rect fill="#009b3a" width="720" height="480"/>
+          <path fill="#fedf00" d="M360,60 L620,240 L360,420 L100,240 Z"/>
+          <circle fill="#002776" cx="360" cy="240" r="80"/>
+        </g>
+      </svg>
+    ),
+    'PL': ( // Poland
+      <svg className={className} viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="pl-clip">
+            <rect width="640" height="400" rx="20"/>
+          </clipPath>
+        </defs>
+        <g clipPath="url(#pl-clip)">
+          <rect fill="#FFFFFF" width="640" height="200"/>
+          <rect fill="#DC143C" y="200" width="640" height="200"/>
+        </g>
+      </svg>
+    )
+  };
+
+  return flags[countryCode] || <Globe className={className} strokeWidth={2} />;
+};
+
+FlagIcon.propTypes = {
+  countryCode: PropTypes.string.isRequired,
+  className: PropTypes.string
+};
 
 /**
  * Pure presentational component for Dream Connect filters
@@ -37,14 +132,14 @@ function ConnectionFilters({ filters, onChange, locations, onRefresh }) {
     onChange('search', '');
   };
 
-  // Country/Region flags mapping
+  // Country/Region flags mapping with SVG codes
   const regionFlags = [
-    { code: 'All', flag: '🌍', label: 'All Regions' },
-    { code: 'South Africa', flag: '🇿🇦', label: 'South Africa' },
-    { code: 'United States', flag: '🇺🇸', label: 'United States' },
-    { code: 'Mexico', flag: '🇲🇽', label: 'Mexico' },
-    { code: 'Brazil', flag: '🇧🇷', label: 'Brazil' },
-    { code: 'Poland', flag: '🇵🇱', label: 'Poland' }
+    { code: 'All', countryCode: 'All', label: 'All Regions' },
+    { code: 'South Africa', countryCode: 'ZA', label: 'South Africa' },
+    { code: 'United States', countryCode: 'US', label: 'United States' },
+    { code: 'Mexico', countryCode: 'MX', label: 'Mexico' },
+    { code: 'Brazil', countryCode: 'BR', label: 'Brazil' },
+    { code: 'Poland', countryCode: 'PL', label: 'Poland' }
   ];
 
   return (
@@ -69,7 +164,7 @@ function ConnectionFilters({ filters, onChange, locations, onRefresh }) {
                 Region
               </span>
               <div 
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-2"
                 role="group"
                 aria-label="Region filters"
               >
@@ -77,16 +172,29 @@ function ConnectionFilters({ filters, onChange, locations, onRefresh }) {
                   <button
                     key={region.code}
                     onClick={() => handleLocationChange({ target: { value: region.code } })}
-                    className={`text-2xl leading-none transition-all duration-200 hover:scale-110 ${
-                      filters.location === region.code
-                        ? 'scale-110 drop-shadow-md'
-                        : 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0'
-                    }`}
+                    className={`
+                      relative w-9 h-9 flex items-center justify-center rounded-lg 
+                      transition-all duration-200 
+                      border-2 shadow-sm
+                      ${filters.location === region.code
+                        ? 'border-netsurit-red bg-gradient-to-br from-netsurit-red/5 to-netsurit-coral/5 scale-105 shadow-md'
+                        : 'border-professional-gray-200 bg-white hover:border-netsurit-coral hover:bg-gradient-to-br hover:from-professional-gray-50 hover:to-white hover:scale-105 hover:shadow-md'
+                      }
+                    `}
                     title={region.label}
                     aria-label={`Filter by ${region.label}`}
                     aria-pressed={filters.location === region.code}
                   >
-                    {region.flag}
+                    <div className={`transition-all duration-200 ${
+                      filters.location === region.code
+                        ? 'opacity-100'
+                        : 'opacity-70 group-hover:opacity-100'
+                    }`}>
+                      <FlagIcon countryCode={region.countryCode} className="w-6 h-6" />
+                    </div>
+                    {filters.location === region.code && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-netsurit-red rounded-full" />
+                    )}
                   </button>
                 ))}
               </div>
