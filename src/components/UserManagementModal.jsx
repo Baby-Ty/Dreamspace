@@ -1,3 +1,5 @@
+// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
+
 import { useState } from 'react';
 import { 
   X, 
@@ -19,6 +21,9 @@ import {
 } from 'lucide-react';
 import DreamTrackerModal from './DreamTrackerModal';
 import CareerTrackerModal from './CareerTrackerModal';
+import peopleService from '../services/peopleService';
+import { showToast } from '../utils/toast';
+import { logger } from '../utils/logger';
 
 const UserManagementModal = ({ user, onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -192,26 +197,21 @@ const OverviewTab = ({ user }) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/updateUserProfile/${user.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editedData)
-      });
+      const result = await peopleService.updateUserProfile(user.id, editedData);
 
-      if (response.ok) {
-        console.log('✅ User profile updated successfully');
+      if (result.success) {
+        logger.info('user-management-modal', 'User profile updated successfully', { userId: user.id });
+        showToast('Profile updated successfully', 'success');
         // Update local user object
         Object.assign(user, editedData);
         setIsEditing(false);
       } else {
-        console.error('❌ Failed to update user profile');
-        alert('Failed to update profile. Please try again.');
+        logger.error('user-management-modal', 'Failed to update user profile', { error: result.error, userId: user.id });
+        showToast('Failed to update profile. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('❌ Error updating user profile:', error);
-      alert('Error updating profile. Please try again.');
+      logger.error('user-management-modal', 'Error updating user profile', { error: error.message, userId: user.id });
+      showToast('Error updating profile. Please try again.', 'error');
     } finally {
       setIsSaving(false);
     }

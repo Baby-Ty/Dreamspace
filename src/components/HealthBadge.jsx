@@ -1,16 +1,13 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-// DoD: validated I/O with Zod; consistent error shape; unit tested; CI green; health check passing.
 
 /**
  * HealthBadge - Shows backend API health status
- * Polls /api/health endpoint and displays status badge
+ * Displays status badge with optional detailed view
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { createLogger } from '../utils/logger.js';
-
-const log = createLogger('health-badge');
+import { useHealthMonitoring } from '../hooks/useHealthMonitoring.js';
 
 const HealthStatus = {
   HEALTHY: 'healthy',
@@ -24,62 +21,10 @@ function HealthBadge({
   showDetails = false,
   className = ''
 }) {
-  const [status, setStatus] = useState(HealthStatus.UNKNOWN);
-  const [healthData, setHealthData] = useState(null);
-  const [lastChecked, setLastChecked] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-    let intervalId = null;
-
-    const checkHealth = async () => {
-      try {
-        log.debug('Checking backend health');
-        const response = await fetch('/api/health', {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' },
-          cache: 'no-cache'
-        });
-
-        if (!isMounted) return;
-
-        const data = await response.json();
-        
-        setHealthData(data);
-        setStatus(data.status || HealthStatus.UNKNOWN);
-        setLastChecked(new Date());
-
-        log.info('Health check completed', { 
-          status: data.status,
-          responseTime: data.checks?.api?.responseTime 
-        });
-
-      } catch (error) {
-        if (!isMounted) return;
-
-        log.warn('Health check failed', { error: error.message });
-        setStatus(HealthStatus.UNKNOWN);
-        setHealthData(null);
-        setLastChecked(new Date());
-      }
-    };
-
-    // Initial check
-    checkHealth();
-
-    // Set up polling
-    if (pollInterval > 0) {
-      intervalId = setInterval(checkHealth, pollInterval);
-    }
-
-    return () => {
-      isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [pollInterval]);
+  
+  // Use health monitoring hook
+  const { status, healthData, lastChecked } = useHealthMonitoring(pollInterval);
 
   const getStatusColor = () => {
     switch (status) {

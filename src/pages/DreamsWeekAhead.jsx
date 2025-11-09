@@ -80,9 +80,9 @@ const DreamsWeekAhead = () => {
     }
     
     const weekIso = getIsoWeek(weekObj.start);
-    const year = weekObj.start.getFullYear();
+    const { year } = parseIsoWeek(weekIso); // Use ISO week year, not calendar year
     
-    console.log(`📅 Loading goals for week ${weekIso}, userId: ${currentUser.id}`);
+    console.log(`📅 Loading goals for week ${weekIso} (ISO year: ${year}), userId: ${currentUser.id}`);
     setIsLoadingWeek(true);
     setLoadError(null);
     
@@ -621,7 +621,7 @@ const DreamsWeekAhead = () => {
     if (!currentUser?.id || !activeWeek) return;
     
     const activeIsoWeek = getIsoWeek(activeWeek.start);
-    const year = activeWeek.start.getFullYear();
+    const { year } = parseIsoWeek(activeIsoWeek); // Use ISO week year, not calendar year
     
     // Find the goal - could be a template (no weekId) or an instance (has weekId)
     let goal = weeklyGoals.find(g => g.id === goalId && g.weekId === activeIsoWeek);

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
-import { getCurrentIsoWeek } from '../utils/dateUtils';
+import { getCurrentIsoWeek, parseIsoWeek } from '../utils/dateUtils';
 import { isTemplateActiveForWeek } from '../utils/templateValidation';
 import weekService from '../services/weekService';
 
@@ -85,11 +85,11 @@ export function useDashboardData() {
     
     setIsLoadingWeekGoals(true);
     const currentWeekIso = getCurrentIsoWeek();
-    const currentYear = new Date().getFullYear();
+    const { year: isoYear } = parseIsoWeek(currentWeekIso); // Use ISO week year, not calendar year
     
     try {
-      console.log('📅 Dashboard: Loading current week goals for', currentWeekIso);
-      const weekDocResult = await weekService.getWeekGoals(currentUser.id, currentYear);
+      console.log('📅 Dashboard: Loading current week goals for', currentWeekIso, '(ISO year:', isoYear, ')');
+      const weekDocResult = await weekService.getWeekGoals(currentUser.id, isoYear);
       
       if (weekDocResult.success && weekDocResult.data?.weeks?.[currentWeekIso]) {
         const goals = weekDocResult.data.weeks[currentWeekIso].goals || [];
@@ -128,12 +128,12 @@ export function useDashboardData() {
     
     // 2. PERSIST TO SERVER
     const currentWeekIso = getCurrentIsoWeek();
-    const currentYear = new Date().getFullYear();
+    const { year: isoYear } = parseIsoWeek(currentWeekIso); // Use ISO week year
     
     try {
       const result = await weekService.saveWeekGoals(
         currentUser.id, 
-        currentYear, 
+        isoYear, 
         currentWeekIso, 
         optimisticGoals
       );

@@ -19,6 +19,8 @@ import TeamMetrics from './TeamMetrics';
 import { usePeopleData } from '../../hooks/usePeopleData';
 import peopleService from '../../services/peopleService';
 import HelpTooltip from '../../components/HelpTooltip';
+import { showToast } from '../../utils/toast';
+import { logger } from '../../utils/logger';
 
 // Lazy-load heavy modals with named chunks
 const CoachDetailModal = lazy(() => import(/* webpackChunkName: "coach-detail-modal" */ '../../components/coach/CoachDetailModal'));
@@ -105,29 +107,24 @@ export default function PeopleDashboardLayout() {
   const handleSaveUser = async (userData) => {
     try {
       setActionLoading(true);
-      const response = await fetch(`/api/updateUserProfile/${selectedUser.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...userData,
-          region: userData.office
-        })
+      const result = await peopleService.updateUserProfile(selectedUser.id, {
+        ...userData,
+        region: userData.office
       });
 
-      if (response.ok) {
-        console.log('✅ User profile updated successfully');
+      if (result.success) {
+        logger.info('people-dashboard', 'User profile updated successfully', { userId: selectedUser.id });
+        showToast('Profile updated successfully', 'success');
         await refreshData();
         setShowEditModal(false);
         setSelectedUser(null);
       } else {
-        console.error('❌ Failed to update user profile');
-        alert('Failed to update profile. Please try again.');
+        logger.error('people-dashboard', 'Failed to update user profile', { error: result.error, userId: selectedUser.id });
+        showToast('Failed to update profile. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('❌ Error updating user profile:', error);
-      alert('Error updating profile. Please try again.');
+      logger.error('people-dashboard', 'Error updating user profile', { error: error.message, userId: selectedUser.id });
+      showToast('Error updating profile. Please try again.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -140,17 +137,18 @@ export default function PeopleDashboardLayout() {
       const result = await peopleService.promoteUserToCoach(selectedUser.id, teamName);
       
       if (result.success) {
-        console.log(`✅ Successfully promoted ${selectedUser.name} to coach`);
+        logger.info('people-dashboard', 'Successfully promoted user to coach', { userId: selectedUser.id, name: selectedUser.name });
+        showToast(`Successfully promoted ${selectedUser.name} to coach`, 'success');
         await refreshData();
         setShowPromoteModal(false);
         setSelectedUser(null);
       } else {
-        console.error('❌ Failed to promote user:', result.error);
-        alert('Failed to promote user. Please try again.');
+        logger.error('people-dashboard', 'Failed to promote user', { error: result.error, userId: selectedUser.id });
+        showToast('Failed to promote user. Please try again.', 'error');
       }
     } catch (err) {
-      console.error('❌ Error promoting user:', err);
-      alert('Error promoting user. Please try again.');
+      logger.error('people-dashboard', 'Error promoting user', { error: err.message, userId: selectedUser.id });
+      showToast('Error promoting user. Please try again.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -163,17 +161,18 @@ export default function PeopleDashboardLayout() {
       const result = await peopleService.assignUserToCoach(selectedUser.id, coachId);
       
       if (result.success) {
-        console.log(`✅ Successfully assigned ${selectedUser.name} to coach`);
+        logger.info('people-dashboard', 'Successfully assigned user to coach', { userId: selectedUser.id, name: selectedUser.name, coachId });
+        showToast(`Successfully assigned ${selectedUser.name} to coach`, 'success');
         await refreshData();
         setShowAssignModal(false);
         setSelectedUser(null);
       } else {
-        console.error('❌ Failed to assign user:', result.error);
-        alert('Failed to assign user. Please try again.');
+        logger.error('people-dashboard', 'Failed to assign user', { error: result.error, userId: selectedUser.id });
+        showToast('Failed to assign user. Please try again.', 'error');
       }
     } catch (err) {
-      console.error('❌ Error assigning user:', err);
-      alert('Error assigning user. Please try again.');
+      logger.error('people-dashboard', 'Error assigning user', { error: err.message, userId: selectedUser.id });
+      showToast('Error assigning user. Please try again.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -186,15 +185,18 @@ export default function PeopleDashboardLayout() {
       const result = await peopleService.unassignUserFromTeam(user.id, coachId);
       
       if (result.success) {
-        console.log(`✅ Successfully unassigned ${user.name}`);
+        logger.info('people-dashboard', 'Successfully unassigned user', { userId: user.id, name: user.name, coachId });
+        showToast(`Successfully unassigned ${user.name}`, 'success');
         await refreshData();
         setShowUnassignModal(false);
         setSelectedTeamMember(null);
       } else {
-        console.error('❌ Failed to unassign user:', result.error);
+        logger.error('people-dashboard', 'Failed to unassign user', { error: result.error, userId: user.id });
+        showToast('Failed to unassign user. Please try again.', 'error');
       }
     } catch (err) {
-      console.error('❌ Error unassigning user:', err);
+      logger.error('people-dashboard', 'Error unassigning user', { error: err.message, userId: user.id });
+      showToast('Error unassigning user. Please try again.', 'error');
     } finally {
       setActionLoading(false);
     }

@@ -1,62 +1,23 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-// DoD: validated I/O with Zod; consistent error shape; unit tested; CI green; health check passing.
 
 /**
  * HealthCheck Page - Full system status dashboard
  * Shows detailed health information about all backend services
  */
 
-import { useState, useEffect } from 'react';
-import { createLogger } from '../utils/logger.js';
-
-const log = createLogger('health-check');
+import { useState } from 'react';
+import { useHealthMonitoring } from '../hooks/useHealthMonitoring.js';
 
 function HealthCheck() {
-  const [healthData, setHealthData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-
-  const fetchHealth = async () => {
-    try {
-      log.info('Fetching health status');
-      const response = await fetch('/api/health', {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-cache'
-      });
-
-      const data = await response.json();
-      
-      setHealthData(data);
-      setLastUpdated(new Date());
-      setError(null);
-      
-      log.info('Health status fetched', { status: data.status });
-    } catch (err) {
-      log.error('Failed to fetch health status', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHealth();
-  }, []);
-
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const intervalId = setInterval(fetchHealth, 30000); // 30 seconds
-
-    return () => clearInterval(intervalId);
-  }, [autoRefresh]);
+  
+  // Use health monitoring hook with conditional polling
+  const { healthData, loading, error, lastChecked, refresh } = useHealthMonitoring(
+    autoRefresh ? 30000 : 0 // 30 seconds if auto-refresh enabled, otherwise no polling
+  );
 
   const handleRefresh = () => {
-    setLoading(true);
-    fetchHealth();
+    refresh();
   };
 
   const getStatusColor = (status) => {
@@ -167,7 +128,7 @@ function HealthCheck() {
             <div className="text-right text-sm opacity-75">
               <div>Last Updated</div>
               <div className="font-medium">
-                {lastUpdated?.toLocaleTimeString()}
+                {lastChecked?.toLocaleTimeString()}
               </div>
             </div>
           </div>
