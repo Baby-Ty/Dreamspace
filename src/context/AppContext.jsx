@@ -867,37 +867,51 @@ export const AppProvider = ({ children, initialUser }) => {
           return;
         }
         
-        // Find all instances of this template and delete them
-        const instances = state.weeklyGoals.filter(g => g.templateId === goalId);
-        console.log(`🗑️ Found ${instances.length} instances to delete`);
+        // ✅ FIX: Load ALL instances from database, not just those in state
+        console.log(`🔍 Scanning database for all instances of template ${goalId}`);
         
-        // Group instances by week for efficient deletion
-        const instancesByWeek = {};
-        instances.forEach(instance => {
-          if (instance.weekId) {
-            if (!instancesByWeek[instance.weekId]) {
-              instancesByWeek[instance.weekId] = [];
-            }
-            instancesByWeek[instance.weekId].push(instance.id);
+        const currentYear = new Date().getFullYear();
+        const yearsToCheck = [currentYear - 1, currentYear, currentYear + 1]; // Check 3 years to be thorough
+        let totalInstancesDeleted = 0;
+        
+        for (const year of yearsToCheck) {
+          const weekDocResult = await weekService.getWeekGoals(userId, year);
+          if (!weekDocResult.success || !weekDocResult.data?.weeks) {
+            console.log(`📊 No week document found for year ${year}, skipping`);
+            continue;
           }
-        });
-        
-        // Delete instances from each week
-        for (const [weekId, instanceIds] of Object.entries(instancesByWeek)) {
-          const year = parseInt(weekId.split('-')[0]);
-          const weekGoals = state.weeklyGoals.filter(g => 
-            g.weekId === weekId && g.type !== 'weekly_goal_template' && !instanceIds.includes(g.id)
-          );
           
-          console.log(`🗑️ Removing ${instanceIds.length} instances from ${weekId}`);
-          await weekService.saveWeekGoals(userId, year, weekId, weekGoals);
+          const weeks = weekDocResult.data.weeks;
+          console.log(`📅 Checking ${Object.keys(weeks).length} weeks in year ${year}`);
+          
+          // Process each week
+          for (const [weekId, weekData] of Object.entries(weeks)) {
+            const goals = weekData.goals || [];
+            const filteredGoals = goals.filter(g => g.templateId !== goalId);
+            
+            // Only save if we actually removed instances
+            if (filteredGoals.length < goals.length) {
+              const removedCount = goals.length - filteredGoals.length;
+              totalInstancesDeleted += removedCount;
+              console.log(`🗑️ Removing ${removedCount} instance(s) from ${weekId}`);
+              
+              const saveResult = await weekService.saveWeekGoals(userId, year, weekId, filteredGoals);
+              if (!saveResult.success) {
+                console.error(`Failed to save updated goals for ${weekId}:`, saveResult.error);
+              }
+              
+              // Update local state - dispatch DELETE for each removed instance
+              goals.filter(g => g.templateId === goalId).forEach(instance => {
+                dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: instance.id });
+              });
+            }
+          }
         }
         
-        // Dispatch delete for template and all instances
+        console.log(`✅ Deleted template and ${totalInstancesDeleted} instances from database`);
+        
+        // Dispatch delete for template (instances already dispatched in loop above)
         dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goalId });
-        instances.forEach(instance => {
-          dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: instance.id });
-        });
         
       } else if (goal.weekId) {
         // Instance - save to weeks container without this goal
@@ -946,12 +960,16 @@ export const AppProvider = ({ children, initialUser }) => {
             id: `${goal.id}_${currentWeekIso}`,
             type: 'weekly_goal',
             templateId: goal.id,
+            goalType: goal.goalType || 'consistency',
             title: goal.title,
             description: goal.description,
             dreamId: goal.dreamId,
             dreamTitle: goal.dreamTitle,
             dreamCategory: goal.dreamCategory,
             goalId: goal.goalId,
+            recurrence: goal.recurrence || 'weekly', // ✅ FIX: Copy recurrence from template
+            targetWeeks: goal.targetWeeks,
+            targetMonths: goal.targetMonths,
             weekId: currentWeekIso,
             completed: true, // Mark as complete
             completedAt: new Date().toISOString(),

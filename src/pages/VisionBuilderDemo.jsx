@@ -1257,8 +1257,32 @@ const VisionBuilderDemo = () => {
                 
                 console.log('✅ All dreams saved successfully to Cosmos DB with templates!');
                 
+                // ✅ FIX: Bulk instantiate weekly templates to create instances
+                if (templates.length > 0) {
+                  console.log('🚀 Bulk instantiating weekly templates:', templates.length);
+                  const weekService = (await import('../services/weekService')).default;
+                  
+                  // Map templates to format expected by bulkInstantiateTemplates API
+                  const templatesForAPI = templates.map(t => ({
+                    ...t,
+                    durationType: t.targetWeeks ? 'weeks' : 'unlimited',
+                    durationWeeks: t.targetWeeks || 52
+                  }));
+                  
+                  const instantiateResult = await weekService.bulkInstantiateTemplates(
+                    userId,
+                    templatesForAPI
+                  );
+                  
+                  if (instantiateResult.success) {
+                    console.log('✅ Weekly templates instantiated successfully:', instantiateResult.data);
+                  } else {
+                    console.error('❌ Failed to bulk instantiate templates:', instantiateResult.error);
+                  }
+                }
+                
                 // Create weekly goal INSTANCES for monthly and deadline goals
-                // Note: Weekly templates are already saved above via saveDreams()
+                // Note: Weekly templates are now instantiated above
                 for (const dream of dreamsForApp) {
                   if (!dream.goals || dream.goals.length === 0) {
                     continue;
@@ -1267,9 +1291,9 @@ const VisionBuilderDemo = () => {
                   for (const goal of dream.goals) {
                     const currentWeekIso = getCurrentIsoWeek();
                     
-                    // Skip weekly consistency goals - already saved as templates
+                    // Skip weekly consistency goals - already instantiated above
                     if (goal.type === 'consistency' && goal.recurrence === 'weekly') {
-                      console.log('⏭️  Skipping weekly template (already saved):', goal.id);
+                      console.log('⏭️  Skipping weekly template (already instantiated):', goal.id);
                       continue;
                       
                     } else if (goal.type === 'consistency' && goal.recurrence === 'monthly') {
