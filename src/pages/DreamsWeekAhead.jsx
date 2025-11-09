@@ -50,6 +50,7 @@ const DreamsWeekAhead = () => {
 
   // Month and week selector state
   const [activeMonth, setActiveMonth] = useState(new Date().getMonth());
+  const [activeYear, setActiveYear] = useState(new Date().getFullYear());
   const [activeWeek, setActiveWeek] = useState(null);
 
   // Motivational quotes
@@ -280,6 +281,12 @@ const DreamsWeekAhead = () => {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+
+  // Year utilities - show current year ±2 years
+  const getAvailableYears = () => {
+    const currentYear = new Date().getFullYear();
+    return [currentYear - 1, currentYear, currentYear + 1, currentYear + 2];
+  };
 
   // Helper function to format dates consistently
   const formatDate = (date) => {
@@ -1017,7 +1024,7 @@ const DreamsWeekAhead = () => {
                 <div>
                   <span className="text-sm text-professional-gray-600">Planning for: </span>
                   <span className="font-semibold text-professional-gray-900">
-                    Week {activeWeek.weekNumber} ({activeWeek.range}) - {getMonthNames()[activeMonth]} {new Date().getFullYear()}
+                    Week {activeWeek.weekNumber} ({activeWeek.range}) - {getMonthNames()[activeMonth]} {activeYear}
                   </span>
                 </div>
               </div>
@@ -1027,6 +1034,39 @@ const DreamsWeekAhead = () => {
               >
                 Change Week
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Year Selector - Hidden when week is selected */}
+        {!activeWeek && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-professional-gray-900 text-center">Select Year</h2>
+            <div className="flex justify-center gap-3">
+              {getAvailableYears().map((year) => (
+                <button
+                  key={year}
+                  onClick={() => {
+                    setActiveYear(year);
+                    setActiveWeek(null); // Reset week selection when year changes
+                  }}
+                  className={`
+                    relative px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md font-semibold text-base
+                    ${activeYear === year
+                      ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-lg transform scale-105' 
+                      : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 border-2 border-professional-gray-200'
+                    }
+                    ${new Date().getFullYear() === year && activeYear !== year ? 'border-netsurit-red' : ''}
+                  `}
+                >
+                  {year}
+                  {new Date().getFullYear() === year && (
+                    <span className={`text-xs block mt-1 ${activeYear === year ? 'text-netsurit-light-coral' : 'text-netsurit-red'}`}>
+                      Current
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -1042,7 +1082,7 @@ const DreamsWeekAhead = () => {
                   month={month}
                   index={index}
                   isActive={activeMonth === index}
-                  isCurrent={new Date().getMonth() === index}
+                  isCurrent={new Date().getMonth() === index && activeYear === new Date().getFullYear()}
                   onClick={() => {
                     setActiveMonth(index);
                     setActiveWeek(null); // Reset week selection when month changes
@@ -1057,10 +1097,10 @@ const DreamsWeekAhead = () => {
         {activeMonth !== null && !activeWeek && (
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-professional-gray-900 text-center">
-              Select Week - {getMonthNames()[activeMonth]} {new Date().getFullYear()}
+              Select Week - {getMonthNames()[activeMonth]} {activeYear}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {getIsoWeeksForMonth(new Date().getFullYear(), activeMonth).map((week) => (
+              {getIsoWeeksForMonth(activeYear, activeMonth).map((week) => (
                 <WeekCard
                   key={week.id}
                   week={week}
