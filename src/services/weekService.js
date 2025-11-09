@@ -261,6 +261,47 @@ class WeekService {
   }
 
   /**
+   * Patch missing recurrence properties on week goal instances
+   * Copies recurrence property from templates to instances that are missing it
+   * @param {string} userId - User ID
+   * @param {number} year - Year (e.g., 2025)
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async patchWeekGoalRecurrence(userId, year) {
+    try {
+      console.log(`🔧 Patching missing recurrence properties for ${userId}, year ${year}`);
+
+      const response = await fetch(`${this.apiBase}/patchWeekGoalRecurrence`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          year
+        })
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log(`✅ Patch complete: ${result.patchedCount} instances updated`);
+        
+        // Invalidate cache after successful patch
+        requestCache.invalidate(`weekGoals:${userId}:${year}`);
+        
+        return ok(result);
+      } else {
+        console.error('❌ Error patching week goals:', result);
+        return fail(ErrorCodes.SAVE_ERROR, result.error || 'Failed to patch week goals');
+      }
+    } catch (error) {
+      console.error('❌ Error patching week goals:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to patch week goals');
+    }
+  }
+
+  /**
    * Load or create goals for a specific week
    * Fetches existing goals from weeks container, or creates from templates if not exists
    * @param {string} userId - User ID

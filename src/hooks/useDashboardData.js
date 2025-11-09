@@ -301,12 +301,16 @@ export function useDashboardData() {
           id: `${template.id}_${currentWeekIso}`,
           type: 'weekly_goal',
           templateId: template.id,
+          goalType: template.goalType || 'consistency',
           title: template.title,
           description: template.description,
           dreamId: template.dreamId,
           dreamTitle: template.dreamTitle,
           dreamCategory: template.dreamCategory,
           milestoneId: template.milestoneId,
+          recurrence: template.recurrence || 'weekly', // ✅ FIX: Copy recurrence from template
+          targetWeeks: template.targetWeeks,
+          targetMonths: template.targetMonths,
           weekId: currentWeekIso,
           completed: false,
           createdAt: new Date().toISOString()
