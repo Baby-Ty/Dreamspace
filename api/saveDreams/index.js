@@ -135,8 +135,9 @@ module.exports = async function (context, req) {
         goalId: template.goalId, // Changed from milestoneId
         recurrence: template.recurrence || 'weekly',
         active: template.active !== false,
-        durationType: template.durationType || 'unlimited',
-        durationWeeks: template.durationWeeks,
+        durationType: template.durationType || (template.durationWeeks || template.targetWeeks ? 'weeks' : 'unlimited'),
+        durationWeeks: template.durationWeeks || template.targetWeeks,
+        targetWeeks: template.targetWeeks || template.durationWeeks, // Preserve for backward compatibility
         startDate: template.startDate,
         createdAt: template.createdAt || new Date().toISOString()
       })),

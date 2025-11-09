@@ -65,15 +65,15 @@ export const AuthProvider = ({ children }) => {
       if (profileResult.success) {
         const profileData = profileResult.data;
         
-        // Try to upload user photo to blob storage
+        // Try to get user photo from Microsoft Graph
         let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
         const userId = profileData.userPrincipalName || profileData.mail || account.username;
         
-        console.log('📸 Attempting to upload profile picture to blob storage...');
-        const uploadResult = await graph.uploadMyPhotoToStorage(userId);
-        if (uploadResult.success && uploadResult.data) {
-          avatarUrl = uploadResult.data;
-          console.log('✅ Profile picture uploaded to blob storage:', avatarUrl);
+        console.log('📸 Attempting to fetch profile picture from Microsoft Graph...');
+        const photoResult = await graph.getMyPhoto();
+        if (photoResult.success && photoResult.data) {
+          avatarUrl = photoResult.data;
+          console.log('✅ Profile picture fetched from Microsoft Graph:', avatarUrl);
         } else {
           console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
         }

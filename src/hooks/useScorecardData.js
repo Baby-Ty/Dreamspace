@@ -5,12 +5,39 @@ import { Trophy, Target, TrendingUp, Star, Medal } from 'lucide-react';
 /**
  * Custom hook for scorecard calculations and data transformations
  * Centralizes all business logic for the scorecard page
+ * Now supports all-time scoring across multiple years
  */
-export function useScorecardData(currentUser, scoringHistory, scoringRules) {
-  // Calculate total score
-  const totalScore = useMemo(() => {
+export function useScorecardData(currentUser, scoringHistory, scoringRules, allYearsScoring = []) {
+  // Calculate all-time total score (sum across all years)
+  const allTimeScore = useMemo(() => {
+    if (allYearsScoring && allYearsScoring.length > 0) {
+      return allYearsScoring.reduce((sum, yearDoc) => sum + (yearDoc.totalScore || 0), 0);
+    }
+    // Fallback to scoringHistory if allYearsScoring not available
     return scoringHistory.reduce((sum, item) => sum + item.points, 0);
-  }, [scoringHistory]);
+  }, [allYearsScoring, scoringHistory]);
+  
+  // Keep totalScore for backward compatibility (alias for allTimeScore)
+  const totalScore = allTimeScore;
+  
+  // Calculate current year score
+  const currentYearScore = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const currentYearDoc = allYearsScoring.find(doc => doc.year === currentYear);
+    return currentYearDoc?.totalScore || 0;
+  }, [allYearsScoring]);
+  
+  // Create year-by-year breakdown
+  const yearlyBreakdown = useMemo(() => {
+    if (!allYearsScoring || allYearsScoring.length === 0) {
+      return [];
+    }
+    return allYearsScoring.map(doc => ({
+      year: doc.year,
+      totalScore: doc.totalScore || 0,
+      entries: (doc.entries || []).length
+    }));
+  }, [allYearsScoring]);
 
   // Calculate dream progress statistics
   const dreamProgressStats = useMemo(() => {
@@ -95,7 +122,10 @@ export function useScorecardData(currentUser, scoringHistory, scoringRules) {
   }, [groupedHistory]);
 
   return {
-    totalScore,
+    totalScore, // For backward compatibility
+    allTimeScore, // All-time total across all years
+    currentYearScore, // Current year only
+    yearlyBreakdown, // Array of { year, totalScore, entries }
     dreamProgressStats,
     categoryStats,
     currentLevel,

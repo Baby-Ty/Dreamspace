@@ -5,14 +5,14 @@ import {
   BookOpen, 
   Users, 
   Trophy, 
-  Settings, 
   Menu, 
   X,
   LogOut,
   Star,
   Calendar,
   Users2,
-  UserCog
+  UserCog,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';

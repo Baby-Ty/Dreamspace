@@ -256,6 +256,26 @@ export function calculateWeekInstancesForDuration(template) {
   return getNextNWeeks(startWeek, 4);
 }
 
+/**
+ * Group week IDs by year
+ * @param {string[]} weekIds - Array of ISO week strings
+ * @returns {Record<number, string[]>} Week IDs grouped by year
+ * @example
+ * groupWeekIdsByYear(["2025-W51", "2025-W52", "2026-W01", "2026-W02"])
+ * // Returns: { 2025: ["2025-W51", "2025-W52"], 2026: ["2026-W01", "2026-W02"] }
+ */
+export function groupWeekIdsByYear(weekIds) {
+  const grouped = {};
+  weekIds.forEach(weekId => {
+    const year = parseInt(weekId.split('-')[0]);
+    if (!grouped[year]) {
+      grouped[year] = [];
+    }
+    grouped[year].push(weekId);
+  });
+  return grouped;
+}
+
 export const dateUtils = {
   getIsoWeek,
   getCurrentIsoWeek,
@@ -266,6 +286,7 @@ export const dateUtils = {
   getWeekRange,
   getNextNWeeks,
   getAllWeeksForYear,
-  calculateWeekInstancesForDuration
+  calculateWeekInstancesForDuration,
+  groupWeekIdsByYear
 };
 

@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { useScorecardData } from '../../hooks/useScorecardData';
 import SummaryView from './SummaryView';
 import HistoryView from './HistoryView';
+import YearBreakdownView from './YearBreakdownView';
 import HelpTooltip from '../../components/HelpTooltip';
 
 /**
@@ -12,19 +13,22 @@ import HelpTooltip from '../../components/HelpTooltip';
  * Orchestrates view state and renders header with score summary
  */
 function ScorecardLayout() {
-  const { currentUser, scoringRules, scoringHistory } = useApp();
+  const { currentUser, scoringRules, scoringHistory, allYearsScoring } = useApp();
   const [viewMode, setViewMode] = useState('summary'); // 'summary' or 'detailed'
 
-  // Get all calculated data from hook
+  // Get all calculated data from hook (now with all-time scoring support)
   const {
     totalScore,
+    allTimeScore,
+    currentYearScore,
+    yearlyBreakdown,
     categoryStats,
     currentLevel,
     nextLevel,
     progressToNext,
     groupedHistory,
     sortedDates
-  } = useScorecardData(currentUser, scoringHistory, scoringRules);
+  } = useScorecardData(currentUser, scoringHistory, scoringRules, allYearsScoring);
 
   // Early return for loading state
   if (!currentUser) {
@@ -58,13 +62,22 @@ function ScorecardLayout() {
           
           {/* Stats Cards */}
           <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
-            {/* Total Score Card */}
+            {/* All-Time Score Card */}
             <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
               <div className="flex items-center justify-center mb-2">
                 <Trophy className="h-6 w-6 text-netsurit-orange" />
               </div>
-              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">Total Points</p>
-              <p className="text-xl font-bold text-professional-gray-900" data-testid="total-score">{totalScore}</p>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">All-Time Points</p>
+              <p className="text-xl font-bold text-professional-gray-900" data-testid="all-time-score">{allTimeScore}</p>
+            </div>
+            
+            {/* Current Year Score Card */}
+            <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center min-w-[100px]">
+              <div className="flex items-center justify-center mb-2">
+                <Calendar className="h-6 w-6 text-netsurit-coral" />
+              </div>
+              <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">{new Date().getFullYear()} Points</p>
+              <p className="text-xl font-bold text-professional-gray-900" data-testid="current-year-score">{currentYearScore}</p>
             </div>
 
             {/* Current Level Card */}
@@ -138,19 +151,39 @@ function ScorecardLayout() {
           <Calendar className="w-4 h-4 inline mr-2" aria-hidden="true" />
           History
         </button>
+        <button
+          onClick={() => setViewMode('breakdown')}
+          role="tab"
+          aria-selected={viewMode === 'breakdown'}
+          aria-controls="scorecard-content"
+          data-testid="breakdown-tab"
+          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+            viewMode === 'breakdown'
+              ? 'bg-netsurit-red text-white shadow-lg'
+              : 'bg-white text-professional-gray-700 hover:bg-professional-gray-50 border border-professional-gray-200'
+          }`}
+        >
+          <Trophy className="w-4 h-4 inline mr-2" aria-hidden="true" />
+          Years
+        </button>
       </div>
 
       {/* Tab Content */}
       <div 
         id="scorecard-content"
         role="tabpanel"
-        aria-labelledby={viewMode === 'summary' ? 'summary-tab' : 'history-tab'}
+        aria-labelledby={viewMode === 'summary' ? 'summary-tab' : viewMode === 'breakdown' ? 'breakdown-tab' : 'history-tab'}
       >
         {viewMode === 'summary' ? (
           <SummaryView 
             categoryStats={categoryStats}
             scoringRules={scoringRules}
             totalScore={totalScore}
+          />
+        ) : viewMode === 'breakdown' ? (
+          <YearBreakdownView 
+            yearlyBreakdown={yearlyBreakdown}
+            allTimeScore={allTimeScore}
           />
         ) : (
           <HistoryView 

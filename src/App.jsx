@@ -22,6 +22,7 @@ const PeopleDashboard = lazy(() => import(/* webpackChunkName: "people-dashboard
 const HealthCheck = lazy(() => import(/* webpackChunkName: "health-check" */ './pages/HealthCheck'));
 const VisionBuilderDemo = lazy(() => import(/* webpackChunkName: "vision-builder-demo" */ './pages/VisionBuilderDemo'));
 const AdaptiveCardsLab = lazy(() => import(/* webpackChunkName: "adaptive-cards-lab" */ './pages/labs/AdaptiveCards'));
+const BuildOverview = lazy(() => import(/* webpackChunkName: "build-overview" */ './pages/BuildOverview'));
 
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -61,6 +62,7 @@ function AppContent() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/health" element={<HealthCheck />} />
               <Route path="/vision-builder-demo" element={<VisionBuilderDemo />} />
+              <Route path="/build-overview" element={<BuildOverview />} />
               <Route path="/labs/adaptive-cards" element={<AdaptiveCardsLab />} />
             </Routes>
           </Suspense>

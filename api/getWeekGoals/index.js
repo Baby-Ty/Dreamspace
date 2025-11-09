@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { getCosmosProvider } = require('../utils/cosmosProvider');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database;
@@ -9,6 +10,9 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   });
   database = client.database('dreamspace');
 }
+
+// Get cosmosProvider instance for helper methods
+const cosmosProvider = getCosmosProvider();
 
 module.exports = async function (context, req) {
   const userId = req.query.userId;
@@ -53,6 +57,11 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // Ensure the year container exists before accessing it
+    if (cosmosProvider) {
+      await cosmosProvider.ensureWeeksContainerExists(year, context);
+    }
+    
     // Get the appropriate year container
     const containerName = `weeks${year}`;
     context.log(`📦 Accessing container: ${containerName}`);

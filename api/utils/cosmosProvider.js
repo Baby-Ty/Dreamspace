@@ -71,6 +71,7 @@ class CosmosProvider {
 
     this.database = this.client.database('dreamspace');
     this.containers = {};
+    this._containerCache = {}; // Cache for container existence checks
     
     // Pre-initialize common containers
     this._initializeContainers();
@@ -109,6 +110,43 @@ class CosmosProvider {
       this.containers[containerName] = this.database.container(containerName);
     }
     return this.containers[containerName];
+  }
+
+  /**
+   * Ensure a year-specific weeks container exists, creating it if necessary
+   * @param {number} year - Year (e.g., 2025, 2026)
+   * @param {object} context - Optional Azure Function context for logging
+   * @returns {Promise<boolean>} True if container exists/created, false on error
+   */
+  async ensureWeeksContainerExists(year, context = null) {
+    const containerName = getWeeksContainerName(year);
+    
+    // Check cache to avoid repeated checks in same execution
+    if (this._containerCache[containerName]) {
+      return true;
+    }
+    
+    try {
+      // Use createIfNotExists to ensure container exists
+      const { container } = await this.database.containers.createIfNotExists({
+        id: containerName,
+        partitionKey: { paths: ['/userId'] }
+      });
+      
+      // Cache the result
+      this._containerCache[containerName] = true;
+      
+      // Log success (use context.log if available, otherwise console.log)
+      const logFn = context?.log || console.log;
+      logFn(`✅ Container ${containerName} ready`);
+      
+      return true;
+    } catch (error) {
+      // Log error
+      const logFn = context?.log?.error || console.error;
+      logFn(`❌ Failed to ensure container ${containerName}:`, error.message);
+      return false;
+    }
   }
 
   /**

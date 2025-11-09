@@ -198,14 +198,14 @@ class WeekService {
   /**
    * Bulk instantiate templates across all their target weeks
    * Creates goal instances for all weeks where templates should be active
+   * Automatically splits instances across multiple year containers (e.g., weeks2025, weeks2026)
    * @param {string} userId - User ID
-   * @param {number} year - Year (e.g., 2025)
    * @param {array} templates - Array of template objects to instantiate
    * @returns {Promise<{success: boolean, data?: object, error?: string}>}
    */
-  async bulkInstantiateTemplates(userId, year, templates) {
+  async bulkInstantiateTemplates(userId, templates) {
     try {
-      console.log(`🚀 Bulk instantiating ${templates.length} templates for ${year}`);
+      console.log(`🚀 Bulk instantiating ${templates.length} templates (multi-year support)`);
 
       const response = await fetch(`${this.apiBase}/bulkInstantiateTemplates`, {
         method: 'POST',
@@ -214,7 +214,6 @@ class WeekService {
         },
         body: JSON.stringify({
           userId,
-          year,
           templates
         })
       });
@@ -230,9 +229,15 @@ class WeekService {
         try {
           const result = JSON.parse(responseText);
           console.log(`✅ Bulk instantiation complete:`, result);
+          console.log(`   📊 Years affected: ${result.yearsAffected?.join(', ')}`);
+          console.log(`   📈 Total instances: ${result.totalInstancesCreated}`);
           
-          // Invalidate cache after successful instantiation
-          requestCache.invalidate(`weekGoals:${userId}:${year}`);
+          // Invalidate cache for all affected years
+          if (result.yearsAffected && Array.isArray(result.yearsAffected)) {
+            result.yearsAffected.forEach(year => {
+              requestCache.invalidate(`weekGoals:${userId}:${year}`);
+            });
+          }
           
           return ok(result);
         } catch (parseError) {

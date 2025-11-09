@@ -43,6 +43,43 @@ class ScoringService {
   }
 
   /**
+   * Get all years scoring documents for a user
+   * @param {string} userId - User ID
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async getAllYearsScoring(userId) {
+    try {
+      const encodedUserId = encodeURIComponent(userId);
+      const url = `${this.apiBase}/getAllYearsScoring/${encodedUserId}`;
+
+      console.log('📂 Loading all-time scoring:', { userId });
+
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const allYears = await response.json();
+        const allTimeTotal = allYears.reduce((sum, doc) => sum + (doc.totalScore || 0), 0);
+        console.log(`✅ Loaded scoring for ${allYears.length} year(s), all-time total: ${allTimeTotal}`);
+        
+        return ok({ allYears, allTimeTotal });
+      } else {
+        if (response.status === 404 || response.status === 204) {
+          // No scoring data yet - return empty array
+          console.log('ℹ️ No scoring data found for user, returning empty');
+          return ok({ allYears: [], allTimeTotal: 0 });
+        }
+        
+        const error = await response.json();
+        console.error('❌ Error loading all-time scoring:', error);
+        return fail(ErrorCodes.LOAD_ERROR, error.error || 'Failed to load all-time scoring');
+      }
+    } catch (error) {
+      console.error('❌ Error loading all-time scoring:', error);
+      return fail(ErrorCodes.LOAD_ERROR, error.message || 'Failed to load all-time scoring');
+    }
+  }
+
+  /**
    * Add a scoring entry
    * @param {string} userId - User ID
    * @param {number} year - Year (e.g., 2025)

@@ -170,7 +170,9 @@ export function useDreamBook() {
               dreamTitle: formData.title,
               dreamCategory: formData.category,
               recurrence: 'weekly',
-              targetWeeks: formData.firstGoal.targetWeeks,
+              durationType: 'weeks', // ✅ Specify duration type
+              durationWeeks: formData.firstGoal.targetWeeks, // ✅ Use durationWeeks
+              targetWeeks: formData.firstGoal.targetWeeks, // Keep for backward compatibility
               active: true,
               startDate: new Date().toISOString(),
               createdAt: new Date().toISOString()

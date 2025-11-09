@@ -60,7 +60,9 @@ const initialState = {
   dreamCategories: dreamCategories,
   scoringRules: scoringRules,
   weeklyGoals: [],
-  scoringHistory: []
+  scoringHistory: [],
+  allYearsScoring: [], // Array of scoring documents, one per year
+  allTimeScore: 0 // Sum of all years' totalScore
 };
 
 // Reducer function
@@ -229,10 +231,23 @@ const appReducer = (state, action) => {
       return state;
 
     case actionTypes.SET_SCORING_HISTORY:
-      return {
-        ...state,
-        scoringHistory: action.payload
-      };
+      // Handle both legacy format (array) and new format (object with allYearsScoring)
+      if (Array.isArray(action.payload)) {
+        // Legacy format: just an array of entries
+        return {
+          ...state,
+          scoringHistory: action.payload
+        };
+      } else {
+        // New format: object with allYearsScoring, allTimeScore, and scoringHistory
+        return {
+          ...state,
+          allYearsScoring: action.payload.allYearsScoring || [],
+          allTimeScore: action.payload.allTimeScore || 0,
+          scoringHistory: action.payload.scoringHistory || []
+        };
+      }
+
 
     case actionTypes.ADD_SCORING_ENTRY:
       return {
@@ -425,6 +440,35 @@ export const AppProvider = ({ children, initialUser }) => {
             scoringHistory: Array.isArray(scoringHistoryData) ? scoringHistoryData : []
           }
         });
+        
+        // Load all-time scoring from API (spans all years)
+        console.log('📊 Loading all-time scoring from API...');
+        const allScoringResult = await scoringService.getAllYearsScoring(userId);
+        if (allScoringResult.success) {
+          console.log(`✅ All-time scoring loaded: ${allScoringResult.data.allYears.length} year(s), total: ${allScoringResult.data.allTimeTotal} pts`);
+          
+          // Flatten entries from all years for scoringHistory
+          const allEntries = allScoringResult.data.allYears.flatMap(yearDoc => 
+            (yearDoc.entries || []).map(entry => ({ ...entry, year: yearDoc.year }))
+          );
+          
+          // Update state with all-time scoring data
+          dispatch({
+            type: actionTypes.SET_SCORING_HISTORY,
+            payload: {
+              allYearsScoring: allScoringResult.data.allYears,
+              allTimeScore: allScoringResult.data.allTimeTotal,
+              scoringHistory: allEntries
+            }
+          });
+          
+          // Update user's score to reflect all-time total
+          if (migratedUser) {
+            migratedUser.score = allScoringResult.data.allTimeTotal;
+          }
+        } else {
+          console.warn('⚠️ Could not load all-time scoring:', allScoringResult.error);
+        }
       } else {
         console.log('ℹ️ No persisted data found or missing user structure');
       }
@@ -448,8 +492,6 @@ export const AppProvider = ({ children, initialUser }) => {
       
       console.log(`🚀 Found ${templates.length} templates to bulk instantiate on login:`, templates.map(t => ({ id: t.id, targetWeeks: t.targetWeeks })));
       
-      const currentYear = new Date().getFullYear();
-      
       // Map templates to format expected by bulkInstantiateTemplates API
       const templatesForAPI = templates.map(template => ({
         ...template,
@@ -460,8 +502,7 @@ export const AppProvider = ({ children, initialUser }) => {
       console.log('📤 Sending templates to bulkInstantiateTemplates API:', templatesForAPI.map(t => ({ id: t.id, durationType: t.durationType, durationWeeks: t.durationWeeks })));
       
       const result = await weekService.bulkInstantiateTemplates(
-        userId, 
-        currentYear, 
+        userId,
         templatesForAPI
       );
       
@@ -865,12 +906,12 @@ export const AppProvider = ({ children, initialUser }) => {
         }
         
         // Bulk instantiate the template across all target weeks
+        // API now automatically handles multi-year splitting
         console.log('🚀 Bulk instantiating template across weeks:', {
           templateId: template.id,
           targetWeeks: template.targetWeeks,
           startDate: template.startDate
         });
-        const currentYear = new Date().getFullYear();
         
         // Map template to format expected by bulkInstantiateTemplates API
         const templateForAPI = {
@@ -879,11 +920,10 @@ export const AppProvider = ({ children, initialUser }) => {
           durationWeeks: template.targetWeeks || 52
         };
         
-        console.log('📤 Sending to bulkInstantiateTemplates API:', templateForAPI);
+        console.log('📤 Sending to bulkInstantiateTemplates API (multi-year):', templateForAPI);
         
         const instantiateResult = await weekService.bulkInstantiateTemplates(
-          userId, 
-          currentYear, 
+          userId,
           [templateForAPI]
         );
         
