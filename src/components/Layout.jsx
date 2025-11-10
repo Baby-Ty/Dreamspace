@@ -36,12 +36,11 @@ const Layout = ({ children }) => {
     { name: 'Dream Connect', icon: Users, previewHref: '/dream-connect' },
     { name: 'Scorecard', icon: Trophy, previewHref: '/scorecard' },
     { name: 'Dream Coach', icon: Users2, previewHref: '/dream-coach' },
+    { name: 'People Hub', icon: UserCog, previewHref: '/people', roleLabel: 'Admin' },
   ];
 
   // Bottom navigation (visible to all until RBAC is implemented)
-  const bottomNavigation = [
-    { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
-  ];
+  const bottomNavigation = [];
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -132,6 +131,11 @@ const Layout = ({ children }) => {
                     >
                       <Icon className="w-5 h-5 mr-3" />
                       <span className="flex-1">{item.name}</span>
+                      {item.roleLabel && (
+                        <span className="text-xs text-gray-400 mr-2">
+                          {item.roleLabel}
+                        </span>
+                      )}
                       {showPreview && (
                         <Link
                           to={item.previewHref}
