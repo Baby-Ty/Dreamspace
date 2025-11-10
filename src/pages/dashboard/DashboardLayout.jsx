@@ -101,7 +101,10 @@ export default function DashboardLayout() {
         {/* Right Column - Dreams Overview */}
         <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 bg-gradient-to-r from-professional-gray-50 to-white">
-            <h2 className="text-xl font-bold text-professional-gray-900">My Dreams</h2>
+            <div>
+              <h2 className="text-xl font-bold text-professional-gray-900">My Dreams</h2>
+              <p className="text-xs text-professional-gray-600 mt-0.5">Your personal and professional aspirations</p>
+            </div>
             <Link 
               to="/dream-book"
               className="text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"

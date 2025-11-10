@@ -1189,7 +1189,10 @@ const DreamsWeekAhead = () => {
 
           {/* Right Column */}
           <div className="col-span-12 lg:col-span-7 min-h-0">
-            <h2 className="text-xl font-bold text-professional-gray-900 mb-3">This Week's Goals</h2>
+            <div className="mb-3">
+              <h2 className="text-xl font-bold text-professional-gray-900">This Week's Goals</h2>
+              <p className="text-xs text-professional-gray-600 mt-0.5">Goals scheduled for the selected week</p>
+            </div>
             {visibleGoals.length === 0 ? (
               <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-center">
                 <Star className="w-10 h-10 text-professional-gray-300 mx-auto mb-3" />

@@ -76,7 +76,10 @@ function WeekGoalsWidget({
     <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden" data-testid="week-goals-widget">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 flex-shrink-0 bg-gradient-to-r from-professional-gray-50 to-white">
-        <h2 className="text-xl font-bold text-professional-gray-900">This Week's Goals</h2>
+        <div>
+          <h2 className="text-xl font-bold text-professional-gray-900">This Week's Goals</h2>
+          <p className="text-xs text-professional-gray-600 mt-0.5">Your active goals for the current week</p>
+        </div>
         <Link 
           to="/dreams-week-ahead"
           className="text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
