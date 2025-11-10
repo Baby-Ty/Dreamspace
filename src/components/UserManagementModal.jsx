@@ -21,9 +21,11 @@ import {
 } from 'lucide-react';
 import DreamTrackerModal from './DreamTrackerModal';
 import CareerTrackerModal from './CareerTrackerModal';
+import FlagIcon from './FlagIcon';
 import peopleService from '../services/peopleService';
 import { showToast } from '../utils/toast';
 import { logger } from '../utils/logger';
+import { getCountryCode } from '../utils/regionUtils';
 
 const UserManagementModal = ({ user, onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -99,8 +101,8 @@ const UserManagementModal = ({ user, onClose }) => {
                     <Mail className="w-4 h-4 mr-1" />
                     <span className="text-sm">{user.email}</span>
                   </div>
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1" />
+                  <div className="flex items-center gap-1">
+                    <FlagIcon countryCode={getCountryCode(user.office)} className="w-4 h-4" />
                     <span className="text-sm">{user.office}</span>
                   </div>
                 </div>

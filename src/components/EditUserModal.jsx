@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X, MapPin } from 'lucide-react';
 import PropTypes from 'prop-types';
+import FlagIcon from './FlagIcon';
+import { getCountryCode, getSupportedRegions } from '../utils/regionUtils';
 
 /**
  * Edit User Modal for People Dashboard
@@ -49,14 +51,7 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
     }
   };
 
-  const regionOptions = [
-    'South Africa',
-    'United States', 
-    'Mexico',
-    'Brazil',
-    'Poland',
-    'Remote'
-  ];
+  const regionOptions = getSupportedRegions();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[1000]">
@@ -145,8 +140,12 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
                 </select>
               </div>
               <div>
-                <label htmlFor="region" className="block text-sm font-medium text-professional-gray-700 mb-1.5">
+                <label htmlFor="region" className="block text-sm font-medium text-professional-gray-700 mb-1.5 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-netsurit-coral" aria-hidden="true" />
                   Region
+                  {formData.office && (
+                    <FlagIcon countryCode={getCountryCode(formData.office)} className="w-5 h-5 ml-auto" />
+                  )}
                 </label>
                 <select
                   id="region"
@@ -156,8 +155,8 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
                 >
                   <option value="">Select region...</option>
                   {regionOptions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
+                    <option key={region.name} value={region.name}>
+                      {region.name}
                     </option>
                   ))}
                 </select>

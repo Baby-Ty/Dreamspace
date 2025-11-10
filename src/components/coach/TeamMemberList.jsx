@@ -1,6 +1,8 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
 import { Users2, Target, Heart, Eye, Filter, ArrowUpDown } from 'lucide-react';
+import FlagIcon from '../FlagIcon';
+import { getCountryCode } from '../../utils/regionUtils';
 
 /**
  * Pure presentational component for displaying team member list
@@ -152,7 +154,8 @@ function TeamMemberList({
                     <h4 className="font-semibold text-sm text-professional-gray-900 truncate group-hover:text-netsurit-red transition-colors">
                       {member.name}
                     </h4>
-                    <p className="text-xs text-professional-gray-600 truncate">
+                    <p className="text-xs text-professional-gray-600 truncate flex items-center gap-1">
+                      <FlagIcon countryCode={getCountryCode(member.office)} className="w-3 h-3" />
                       {member.office}
                     </p>
                   </div>

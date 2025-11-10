@@ -9,8 +9,10 @@ import {
   UserMinus 
 } from 'lucide-react';
 import VirtualList from '../../components/VirtualList';
+import FlagIcon from '../../components/FlagIcon';
 import { useState } from 'react';
 import { useRovingFocus } from '../../hooks/useRovingFocus';
+import { getCountryCode } from '../../utils/regionUtils';
 
 /**
  * Pure presentational component for displaying a list of coaches
@@ -103,8 +105,8 @@ export default function CoachList({ coaches, onSelect, onUnassignUser, onReplace
                     </div>
                     <p className="text-xs text-professional-gray-600 truncate">{coach.teamName}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-professional-gray-500 flex items-center">
-                        <MapPin className="w-3 h-3 mr-1" aria-hidden="true" />
+                      <span className="text-xs text-professional-gray-500 flex items-center gap-1">
+                        <FlagIcon countryCode={getCountryCode(coach.office)} className="w-4 h-4" />
                         {coach.office}
                       </span>
                     </div>
@@ -227,7 +229,10 @@ export default function CoachList({ coaches, onSelect, onUnassignUser, onReplace
                               />
                             )}
                           </div>
-                          <p className="text-xs text-professional-gray-500">{member.office}</p>
+                          <p className="text-xs text-professional-gray-500 flex items-center gap-1">
+                            <FlagIcon countryCode={getCountryCode(member.office)} className="w-3 h-3" />
+                            {member.office}
+                          </p>
                         </div>
                       </div>
                       

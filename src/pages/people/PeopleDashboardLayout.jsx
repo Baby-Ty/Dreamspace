@@ -14,6 +14,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import FlagIcon from '../../components/FlagIcon';
 import CoachList from './CoachList';
 import TeamMetrics from './TeamMetrics';
 import { usePeopleData } from '../../hooks/usePeopleData';
@@ -21,6 +22,7 @@ import peopleService from '../../services/peopleService';
 import HelpTooltip from '../../components/HelpTooltip';
 import { showToast } from '../../utils/toast';
 import { logger } from '../../utils/logger';
+import { getCountryCode } from '../../utils/regionUtils';
 
 // Lazy-load heavy modals with named chunks
 const CoachDetailModal = lazy(() => import(/* webpackChunkName: "coach-detail-modal" */ '../../components/coach/CoachDetailModal'));
@@ -468,8 +470,8 @@ export default function PeopleDashboardLayout() {
                           </button>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap text-xs text-professional-gray-500 mt-0.5">
-                          <span className="flex items-center">
-                            <MapPin className="w-3 h-3 mr-1" />
+                          <span className="flex items-center gap-1">
+                            <FlagIcon countryCode={getCountryCode(user.office)} className="w-3 h-3" />
                             {user.office}
                           </span>
                           <span>•</span>
