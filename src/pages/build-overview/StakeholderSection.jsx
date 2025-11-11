@@ -11,8 +11,8 @@ export default function StakeholderSection({ data }) {
     <SectionCard
       sectionId="stakeholders"
       icon={CalendarDays}
-      title="Stakeholder Snapshot"
-      description="Who to ping and how often we huddle."
+      title="Who to Ping"
+      description="Key contacts and meeting cadence."
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <div data-testid="build-overview-stakeholder-roles">

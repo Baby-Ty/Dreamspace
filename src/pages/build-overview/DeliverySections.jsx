@@ -12,8 +12,8 @@ export function BusinessOutcomesSection({ data }) {
     <SectionCard
       sectionId="business-outcomes"
       icon={Target}
-      title="Business Outcomes & Metrics"
-      description="What success looks like and how we’re tracking."
+      title="Key Metrics"
+      description="What's working and what needs attention."
     >
       <div className="grid gap-4 md:grid-cols-2" data-testid="build-overview-outcomes" role="list">
         {data.objectives.map((objective) => (
@@ -29,10 +29,7 @@ export function BusinessOutcomesSection({ data }) {
               <StatusPill status={objective.status} />
             </div>
             <p className="text-sm text-professional-gray-600 mt-2">
-              KPI: {objective.metric}
-            </p>
-            <p className="text-sm text-professional-gray-500 mt-3">
-              Mitigation: {objective.mitigation}
+              {objective.metric}
             </p>
           </article>
         ))}

@@ -10,153 +10,150 @@ export function useBuildOverview() {
     () => ({
       hero: {
         projectName: 'DreamSpace Platform',
-        releaseTrain: 'Q1 2026 launch path',
+        releaseTrain: 'Q1 2026 launch',
         snapshotDate: 'November 9, 2025',
         sponsors: [
           { role: 'Executive Sponsor', name: 'Lindy Jacobs' },
           { role: 'Product Owner', name: 'Thabo Nkosi' },
-          { role: 'Technology Sponsor', name: 'Alicia Chen' }
+          { role: 'Tech Lead', name: 'Alicia Chen' }
         ],
-        valueHeadline: 'One home for dreams, coaching, and progress updates your execs can skim over coffee.',
+        valueHeadline: 'Dream tracking, coaching, and progress updates in one spot. Perfect for exec coffee reviews.',
         callsToAction: [
-          { label: 'Grab the Project Brief', href: '/docs/build-overview-brief.pdf' },
-          { label: 'Watch the 7‑min Tour', href: 'https://contoso.wistia.com/medias/dreamspace-walkthrough' }
+          { label: 'Quick Project Brief', href: '/docs/build-overview-brief.pdf' },
+          { label: '7-min Video Tour', href: 'https://contoso.wistia.com/medias/dreamspace-walkthrough' }
         ]
       },
       stakeholderSnapshot: {
         cadence: [
-          { label: 'Steering Committee', frequency: 'Every second Monday, 30 minutes' },
-          { label: 'Product Demos', frequency: 'Thursdays 14:00 SAST, show-and-tell style' },
-          { label: 'Retro & Planning', frequency: 'Alternating Fridays, 45 minutes' }
+          { label: 'Steering Committee', frequency: '2nd Monday each month, 30 min' },
+          { label: 'Product Demos', frequency: 'Thursdays 2 PM SAST' },
+          { label: 'Retro & Planning', frequency: 'Alt Fridays, 45 min' }
         ],
         roles: [
-          { title: 'Executive Sponsor', owner: 'Lindy Jacobs', availability: 'Tuesdays 10:00-12:00' },
-          { title: 'Product Owner', owner: 'Thabo Nkosi', availability: 'Daily stand-up 09:15' },
-          { title: 'Tech Lead', owner: 'Alicia Chen', availability: 'Mon-Thu 13:00-16:00' }
+          { title: 'Executive Sponsor', owner: 'Lindy Jacobs', availability: 'Tuesdays 10-12' },
+          { title: 'Product Owner', owner: 'Thabo Nkosi', availability: 'Daily at 9:15 AM' },
+          { title: 'Tech Lead', owner: 'Alicia Chen', availability: 'Mon-Thu 1-4 PM' }
         ]
       },
       businessOutcomes: {
         objectives: [
           {
-            title: 'Increase Coaching Engagement',
-            metric: '8 in 10 users paired with a coach',
-            status: 'on-track',
-            mitigation: 'Weekly adoption pulse shared with managers'
+            title: 'Coaching Engagement',
+            metric: '8/10 users with coaches',
+            status: 'on-track'
           },
           {
-            title: 'Improve Goal Completion',
-            metric: '+25% weekly goal completion lift',
-            status: 'at-risk',
-            mitigation: 'Add Teams nudges + subtle in-app reminders'
+            title: 'Goal Completion',
+            metric: '+25% weekly goals done',
+            status: 'at-risk'
           },
           {
             title: 'Executive Visibility',
-            metric: 'All regional VPs using the leadership dashboard',
-            status: 'on-track',
-            mitigation: 'Pilot insights in January leadership forum'
+            metric: 'All VPs using dashboard',
+            status: 'on-track'
           }
         ]
       },
       scope: {
         v1Highlights: [
-          'Dream Book refresh with timeline and context in one place',
-          'Coach workspace showing sentiment, actions, and quick wins',
-          'People dashboard for HR with export-ready snapshots',
-          'Automated scoring engine wired into Application Insights'
+          'Dream Book with timelines and context',
+          'Coach dashboard with insights and quick actions',
+          'People dashboard for HR exports',
+          'Automated scoring with analytics'
         ],
         milestoneRoadmap: [
-          { phase: 'Discovery & UX Validation', window: 'Sep–Oct 2025', focus: 'Journey maps, persona alignment, prototype walkthroughs' },
-          { phase: 'Build & Hardening', window: 'Nov–Dec 2025', focus: 'Feature wrap-up, performance polish, accessibility pass' },
-          { phase: 'Pilot Launch', window: 'Jan 2026', focus: 'Invite-only cohort with concierge onboarding' },
-          { phase: 'General Availability', window: 'Mar 2026', focus: 'Tenant-wide rollout with training kits and support scripts' }
+          { phase: 'Discovery & UX', window: 'Sep–Oct 2025', focus: 'User research and prototypes' },
+          { phase: 'Build & Polish', window: 'Nov–Dec 2025', focus: 'Core features and performance' },
+          { phase: 'Pilot Launch', window: 'Jan 2026', focus: 'Limited release with support' },
+          { phase: 'Full Launch', window: 'Mar 2026', focus: 'Company-wide rollout' }
         ]
       },
       experienceGallery: {
         screenshots: [
-          { title: 'Dream Dashboard', caption: 'Quick pulse of adoption, alerts, and momentum by region', asset: '/assets/dream-dashboard.png' },
-          { title: 'Coach Workspace', caption: 'Alerts, sentiment, and one-click actions for every team', asset: '/assets/coach-workspace.png' },
-          { title: 'Dream Book', caption: 'Story view with timeline, milestones, and score impact in context', asset: '/assets/dream-book.png' }
+          { title: 'Dashboard', caption: 'Quick view of usage, alerts, and progress', asset: '/assets/dream-dashboard.png' },
+          { title: 'Coach Tools', caption: 'Team alerts and easy actions', asset: '/assets/coach-workspace.png' },
+          { title: 'Dream Book', caption: 'Personal story with timeline and milestones', asset: '/assets/dream-book.png' }
         ],
         recording: {
-          title: 'End-to-end tour (narrated)',
-          duration: '07:32 min',
+          title: 'Full walkthrough',
+          duration: '7 min',
           href: 'https://contoso.wistia.com/medias/dreamspace-e2e'
         }
       },
       architecture: {
         overview: [
           {
-            title: 'Clients',
-            details: ['React 18 SPA', 'Routes guarded by MSAL', 'Tailwind-first responsive layout']
+            title: 'Frontend',
+            details: ['React app with responsive design', 'Microsoft login integration', 'Clean, accessible UI']
           },
           {
-            title: 'Services',
-            details: ['Azure Functions on Node 20', 'Microsoft Graph tap-in for people data', 'Application Insights for logs and traces']
+            title: 'Backend',
+            details: ['Azure cloud functions', 'Office 365 data integration', 'Built-in monitoring and logs']
           },
           {
-            title: 'Data',
-            details: ['Cosmos DB six-container layout', 'Blob storage for dream and profile images', 'Azure Queue for async clean-up jobs']
+            title: 'Database',
+            details: ['Cosmos DB for fast queries', 'File storage for images', 'Background job processing']
           }
         ],
         stack: [
-          { label: 'Frontend', value: 'React 18 + Vite + Tailwind' },
-          { label: 'Backend', value: 'Azure Functions + lightweight Express middleware' },
-          { label: 'Auth', value: 'Microsoft Entra ID via MSAL' },
-          { label: 'Observability', value: 'Application Insights + Azure Monitor' }
+          { label: 'Frontend', value: 'React + Tailwind CSS' },
+          { label: 'Backend', value: 'Azure Functions' },
+          { label: 'Auth', value: 'Microsoft 365 login' },
+          { label: 'Monitoring', value: 'Azure insights' }
         ]
       },
       dataStrategy: {
         models: [
-          { title: 'Users', description: 'Profile basics only, single document per userId (no bulky arrays)' },
-          { title: 'Dreams', description: 'Dream Book + weekly goal templates bundled per user document' },
-          { title: 'Weeks', description: 'Year-specific docs storing ISO week history and completions' }
+          { title: 'Users', description: 'Basic profiles, one doc per person' },
+          { title: 'Dreams', description: 'Dream Book + goals bundled together' },
+          { title: 'Weeks', description: 'Yearly docs tracking progress' }
         ],
         caching: [
-          'Static assets fronted by Azure Front Door edge cache',
-          'Hook-level memoization today, React Query ready for future drop-in',
-          'Azure Functions responses cached for the chatty read endpoints'
+          'Fast global content delivery',
+          'Smart data reuse in the app',
+          'API responses cached for speed'
         ]
       },
       codebase: {
         structure: [
           {
-            title: 'Frontend Layers',
+            title: 'Clean Architecture',
             points: [
-              'Pages are tiny wrappers that just hand off to feature layouts',
-              'Layouts juggle UI pieces and lean on hooks for brains',
-              'Hooks own data fetching, memoization, and any crunching'
+              'Simple page wrappers that delegate to layouts',
+              'Layouts handle UI, hooks handle data',
+              'Everything separated by responsibility'
             ]
           },
           {
-            title: 'Service Contracts',
+            title: 'Reliable APIs',
             points: [
-              'Services wrap Azure Functions and always return ok()/fail() payloads',
-              'Hooks validate responses with Zod before the UI ever sees them',
-              'Logger helper keeps telemetry clean for Application Insights'
+              'Services handle all external calls',
+              'Data validation before UI updates',
+              'Clean logging and error handling'
             ]
           }
         ],
         sharedSystems: [
-          { label: 'State', detail: 'React Context + useReducer, dev mode still falls back to localStorage' },
-          { label: 'Styling', detail: 'Tailwind with Netsurit palette tokens and sensible defaults' },
-          { label: 'Auth', detail: 'MSAL wiring feeds the AuthContext and role helpers' }
+          { label: 'State', detail: 'React Context with localStorage backup' },
+          { label: 'Styling', detail: 'Tailwind with company colors' },
+          { label: 'Auth', detail: 'Microsoft 365 integration' }
         ],
         tooling: [
-          'Vite for dev/build (port 5173) and lightning HMR',
-          'Vitest + React Testing Library for fast feedback loops',
-          'ESLint + Prettier tuned to the DreamSpace rule set'
+          'Fast dev server with hot reload',
+          'Automated testing setup',
+          'Code quality tools and formatting'
         ]
       },
       codingStandards: {
         dod: [
-          'Every file starts with the DoD banner and stays under 400 lines',
-          'UI never calls fetch directly—hooks and services do the heavy lifting',
-          'Loading and error states short-circuit early with friendly copy'
+          'Files stay small (<400 lines) and follow patterns',
+          'No direct API calls in UI components',
+          'Early handling of loading and errors'
         ],
         accessibility: [
-          'ARIA roles/labels on anything clickable plus proper semantic wrappers',
-          'Key elements carry data-testid so tests stay stable',
-          'Modals trap focus, keyboard paths are checked before sign-off'
+          'Screen reader friendly with proper labels',
+          'Testable components with data attributes',
+          'Keyboard navigation works everywhere'
         ],
         cursorRules: [
           'Keep changes tight and incremental—full rewrites need a nod',
@@ -166,38 +163,36 @@ export function useBuildOverview() {
       },
       security: {
         highlights: [
-          'Role-based access enforced at API layer (user, coach, admin)',
-          'Secret rotation managed via Azure Key Vault with quarterly review',
-          'Threat modeling completed with latest SDL checklist'
+          'Role-based access (user, coach, admin)',
+          'Regular security reviews and updates',
+          'Security planning completed'
         ],
         compliance: [
-          { label: 'SOC 2 Type II', status: 'In progress – evidence collection' },
-          { label: 'GDPR', status: 'Compliant – DPA signed' },
-          { label: 'POPIA', status: 'Compliant – data residency assured' }
+          { label: 'SOC 2', status: 'In progress' },
+          { label: 'GDPR', status: 'Compliant' },
+          { label: 'POPIA', status: 'Compliant' }
         ]
       },
       operations: {
         releasePipeline: [
-          'Dev → QA → Pre-prod → Production with automated smoke tests',
-          'Feature flags for progressive exposure via Azure App Configuration',
-          'Rollback via deployment slots with 10-minute cutover plan'
+          'Automated testing through dev/staging/prod',
+          'Feature flags for safe rollouts',
+          'Quick rollback capability'
         ],
         monitoring: [
-          'Application Insights dashboards with SLO tracking',
-          'PagerDuty integration for P1/P2 alerts',
-          'Weekly ops review with Tech Lead and SRE partner'
+          'Performance dashboards and alerts',
+          'Incident response integration',
+          'Weekly operations reviews'
         ]
       },
       futureRoadmap: {
         priorities: [
-          { item: 'Personalized Nudges', target: 'Q2 2026', notes: 'Teams and email digests powered by scoring trends' },
-          { item: 'AI Story Insights', target: 'Q3 2026', notes: 'Narrative summaries of Dream Book progress' },
-          { item: 'Coach Marketplace', target: 'Q4 2026', notes: 'Match employees to certified coaches across regions' }
+          { item: 'Smart Notifications', target: 'Q2 2026', notes: 'Teams alerts based on progress' },
+          { item: 'AI Progress Summaries', target: 'Q3 2026', notes: 'Automated dream insights' }
         ],
         experiments: [
-          'In-app pulse surveys with adaptive question bank',
-          'OKR alignment module for leadership initiatives',
-          'Auto-transcription of coaching sessions (opt-in)'
+          'Quick feedback surveys',
+          'Goal alignment features'
         ]
       },
       resources: [
