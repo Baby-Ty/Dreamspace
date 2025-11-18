@@ -306,57 +306,59 @@ export function useDashboardData() {
 
   /**
    * Auto-create current week instances from templates on mount
+   * TEMPORARILY DISABLED - Using new currentWeek container system
+   * TODO: Re-implement after AppContext is updated for new system
    */
-  useEffect(() => {
-    if (!currentUser?.id) return;
-    
-    const currentWeekIso = getCurrentIsoWeek();
-    const allTemplates = safeWeeklyGoals.filter(g => 
-      g.type === 'weekly_goal_template'
-    );
-    
-    // Get milestones for validation
-    const milestones = currentUser?.dreamBook
-      ?.flatMap(dream => dream.milestones || []) || [];
-    
-    // Filter valid templates for current week
-    const validTemplates = allTemplates.filter(template => {
-      const milestone = template.milestoneId 
-        ? milestones.find(m => m.id === template.milestoneId)
-        : null;
-      return isTemplateActiveForWeek(template, currentWeekIso, milestone);
-    });
-    
-    // Check each valid template and create instance if it doesn't exist
-    validTemplates.forEach(template => {
-      const instanceExists = safeWeeklyGoals.some(g => 
-        g.templateId === template.id && g.weekId === currentWeekIso
-      );
-      
-      if (!instanceExists) {
-        // Create instance for current week
-        const instance = {
-          id: `${template.id}_${currentWeekIso}`,
-          type: 'weekly_goal',
-          templateId: template.id,
-          goalType: template.goalType || 'consistency',
-          title: template.title,
-          description: template.description,
-          dreamId: template.dreamId,
-          dreamTitle: template.dreamTitle,
-          dreamCategory: template.dreamCategory,
-          milestoneId: template.milestoneId,
-          recurrence: template.recurrence || 'weekly', // ✅ FIX: Copy recurrence from template
-          targetWeeks: template.targetWeeks,
-          targetMonths: template.targetMonths,
-          weekId: currentWeekIso,
-          completed: false,
-          createdAt: new Date().toISOString()
-        };
-        addWeeklyGoal(instance);
-      }
-    });
-  }, [currentUser?.id, safeWeeklyGoals.length, addWeeklyGoal, currentUser?.dreamBook]);
+  // useEffect(() => {
+  //   if (!currentUser?.id) return;
+  //   
+  //   const currentWeekIso = getCurrentIsoWeek();
+  //   const allTemplates = safeWeeklyGoals.filter(g => 
+  //     g.type === 'weekly_goal_template'
+  //   );
+  //   
+  //   // Get milestones for validation
+  //   const milestones = currentUser?.dreamBook
+  //     ?.flatMap(dream => dream.milestones || []) || [];
+  //   
+  //   // Filter valid templates for current week
+  //   const validTemplates = allTemplates.filter(template => {
+  //     const milestone = template.milestoneId 
+  //       ? milestones.find(m => m.id === template.milestoneId)
+  //       : null;
+  //     return isTemplateActiveForWeek(template, currentWeekIso, milestone);
+  //   });
+  //   
+  //   // Check each valid template and create instance if it doesn't exist
+  //   validTemplates.forEach(template => {
+  //     const instanceExists = safeWeeklyGoals.some(g => 
+  //       g.templateId === template.id && g.weekId === currentWeekIso
+  //     );
+  //     
+  //     if (!instanceExists) {
+  //       // Create instance for current week
+  //       const instance = {
+  //         id: `${template.id}_${currentWeekIso}`,
+  //         type: 'weekly_goal',
+  //         templateId: template.id,
+  //         goalType: template.goalType || 'consistency',
+  //         title: template.title,
+  //         description: template.description,
+  //         dreamId: template.dreamId,
+  //         dreamTitle: template.dreamTitle,
+  //         dreamCategory: template.dreamCategory,
+  //         milestoneId: template.milestoneId,
+  //         recurrence: template.recurrence || 'weekly',
+  //         targetWeeks: template.targetWeeks,
+  //         targetMonths: template.targetMonths,
+  //         weekId: currentWeekIso,
+  //         completed: false,
+  //         createdAt: new Date().toISOString()
+  //       };
+  //       addWeeklyGoal(instance);
+  //     }
+  //   });
+  // }, [currentUser?.id, safeWeeklyGoals.length, addWeeklyGoal, currentUser?.dreamBook]);
 
   /**
    * Skip a goal for the current week
