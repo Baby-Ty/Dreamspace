@@ -5,13 +5,15 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import itemService from '../services/itemService';
 import { mockDreams } from '../constants/dreamInspiration';
+import currentWeekService from '../services/currentWeekService';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 
 /**
  * Custom hook for Dream Book data management and business logic
  * Handles all state, handlers, and drag & drop for the Dream Book feature
  */
 export function useDreamBook() {
-  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, addWeeklyGoal, addWeeklyGoalsBatch, weeklyGoals, deleteWeeklyGoal } = useApp();
+  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams } = useApp();
   
   // Form and modal state
   const [editingDream, setEditingDream] = useState(null);
@@ -153,64 +155,55 @@ export function useDreamBook() {
         
         newDream.goals = [goal];
         
-        // Create weekly goal instances using the SAME pattern as Week Ahead
-        console.log('📅 Creating weekly goal instances for first goal');
-        const { getCurrentIsoWeek, getNextNWeeks } = await import('../utils/dateUtils');
+        // Add goal to currentWeek container (NEW SIMPLIFIED SYSTEM)
+        console.log('📅 Adding first goal to currentWeek container');
+        const currentWeekIso = getCurrentIsoWeek();
         
         try {
-          if (formData.firstGoal.consistency === 'weekly') {
-            // Create template for weekly recurring goals (same as Week Ahead)
-            const template = {
-              id: goalId,
-              type: 'weekly_goal_template',
-              goalType: 'consistency',
-              title: goal.title,
-              description: '',
-              dreamId: tempDreamId,
-              dreamTitle: formData.title,
-              dreamCategory: formData.category,
-              recurrence: 'weekly',
-              durationType: 'weeks', // ✅ Specify duration type
-              durationWeeks: formData.firstGoal.targetWeeks, // ✅ Use durationWeeks
-              targetWeeks: formData.firstGoal.targetWeeks, // Keep for backward compatibility
-              active: true,
-              startDate: new Date().toISOString(),
-              createdAt: new Date().toISOString()
-            };
-            
-            console.log('✨ Creating weekly recurring template:', template.id);
-            await addWeeklyGoal(template);
-            console.log('✅ Weekly template created');
-            
-          } else if (formData.firstGoal.consistency === 'monthly') {
-            // Create instances for monthly goals (same as Week Ahead)
-            const currentWeekIso = getCurrentIsoWeek();
-            const months = formData.firstGoal.targetMonths;
-            const totalWeeks = months * 4;
-            const weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
-            
-            const instances = weekIsoStrings.map(weekIso => ({
-              id: `${goalId}_${weekIso}`,
-              type: 'weekly_goal',
-              goalType: 'consistency',
-              title: goal.title,
-              description: '',
-              dreamId: tempDreamId,
-              dreamTitle: formData.title,
-              dreamCategory: formData.category,
-              recurrence: 'monthly',
-              targetMonths: months,
-              weekId: weekIso,
-              completed: false,
-              createdAt: new Date().toISOString()
-            }));
-            
-            console.log(`📅 Creating ${instances.length} monthly goal instances`);
-            await addWeeklyGoalsBatch(instances);
-            console.log('✅ Monthly instances created');
+          // Create goal instance for current week
+          const newGoalInstance = {
+            id: goalId,
+            templateId: goalId, // Self-reference for now
+            type: 'weekly_goal',
+            title: goal.title,
+            description: '',
+            dreamId: tempDreamId,
+            dreamTitle: formData.title,
+            dreamCategory: formData.category,
+            recurrence: formData.firstGoal.consistency,
+            targetWeeks: formData.firstGoal.consistency === 'weekly' ? formData.firstGoal.targetWeeks : null,
+            targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : null,
+            frequency: formData.firstGoal.consistency === 'monthly' ? 2 : null,
+            completionCount: 0,
+            completionDates: [],
+            completed: false,
+            completedAt: null,
+            skipped: false,
+            weeksRemaining: formData.firstGoal.consistency === 'weekly' ? formData.firstGoal.targetWeeks : null,
+            monthsRemaining: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : null,
+            weekId: currentWeekIso,
+            createdAt: new Date().toISOString()
+          };
+          
+          // Get existing current week goals
+          const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+          const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
+          
+          // Add new goal to current week
+          const updatedGoals = [...existingGoals, newGoalInstance];
+          const result = await currentWeekService.saveCurrentWeek(
+            currentUser.id,
+            currentWeekIso,
+            updatedGoals
+          );
+          
+          if (result.success) {
+            console.log('✅ First goal added to currentWeek successfully');
+          } else {
+            console.error('❌ Failed to add first goal to currentWeek:', result.error);
           }
         } catch (error) {
-          console.error('❌ Failed to create weekly goal instances:', error);
+          console.error('❌ Failed to create first goal:', error);
           // Continue anyway - goal is saved to dream
         }
       } else {
@@ -255,7 +248,7 @@ export function useDreamBook() {
         targetMonths: 6
       }
     });
-  }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream]);
+  }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream, currentUser]);
 
   const handleCancel = useCallback(() => {
     setIsCreating(false);
