@@ -3,9 +3,8 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
-import { getCurrentIsoWeek, parseIsoWeek } from '../utils/dateUtils';
-import { isTemplateActiveForWeek } from '../utils/templateValidation';
-import weekService from '../services/weekService';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
+import currentWeekService from '../services/currentWeekService';
 
 /**
  * Custom hook for Dashboard data management
@@ -78,23 +77,22 @@ export function useDashboardData() {
   }, [currentWeekGoals]);
 
   /**
-   * Load current week's goals from weeks container
+   * Load current week's goals from currentWeek container
    */
   const loadCurrentWeekGoals = useCallback(async () => {
     if (!currentUser?.id) return;
     
     setIsLoadingWeekGoals(true);
     const currentWeekIso = getCurrentIsoWeek();
-    const { year: isoYear } = parseIsoWeek(currentWeekIso); // Use ISO week year, not calendar year
     
     try {
-      console.log('📅 Dashboard: Loading current week goals for', currentWeekIso, '(ISO year:', isoYear, ')');
-      const weekDocResult = await weekService.getWeekGoals(currentUser.id, isoYear);
+      console.log('📅 Dashboard: Loading current week goals for', currentWeekIso);
+      const result = await currentWeekService.getCurrentWeek(currentUser.id);
       
-      if (weekDocResult.success && weekDocResult.data?.weeks?.[currentWeekIso]) {
-        const goals = weekDocResult.data.weeks[currentWeekIso].goals || [];
+      if (result.success && result.data) {
+        const goals = result.data.goals || [];
         console.log('✅ Dashboard: Loaded', goals.length, 'goals for current week');
-        setCurrentWeekGoals(goals);
+        setCurrentWeekGoals(goals.filter(g => !g.skipped)); // Filter out skipped goals
       } else {
         console.log('ℹ️ Dashboard: No goals found for current week');
         setCurrentWeekGoals([]);
@@ -114,6 +112,49 @@ export function useDashboardData() {
     const goal = currentWeekGoals.find(g => g.id === goalId);
     if (!goal) return;
     
+    // Handle monthly goals differently (increment counter)
+    if (goal.recurrence === 'monthly') {
+      const currentWeekIso = getCurrentIsoWeek();
+      
+      // Optimistic update
+      const optimisticGoals = currentWeekGoals.map(g => {
+        if (g.id === goalId) {
+          const newCount = Math.min((g.completionCount || 0) + 1, g.frequency || 1);
+          return {
+            ...g,
+            completionCount: newCount,
+            completed: newCount >= g.frequency,
+            completionDates: [...(g.completionDates || []), new Date().toISOString()]
+          };
+        }
+        return g;
+      });
+      setCurrentWeekGoals(optimisticGoals);
+      
+      // Persist to server
+      try {
+        const result = await currentWeekService.incrementMonthlyGoal(
+          currentUser.id,
+          currentWeekIso,
+          goalId,
+          currentWeekGoals
+        );
+        
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+        console.log('✅ Monthly goal incremented:', goalId);
+      } catch (error) {
+        console.error('❌ Failed to increment monthly goal, reverting:', error);
+        setCurrentWeekGoals(currentWeekGoals);
+        alert('Failed to save goal. Please try again.');
+      }
+      return;
+    }
+    
+    // Handle regular weekly goals
+    const currentWeekIso = getCurrentIsoWeek();
+    
     // 1. OPTIMISTIC UPDATE: Update UI immediately for instant feedback
     const optimisticGoals = currentWeekGoals.map(g => 
       g.id === goalId 
@@ -127,15 +168,12 @@ export function useDashboardData() {
     setCurrentWeekGoals(optimisticGoals);
     
     // 2. PERSIST TO SERVER
-    const currentWeekIso = getCurrentIsoWeek();
-    const { year: isoYear } = parseIsoWeek(currentWeekIso); // Use ISO week year
-    
     try {
-      const result = await weekService.saveWeekGoals(
-        currentUser.id, 
-        isoYear, 
-        currentWeekIso, 
-        optimisticGoals
+      const result = await currentWeekService.toggleGoalCompletion(
+        currentUser.id,
+        currentWeekIso,
+        goalId,
+        currentWeekGoals
       );
       
       if (result.success) {
@@ -320,6 +358,43 @@ export function useDashboardData() {
     });
   }, [currentUser?.id, safeWeeklyGoals.length, addWeeklyGoal, currentUser?.dreamBook]);
 
+  /**
+   * Skip a goal for the current week
+   */
+  const handleSkipGoal = useCallback(async (goalId) => {
+    const goal = currentWeekGoals.find(g => g.id === goalId);
+    if (!goal || !goal.templateId) return;
+    
+    const confirmed = confirm(
+      `Skip "${goal.title}" this week?\n\n` +
+      `This goal will reappear next week. Your progress won't be affected.`
+    );
+    
+    if (!confirmed) return;
+    
+    const currentWeekIso = getCurrentIsoWeek();
+    
+    try {
+      const result = await currentWeekService.skipGoal(
+        currentUser.id,
+        currentWeekIso,
+        goalId,
+        currentWeekGoals
+      );
+      
+      if (result.success) {
+        // Remove skipped goal from display
+        setCurrentWeekGoals(currentWeekGoals.filter(g => g.id !== goalId));
+        console.log('✅ Goal skipped for this week:', goalId);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('❌ Failed to skip goal:', error);
+      alert('Failed to skip goal. Please try again.');
+    }
+  }, [currentWeekGoals, currentUser?.id]);
+
   // Load current week goals on mount
   useEffect(() => {
     loadCurrentWeekGoals();
@@ -343,6 +418,7 @@ export function useDashboardData() {
     // Actions
     handleToggleGoal,
     handleAddGoal,
+    handleSkipGoal,
     loadCurrentWeekGoals,
 
     // Helpers
