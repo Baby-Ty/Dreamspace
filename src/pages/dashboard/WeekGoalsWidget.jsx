@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -21,6 +21,7 @@ function WeekGoalsWidget({
   dreamBook,
   isLoading,
   onToggleGoal,
+  onSkipGoal,
   onShowAddGoal,
   onHideAddGoal,
   onAddGoal,
@@ -287,6 +288,7 @@ function WeekGoalsWidget({
                       className="flex-shrink-0 mt-0.5 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-110"
                       aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
                       data-testid={`toggle-goal-${goal.id}`}
+                      disabled={goal.recurrence === 'monthly' && goal.completionCount >= goal.frequency}
                     >
                       {goal.completed ? (
                         <CheckCircle2 className="w-7 h-7 text-netsurit-red drop-shadow-sm" />
@@ -300,6 +302,29 @@ function WeekGoalsWidget({
                       }`}>
                         {goal.title}
                       </h3>
+                      
+                      {/* Monthly goal counter */}
+                      {goal.recurrence === 'monthly' && goal.frequency && (
+                        <div className="mt-2 flex items-center space-x-2">
+                          <div className="flex space-x-1">
+                            {Array.from({ length: goal.frequency }).map((_, i) => (
+                              <div
+                                key={i}
+                                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                                  i < (goal.completionCount || 0)
+                                    ? 'bg-netsurit-red shadow-sm' 
+                                    : 'bg-professional-gray-300'
+                                }`}
+                                aria-label={`Completion ${i + 1} of ${goal.frequency}`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-professional-gray-600 font-medium">
+                            {goal.completionCount || 0}/{goal.frequency} this month
+                          </span>
+                        </div>
+                      )}
+                      
                       {goal.dreamTitle && (
                         <div className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                           goal.completed 
@@ -308,6 +333,19 @@ function WeekGoalsWidget({
                         }`}>
                           {goal.dreamTitle}
                         </div>
+                      )}
+                      
+                      {/* Skip button (only for non-completed template-based goals) */}
+                      {!goal.completed && goal.templateId && onSkipGoal && (
+                        <button
+                          onClick={() => onSkipGoal(goal.id)}
+                          className="mt-2 inline-flex items-center space-x-1 text-xs text-professional-gray-500 hover:text-netsurit-red transition-colors group"
+                          aria-label="Skip this week"
+                          data-testid={`skip-goal-${goal.id}`}
+                        >
+                          <SkipForward className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                          <span className="underline decoration-dotted">Skip this week</span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -362,6 +400,8 @@ WeekGoalsWidget.propTypes = {
   isLoading: PropTypes.bool,
   /** Callback to toggle goal completion */
   onToggleGoal: PropTypes.func.isRequired,
+  /** Callback to skip goal for current week */
+  onSkipGoal: PropTypes.func,
   /** Callback to show add goal form */
   onShowAddGoal: PropTypes.func.isRequired,
   /** Callback to hide add goal form */

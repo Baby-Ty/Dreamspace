@@ -29,6 +29,7 @@ export default function DashboardLayout() {
     newGoal,
     setNewGoal,
     handleToggleGoal,
+    handleSkipGoal,
     handleAddGoal,
     loadCurrentWeekGoals,
     getCurrentWeekRange,
@@ -92,6 +93,7 @@ export default function DashboardLayout() {
           dreamBook={currentUser.dreamBook}
           isLoading={isLoadingWeekGoals}
           onToggleGoal={handleToggleGoal}
+          onSkipGoal={handleSkipGoal}
           onShowAddGoal={() => setShowAddGoal(true)}
           onHideAddGoal={handleCancelAddGoal}
           onAddGoal={handleAddGoal}
