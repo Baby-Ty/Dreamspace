@@ -11,7 +11,7 @@ import currentWeekService from '../services/currentWeekService';
  * Handles loading current week goals, stats calculation, and goal actions
  */
 export function useDashboardData() {
-  const { currentUser } = useApp();
+  const { currentUser, updateDream } = useApp();
   
   // Note: No longer using weeklyGoals, addWeeklyGoal, etc. from AppContext
   // All week operations now go through currentWeekService directly
@@ -253,6 +253,31 @@ export function useDashboardData() {
       
       console.log('✅ Goal added to currentWeek successfully');
       
+      // Also add goal to dream's goals array (so it shows in Dream view)
+      if (dreamId && selectedDream) {
+        const dreamGoal = {
+          id: goalId,
+          title: newGoal.title,
+          type: 'consistency',
+          recurrence: newGoal.consistency,
+          targetWeeks: newGoal.consistency === 'weekly' ? newGoal.targetWeeks : undefined,
+          targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : undefined,
+          startDate: new Date().toISOString(),
+          active: true,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        
+        const updatedDream = {
+          ...selectedDream,
+          goals: [...(selectedDream.goals || []), dreamGoal]
+        };
+        
+        console.log('📚 Updating dream with new goal:', dreamId);
+        await updateDream(updatedDream);
+        console.log('✅ Dream updated with goal');
+      }
+      
       // Reload goals to refresh UI
       await loadCurrentWeekGoals();
       
@@ -270,7 +295,7 @@ export function useDashboardData() {
       console.error('❌ Failed to add goal:', error);
       alert(`Failed to add goal: ${error.message}`);
     }
-  }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals]);
+  }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals, updateDream]);
 
   /**
    * Listen for goals-updated events to refresh dashboard
