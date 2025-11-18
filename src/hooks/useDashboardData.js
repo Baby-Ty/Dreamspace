@@ -11,10 +11,10 @@ import currentWeekService from '../services/currentWeekService';
  * Handles loading current week goals, stats calculation, and goal actions
  */
 export function useDashboardData() {
-  const { currentUser, weeklyGoals, addWeeklyGoal, addWeeklyGoalsBatch, toggleWeeklyGoal } = useApp();
+  const { currentUser } = useApp();
   
-  // Ensure weeklyGoals is always an array
-  const safeWeeklyGoals = Array.isArray(weeklyGoals) ? weeklyGoals : [];
+  // Note: No longer using weeklyGoals, addWeeklyGoal, etc. from AppContext
+  // All week operations now go through currentWeekService directly
   
   // State
   const [currentWeekGoals, setCurrentWeekGoals] = useState([]);
@@ -190,21 +190,18 @@ export function useDashboardData() {
   }, [currentWeekGoals, currentUser?.id]);
 
   /**
-   * Add new goal using Week Ahead pattern
+   * Add new goal directly to currentWeek container (NEW SIMPLIFIED SYSTEM)
    */
   const handleAddGoal = useCallback(async (e) => {
     e.preventDefault();
     if (!newGoal.title.trim()) return;
     
-    // Dream IDs are strings like "dream_1234567890", don't parseInt!
     const dreamId = newGoal.dreamId || null;
     const selectedDream = currentUser?.dreamBook?.find(dream => dream.id === dreamId);
-    
     const currentWeekIso = getCurrentIsoWeek();
-    const { getNextNWeeks } = await import('../utils/dateUtils');
     const goalId = `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('📝 Adding goal from dashboard:', {
+    console.log('📝 Adding goal to currentWeek container:', {
       consistency: newGoal.consistency,
       dreamId: dreamId,
       selectedDream: selectedDream?.title,
@@ -212,56 +209,51 @@ export function useDashboardData() {
     });
     
     try {
-      if (newGoal.consistency === 'weekly') {
-        // Create template for weekly recurring goals (SAME as Week Ahead)
-        const template = {
-          id: goalId,
-          type: 'weekly_goal_template',
-          goalType: 'consistency',
-          title: newGoal.title,
-          description: newGoal.description || '',
-          dreamId: dreamId,
-          dreamTitle: selectedDream?.title || '',
-          dreamCategory: selectedDream?.category || '',
-          recurrence: 'weekly',
-          targetWeeks: newGoal.targetWeeks,
-          active: true,
-          startDate: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        };
-        
-        console.log('✨ Creating weekly recurring template:', template.id);
-        await addWeeklyGoal(template);
-        console.log('✅ Weekly template created');
-        
-      } else if (newGoal.consistency === 'monthly') {
-        // Create instances for monthly goals (SAME as Week Ahead)
-        const months = newGoal.targetMonths;
-        const totalWeeks = months * 4;
-        const weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
-        
-        const instances = weekIsoStrings.map(weekIso => ({
-          id: `${goalId}_${weekIso}`,
-          type: 'weekly_goal',
-          goalType: 'consistency',
-          title: newGoal.title,
-          description: newGoal.description || '',
-          dreamId: dreamId,
-          dreamTitle: selectedDream?.title || '',
-          dreamCategory: selectedDream?.category || '',
-          recurrence: 'monthly',
-          targetMonths: months,
-          weekId: weekIso,
-          completed: false,
-          createdAt: new Date().toISOString()
-        }));
-        
-        console.log(`📅 Creating ${instances.length} monthly goal instances`);
-        await addWeeklyGoalsBatch(instances);
-        console.log('✅ Monthly instances created');
+      // Create new goal instance for current week
+      const newGoalInstance = {
+        id: goalId,
+        templateId: goalId, // Self-reference for now (will be proper template ID later)
+        type: 'weekly_goal',
+        title: newGoal.title,
+        description: newGoal.description || '',
+        dreamId: dreamId,
+        dreamTitle: selectedDream?.title || '',
+        dreamCategory: selectedDream?.category || '',
+        recurrence: newGoal.consistency, // 'weekly' or 'monthly'
+        targetWeeks: newGoal.consistency === 'weekly' ? newGoal.targetWeeks : null,
+        targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : null,
+        frequency: newGoal.consistency === 'monthly' ? 2 : null, // Default 2x per month
+        completionCount: 0,
+        completionDates: [],
+        completed: false,
+        completedAt: null,
+        skipped: false,
+        weeksRemaining: newGoal.consistency === 'weekly' ? newGoal.targetWeeks : null,
+        monthsRemaining: newGoal.consistency === 'monthly' ? newGoal.targetMonths : null,
+        weekId: currentWeekIso,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Get existing goals from current week (if any)
+      const existingGoals = currentWeekGoals || [];
+      const updatedGoals = [...existingGoals, newGoalInstance];
+      
+      console.log(`✨ Adding goal to currentWeek (total: ${updatedGoals.length})`);
+      
+      // Save directly to currentWeek container
+      const result = await currentWeekService.saveCurrentWeek(
+        currentUser.id,
+        currentWeekIso,
+        updatedGoals
+      );
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save goal');
       }
       
-      // FORCE RELOAD: Ensure we see the new goal immediately
+      console.log('✅ Goal added to currentWeek successfully');
+      
+      // Reload goals to refresh UI
       await loadCurrentWeekGoals();
       
       // Reset form
@@ -275,10 +267,10 @@ export function useDashboardData() {
       });
       setShowAddGoal(false);
     } catch (error) {
-      console.error('❌ Failed to add goal from dashboard:', error);
+      console.error('❌ Failed to add goal:', error);
       alert(`Failed to add goal: ${error.message}`);
     }
-  }, [newGoal, currentUser?.dreamBook, addWeeklyGoal, addWeeklyGoalsBatch, loadCurrentWeekGoals]);
+  }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals]);
 
   /**
    * Listen for goals-updated events to refresh dashboard
