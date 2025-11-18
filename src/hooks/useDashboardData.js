@@ -11,7 +11,7 @@ import currentWeekService from '../services/currentWeekService';
  * Handles loading current week goals, stats calculation, and goal actions
  */
 export function useDashboardData() {
-  const { currentUser, updateDream } = useApp();
+  const { currentUser, updateDream, updateGoal } = useApp();
   
   // Note: No longer using weeklyGoals, addWeeklyGoal, etc. from AppContext
   // All week operations now go through currentWeekService directly
@@ -178,16 +178,44 @@ export function useDashboardData() {
       
       if (result.success) {
         console.log('✅ Goal toggled:', goalId);
+        
+        // 3. UPDATE PARENT GOAL IN DREAM (if this is a deadline goal)
+        const toggledGoal = optimisticGoals.find(g => g.id === goalId);
+        if (toggledGoal?.dreamId && toggledGoal.type === 'deadline') {
+          console.log('📝 Updating parent goal in dream:', {
+            dreamId: toggledGoal.dreamId,
+            goalId: goalId,
+            completed: toggledGoal.completed
+          });
+          
+          // Find the parent dream
+          const parentDream = currentUser?.dreamBook?.find(d => d.id === toggledGoal.dreamId);
+          if (parentDream) {
+            // Find the parent goal
+            const parentGoal = parentDream.goals?.find(g => g.id === goalId);
+            if (parentGoal) {
+              // Update parent goal completion status to match current week goal
+              const updatedParentGoal = {
+                ...parentGoal,
+                completed: toggledGoal.completed,
+                completedAt: toggledGoal.completed ? new Date().toISOString() : null
+              };
+              
+              await updateGoal(toggledGoal.dreamId, updatedParentGoal);
+              console.log('✅ Parent goal updated:', goalId, toggledGoal.completed ? 'complete' : 'incomplete');
+            }
+          }
+        }
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
       console.error('❌ Failed to toggle goal, reverting:', error);
-      // 3. REVERT ON ERROR
+      // 4. REVERT ON ERROR
       setCurrentWeekGoals(currentWeekGoals);
       alert('Failed to save goal. Please try again.');
     }
-  }, [currentWeekGoals, currentUser?.id]);
+  }, [currentWeekGoals, currentUser?.id, currentUser?.dreamBook, updateGoal]);
 
   /**
    * Add new goal directly to currentWeek container (NEW SIMPLIFIED SYSTEM)
