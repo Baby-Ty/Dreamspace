@@ -332,7 +332,7 @@ export function useDreamTracker(dream, onUpdate) {
     }, 100);
   }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, createWeeklyEntries, currentUser.id]);
 
-  const toggleGoal = useCallback((goalId) => {
+  const toggleGoal = useCallback(async (goalId) => {
     const goal = dreamGoals.find(g => g.id === goalId);
     if (!goal) return;
     
@@ -354,9 +354,60 @@ export function useDreamTracker(dream, onUpdate) {
         completed: !goal.completed,
         completedAt: !goal.completed ? new Date().toISOString() : null 
       };
-      updateGoal(localDream.id, updatedGoal);
+      await updateGoal(localDream.id, updatedGoal);
+      
+      // SYNC WITH CURRENTWEEK CONTAINER (for deadline goals)
+      if (goal.type === 'deadline') {
+        try {
+          console.log('📝 Syncing goal completion to currentWeek:', {
+            goalId,
+            completed: updatedGoal.completed
+          });
+          
+          const currentWeekIso = getCurrentIsoWeek();
+          const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+          
+          if (currentWeekResponse.success && currentWeekResponse.data?.goals) {
+            const existingGoals = currentWeekResponse.data.goals;
+            const goalInCurrentWeek = existingGoals.find(g => g.id === goalId);
+            
+            if (goalInCurrentWeek) {
+              // Update the goal in currentWeek
+              const updatedGoals = existingGoals.map(g => 
+                g.id === goalId 
+                  ? { 
+                      ...g, 
+                      completed: updatedGoal.completed,
+                      completedAt: updatedGoal.completedAt
+                    }
+                  : g
+              );
+              
+              const result = await currentWeekService.saveCurrentWeek(
+                currentUser.id,
+                currentWeekIso,
+                updatedGoals
+              );
+              
+              if (result.success) {
+                console.log('✅ Goal synced to currentWeek successfully');
+                
+                // Trigger dashboard refresh
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('goals-updated'));
+                }, 100);
+              } else {
+                console.error('❌ Failed to sync goal to currentWeek:', result.error);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error syncing goal to currentWeek:', error);
+          // Don't fail the whole operation if this fails
+        }
+      }
     }
-  }, [dreamGoals, localDream.id, updateWeeklyGoal, updateGoal]);
+  }, [dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, currentUser.id]);
 
   const handleDeleteGoal = useCallback(async (goalId) => {
     console.log(`🗑️ Deleting goal ${goalId} from dream and all weekly goals`);
