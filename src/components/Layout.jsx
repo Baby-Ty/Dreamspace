@@ -28,7 +28,7 @@ const Layout = ({ children }) => {
   const activeNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
-    { name: 'Week Ahead', href: '/dreams-week-ahead', icon: Calendar },
+    // Week Ahead removed - current week goals now shown on Dashboard
   ];
 
   // Coming soon items (visible but disabled)

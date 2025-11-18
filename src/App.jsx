@@ -12,7 +12,7 @@ import Login from './pages/Login';
 // Lazy-loaded page routes with named chunks for better debugging
 const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard" */ './pages/Dashboard'));
 const DreamBook = lazy(() => import(/* webpackChunkName: "dream-book" */ './pages/DreamBook'));
-const DreamsWeekAhead = lazy(() => import(/* webpackChunkName: "dreams-week-ahead" */ './pages/DreamsWeekAhead'));
+// DreamsWeekAhead removed - redundant with Dashboard (simplified weeks tracking)
 const DreamConnect = lazy(() => import(/* webpackChunkName: "dream-connect" */ './pages/dream-connect/DreamConnectLayout'));
 const CareerBook = lazy(() => import(/* webpackChunkName: "career-book" */ './pages/career/CareerBookLayout'));
 const Scorecard = lazy(() => import(/* webpackChunkName: "scorecard" */ './pages/Scorecard'));
@@ -53,7 +53,7 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dream-book" element={<DreamBook />} />
-              <Route path="/dreams-week-ahead" element={<DreamsWeekAhead />} />
+              {/* /dreams-week-ahead removed - redundant with Dashboard */}
               <Route path="/dream-connect" element={<DreamConnect />} />
               <Route path="/career-book" element={<CareerBook />} />
               <Route path="/scorecard" element={<Scorecard />} />
