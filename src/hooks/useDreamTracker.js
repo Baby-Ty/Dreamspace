@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { getCurrentIsoWeek, getNextNWeeks } from '../utils/dateUtils';
+import currentWeekService from '../services/currentWeekService';
 
 /**
  * Custom hook for Dream Tracker modal state management
@@ -240,6 +241,7 @@ export function useDreamTracker(dream, onUpdate) {
     if (!newGoalData.title.trim()) return;
     
     const nowIso = new Date().toISOString();
+    const currentWeekIso = getCurrentIsoWeek();
     const goal = {
       id: `goal_${Date.now()}`,
       title: newGoalData.title.trim(),
@@ -259,10 +261,61 @@ export function useDreamTracker(dream, onUpdate) {
     
     await addGoal(localDream.id, goal);
     
+    // Also add to currentWeek container (so it shows on Dashboard)
+    try {
+      console.log('📅 Adding goal to currentWeek container');
+      
+      const currentWeekGoal = {
+        id: goal.id,
+        templateId: goal.id, // Self-reference for now
+        type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
+        title: goal.title,
+        description: goal.description || '',
+        dreamId: localDream.id,
+        dreamTitle: localDream.title,
+        dreamCategory: localDream.category,
+        recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
+        targetWeeks: goal.targetWeeks,
+        targetMonths: goal.targetMonths,
+        targetDate: goal.targetDate,
+        frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' ? 2 : null,
+        completionCount: 0,
+        completionDates: [],
+        completed: false,
+        completedAt: null,
+        skipped: false,
+        weeksRemaining: goal.targetWeeks || null,
+        monthsRemaining: goal.targetMonths || null,
+        weekId: currentWeekIso,
+        createdAt: nowIso
+      };
+      
+      // Get existing goals from current week
+      const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+      const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
+      
+      // Add new goal to current week
+      const updatedGoals = [...existingGoals, currentWeekGoal];
+      const result = await currentWeekService.saveCurrentWeek(
+        currentUser.id,
+        currentWeekIso,
+        updatedGoals
+      );
+      
+      if (result.success) {
+        console.log('✅ Goal added to currentWeek successfully');
+      } else {
+        console.error('❌ Failed to add goal to currentWeek:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error adding goal to currentWeek:', error);
+      // Don't fail the whole operation if this fails
+    }
+    
     setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
     setIsAddingGoal(false);
     
-    // Create weekly entries using the SAME pattern as Week Ahead
+    // Create weekly entries using the SAME pattern as Week Ahead (legacy system)
     if (goal.type === 'consistency' || goal.type === 'deadline') {
       try {
         await createWeeklyEntries(goal);
@@ -272,7 +325,12 @@ export function useDreamTracker(dream, onUpdate) {
         alert(`Goal was created but failed to create weekly entries: ${error.message}. Please try editing the goal to regenerate entries.`);
       }
     }
-  }, [newGoalData, localDream.id, addGoal, createWeeklyEntries]);
+    
+    // Trigger dashboard refresh
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('goals-updated'));
+    }, 100);
+  }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, createWeeklyEntries, currentUser.id]);
 
   const toggleGoal = useCallback((goalId) => {
     const goal = dreamGoals.find(g => g.id === goalId);
