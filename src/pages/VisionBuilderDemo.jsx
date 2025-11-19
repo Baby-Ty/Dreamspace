@@ -1257,32 +1257,16 @@ const VisionBuilderDemo = () => {
                 
                 console.log('✅ All dreams saved successfully to Cosmos DB with templates!');
                 
-                // ✅ FIX: Bulk instantiate weekly templates to create instances
+                // ✅ Templates saved - weekly rollover will create instances automatically
+                // Note: The new architecture uses automatic weekly rollover to create goal instances
+                // from templates stored in the dreams container. Users can also manually add goals
+                // from the Dashboard.
                 if (templates.length > 0) {
-                  console.log('🚀 Bulk instantiating weekly templates:', templates.length);
-                  const weekService = (await import('../services/weekService')).default;
-                  
-                  // Map templates to format expected by bulkInstantiateTemplates API
-                  const templatesForAPI = templates.map(t => ({
-                    ...t,
-                    durationType: t.targetWeeks ? 'weeks' : 'unlimited',
-                    durationWeeks: t.targetWeeks || 52
-                  }));
-                  
-                  const instantiateResult = await weekService.bulkInstantiateTemplates(
-                    userId,
-                    templatesForAPI
-                  );
-                  
-                  if (instantiateResult.success) {
-                    console.log('✅ Weekly templates instantiated successfully:', instantiateResult.data);
-                  } else {
-                    console.error('❌ Failed to bulk instantiate templates:', instantiateResult.error);
-                  }
+                  console.log(`✅ ${templates.length} weekly goal templates saved - will be instantiated by rollover process`);
                 }
                 
                 // Create weekly goal INSTANCES for monthly and deadline goals
-                // Note: Weekly templates are now instantiated above
+                // Note: These are handled by the weekly rollover process in the new architecture
                 for (const dream of dreamsForApp) {
                   if (!dream.goals || dream.goals.length === 0) {
                     continue;
