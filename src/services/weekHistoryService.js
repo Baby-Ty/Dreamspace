@@ -4,9 +4,10 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { logger } from '../utils/logger.js';
-import { env } from '../utils/env.js';
 
-const API_BASE_URL = env.VITE_API_BASE_URL;
+// Use direct function app URL on live site (same pattern as other services)
+const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+const API_BASE_URL = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
 
 /**
  * Week History Service
