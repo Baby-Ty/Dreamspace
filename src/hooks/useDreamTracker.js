@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { getCurrentIsoWeek, getNextNWeeks } from '../utils/dateUtils';
+import { getCurrentIsoWeek, getNextNWeeks, getWeeksUntilDate, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
 
 /**
@@ -17,16 +17,27 @@ export function useDreamTracker(dream, onUpdate) {
     addGoal, 
     updateGoal, 
     deleteGoal,
-    addWeeklyGoal,
-    addWeeklyGoalsBatch,
     weeklyGoals,
     updateWeeklyGoal,
     deleteWeeklyGoal
   } = useApp();
   
-  // Get templates for this dream from weeklyGoals + legacy goals from dream.goals
+  // Tab state
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Dream state - MUST be initialized before dreamGoals useMemo
+  const [localDream, setLocalDream] = useState({
+    ...dream,
+    goals: dream.goals || [],
+    notes: dream.notes || [],
+    history: dream.history || []
+  });
+  
+  // Get templates for this dream from weeklyGoals + legacy goals from localDream.goals
+  // Use localDream.goals instead of dream.goals to reflect immediate UI updates
+  // NOTE: This must be AFTER localDream is initialized
   const dreamGoals = useMemo(() => {
-    console.log(`🔍 [useDreamTracker] Loading goals for dream "${dream.title}" (${dream.id})`);
+    console.log(`🔍 [useDreamTracker] Loading goals for dream "${localDream.title}" (${localDream.id})`);
     
     // Source 1: Templates from weeklyGoals (new way)
     // ✅ Match by dreamId (preferred) OR dreamTitle (fallback)
@@ -34,8 +45,8 @@ export function useDreamTracker(dream, onUpdate) {
       if (g.type !== 'weekly_goal_template') return false;
       
       // Match by dreamId (preferred) OR dreamTitle (fallback)
-      const matchesId = g.dreamId === dream.id;
-      const matchesTitle = g.dreamTitle === dream.title;
+      const matchesId = g.dreamId === localDream.id;
+      const matchesTitle = g.dreamTitle === localDream.title;
       
       if (matchesId) {
         console.log(`  ✅ Template "${g.title}" matches by dreamId (${g.dreamId})`);
@@ -51,10 +62,11 @@ export function useDreamTracker(dream, onUpdate) {
       return false;
     });
     
-    // Source 2: Legacy goals from dream.goals array (old way + non-template goals)
-    const legacyGoals = (dream.goals || []).filter(g => g && g.id);
+    // Source 2: Legacy goals from localDream.goals array (old way + non-template goals)
+    // Use localDream.goals to reflect immediate state changes
+    const legacyGoals = (localDream.goals || []).filter(g => g && g.id);
     
-    // Source 3: Check if any templates are missing from weeklyGoals but exist in dream.goals
+    // Source 3: Check if any templates are missing from weeklyGoals but exist in localDream.goals
     // This handles cases where goal was created but template wasn't properly saved
     
     // Combine all sources, removing duplicates by ID
@@ -64,8 +76,8 @@ export function useDreamTracker(dream, onUpdate) {
     const combined = [...templates, ...uniqueLegacyGoals];
     
     console.log(`  📊 Goal loading summary:`, {
-      dreamId: dream.id,
-      dreamTitle: dream.title,
+      dreamId: localDream.id,
+      dreamTitle: localDream.title,
       templatesFound: templates.length,
       legacyGoalsFound: legacyGoals.length,
       uniqueLegacyGoals: uniqueLegacyGoals.length,
@@ -82,18 +94,7 @@ export function useDreamTracker(dream, onUpdate) {
     }
     
     return combined;
-  }, [weeklyGoals, dream.id, dream.goals, dream.title]);
-
-  // Tab state
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Dream state
-  const [localDream, setLocalDream] = useState({
-    ...dream,
-    goals: dream.goals || [],
-    notes: dream.notes || [],
-    history: dream.history || []
-  });
+  }, [weeklyGoals, localDream.id, localDream.goals, localDream.title]);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Note state
@@ -146,95 +147,8 @@ export function useDreamTracker(dream, onUpdate) {
     handleProgressChange(newProgress);
   }, [localDream.progress, handleProgressChange]);
 
-  // Weekly entries creation - SAME pattern as Week Ahead
-  const createWeeklyEntries = useCallback(async (goal) => {
-    const currentWeekIso = getCurrentIsoWeek();
-    
-    console.log(`📅 Creating weekly entries using Week Ahead pattern for goal "${goal.title}"`);
-    
-    try {
-      if (goal.type === 'consistency' && goal.recurrence === 'weekly') {
-        // Create template for weekly recurring goals (SAME as Week Ahead)
-        const template = {
-          id: goal.id,
-          type: 'weekly_goal_template',
-          goalType: 'consistency',
-          title: goal.title,
-          description: goal.description || '',
-          dreamId: localDream.id,
-          dreamTitle: localDream.title,
-          dreamCategory: localDream.category,
-          recurrence: 'weekly',
-          targetWeeks: goal.targetWeeks,
-          active: true,
-          startDate: goal.startDate || new Date().toISOString(),
-          createdAt: goal.createdAt || new Date().toISOString()
-        };
-        
-        console.log('✨ Creating weekly recurring template:', template.id);
-        await addWeeklyGoal(template);
-        console.log('✅ Weekly template created');
-        
-      } else if (goal.type === 'consistency' && goal.recurrence === 'monthly') {
-        // Create instances for monthly goals (SAME as Week Ahead)
-        const months = goal.targetMonths || 6;
-        const totalWeeks = months * 4;
-        const weekIsoStrings = getNextNWeeks(currentWeekIso, totalWeeks);
-        
-        const instances = weekIsoStrings.map(weekIso => ({
-          id: `${goal.id}_${weekIso}`,
-          type: 'weekly_goal',
-          goalType: 'consistency',
-          goalId: goal.id,
-          title: goal.title,
-          description: goal.description || '',
-          dreamId: localDream.id,
-          dreamTitle: localDream.title,
-          dreamCategory: localDream.category,
-          recurrence: 'monthly',
-          targetMonths: months,
-          weekId: weekIso,
-          completed: false,
-          createdAt: new Date().toISOString()
-        }));
-        
-        console.log(`📅 Creating ${instances.length} monthly goal instances`);
-        await addWeeklyGoalsBatch(instances);
-        console.log('✅ Monthly instances created');
-        
-      } else if (goal.type === 'deadline' && goal.targetDate) {
-        // Create instances for deadline goals (SAME as Week Ahead)
-        const targetDate = new Date(goal.targetDate);
-        const currentDate = new Date();
-        const daysUntilDeadline = Math.ceil((targetDate - currentDate) / (1000 * 60 * 60 * 24));
-        const weeksUntilDeadline = Math.ceil(daysUntilDeadline / 7);
-        const weekIsoStrings = getNextNWeeks(currentWeekIso, Math.max(1, weeksUntilDeadline));
-        
-        const instances = weekIsoStrings.map(weekIso => ({
-          id: `${goal.id}_${weekIso}`,
-          type: 'deadline',
-          goalType: 'deadline',
-          goalId: goal.id,
-          title: goal.title,
-          description: goal.description || '',
-          dreamId: localDream.id,
-          dreamTitle: localDream.title,
-          dreamCategory: localDream.category,
-          targetDate: goal.targetDate,
-          weekId: weekIso,
-          completed: false,
-          createdAt: new Date().toISOString()
-        }));
-        
-        console.log(`📅 Creating ${instances.length} deadline goal instances`);
-        await addWeeklyGoalsBatch(instances);
-        console.log('✅ Deadline instances created');
-      }
-    } catch (error) {
-      console.error('❌ Failed to create weekly entries:', error);
-      throw error;
-    }
-  }, [currentUser, localDream, addWeeklyGoal, addWeeklyGoalsBatch]);
+  // NOTE: createWeeklyEntries() removed - no longer needed.
+  // Dashboard auto-instantiation reads from dream.goals[] and handles instances automatically.
 
   // Goal handlers
   const handleAddGoal = useCallback(async () => {
@@ -242,6 +156,24 @@ export function useDreamTracker(dream, onUpdate) {
     
     const nowIso = new Date().toISOString();
     const currentWeekIso = getCurrentIsoWeek();
+    
+    // Calculate targetWeeks and weeksRemaining for goals
+    // For deadline goals: convert targetDate to targetWeeks
+    let targetWeeks, weeksRemaining;
+    if (newGoalData.type === 'deadline' && newGoalData.targetDate) {
+      targetWeeks = dateToWeeks(newGoalData.targetDate, currentWeekIso);
+      weeksRemaining = targetWeeks; // Initialize with targetWeeks
+    } else if (newGoalData.type === 'consistency' && newGoalData.recurrence === 'weekly') {
+      targetWeeks = parseInt(newGoalData.targetWeeks);
+      weeksRemaining = targetWeeks;
+    } else if (newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly') {
+      targetWeeks = monthsToWeeks(parseInt(newGoalData.targetMonths));
+      weeksRemaining = targetWeeks;
+    } else {
+      targetWeeks = undefined;
+      weeksRemaining = undefined;
+    }
+    
     const goal = {
       id: `goal_${Date.now()}`,
       title: newGoalData.title.trim(),
@@ -249,88 +181,34 @@ export function useDreamTracker(dream, onUpdate) {
       completed: false,
       type: newGoalData.type,
       recurrence: newGoalData.type === 'consistency' ? newGoalData.recurrence : undefined,
-      targetWeeks: newGoalData.type === 'consistency' && newGoalData.recurrence === 'weekly' ? parseInt(newGoalData.targetWeeks) : undefined,
+      targetWeeks: targetWeeks, // All goal types now use targetWeeks
       targetMonths: newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly' ? parseInt(newGoalData.targetMonths) : undefined,
       startDate: newGoalData.startDate || nowIso,
+      // targetDate is kept for backward compatibility but targetWeeks is the source of truth
       targetDate: newGoalData.type === 'deadline' ? newGoalData.targetDate : undefined,
+      weeksRemaining: weeksRemaining,
       active: true,
       createdAt: nowIso
     };
     
     console.log('📝 Adding goal to dream:', goal);
     
+    // Add goal to dream.goals[] array - this is the single source of truth
+    // Dashboard auto-instantiation will read from dream.goals[] to create weekly instances
     await addGoal(localDream.id, goal);
-    
-    // Also add to currentWeek container (so it shows on Dashboard)
-    try {
-      console.log('📅 Adding goal to currentWeek container');
-      
-      const currentWeekGoal = {
-        id: goal.id,
-        templateId: goal.id, // Self-reference for now
-        type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
-        title: goal.title,
-        description: goal.description || '',
-        dreamId: localDream.id,
-        dreamTitle: localDream.title,
-        dreamCategory: localDream.category,
-        recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
-        targetWeeks: goal.targetWeeks,
-        targetMonths: goal.targetMonths,
-        targetDate: goal.targetDate,
-        frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' ? 2 : null,
-        completionCount: 0,
-        completionDates: [],
-        completed: false,
-        completedAt: null,
-        skipped: false,
-        weeksRemaining: goal.targetWeeks || null,
-        monthsRemaining: goal.targetMonths || null,
-        weekId: currentWeekIso,
-        createdAt: nowIso
-      };
-      
-      // Get existing goals from current week
-      const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
-      const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
-      
-      // Add new goal to current week
-      const updatedGoals = [...existingGoals, currentWeekGoal];
-      const result = await currentWeekService.saveCurrentWeek(
-        currentUser.id,
-        currentWeekIso,
-        updatedGoals
-      );
-      
-      if (result.success) {
-        console.log('✅ Goal added to currentWeek successfully');
-      } else {
-        console.error('❌ Failed to add goal to currentWeek:', result.error);
-      }
-    } catch (error) {
-      console.error('❌ Error adding goal to currentWeek:', error);
-      // Don't fail the whole operation if this fails
-    }
     
     setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
     setIsAddingGoal(false);
     
-    // Create weekly entries using the SAME pattern as Week Ahead (legacy system)
-    if (goal.type === 'consistency' || goal.type === 'deadline') {
-      try {
-        await createWeeklyEntries(goal);
-        console.log('✅ Successfully created weekly entries');
-      } catch (error) {
-        console.error('❌ Failed to create weekly entries:', error);
-        alert(`Goal was created but failed to create weekly entries: ${error.message}. Please try editing the goal to regenerate entries.`);
-      }
-    }
+    // NOTE: No need to manually create weekly entries or add to currentWeek.
+    // Dashboard auto-instantiation (useDashboardData.js) reads from dream.goals[]
+    // and automatically creates instances for the current week.
     
     // Trigger dashboard refresh
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('goals-updated'));
     }, 100);
-  }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, createWeeklyEntries, currentUser.id]);
+  }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, currentUser.id]);
 
   const toggleGoal = useCallback(async (goalId) => {
     const goal = dreamGoals.find(g => g.id === goalId);
@@ -349,39 +227,136 @@ export function useDreamTracker(dream, onUpdate) {
       updateWeeklyGoal(updatedGoal);
     } else {
       // Legacy goals use 'completed' field
+      const isCompleting = !goal.completed;
       const updatedGoal = { 
         ...goal, 
-        completed: !goal.completed,
-        completedAt: !goal.completed ? new Date().toISOString() : null 
+        completed: isCompleting,
+        completedAt: isCompleting ? new Date().toISOString() : null,
+        // For deadline goals: when unchecking (marking incomplete), reactivate it
+        // This ensures it will appear in future week rollovers
+        active: goal.type === 'deadline' 
+          ? (isCompleting ? false : true)  // Set inactive when completing, active when uncompleting
+          : goal.active  // Keep existing active state for consistency goals
       };
+      
+      // If unchecking a deadline goal, recalculate weeksRemaining if it was -1
+      if (goal.type === 'deadline' && !isCompleting && goal.weeksRemaining === -1) {
+        const currentWeekIso = getCurrentIsoWeek();
+        if (goal.targetDate) {
+          // Recalculate weeksRemaining from targetDate
+          updatedGoal.weeksRemaining = getWeeksUntilDate(goal.targetDate, currentWeekIso);
+        } else if (goal.targetWeeks !== undefined) {
+          // Use targetWeeks as fallback
+          updatedGoal.weeksRemaining = goal.targetWeeks;
+        }
+        console.log(`🔄 Reactivating deadline goal "${goal.title}" - recalculated weeksRemaining: ${updatedGoal.weeksRemaining}`);
+      }
+      
+      // OPTIMISTIC UPDATE: Update local state immediately for instant UI feedback
+      const updatedLocalDream = {
+        ...localDream,
+        goals: (localDream.goals || []).map(g => 
+          g.id === goalId ? updatedGoal : g
+        )
+      };
+      setLocalDream(updatedLocalDream);
+      
       await updateGoal(localDream.id, updatedGoal);
       
-      // SYNC WITH CURRENTWEEK CONTAINER (for deadline goals)
-      if (goal.type === 'deadline') {
-        try {
-          console.log('📝 Syncing goal completion to currentWeek:', {
-            goalId,
-            completed: updatedGoal.completed
-          });
+      // SYNC WITH CURRENTWEEK CONTAINER (for all goal types)
+      // Goals in currentWeek can be matched by:
+      // 1. Exact ID match (for deadline goals: goalId)
+      // 2. TemplateId match (for consistency goals: goalId is the templateId)
+      // 3. ID pattern match (goalId_weekId format)
+      try {
+        console.log('📝 Syncing goal completion to currentWeek:', {
+          goalId,
+          goalType: goal.type,
+          completed: updatedGoal.completed
+        });
+        
+        const currentWeekIso = getCurrentIsoWeek();
+        const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+        
+        if (currentWeekResponse.success && currentWeekResponse.data?.goals) {
+          const existingGoals = currentWeekResponse.data.goals;
           
-          const currentWeekIso = getCurrentIsoWeek();
-          const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+          // Try multiple matching strategies
+          let goalInCurrentWeek = existingGoals.find(g => 
+            g.id === goalId || // Exact match (deadline goals)
+            g.templateId === goalId || // TemplateId match (consistency goals)
+            g.id === `${goalId}_${currentWeekIso}` // Pattern match (goalId_weekId)
+          );
           
-          if (currentWeekResponse.success && currentWeekResponse.data?.goals) {
-            const existingGoals = currentWeekResponse.data.goals;
-            const goalInCurrentWeek = existingGoals.find(g => g.id === goalId);
+          if (goalInCurrentWeek) {
+            console.log('✅ Found goal in currentWeek:', {
+              foundId: goalInCurrentWeek.id,
+              templateId: goalInCurrentWeek.templateId,
+              currentCompleted: goalInCurrentWeek.completed,
+              newCompleted: updatedGoal.completed
+            });
             
-            if (goalInCurrentWeek) {
-              // Update the goal in currentWeek
-              const updatedGoals = existingGoals.map(g => 
-                g.id === goalId 
-                  ? { 
-                      ...g, 
-                      completed: updatedGoal.completed,
-                      completedAt: updatedGoal.completedAt
-                    }
-                  : g
-              );
+            // Update the goal in currentWeek
+            const updatedGoals = existingGoals.map(g => {
+              const isMatch = g.id === goalId || 
+                            g.templateId === goalId || 
+                            g.id === `${goalId}_${currentWeekIso}`;
+              
+              if (isMatch) {
+                return { 
+                  ...g, 
+                  completed: updatedGoal.completed,
+                  completedAt: updatedGoal.completedAt
+                };
+              }
+              return g;
+            });
+            
+            const result = await currentWeekService.saveCurrentWeek(
+              currentUser.id,
+              currentWeekIso,
+              updatedGoals
+            );
+            
+            if (result.success) {
+              console.log('✅ Goal synced to currentWeek successfully');
+              
+              // Trigger dashboard refresh
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('goals-updated'));
+              }, 100);
+            } else {
+              console.error('❌ Failed to sync goal to currentWeek:', result.error);
+            }
+          } else {
+            // Goal not found in currentWeek - might be a deadline goal that was completed
+            // If unchecking a deadline goal, we should create it in currentWeek for immediate visibility
+            if (goal.type === 'deadline' && !isCompleting) {
+              console.log('📝 Deadline goal not in currentWeek - creating instance for immediate visibility');
+              
+              const currentWeekIso = getCurrentIsoWeek();
+              const currentWeekGoal = {
+                id: `${goalId}_${currentWeekIso}`,
+                templateId: goalId,
+                type: 'deadline',
+                title: goal.title,
+                description: goal.description || '',
+                dreamId: localDream.id,
+                dreamTitle: localDream.title,
+                dreamCategory: localDream.category,
+                targetWeeks: updatedGoal.targetWeeks,
+                targetDate: updatedGoal.targetDate,
+                weeksRemaining: updatedGoal.weeksRemaining,
+                completed: false,
+                completedAt: null,
+                skipped: false,
+                weekId: currentWeekIso,
+                createdAt: new Date().toISOString()
+              };
+              
+              const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+              const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
+              const updatedGoals = [...existingGoals, currentWeekGoal];
               
               const result = await currentWeekService.saveCurrentWeek(
                 currentUser.id,
@@ -390,21 +365,23 @@ export function useDreamTracker(dream, onUpdate) {
               );
               
               if (result.success) {
-                console.log('✅ Goal synced to currentWeek successfully');
-                
-                // Trigger dashboard refresh
+                console.log('✅ Created deadline goal instance in currentWeek');
                 setTimeout(() => {
                   window.dispatchEvent(new CustomEvent('goals-updated'));
                 }, 100);
-              } else {
-                console.error('❌ Failed to sync goal to currentWeek:', result.error);
               }
+            } else {
+              console.log('⚠️ Goal not found in currentWeek, may need to be instantiated:', {
+                goalId,
+                goalType: goal.type,
+                currentWeekGoals: existingGoals.map(g => ({ id: g.id, templateId: g.templateId }))
+              });
             }
           }
-        } catch (error) {
-          console.error('❌ Error syncing goal to currentWeek:', error);
-          // Don't fail the whole operation if this fails
         }
+      } catch (error) {
+        console.error('❌ Error syncing goal to currentWeek:', error);
+        // Don't fail the whole operation if this fails
       }
     }
   }, [dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, currentUser.id]);
@@ -476,16 +453,38 @@ export function useDreamTracker(dream, onUpdate) {
     
     const isTemplate = goal.type === 'weekly_goal_template';
     
+    const currentWeekIso = getCurrentIsoWeek();
+    
+    // Recalculate targetWeeks and weeksRemaining for goals
+    // For deadline goals: convert targetDate to targetWeeks
+    let targetWeeks, weeksRemaining;
+    if (goalEditData.type === 'deadline' && goalEditData.targetDate) {
+      targetWeeks = dateToWeeks(goalEditData.targetDate, currentWeekIso);
+      weeksRemaining = targetWeeks; // Use targetWeeks as weeksRemaining
+    } else if (goalEditData.type === 'consistency' && goalEditData.recurrence === 'weekly') {
+      targetWeeks = parseInt(goalEditData.targetWeeks);
+      weeksRemaining = targetWeeks;
+    } else if (goalEditData.type === 'consistency' && goalEditData.recurrence === 'monthly') {
+      targetWeeks = monthsToWeeks(parseInt(goalEditData.targetMonths));
+      weeksRemaining = targetWeeks;
+    } else {
+      // Keep existing values if type didn't change
+      targetWeeks = goal.targetWeeks;
+      weeksRemaining = goal.weeksRemaining;
+    }
+    
     const updatedGoal = {
       ...goal,
       title: goalEditData.title.trim(),
       description: goalEditData.description.trim(),
       type: goalEditData.type,
       recurrence: goalEditData.type === 'consistency' ? goalEditData.recurrence : undefined,
-      targetWeeks: goalEditData.type === 'consistency' && goalEditData.recurrence === 'weekly' ? parseInt(goalEditData.targetWeeks) : undefined,
+      targetWeeks: targetWeeks, // All goal types now use targetWeeks
       targetMonths: goalEditData.type === 'consistency' && goalEditData.recurrence === 'monthly' ? parseInt(goalEditData.targetMonths) : undefined,
       startDate: goalEditData.startDate,
+      // targetDate is kept for backward compatibility but targetWeeks is the source of truth
       targetDate: goalEditData.type === 'deadline' ? goalEditData.targetDate : undefined,
+      weeksRemaining: weeksRemaining,
       updatedAt: new Date().toISOString()
     };
 
@@ -498,17 +497,11 @@ export function useDreamTracker(dream, onUpdate) {
     }
 
     // Re-create weekly entries if needed
-    if (updatedGoal.type === 'consistency' || updatedGoal.type === 'deadline') {
-      console.log('📅 Re-creating weekly entries after goal update');
-      try {
-        await createWeeklyEntries(updatedGoal);
-      } catch (error) {
-        console.error('❌ Failed to recreate weekly entries:', error);
-      }
-    }
+    // NOTE: No need to recreate weekly entries manually.
+    // Dashboard auto-instantiation reads from dream.goals[] and handles instances automatically.
 
     cancelEditingGoal();
-  }, [goalEditData, editingGoal, dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, createWeeklyEntries, cancelEditingGoal]);
+  }, [goalEditData, editingGoal, dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, cancelEditingGoal]);
 
   // Note handlers
   const addNote = useCallback(() => {

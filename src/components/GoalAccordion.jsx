@@ -60,17 +60,26 @@ function GoalAccordion({
 
   const consistencyProgress = getConsistencyProgress();
   
-  // Calculate days until deadline
-  const getDaysUntilDeadline = () => {
+  // Calculate weeks until deadline (use weeksRemaining if available, otherwise calculate)
+  const getWeeksUntilDeadline = () => {
     if (!isDeadline || !goal.targetDate) return null;
+    
+    // Use weeksRemaining if available (from currentWeek container)
+    if (goal.weeksRemaining !== undefined) {
+      return goal.weeksRemaining;
+    }
+    
+    // Fallback: calculate from targetDate (for dream goals)
+    // Import getWeeksUntilDate if needed, or calculate inline
     const target = new Date(goal.targetDate);
     const now = new Date();
     const diffTime = target - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    const diffWeeks = Math.ceil(diffDays / 7);
+    return diffWeeks < 0 ? -1 : diffWeeks;
   };
 
-  const daysUntilDeadline = getDaysUntilDeadline();
+  const weeksUntilDeadline = getWeeksUntilDeadline();
   
   // If editing, show edit form
   if (isEditing) {
@@ -261,16 +270,20 @@ function GoalAccordion({
                         {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     )}
-                    {daysUntilDeadline !== null && (
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        daysUntilDeadline < 0 ? 'bg-red-100 text-red-700' :
-                        daysUntilDeadline < 7 ? 'bg-orange-100 text-orange-700' :
+                    {weeksUntilDeadline !== null && (
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center space-x-1 ${
+                        weeksUntilDeadline < 0 ? 'bg-red-100 text-red-700' :
+                        weeksUntilDeadline === 0 ? 'bg-orange-100 text-orange-700' :
+                        weeksUntilDeadline === 1 ? 'bg-netsurit-coral/20 text-netsurit-coral' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {daysUntilDeadline < 0 ? `${Math.abs(daysUntilDeadline)} days overdue` :
-                         daysUntilDeadline === 0 ? 'Due today!' :
-                         daysUntilDeadline === 1 ? '1 day left' :
-                         `${daysUntilDeadline} days left`}
+                        <Clock className="w-3 h-3" aria-hidden="true" />
+                        <span>
+                          {weeksUntilDeadline < 0 ? 'Past deadline' :
+                           weeksUntilDeadline === 0 ? 'Due this week!' :
+                           weeksUntilDeadline === 1 ? '1 week left' :
+                           `${weeksUntilDeadline} weeks left`}
+                        </span>
                       </span>
                     )}
                   </>

@@ -276,6 +276,108 @@ export function groupWeekIdsByYear(weekIds) {
   return grouped;
 }
 
+/**
+ * Convert months to weeks (approximately 4.33 weeks per month)
+ * Used to convert monthly goals to weeks for unified tracking
+ * @param {number} months - Number of months to convert
+ * @returns {number} Number of weeks (rounded up)
+ * @example
+ * monthsToWeeks(6) // 26 (6 * 4.33 = 25.98, rounded up to 26)
+ */
+export function monthsToWeeks(months) {
+  // Average: 4.33 weeks per month (52 weeks / 12 months)
+  return Math.ceil(months * 4.33);
+}
+
+/**
+ * Convert target date to target weeks (weeks from current week to target date)
+ * Used to convert deadline goals to weeks for unified tracking
+ * @param {string} targetDate - ISO date string (e.g., "2025-12-19")
+ * @param {string} [currentWeekIso] - Current week ID (optional, defaults to now)
+ * @returns {number} Number of weeks (rounded up, -1 if past deadline)
+ * @example
+ * dateToWeeks("2025-12-19", "2025-W47") // 5
+ */
+export function dateToWeeks(targetDate, currentWeekIso = null) {
+  return getWeeksUntilDate(targetDate, currentWeekIso);
+}
+
+/**
+ * Format a date as a short week range string
+ * @param {string|Date} date - Date string or Date object
+ * @returns {string} Formatted string (e.g., "Oct 6-12" or "Nov 11-17")
+ * @example
+ * formatWeekRange("2025-10-06") // "Oct 6-12"
+ */
+export function formatWeekRange(date) {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Get the week range
+  const isoWeek = getIsoWeek(d);
+  const { start, end } = getWeekRange(isoWeek);
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const startMonth = monthNames[start.getMonth()];
+  const endMonth = monthNames[end.getMonth()];
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  
+  // If same month, show "Oct 6-12"
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay}-${endDay}`;
+  }
+  
+  // If different months, show "Oct 28-Nov 3"
+  return `${startMonth} ${startDay}-${endMonth} ${endDay}`;
+}
+
+/**
+ * Calculate number of weeks between current week and target date
+ * Similar to getMonthsRemaining but for weeks
+ * @param {string} targetDate - ISO date string (e.g., "2025-12-31")
+ * @param {string} [currentWeekIso] - Current week ID (optional, defaults to now)
+ * @returns {number} Weeks remaining (0 or positive, -1 if past deadline)
+ * @example
+ * getWeeksUntilDate("2025-12-31", "2025-W47") // 7
+ * getWeeksUntilDate("2025-11-15", "2025-W47") // -1 (past deadline)
+ */
+export function getWeeksUntilDate(targetDate, currentWeekIso = null) {
+  if (!targetDate) return -1;
+  
+  const target = new Date(targetDate);
+  if (isNaN(target.getTime())) {
+    console.warn('Invalid targetDate:', targetDate);
+    return -1;
+  }
+  
+  const weekIso = currentWeekIso || getCurrentIsoWeek();
+  const { start: currentWeekStart } = getWeekRange(weekIso);
+  
+  // Calculate days difference (round up to include partial weeks)
+  const daysDiff = Math.ceil((target - currentWeekStart) / (1000 * 60 * 60 * 24));
+  
+  // Convert to weeks (round up to include partial weeks)
+  // This ensures a goal due on Friday still shows as "due this week" on Monday
+  const weeksDiff = Math.ceil(daysDiff / 7);
+  
+  // Return -1 if deadline has passed, otherwise return weeks remaining
+  return weeksDiff < 0 ? -1 : weeksDiff;
+}
+
+/**
+ * Check if a deadline goal should still be shown
+ * @param {string} targetDate - ISO date string
+ * @param {string} [currentWeekIso] - Current week ID (optional, defaults to now)
+ * @returns {boolean} True if deadline is in future or current week
+ * @example
+ * isDeadlineActive("2025-12-31", "2025-W47") // true
+ * isDeadlineActive("2025-11-15", "2025-W47") // false (past deadline)
+ */
+export function isDeadlineActive(targetDate, currentWeekIso = null) {
+  const weeksRemaining = getWeeksUntilDate(targetDate, currentWeekIso);
+  return weeksRemaining >= 0;
+}
+
 export const dateUtils = {
   getIsoWeek,
   getCurrentIsoWeek,
@@ -284,9 +386,12 @@ export const dateUtils = {
   isMilestoneComplete,
   formatIsoWeek,
   getWeekRange,
+  formatWeekRange,
   getNextNWeeks,
   getAllWeeksForYear,
   calculateWeekInstancesForDuration,
-  groupWeekIdsByYear
+  groupWeekIdsByYear,
+  getWeeksUntilDate,
+  isDeadlineActive
 };
 

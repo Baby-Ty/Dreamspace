@@ -14,11 +14,14 @@ export const GoalSchema = z.object({
   type: z.enum(['consistency', 'deadline']).default('consistency'),
   // For consistency goals
   recurrence: z.enum(['weekly', 'monthly']).optional(),
-  targetWeeks: z.number().optional(), // How many weeks to track (for weekly)
+  targetWeeks: z.number().optional(), // How many weeks to track (for weekly AND deadline goals)
   targetMonths: z.number().optional(), // How many months to track (for monthly)
   startDate: z.string().optional(), // ISO date when tracking starts
-  // For deadline goals
-  targetDate: z.string().optional(), // ISO date for deadline
+  // For deadline goals (backward compatibility - targetWeeks is now primary)
+  targetDate: z.string().optional(), // ISO date for deadline (kept for backward compatibility, targetWeeks is source of truth)
+  // Computed fields (calculated on load/rollover)
+  weeksRemaining: z.number().optional(), // Weeks remaining for ALL goal types (-1 = complete/past)
+  monthsRemaining: z.number().optional(), // Months remaining for monthly goals (-1 = complete)
   // For monthly tracking (which month/week instances belong to)
   monthId: z.string().optional(), // Format: "2025-11" for November 2025
   weekId: z.string().optional(), // Format: "2025-W44" for week tracking
@@ -52,6 +55,24 @@ export const HistorySchema = z.object({
   timestamp: z.string(),
   oldValue: z.any().optional(),
   newValue: z.any().optional()
+}).passthrough();
+
+// Weekly Goal Template schema (stored in dreams container)
+export const WeeklyGoalTemplateSchema = z.object({
+  id: z.string(),
+  type: z.literal('weekly_goal_template'),
+  title: z.string(),
+  description: z.string().optional(),
+  dreamId: z.string(),
+  dreamTitle: z.string().optional(),
+  dreamCategory: z.string().optional(),
+  milestoneId: z.union([z.string(), z.number()]).optional(),
+  recurrence: z.enum(['weekly', 'monthly']).default('weekly'),
+  targetWeeks: z.number().optional(),
+  targetMonths: z.number().optional(),
+  startDate: z.string().optional(),
+  active: z.boolean().default(true),
+  createdAt: z.string().optional()
 }).passthrough();
 
 // Main Dream schema
@@ -138,5 +159,44 @@ export function parseNote(data) {
       timestamp: data?.timestamp || data?.createdAt || new Date().toISOString()
     };
   }
+}
+
+export function parseWeeklyGoalTemplate(data) {
+  try {
+    return WeeklyGoalTemplateSchema.parse(data);
+  } catch (error) {
+    console.warn('Failed to parse weekly goal template:', error.message);
+    return {
+      id: data?.id || `template_${Date.now()}`,
+      type: 'weekly_goal_template',
+      title: data?.title || '',
+      description: data?.description || '',
+      dreamId: data?.dreamId || '',
+      dreamTitle: data?.dreamTitle,
+      dreamCategory: data?.dreamCategory,
+      recurrence: data?.recurrence || 'weekly',
+      targetWeeks: data?.targetWeeks,
+      targetMonths: data?.targetMonths,
+      startDate: data?.startDate,
+      active: data?.active !== undefined ? data?.active : true,
+      createdAt: data?.createdAt || new Date().toISOString()
+    };
+  }
+}
+
+export function parseWeeklyGoalTemplateList(data) {
+  if (!Array.isArray(data)) {
+    console.warn('Expected array for template list, got:', typeof data);
+    return [];
+  }
+
+  return data.map((item, index) => {
+    try {
+      return WeeklyGoalTemplateSchema.parse(item);
+    } catch (error) {
+      console.warn(`Failed to parse template at index ${index}:`, error.message);
+      return parseWeeklyGoalTemplate(item);
+    }
+  }).filter(Boolean);
 }
 

@@ -6,14 +6,14 @@ import { useApp } from '../context/AppContext';
 import itemService from '../services/itemService';
 import { mockDreams } from '../constants/dreamInspiration';
 import currentWeekService from '../services/currentWeekService';
-import { getCurrentIsoWeek } from '../utils/dateUtils';
+import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks, getWeeksUntilDate } from '../utils/dateUtils';
 
 /**
  * Custom hook for Dream Book data management and business logic
  * Handles all state, handlers, and drag & drop for the Dream Book feature
  */
 export function useDreamBook() {
-  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams } = useApp();
+  const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, weeklyGoals, deleteWeeklyGoal } = useApp();
   
   // Form and modal state
   const [editingDream, setEditingDream] = useState(null);
@@ -23,7 +23,7 @@ export function useDreamBook() {
   const [showInspiration, setShowInspiration] = useState(false);
   const [inspirationCategory, setInspirationCategory] = useState('All');
   const [currentFormData, setCurrentFormData] = useState(null);
-  const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6 } });
+  const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, targetDate: '' } });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [tempDreamId, setTempDreamId] = useState(null);
   const [draggingIndex, setDraggingIndex] = useState(null);
@@ -64,15 +64,26 @@ export function useDreamBook() {
   }, []);
 
   // Inspiration loading (disabled remote fetching for demo reliability)
-  const fetchUnsplashForTitle = useCallback(async () => '', []);
+  const fetchUnsplashForTitle = useCallback(async (title, category) => '', []);
   const loadInspirationImages = useCallback(async () => {
-    setLoadingInspiration(true); setInspirationError('');
+    setLoadingInspiration(true); 
+    setInspirationError('');
     try {
-      const updated = await Promise.all(mockDreams.map(async (d) => d.image ? d : { ...d, image: await fetchUnsplashForTitle(d.title, d.category) }));
+      const updated = await Promise.all(mockDreams.map(async (d) => {
+        if (d.image) {
+          return d;
+        }
+        const image = await fetchUnsplashForTitle(d.title, d.category);
+        return { ...d, image };
+      }));
       setInspirationItems(updated);
     } catch (err) {
-      setInspirationError('Failed to load inspiration images.'); setInspirationItems(mockDreams);
-    } finally { setLoadingInspiration(false); }
+      console.error('Failed to load inspiration images:', err);
+      setInspirationError('Failed to load inspiration images.'); 
+      setInspirationItems(mockDreams);
+    } finally { 
+      setLoadingInspiration(false); 
+    }
   }, [fetchUnsplashForTitle]);
 
   useEffect(() => { if (showInspiration) { setInspirationCategory('All'); loadInspirationImages(); } }, [showInspiration, loadInspirationImages]);
@@ -93,7 +104,8 @@ export function useDreamBook() {
         title: '',
         consistency: 'weekly',
         targetWeeks: 12,
-        targetMonths: 6
+        targetMonths: 6,
+        targetDate: ''
       }
     });
   }, []);
@@ -113,7 +125,8 @@ export function useDreamBook() {
         title: '',
         consistency: 'weekly',
         targetWeeks: 12,
-        targetMonths: 6
+        targetMonths: 6,
+        targetDate: ''
       }
     });
   }, [dreamCategories]);
@@ -136,53 +149,73 @@ export function useDreamBook() {
       // Add first goal if enabled
       if (formData.firstGoal.enabled) {
         const goalId = `goal_${Date.now()}`;
+        const nowIso = new Date().toISOString();
+        const currentWeekIso = getCurrentIsoWeek();
+        
+        // Calculate targetWeeks and weeksRemaining for goals (same logic as GoalsTab)
+        let targetWeeks, weeksRemaining;
+        if (formData.firstGoal.consistency === 'deadline' && formData.firstGoal.targetDate) {
+          // For deadline goals: convert targetDate to targetWeeks
+          targetWeeks = dateToWeeks(formData.firstGoal.targetDate, currentWeekIso);
+          weeksRemaining = targetWeeks; // Initialize with targetWeeks
+        } else if (formData.firstGoal.consistency === 'monthly') {
+          // Convert months to weeks for unified tracking
+          targetWeeks = monthsToWeeks(formData.firstGoal.targetMonths);
+          weeksRemaining = targetWeeks;
+        } else {
+          // Weekly consistency goal
+          targetWeeks = formData.firstGoal.targetWeeks;
+          weeksRemaining = formData.firstGoal.targetWeeks;
+        }
+        
         const goal = {
           id: goalId,
           title: formData.firstGoal.title || formData.title,
-          type: 'consistency',
-          recurrence: formData.firstGoal.consistency,
-          startDate: new Date().toISOString(),
+          type: formData.firstGoal.consistency === 'deadline' ? 'deadline' : 'consistency',
+          recurrence: formData.firstGoal.consistency === 'deadline' ? undefined : formData.firstGoal.consistency,
+          targetWeeks: targetWeeks, // All goal types now use targetWeeks
+          targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : undefined,
+          startDate: nowIso,
+          // targetDate is kept for backward compatibility but targetWeeks is the source of truth
+          targetDate: formData.firstGoal.consistency === 'deadline' ? formData.firstGoal.targetDate : undefined,
+          weeksRemaining: weeksRemaining,
           active: true,
           completed: false,
-          createdAt: new Date().toISOString()
+          createdAt: nowIso
         };
-        
-        if (formData.firstGoal.consistency === 'monthly') {
-          goal.targetMonths = formData.firstGoal.targetMonths;
-        } else {
-          goal.targetWeeks = formData.firstGoal.targetWeeks;
-        }
         
         newDream.goals = [goal];
         
         // Add goal to currentWeek container (NEW SIMPLIFIED SYSTEM)
         console.log('📅 Adding first goal to currentWeek container');
-        const currentWeekIso = getCurrentIsoWeek();
         
         try {
-          // Create goal instance for current week
+          // Create goal instance for current week (same structure as GoalsTab)
           const newGoalInstance = {
             id: goalId,
             templateId: goalId, // Self-reference for now
-            type: 'weekly_goal',
+            type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
             title: goal.title,
             description: '',
             dreamId: tempDreamId,
             dreamTitle: formData.title,
             dreamCategory: formData.category,
-            recurrence: formData.firstGoal.consistency,
-            targetWeeks: formData.firstGoal.consistency === 'weekly' ? formData.firstGoal.targetWeeks : null,
-            targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : null,
-            frequency: formData.firstGoal.consistency === 'monthly' ? 2 : null,
+            recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
+            targetWeeks: goal.targetWeeks,
+            targetMonths: goal.targetMonths,
+            targetDate: goal.targetDate,
+            frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' ? 2 : null,
             completionCount: 0,
             completionDates: [],
             completed: false,
             completedAt: null,
             skipped: false,
-            weeksRemaining: formData.firstGoal.consistency === 'weekly' ? formData.firstGoal.targetWeeks : null,
-            monthsRemaining: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : null,
+            weeksRemaining: goal.type === 'deadline' && goal.targetDate
+              ? getWeeksUntilDate(goal.targetDate, currentWeekIso)
+              : (goal.targetWeeks || null),
+            monthsRemaining: goal.targetMonths || null,
             weekId: currentWeekIso,
-            createdAt: new Date().toISOString()
+            createdAt: nowIso
           };
           
           // Get existing current week goals
@@ -245,7 +278,8 @@ export function useDreamBook() {
         title: '',
         consistency: 'weekly',
         targetWeeks: 12,
-        targetMonths: 6
+        targetMonths: 6,
+        targetDate: ''
       }
     });
   }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream, currentUser]);
@@ -265,7 +299,8 @@ export function useDreamBook() {
         title: '',
         consistency: 'weekly',
         targetWeeks: 12,
-        targetMonths: 6
+        targetMonths: 6,
+        targetDate: ''
       }
     });
   }, []);
@@ -278,16 +313,50 @@ export function useDreamBook() {
     console.log(`🗑️ Deleting dream ${dreamId} and all associated weekly goals`);
     
     try {
+      const userId = currentUser?.id;
+      if (!userId) {
+        console.error('❌ No user ID available');
+        return;
+      }
+      
       // Find the dream to get its goals
       const dream = dreams.find(d => d.id === dreamId);
       
+      // Step 1: Remove goals from currentWeek container
+      const currentWeekIso = getCurrentIsoWeek();
+      const currentWeekResult = await currentWeekService.getCurrentWeek(userId);
+      
+      if (currentWeekResult.success && currentWeekResult.data) {
+        const currentWeekGoals = currentWeekResult.data.goals || [];
+        // Filter out all goals associated with this dream
+        const remainingGoals = currentWeekGoals.filter(g => g.dreamId !== dreamId);
+        
+        if (remainingGoals.length < currentWeekGoals.length) {
+          const removedCount = currentWeekGoals.length - remainingGoals.length;
+          console.log(`🗑️ Removing ${removedCount} goals from currentWeek container`);
+          
+          const saveResult = await currentWeekService.saveCurrentWeek(
+            userId,
+            currentWeekIso,
+            remainingGoals
+          );
+          
+          if (saveResult.success) {
+            console.log(`✅ Removed ${removedCount} goals from current week`);
+          } else {
+            console.error('❌ Failed to remove goals from current week:', saveResult.error);
+          }
+        }
+      }
+      
+      // Step 2: Delete templates and instances from weeklyGoals state
       if (dream && dream.goals && dream.goals.length > 0) {
         console.log(`🧹 Cleaning up ${dream.goals.length} goals from weekly goals`);
         
         // Delete all weekly goals (templates and instances) associated with this dream's goals
         for (const goal of dream.goals) {
           // Find all weekly goals (templates and instances) that match this goal
-          const relatedWeeklyGoals = weeklyGoals.filter(wg => 
+          const relatedWeeklyGoals = (weeklyGoals || []).filter(wg => 
             wg.goalId === goal.id || wg.id === goal.id || wg.dreamId === dreamId
           );
           
@@ -295,20 +364,24 @@ export function useDreamBook() {
           
           // Delete each one (deleteWeeklyGoal handles templates vs instances)
           for (const weeklyGoal of relatedWeeklyGoals) {
-            await deleteWeeklyGoal(weeklyGoal.id);
+            if (deleteWeeklyGoal) {
+              await deleteWeeklyGoal(weeklyGoal.id);
+            }
           }
         }
       }
       
       // Also clean up any weekly goals directly associated with the dream (without goalId)
-      const dreamWeeklyGoals = weeklyGoals.filter(wg => wg.dreamId === dreamId);
+      const dreamWeeklyGoals = (weeklyGoals || []).filter(wg => wg.dreamId === dreamId);
       console.log(`🗑️ Found ${dreamWeeklyGoals.length} direct dream weekly goals`);
       
       for (const weeklyGoal of dreamWeeklyGoals) {
-        await deleteWeeklyGoal(weeklyGoal.id);
+        if (deleteWeeklyGoal) {
+          await deleteWeeklyGoal(weeklyGoal.id);
+        }
       }
       
-      // Finally, delete the dream itself
+      // Step 3: Finally, delete the dream itself (this removes templates from dreams container)
       await deleteDream(dreamId);
       
       console.log(`✅ Successfully deleted dream ${dreamId} and all associated weekly goals`);
@@ -316,12 +389,13 @@ export function useDreamBook() {
       // Dispatch custom event to trigger refresh in other components (dashboard, week ahead)
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('goals-updated'));
+        window.dispatchEvent(new CustomEvent('dreams-updated'));
       }, 100);
     } catch (error) {
       console.error('❌ Error deleting dream:', error);
       alert(`Failed to delete dream: ${error.message}`);
     }
-  }, [dreams, weeklyGoals, deleteDream, deleteWeeklyGoal]);
+  }, [dreams, weeklyGoals, deleteDream, deleteWeeklyGoal, currentUser?.id]);
 
   // Image upload handler
   const handleImageUpload = useCallback(async (e) => {

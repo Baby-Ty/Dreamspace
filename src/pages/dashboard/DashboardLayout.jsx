@@ -6,11 +6,15 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Plus } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { usePastWeeks } from '../../hooks/usePastWeeks';
+import { useWeekRollover } from '../../hooks/useWeekRollover';
+import { testWeekRollover } from '../../services/testService';
 import DashboardHeader from './DashboardHeader';
 import WeekGoalsWidget from './WeekGoalsWidget';
 import DashboardDreamCard from './DashboardDreamCard';
 import DreamTrackerModal from '../../components/DreamTrackerModal';
 import GuideModal from '../../components/GuideModal';
+import PastWeeksModal from '../../components/PastWeeksModal';
 import UserMigrationButton from '../../components/UserMigrationButton';
 
 /**
@@ -19,6 +23,10 @@ import UserMigrationButton from '../../components/UserMigrationButton';
  */
 export default function DashboardLayout() {
   const { currentUser } = useApp();
+  
+  // Week rollover check (fallback - primary is server-side timer)
+  useWeekRollover();
+  
   const {
     isLoadingWeekGoals,
     currentWeekGoals,
@@ -35,9 +43,68 @@ export default function DashboardLayout() {
     getCurrentWeekRange,
   } = useDashboardData();
 
+  // Fetch past weeks data
+  const { weeks: pastWeeks, isLoading: isLoadingPastWeeks, refresh: refreshPastWeeks } = usePastWeeks(currentUser?.id, 24);
+
   // Local UI state
   const [selectedDream, setSelectedDream] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showPastWeeks, setShowPastWeeks] = useState(false);
+  const [isRollingOver, setIsRollingOver] = useState(false);
+  
+  // Refresh past weeks when modal opens
+  const handleShowPastWeeks = useCallback(() => {
+    setShowPastWeeks(true);
+    refreshPastWeeks(); // Refresh data when modal opens
+  }, [refreshPastWeeks]);
+  
+  // Test week rollover handler
+  const handleTestRollover = useCallback(async () => {
+    if (!currentUser?.id) return;
+    
+    const confirmed = window.confirm(
+      '🧪 TEST MODE: Simulate week rollover?\n\n' +
+      'This will:\n' +
+      '• Archive current week to pastWeeks\n' +
+      '• Decrement remaining weeks on goals (-1)\n' +
+      '• Create new week with goals from templates\n\n' +
+      'Continue?'
+    );
+    
+    if (!confirmed) return;
+    
+    setIsRollingOver(true);
+    try {
+      const result = await testWeekRollover(currentUser.id, true); // Force rollover
+      
+      if (result.success) {
+        if (result.rolled) {
+          alert(`✅ Week rollover successful!\n\n` +
+            `From: ${result.fromWeek}\n` +
+            `To: ${result.toWeek}\n` +
+            `Goals: ${result.goalsCount}\n\n` +
+            `Refreshing dashboard...`);
+          
+          // ⏱️ Wait for Cosmos DB eventual consistency before loading goals
+          // The server-side rollover has retry logic, but we still need to wait
+          // before the client loads data to avoid reading stale data
+          // Trigger a page refresh to ensure all data is synced
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000); // Increased to 2 seconds to allow for eventual consistency
+        } else {
+          alert(`ℹ️ ${result.message || 'No rollover needed'}`);
+        }
+      } else {
+        alert(`❌ Rollover failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Test rollover error:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setIsRollingOver(false);
+    }
+  }, [currentUser?.id, loadCurrentWeekGoals, refreshPastWeeks]);
 
   // Early return for loading
   if (!currentUser) {
@@ -75,7 +142,7 @@ export default function DashboardLayout() {
         stats={stats}
         onShowGuide={() => setShowGuide(true)}
       />
-
+      
       {/* V1 to V3 Migration Banner - Only show for v1 users */}
       {currentUser.dataStructureVersion && currentUser.dataStructureVersion < 3 && (
         <UserMigrationButton userId={currentUser.id} />
@@ -98,6 +165,9 @@ export default function DashboardLayout() {
           onHideAddGoal={handleCancelAddGoal}
           onAddGoal={handleAddGoal}
           onNewGoalChange={setNewGoal}
+          onShowPastWeeks={handleShowPastWeeks}
+          onTestRollover={currentUser?.id ? handleTestRollover : undefined}
+          isRollingOver={isRollingOver}
         />
 
         {/* Right Column - Dreams Overview */}
@@ -187,6 +257,14 @@ export default function DashboardLayout() {
       {showGuide && (
         <GuideModal onClose={() => setShowGuide(false)} />
       )}
+
+      {/* Past Weeks Modal */}
+      <PastWeeksModal
+        isOpen={showPastWeeks}
+        onClose={() => setShowPastWeeks(false)}
+        weeks={pastWeeks || []}
+        isLoading={isLoadingPastWeeks}
+      />
     </div>
   );
 }

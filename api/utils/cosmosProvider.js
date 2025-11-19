@@ -60,6 +60,10 @@ const CONTAINER_CONFIG = {
  * Get dynamic year-based container name
  * @param {number} year - Year (e.g., 2025)
  * @returns {string} Container name (e.g., "weeks2025")
+ * 
+ * @deprecated This function supports legacy weeks{year} containers.
+ * New code should use currentWeek + pastWeeks containers instead.
+ * Kept for backward compatibility with old data reads only.
  */
 function getWeeksContainerName(year) {
   return `weeks${year}`;
@@ -112,6 +116,10 @@ class CosmosProvider {
    * Get year-specific weeks container (dynamic)
    * @param {number} year - Year (e.g., 2025)
    * @returns {Container} Cosmos DB container instance
+   * 
+   * @deprecated This method accesses legacy weeks{year} containers.
+   * New code should use getContainer('currentWeek') or getContainer('pastWeeks') instead.
+   * Kept for backward compatibility with old data reads only.
    */
   getWeeksContainer(year) {
     const containerName = getWeeksContainerName(year);
@@ -127,6 +135,10 @@ class CosmosProvider {
    * @param {number} year - Year (e.g., 2025, 2026)
    * @param {object} context - Optional Azure Function context for logging
    * @returns {Promise<boolean>} True if container exists/created, false on error
+   * 
+   * @deprecated This method creates legacy weeks{year} containers.
+   * New code should use currentWeek + pastWeeks containers instead.
+   * Kept for backward compatibility with old data reads only.
    */
   async ensureWeeksContainerExists(year, context = null) {
     const containerName = getWeeksContainerName(year);
@@ -436,7 +448,7 @@ class CosmosProvider {
    */
   async getCurrentWeekDocument(userId) {
     const container = this.getContainer('currentWeek');
-    const docId = `${userId}_currentWeek`;
+    const docId = userId; // Document ID format: {userId} per CONTEXT.md
     try {
       const { resource } = await container.item(docId, userId).read();
       return resource;
@@ -458,7 +470,7 @@ class CosmosProvider {
    */
   async upsertCurrentWeek(userId, weekId, goals, stats = {}) {
     const container = this.getContainer('currentWeek');
-    const docId = `${userId}_currentWeek`;
+    const docId = userId; // Document ID format: {userId} per CONTEXT.md
     
     // Calculate week start/end dates
     const weekStart = this.getWeekStartDate(weekId);
@@ -502,7 +514,7 @@ class CosmosProvider {
    */
   async getPastWeeksDocument(userId) {
     const container = this.getContainer('pastWeeks');
-    const docId = `${userId}_pastWeeks`;
+    const docId = userId; // Document ID format: {userId} per CONTEXT.md
     try {
       const { resource } = await container.item(docId, userId).read();
       return resource;
@@ -523,7 +535,7 @@ class CosmosProvider {
    */
   async archiveWeekToPastWeeks(userId, weekId, weekSummary) {
     const container = this.getContainer('pastWeeks');
-    const docId = `${userId}_pastWeeks`;
+    const docId = userId; // Document ID format: {userId} per CONTEXT.md
     
     // Get existing document or create new
     let existingDoc = await this.getPastWeeksDocument(userId);

@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward, History, FastForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -26,6 +26,9 @@ function WeekGoalsWidget({
   onHideAddGoal,
   onAddGoal,
   onNewGoalChange,
+  onShowPastWeeks,
+  onTestRollover,
+  isRollingOver = false,
 }) {
   const completedCount = currentWeekGoals.filter(g => g.completed).length;
   const totalCount = currentWeekGoals.length;
@@ -81,13 +84,38 @@ function WeekGoalsWidget({
           <h2 className="text-xl font-bold text-professional-gray-900">This Week's Goals</h2>
           <p className="text-xs text-professional-gray-600 mt-0.5">Your active goals for the current week</p>
         </div>
-        <Link 
-          to="/dreams-week-ahead"
-          className="text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
-          data-testid="manage-goals-link"
-        >
-          Manage Goals
-        </Link>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onShowPastWeeks}
+            className="inline-flex items-center space-x-1.5 text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+            data-testid="past-weeks-button"
+            aria-label="View past weeks"
+          >
+            <History className="w-4 h-4" aria-hidden="true" />
+            <span>Past Weeks</span>
+          </button>
+          {onTestRollover && (
+            <button
+              onClick={onTestRollover}
+              disabled={isRollingOver}
+              className="inline-flex items-center space-x-1.5 text-sm bg-professional-gray-200 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-professional-gray-300 font-semibold focus:outline-none focus:ring-2 focus:ring-professional-gray-400 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="test-rollover-button"
+              aria-label="Test week rollover"
+            >
+              {isRollingOver ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-professional-gray-600"></div>
+                  <span>Rolling...</span>
+                </>
+              ) : (
+                <>
+                  <FastForward className="w-4 h-4" aria-hidden="true" />
+                  <span>Test Rollover</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
       
       {/* Week Progress Header */}
@@ -325,6 +353,37 @@ function WeekGoalsWidget({
                         </div>
                       )}
                       
+                      {/* Deadline goal weeks remaining */}
+                      {goal.type === 'deadline' && goal.targetDate && goal.weeksRemaining !== undefined && (
+                        <div className="mt-2 flex items-center space-x-1.5">
+                          <Clock className={`w-3.5 h-3.5 ${
+                            goal.weeksRemaining === 0 
+                              ? 'text-netsurit-orange' 
+                              : goal.weeksRemaining === 1
+                                ? 'text-netsurit-coral'
+                                : 'text-professional-gray-500'
+                          }`} aria-hidden="true" />
+                          <span className={`text-xs font-medium ${
+                            goal.weeksRemaining === 0 
+                              ? 'text-netsurit-orange font-semibold' 
+                              : goal.weeksRemaining === 1
+                                ? 'text-netsurit-coral'
+                                : 'text-professional-gray-600'
+                          }`}>
+                            {goal.weeksRemaining === 0 
+                              ? 'Due this week!' 
+                              : goal.weeksRemaining === 1 
+                                ? '1 week left' 
+                                : `${goal.weeksRemaining} weeks left`}
+                            {goal.targetDate && (
+                              <span className="text-professional-gray-500 ml-1">
+                                ({new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      
                       {goal.dreamTitle && (
                         <div className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                           goal.completed 
@@ -410,6 +469,12 @@ WeekGoalsWidget.propTypes = {
   onAddGoal: PropTypes.func.isRequired,
   /** Callback when new goal form changes */
   onNewGoalChange: PropTypes.func.isRequired,
+  /** Callback to show past weeks modal */
+  onShowPastWeeks: PropTypes.func.isRequired,
+  /** Callback to test week rollover (optional, dev only) */
+  onTestRollover: PropTypes.func,
+  /** Whether rollover is in progress */
+  isRollingOver: PropTypes.bool,
 };
 
 WeekGoalsWidget.defaultProps = {

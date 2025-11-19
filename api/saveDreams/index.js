@@ -109,6 +109,8 @@ module.exports = async function (context, req) {
           targetMonths: goal.targetMonths,
           startDate: goal.startDate,
           targetDate: goal.targetDate,
+          weeksRemaining: goal.weeksRemaining, // ← NEW: Persist weeks remaining
+          monthsRemaining: goal.monthsRemaining, // ← NEW: Persist months remaining
           active: goal.active !== false,
           completed: goal.completed || false,
           completedAt: goal.completedAt,
@@ -138,6 +140,9 @@ module.exports = async function (context, req) {
         durationType: template.durationType || (template.durationWeeks || template.targetWeeks ? 'weeks' : 'unlimited'),
         durationWeeks: template.durationWeeks || template.targetWeeks,
         targetWeeks: template.targetWeeks || template.durationWeeks, // Preserve for backward compatibility
+        targetMonths: template.targetMonths, // For monthly goals
+        weeksRemaining: template.weeksRemaining, // ← NEW: Persist weeks remaining
+        monthsRemaining: template.monthsRemaining, // ← NEW: Persist months remaining
         startDate: template.startDate,
         createdAt: template.createdAt || new Date().toISOString()
       })),

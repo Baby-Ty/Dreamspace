@@ -68,14 +68,32 @@ module.exports = async function (context, req) {
       return;
     }
 
+    // Debug: Log the document structure
+    context.log(`📊 Past weeks document retrieved:`, {
+      userId: pastWeeksDoc.userId,
+      hasWeekHistory: !!pastWeeksDoc.weekHistory,
+      weekHistoryType: typeof pastWeeksDoc.weekHistory,
+      weekHistoryKeys: pastWeeksDoc.weekHistory ? Object.keys(pastWeeksDoc.weekHistory) : [],
+      weekHistoryCount: pastWeeksDoc.weekHistory ? Object.keys(pastWeeksDoc.weekHistory).length : 0,
+      sampleWeek: pastWeeksDoc.weekHistory ? Object.values(pastWeeksDoc.weekHistory)[0] : null,
+      totalWeeksTracked: pastWeeksDoc.totalWeeksTracked
+    });
+
     // Return past weeks document
     const weeksCount = Object.keys(pastWeeksDoc.weekHistory || {}).length;
     context.log(`✅ Past weeks retrieved: ${weeksCount} weeks tracked`);
+    
+    // Ensure weekHistory is an object (not null/undefined)
+    const responseData = {
+      ...pastWeeksDoc,
+      weekHistory: pastWeeksDoc.weekHistory || {}
+    };
+    
     context.res = {
       status: 200,
       body: JSON.stringify({
         success: true,
-        data: pastWeeksDoc
+        data: responseData
       }),
       headers
     };

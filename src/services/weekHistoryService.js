@@ -40,6 +40,16 @@ export async function getPastWeeks(userId) {
 
     const result = await response.json();
     
+    console.log('📊 weekHistoryService.getPastWeeks: API response:', {
+      success: result.success,
+      hasData: !!result.data,
+      dataKeys: result.data ? Object.keys(result.data) : [],
+      weekHistoryType: typeof result.data?.weekHistory,
+      weekHistoryKeys: result.data?.weekHistory ? Object.keys(result.data.weekHistory) : [],
+      weekHistoryCount: result.data?.weekHistory ? Object.keys(result.data.weekHistory).length : 0,
+      sampleWeek: result.data?.weekHistory ? Object.values(result.data.weekHistory)[0] : null
+    });
+    
     if (!result.success) {
       logger.error('weekHistoryService', 'Get past weeks returned unsuccessful', { result });
       return fail(ErrorCodes.UNKNOWN, result.error || 'Failed to get past weeks');
@@ -47,6 +57,8 @@ export async function getPastWeeks(userId) {
 
     const weeksCount = Object.keys(result.data?.weekHistory || {}).length;
     logger.info('weekHistoryService', 'Past weeks retrieved', { weeksCount });
+    
+    console.log(`✅ weekHistoryService.getPastWeeks: Returning ${weeksCount} weeks`);
 
     return ok(result.data);
 
@@ -72,14 +84,28 @@ export async function getRecentWeeks(userId, count = 12) {
   const weekHistory = result.data?.weekHistory || {};
   const weekEntries = Object.entries(weekHistory);
   
+  console.log('📊 weekHistoryService.getRecentWeeks:', {
+    weekHistoryKeys: Object.keys(weekHistory),
+    weekHistoryCount: weekEntries.length,
+    sampleEntry: weekEntries[0]
+  });
+  
   // Sort by week ID (descending - most recent first)
   weekEntries.sort((a, b) => b[0].localeCompare(a[0]));
   
   // Take most recent N weeks
-  const recentWeeks = weekEntries.slice(0, count).map(([weekId, stats]) => ({
-    weekId,
-    ...stats
-  }));
+  const recentWeeks = weekEntries.slice(0, count).map(([weekId, stats]) => {
+    const weekData = {
+      weekId,
+      ...stats
+    };
+    
+    console.log(`   Week ${weekId}:`, weekData);
+    
+    return weekData;
+  });
+  
+  console.log(`✅ Returning ${recentWeeks.length} recent weeks`);
 
   return ok(recentWeeks);
 }

@@ -4,12 +4,38 @@ import React, { createContext, useContext, useReducer, useEffect, useRef } from 
 import { dreamCategories, scoringRules } from '../data/mockData';
 import itemService from '../services/itemService';
 import connectService from '../services/connectService';
-import weekService from '../services/weekService';
+// DEPRECATED: weekService removed - use currentWeekService and weekHistoryService instead
+// import weekService from '../services/weekService';
 import scoringService from '../services/scoringService';
 import { getCurrentIsoWeek, computeStreak, isMilestoneComplete, parseIsoWeek } from '../utils/dateUtils';
 import { checkAndDeactivateExpiredTemplates } from '../utils/templateValidation';
 import { appReducer, actionTypes } from '../state/appReducer.js';
 import { createEmptyUser, saveUserData, loadUserData } from '../utils/appDataHelpers.js';
+
+// DEPRECATED WEEK SERVICE STUB
+// This stub replaces the removed weekService to prevent runtime crashes
+// Functions using this need migration to currentWeekService + weekHistoryService
+const deprecatedWeekServiceStub = {
+  getWeekGoals: async (userId, year) => {
+    console.error('❌ DEPRECATED: weekService.getWeekGoals() called but weekService is removed');
+    console.error('   Migration needed: Use currentWeekService.getCurrentWeek() instead');
+    console.error('   Location: AppContext functions need migration to currentWeek + pastWeeks model');
+    return { success: false, error: 'weekService removed - needs migration to currentWeekService' };
+  },
+  saveWeekGoals: async (userId, year, weekId, goals) => {
+    console.error('❌ DEPRECATED: weekService.saveWeekGoals() called but weekService is removed');
+    console.error('   Migration needed: Use currentWeekService.saveCurrentWeek() instead');
+    console.error('   Location: AppContext functions need migration to currentWeek + pastWeeks model');
+    return { success: false, error: 'weekService removed - needs migration to currentWeekService' };
+  },
+  bulkInstantiateTemplates: async (userId, templates) => {
+    console.error('❌ DEPRECATED: weekService.bulkInstantiateTemplates() called but weekService is removed');
+    console.error('   Migration needed: Goals now created on-demand, no bulk instantiation');
+    console.error('   Location: AppContext functions need migration to currentWeek + pastWeeks model');
+    return { success: false, error: 'weekService removed - bulk instantiation no longer needed' };
+  }
+};
+const weekService = deprecatedWeekServiceStub; // Temporarily alias for compatibility
 
 // Create the context
 const AppContext = createContext();
@@ -198,49 +224,10 @@ export const AppProvider = ({ children, initialUser }) => {
     loadData();
   }, [userId]);
 
-  // Bulk instantiate existing templates when weeklyGoals are loaded
-  useEffect(() => {
-    if (!userId || !state.weeklyGoals || state.weeklyGoals.length === 0) return;
-    
-    const instantiateExistingTemplates = async () => {
-      // Find all templates
-      const templates = state.weeklyGoals.filter(g => g.type === 'weekly_goal_template');
-      
-      if (templates.length === 0) {
-        console.log('ℹ️ No templates found to instantiate on login');
-        return;
-      }
-      
-      console.log(`🚀 Found ${templates.length} templates to bulk instantiate on login:`, templates.map(t => ({ id: t.id, targetWeeks: t.targetWeeks })));
-      
-      // Map templates to format expected by bulkInstantiateTemplates API
-      const templatesForAPI = templates.map(template => ({
-        ...template,
-        durationType: template.targetWeeks ? 'weeks' : 'unlimited',
-        durationWeeks: template.targetWeeks || 52
-      }));
-      
-      console.log('📤 Sending templates to bulkInstantiateTemplates API:', templatesForAPI.map(t => ({ id: t.id, durationType: t.durationType, durationWeeks: t.durationWeeks })));
-      
-      const result = await weekService.bulkInstantiateTemplates(
-        userId,
-        templatesForAPI
-      );
-      
-      console.log('📥 Bulk instantiation result on login:', result);
-      
-      if (result.success) {
-        console.log(`✅ Bulk instantiation complete on login:`, result.data);
-      } else {
-        console.error('❌ Bulk instantiation failed on login:', result.error);
-      }
-    };
-    
-    // Run once after templates are loaded, with a slight delay to avoid race conditions
-    const timeoutId = setTimeout(instantiateExistingTemplates, 1000);
-    
-    return () => clearTimeout(timeoutId);
-  }, [userId, state.weeklyGoals.length]); // Only re-run if weeklyGoals count changes
+  // DEPRECATED: Bulk instantiation removed - currentWeek + pastWeeks model creates goals on-demand
+  // Templates are no longer pre-instantiated into weeks{year} containers
+  // Goals are created when the current week starts via currentWeekService
+  // This useEffect has been removed as part of the weeks tracking simplification
 
   // Save profile data only (NOT items - those are saved via itemService)
   useEffect(() => {
@@ -417,80 +404,12 @@ export const AppProvider = ({ children, initialUser }) => {
           return;
         }
 
-        // Delete goals from current week and all future weeks
-        console.log('🗑️ Deleting weekly goal instances for dream:', dreamId);
-        const currentIsoWeek = getCurrentIsoWeek();
-        const currentWeekParsed = parseIsoWeek(currentIsoWeek);
-        const currentYear = new Date().getFullYear();
-        
-        // Helper function to check if week is current or future
-        const isCurrentOrFutureWeek = (weekId) => {
-          const weekParsed = parseIsoWeek(weekId);
-          // Compare year first, then week number
-          if (weekParsed.year > currentWeekParsed.year) return true;
-          if (weekParsed.year < currentWeekParsed.year) return false;
-          return weekParsed.week >= currentWeekParsed.week;
-        };
-        
-        // Load week document for current year
-        const weekDocResult = await weekService.getWeekGoals(userId, currentYear);
-        if (weekDocResult.success && weekDocResult.data?.weeks) {
-          const weeks = weekDocResult.data.weeks;
-          
-          // Process each week
-          for (const [weekId, weekData] of Object.entries(weeks)) {
-            // Only process current and future weeks
-            if (isCurrentOrFutureWeek(weekId)) {
-              const goals = weekData.goals || [];
-              const filteredGoals = goals.filter(g => g.dreamId !== dreamId);
-              
-              // Only save if we actually removed goals
-              if (filteredGoals.length < goals.length) {
-                const removedCount = goals.length - filteredGoals.length;
-                console.log(`🗑️ Removing ${removedCount} goal(s) from ${weekId}`);
-                
-                const saveResult = await weekService.saveWeekGoals(userId, currentYear, weekId, filteredGoals);
-                if (!saveResult.success) {
-                  console.error(`Failed to save updated goals for ${weekId}:`, saveResult.error);
-                }
-                
-                // Update local state - dispatch DELETE for each removed goal
-                goals.filter(g => g.dreamId === dreamId).forEach(goal => {
-                  dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
-                });
-              }
-            }
-          }
-        }
-        
-        // Also check next year if we're in Q4
-        if (currentWeekParsed.week >= 40) {
-          const nextYear = currentYear + 1;
-          const nextYearDocResult = await weekService.getWeekGoals(userId, nextYear);
-          if (nextYearDocResult.success && nextYearDocResult.data?.weeks) {
-            const weeks = nextYearDocResult.data.weeks;
-            
-            for (const [weekId, weekData] of Object.entries(weeks)) {
-              const goals = weekData.goals || [];
-              const filteredGoals = goals.filter(g => g.dreamId !== dreamId);
-              
-              if (filteredGoals.length < goals.length) {
-                const removedCount = goals.length - filteredGoals.length;
-                console.log(`🗑️ Removing ${removedCount} goal(s) from ${weekId} (next year)`);
-                
-                const saveResult = await weekService.saveWeekGoals(userId, nextYear, weekId, filteredGoals);
-                if (!saveResult.success) {
-                  console.error(`Failed to save updated goals for ${weekId}:`, saveResult.error);
-                }
-                
-                // Update local state
-                goals.filter(g => g.dreamId === dreamId).forEach(goal => {
-                  dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
-                });
-              }
-            }
-          }
-        }
+        // DEPRECATED: Week goal cleanup removed - currentWeek + pastWeeks model handles this differently
+        // Goals for deleted dreams should be removed from currentWeek container only
+        // Use currentWeekService instead of weekService for current week operations
+        console.log('⚠️ DEPRECATED: Week goal cleanup for deleted dream needs migration to currentWeekService');
+        // TODO: Implement with currentWeekService.getCurrentWeek() and currentWeekService.saveCurrentWeek()
+        // Only need to clean up goals in the current week, not future weeks
         
         console.log('✅ Dream and associated goals deleted successfully');
       }
@@ -570,61 +489,9 @@ export const AppProvider = ({ children, initialUser }) => {
         console.log('✅ Template saved successfully to dreams container');
         console.log('   📊 Server response:', result);
         
-        // ✅ CRITICAL FIX: Also add to parent dream's goals[] array for Dream Detail display
-        if (template.dreamId) {
-          const dreamToUpdate = state.currentUser.dreamBook?.find(d => d.id === template.dreamId);
-          if (dreamToUpdate) {
-            const goalForDream = {
-              id: template.id,
-              title: template.title,
-              description: template.description || '',
-              type: template.goalType || 'consistency',
-              recurrence: template.recurrence,
-              targetWeeks: template.targetWeeks || template.durationWeeks,
-              targetMonths: template.targetMonths,
-              startDate: template.startDate,
-              active: true,
-              completed: false,
-              createdAt: template.createdAt || new Date().toISOString()
-            };
-            
-            // Check if already exists in dream.goals (avoid duplicates)
-            const existsInDream = dreamToUpdate.goals?.some(g => g.id === template.id);
-            if (!existsInDream) {
-              console.log('📝 Adding goal to dream.goals[] for Dream Detail display:', {
-                dreamId: template.dreamId,
-                goalId: template.id,
-                goalTitle: template.title
-              });
-              
-              const updatedDream = {
-                ...dreamToUpdate,
-                goals: [...(dreamToUpdate.goals || []), goalForDream]
-              };
-              
-              // Update state immediately
-              dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
-              
-              // Save the updated dream back to database
-              const updatedDreams = state.currentUser.dreamBook.map(d => 
-                d.id === template.dreamId ? updatedDream : d
-              );
-              
-              // Save with all templates (including the one just added)
-              const allTemplatesAfterAdd = state.weeklyGoals.filter(g => 
-                g.type === 'weekly_goal_template'
-              );
-              allTemplatesAfterAdd.push(template); // Include the new template
-              
-              console.log('💾 Saving updated dream with new goal in goals[] array');
-              await itemService.saveDreams(userId, updatedDreams, allTemplatesAfterAdd);
-            } else {
-              console.log('ℹ️  Goal already exists in dream.goals[], skipping duplicate');
-            }
-          } else {
-            console.warn('⚠️  Parent dream not found for template.dreamId:', template.dreamId);
-          }
-        }
+        // NOTE: Templates are kept for backward compatibility with existing data.
+        // New goals should be added directly to dream.goals[] array, not via templates.
+        // Dashboard auto-instantiation reads from dream.goals[] to create weekly instances.
         
         // Bulk instantiate the template across all target weeks
         // API now automatically handles multi-year splitting
@@ -1073,7 +940,7 @@ export const AppProvider = ({ children, initialUser }) => {
       dispatch({ type: actionTypes.TOGGLE_WEEKLY_GOAL, payload: goalId });
     },
 
-    logWeeklyCompletion: (goalId, isoWeek, completed) => {
+    logWeeklyCompletion: async (goalId, isoWeek, completed) => {
       dispatch({ 
         type: actionTypes.LOG_WEEKLY_COMPLETION, 
         payload: { goalId, isoWeek, completed } 
@@ -1098,16 +965,29 @@ export const AppProvider = ({ children, initialUser }) => {
               const updatedGoal = {
                 ...goal,
                 completed: true,
+                active: false, // Mark inactive when completed
                 completedAt: new Date().toISOString()
               };
               
-              // Update dream with completed goal
-              const updatedDream = {
-                ...dream,
-                goals: dream.goals.map(g => g.id === goal.id ? updatedGoal : g)
-              };
+              // Find template if it exists
+              const template = state.weeklyGoals?.find(wg => 
+                wg.type === 'weekly_goal_template' && 
+                (wg.id === goal.id || wg.goalId === goal.id)
+              );
               
-              dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+              const updatedTemplate = template ? {
+                ...template,
+                completed: true,
+                active: false,
+                completedAt: new Date().toISOString()
+              } : null;
+              
+              // 🔒 ATOMIC UPDATE: Single write to prevent race condition!
+              await actions.updateConsistencyGoalAndTemplate(
+                dream.id,
+                updatedGoal,
+                updatedTemplate
+              );
               
               // Add scoring entry for goal completion
               const scoringEntry = {
@@ -1278,6 +1158,162 @@ export const AppProvider = ({ children, initialUser }) => {
         console.error('Failed to save dreams document after updating goal:', result.error);
         return;
       }
+    },
+
+    /**
+     * Atomically update both a dream goal and its corresponding template
+     * This prevents race conditions by doing a single write instead of two
+     * @param {string} dreamId - ID of the dream containing the goal
+     * @param {Object} updatedGoal - Updated goal object
+     * @param {Object} updatedTemplate - Updated template object (optional)
+     * @returns {Promise<void>}
+     * 
+     * USE CASE: When completing a deadline goal, we need to update both:
+     * 1. The goal in dream.goals[] (completed: true, active: false)
+     * 2. The template in weeklyGoalTemplates[] (completed: true, active: false)
+     * 
+     * Doing these as separate writes causes race conditions where the second
+     * write can overwrite the first write's changes due to stale React state.
+     */
+    updateDeadlineGoalAndTemplate: async (dreamId, updatedGoal, updatedTemplate = null) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+      
+      console.log('💾 Atomically updating deadline goal and template:', {
+        dreamId,
+        goalId: updatedGoal.id,
+        templateId: updatedTemplate?.id,
+        completed: updatedGoal.completed
+      });
+      
+      // Find the dream and update the goal
+      const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
+      if (!dream) {
+        console.error('Dream not found:', dreamId);
+        return;
+      }
+      
+      const updatedDream = {
+        ...dream,
+        goals: (dream.goals || []).map(g => g.id === updatedGoal.id ? updatedGoal : g)
+      };
+      
+      // Build complete updated dreams array
+      const updatedDreams = state.currentUser.dreamBook.map(d => 
+        d.id === dreamId ? updatedDream : d
+      );
+      
+      // Build complete updated templates array
+      const templates = state.weeklyGoals?.filter(g => 
+        g.type === 'weekly_goal_template'
+      ) || [];
+      
+      const updatedTemplates = updatedTemplate
+        ? templates.map(t => {
+            // Match by id OR goalId (templates can use either field)
+            const matches = t.id === updatedTemplate.id || 
+                           (updatedTemplate.goalId && t.goalId === updatedTemplate.goalId) ||
+                           (updatedTemplate.id && t.goalId === updatedTemplate.id);
+            return matches ? updatedTemplate : t;
+          })
+        : templates;
+      
+      console.log('📝 Atomic save:', { 
+        dreamsCount: updatedDreams.length, 
+        templatesCount: updatedTemplates.length,
+        goalUpdated: !!updatedGoal,
+        templateUpdated: !!updatedTemplate
+      });
+      
+      // SINGLE atomic write - no race condition!
+      const result = await itemService.saveDreams(userId, updatedDreams, updatedTemplates);
+      if (!result.success) {
+        console.error('Failed to atomically save goal and template:', result.error);
+        return;
+      }
+      
+      // Update local state AFTER successful write
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+      if (updatedTemplate) {
+        dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: updatedTemplate });
+      }
+      
+      console.log('✅ Atomic update successful - no race condition!');
+    },
+
+    /**
+     * Atomically update a consistency goal and its template (if it exists)
+     * Prevents race conditions by updating both in a single write
+     * @param {string} dreamId - Dream ID containing the goal
+     * @param {Object} updatedGoal - Updated goal object
+     * @param {Object} updatedTemplate - Updated template object (optional)
+     * @returns {Promise<void>}
+     */
+    updateConsistencyGoalAndTemplate: async (dreamId, updatedGoal, updatedTemplate = null) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+
+      console.log('💾 Atomically updating consistency goal and template:', {
+        dreamId,
+        goalId: updatedGoal.id,
+        templateId: updatedTemplate?.id,
+        completed: updatedGoal.completed,
+        active: updatedGoal.active
+      });
+
+      // Find the dream and update the goal
+      const dream = state.currentUser.dreamBook.find(d => d.id === dreamId);
+      if (!dream) {
+        console.error('Dream not found:', dreamId);
+        return;
+      }
+
+      const updatedDream = {
+        ...dream,
+        goals: (dream.goals || []).map(g => g.id === updatedGoal.id ? updatedGoal : g)
+      };
+
+      // Build complete updated dreams array
+      const updatedDreams = state.currentUser.dreamBook.map(d =>
+        d.id === dreamId ? updatedDream : d
+      );
+
+      // Build complete updated templates array
+      const templates = state.weeklyGoals?.filter(g =>
+        g.type === 'weekly_goal_template'
+      ) || [];
+
+      const updatedTemplates = updatedTemplate
+        ? templates.map(t => {
+            // Match by id OR goalId (templates can use either field)
+            const matches = t.id === updatedTemplate.id || 
+                           (updatedTemplate.goalId && t.goalId === updatedTemplate.goalId) ||
+                           (updatedTemplate.id && t.goalId === updatedTemplate.id);
+            return matches ? updatedTemplate : t;
+          })
+        : templates;
+
+      console.log('📝 Atomic save:', {
+        dreamsCount: updatedDreams.length,
+        templatesCount: updatedTemplates.length,
+        goalUpdated: !!updatedGoal,
+        templateUpdated: !!updatedTemplate
+      });
+
+      // SINGLE atomic write - no race condition!
+      const result = await itemService.saveDreams(userId, updatedDreams, updatedTemplates);
+      if (!result.success) {
+        console.error('Failed to atomically save consistency goal and template:', result.error);
+        return;
+      }
+
+      // Update local state AFTER successful write
+      dispatch({ type: actionTypes.UPDATE_DREAM, payload: updatedDream });
+      if (updatedTemplate) {
+        dispatch({ type: actionTypes.UPDATE_WEEKLY_GOAL, payload: updatedTemplate });
+      }
+
+      console.log('✅ Atomic consistency goal update successful - no race condition!');
     },
 
     /**

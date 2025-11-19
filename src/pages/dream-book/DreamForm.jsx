@@ -3,7 +3,7 @@
 
 import { memo } from 'react';
 import PropTypes from 'prop-types';
-import { Save, X, Upload, Search, Image, Repeat, Calendar } from 'lucide-react';
+import { Save, X, Upload, Search, Image, Repeat, Calendar, Target } from 'lucide-react';
 import HelpTooltip from '../../components/HelpTooltip';
 
 /**
@@ -192,7 +192,7 @@ function DreamForm({
               <div className="space-y-2">
                 <label className="text-xs font-medium text-professional-gray-600">How often?</label>
                 <div 
-                  className="grid grid-cols-2 gap-2"
+                  className="grid grid-cols-3 gap-2"
                   role="group"
                   aria-label="Goal frequency"
                 >
@@ -230,45 +230,90 @@ function DreamForm({
                     <Calendar className="w-4 h-4 mb-1" aria-hidden="true" />
                     <span>Monthly</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      firstGoal: { ...formData.firstGoal, consistency: 'deadline' }
+                    })}
+                    aria-pressed={formData.firstGoal.consistency === 'deadline'}
+                    data-testid="deadline-consistency-button"
+                    className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      formData.firstGoal.consistency === 'deadline'
+                        ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
+                        : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
+                    }`}
+                  >
+                    <Target className="w-4 h-4 mb-1" aria-hidden="true" />
+                    <span>Deadline</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Target Duration */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-professional-gray-600">
-                  {formData.firstGoal.consistency === 'monthly' 
-                    ? 'Track for how many months?' 
-                    : 'Track for how many weeks?'}
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={formData.firstGoal.consistency === 'monthly' ? 24 : 52}
-                  value={formData.firstGoal.consistency === 'monthly' 
-                    ? formData.firstGoal.targetMonths 
-                    : formData.firstGoal.targetWeeks}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || (formData.firstGoal.consistency === 'monthly' ? 6 : 12);
-                    setFormData({ 
-                      ...formData, 
-                      firstGoal: { 
-                        ...formData.firstGoal, 
-                        ...(formData.firstGoal.consistency === 'monthly' 
-                          ? { targetMonths: value }
-                          : { targetWeeks: value })
-                      }
-                    });
-                  }}
-                  className="input-field text-sm w-24"
-                  aria-label={`Target ${formData.firstGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
-                  data-testid="goal-duration-input"
-                />
-                <p className="text-xs text-professional-gray-500">
-                  {formData.firstGoal.consistency === 'monthly' 
-                    ? 'Default: 6 months' 
-                    : 'Default: 12 weeks'}
-                </p>
-              </div>
+              {/* Target Duration or Date */}
+              {formData.firstGoal.consistency === 'deadline' ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-professional-gray-600">
+                    Target Date <span className="text-netsurit-red">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.firstGoal.targetDate || ''}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        firstGoal: { 
+                          ...formData.firstGoal, 
+                          targetDate: e.target.value
+                        }
+                      });
+                    }}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="input-field text-sm"
+                    aria-label="Target date"
+                    data-testid="goal-deadline-input"
+                  />
+                  <p className="text-xs text-professional-gray-500">
+                    Complete this goal by a specific date
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-professional-gray-600">
+                    {formData.firstGoal.consistency === 'monthly' 
+                      ? 'Track for how many months?' 
+                      : 'Track for how many weeks?'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={formData.firstGoal.consistency === 'monthly' ? 24 : 52}
+                    value={formData.firstGoal.consistency === 'monthly' 
+                      ? formData.firstGoal.targetMonths 
+                      : formData.firstGoal.targetWeeks}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || (formData.firstGoal.consistency === 'monthly' ? 6 : 12);
+                      setFormData({ 
+                        ...formData, 
+                        firstGoal: { 
+                          ...formData.firstGoal, 
+                          ...(formData.firstGoal.consistency === 'monthly' 
+                            ? { targetMonths: value }
+                            : { targetWeeks: value })
+                        }
+                      });
+                    }}
+                    className="input-field text-sm w-24"
+                    aria-label={`Target ${formData.firstGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
+                    data-testid="goal-duration-input"
+                  />
+                  <p className="text-xs text-professional-gray-500">
+                    {formData.firstGoal.consistency === 'monthly' 
+                      ? 'Default: 6 months' 
+                      : 'Default: 12 weeks'}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -350,6 +395,7 @@ DreamForm.propTypes = {
       consistency: PropTypes.string.isRequired,
       targetWeeks: PropTypes.number.isRequired,
       targetMonths: PropTypes.number.isRequired,
+      targetDate: PropTypes.string,
     }).isRequired,
   }).isRequired,
   /** Function to update form data */

@@ -4,14 +4,12 @@
 import { memo } from 'react';
 import PropTypes from 'prop-types';
 import { HelpCircle, BookOpen, Users, Trophy, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 /**
  * Dashboard Header Component
  * Displays welcome message, stats cards, and Vision Builder CTA
  */
 function DashboardHeader({ userName, stats, onShowGuide }) {
-  const navigate = useNavigate();
 
   return (
     <div className="mb-4" data-testid="dashboard-header">
@@ -86,8 +84,8 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
         </div>
       </div>
 
-      {/* Vision Builder Demo CTA - Compact */}
-      <div className="bg-gradient-to-r from-netsurit-red via-netsurit-coral to-netsurit-orange rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20">
+      {/* Vision Builder Demo CTA - Disabled */}
+      <div className="bg-gradient-to-r from-netsurit-red via-netsurit-coral to-netsurit-orange rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20 opacity-60">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
           <div className="text-white">
             <div className="flex items-center space-x-2 mb-1">
@@ -99,12 +97,12 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
             </p>
           </div>
           <button
-            onClick={() => navigate('/vision-builder-demo')}
-            className="bg-white text-netsurit-red px-5 py-2.5 rounded-lg font-bold hover:bg-professional-gray-50 transition-all duration-200 shadow-md hover:shadow-lg inline-flex items-center space-x-2 whitespace-nowrap"
-            aria-label="Try Vision Builder Demo"
+            disabled
+            className="bg-white/80 text-netsurit-red px-5 py-2.5 rounded-lg font-bold cursor-not-allowed transition-all duration-200 shadow-md inline-flex items-center space-x-2 whitespace-nowrap opacity-75"
+            aria-label="Vision Builder Demo (Coming Soon)"
             data-testid="vision-builder-cta"
           >
-            <span>Try Demo</span>
+            <span>Coming Soon</span>
             <Sparkles className="h-4 w-4" />
           </button>
         </div>
