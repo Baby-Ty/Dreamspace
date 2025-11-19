@@ -67,7 +67,7 @@ const GuideModal = ({ onClose }) => {
             </li>
             <li className="flex items-start">
               <span className="mr-3 text-netsurit-red">•</span>
-              <span>Visit <strong>Week Ahead</strong> for a detailed planning view</span>
+              <span>Manage your goals directly from the <strong>Dashboard</strong></span>
             </li>
             <li className="flex items-start">
               <span className="mr-3 text-netsurit-red">•</span>

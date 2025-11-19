@@ -171,12 +171,12 @@ function WeekGoalsWidget({
                   <Plus className="w-6 h-6 mr-2" />
                   Add Goal Here
                 </button>
-                <Link 
-                  to="/dreams-week-ahead"
+                <button
+                  onClick={() => setShowAddGoal(true)}
                   className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-2xl hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-xl hover:shadow-2xl font-bold text-lg transform hover:scale-105"
                 >
                   Manage Goals →
-                </Link>
+                </button>
               </div>
             </div>
           </div>
