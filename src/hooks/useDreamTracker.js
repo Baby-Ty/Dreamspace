@@ -5,12 +5,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { getCurrentIsoWeek, getNextNWeeks, getWeeksUntilDate, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
+import coachingService from '../services/coachingService';
 
 /**
  * Custom hook for Dream Tracker modal state management
  * Handles all CRUD operations for dreams, goals, milestones, and notes
+ * Supports coach viewing mode with read-only access and coach messaging
  */
-export function useDreamTracker(dream, onUpdate) {
+export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMember = null) {
   const { 
     updateDreamProgress, 
     currentUser, 
@@ -25,11 +27,15 @@ export function useDreamTracker(dream, onUpdate) {
   // Tab state
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Coach mode: canEdit is false when coach is viewing (except for coach notes)
+  const canEdit = !isCoachViewing;
+
   // Dream state - MUST be initialized before dreamGoals useMemo
   const [localDream, setLocalDream] = useState({
     ...dream,
     goals: dream.goals || [],
     notes: dream.notes || [],
+    coachNotes: dream.coachNotes || [],
     history: dream.history || []
   });
   
@@ -114,12 +120,15 @@ export function useDreamTracker(dream, onUpdate) {
       ...dream,
       goals: dream.goals || [],
       notes: dream.notes || [],
+      coachNotes: dream.coachNotes || [],
       history: dream.history || []
     });
   }, [dream]);
 
   // Progress handlers
   const handleProgressChange = useCallback((newProgress) => {
+    if (!canEdit) return; // Don't allow progress changes when coach is viewing
+    
     const updatedDream = { ...localDream, progress: newProgress };
     setLocalDream(updatedDream);
     setHasChanges(true);
@@ -139,7 +148,7 @@ export function useDreamTracker(dream, onUpdate) {
     
     // Update global state
     updateDreamProgress(dream.id, newProgress);
-  }, [localDream, dream.id, updateDreamProgress]);
+  }, [localDream, dream.id, updateDreamProgress, canEdit]);
 
   const toggleComplete = useCallback(() => {
     const isComplete = localDream.progress === 100;
@@ -496,58 +505,268 @@ export function useDreamTracker(dream, onUpdate) {
       await updateGoal(localDream.id, updatedGoal);
     }
 
+    // SYNC WITH CURRENTWEEK CONTAINER
+    // Update the goal instance in currentWeek with edited fields
+    try {
+      console.log('📝 Syncing goal edit to currentWeek:', {
+        goalId: editingGoal,
+        goalType: updatedGoal.type,
+        title: updatedGoal.title
+      });
+      
+      const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+      
+      if (currentWeekResponse.success && currentWeekResponse.data?.goals) {
+        const existingGoals = currentWeekResponse.data.goals;
+        
+        // Try multiple matching strategies
+        let goalInCurrentWeek = existingGoals.find(g => 
+          g.id === editingGoal || // Exact match (deadline goals)
+          g.templateId === editingGoal || // TemplateId match (consistency goals)
+          g.id === `${editingGoal}_${currentWeekIso}` // Pattern match (goalId_weekId)
+        );
+        
+        if (goalInCurrentWeek) {
+          console.log('✅ Found goal in currentWeek:', {
+            foundId: goalInCurrentWeek.id,
+            templateId: goalInCurrentWeek.templateId
+          });
+          
+          // Update the goal in currentWeek with edited fields
+          const updatedGoals = existingGoals.map(g => {
+            const isMatch = g.id === editingGoal || 
+                          g.templateId === editingGoal || 
+                          g.id === `${editingGoal}_${currentWeekIso}`;
+            
+            if (isMatch) {
+              return { 
+                ...g, 
+                title: updatedGoal.title,
+                description: updatedGoal.description || '',
+                targetWeeks: updatedGoal.targetWeeks,
+                targetDate: updatedGoal.targetDate,
+                targetMonths: updatedGoal.targetMonths,
+                weeksRemaining: updatedGoal.weeksRemaining,
+                type: updatedGoal.type,
+                recurrence: updatedGoal.recurrence,
+                updatedAt: updatedGoal.updatedAt
+              };
+            }
+            return g;
+          });
+          
+          const result = await currentWeekService.saveCurrentWeek(
+            currentUser.id,
+            currentWeekIso,
+            updatedGoals
+          );
+          
+          if (result.success) {
+            console.log('✅ Goal edit synced to currentWeek successfully');
+            
+            // Trigger dashboard refresh
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('goals-updated'));
+            }, 100);
+          } else {
+            console.error('❌ Failed to sync goal edit to currentWeek:', result.error);
+          }
+        } else {
+          console.log('⚠️ Goal not found in currentWeek, may need to be instantiated:', {
+            goalId: editingGoal,
+            goalType: updatedGoal.type,
+            currentWeekGoals: existingGoals.map(g => ({ id: g.id, templateId: g.templateId }))
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error syncing goal edit to currentWeek:', error);
+      // Don't fail the whole operation if this fails
+    }
+
     // Re-create weekly entries if needed
     // NOTE: No need to recreate weekly entries manually.
     // Dashboard auto-instantiation reads from dream.goals[] and handles instances automatically.
 
     cancelEditingGoal();
-  }, [goalEditData, editingGoal, dreamGoals, localDream.id, updateWeeklyGoal, updateGoal, cancelEditingGoal]);
+  }, [goalEditData, editingGoal, dreamGoals, localDream.id, localDream.title, localDream.category, updateWeeklyGoal, updateGoal, cancelEditingGoal, currentUser.id]);
 
   // Note handlers
   const addNote = useCallback(() => {
-    if (newNote.trim()) {
-      const note = {
-        id: `note_${Date.now()}`,
-        text: newNote.trim(),
-        timestamp: new Date().toISOString()
-      };
-      
-      const updatedDream = {
-        ...localDream,
-        notes: [note, ...localDream.notes]
-      };
-      
-      setLocalDream(updatedDream);
-      setNewNote('');
-      setHasChanges(true);
-      
-      const historyEntry = {
-        id: `history_${Date.now()}`,
-        type: 'note',
-        action: 'Added new note',
-        timestamp: new Date().toISOString()
-      };
-      
-      updatedDream.history = [historyEntry, ...updatedDream.history];
-      setLocalDream(updatedDream);
+    if (!canEdit || !newNote.trim()) return; // Don't allow note changes when coach is viewing
+    
+    const note = {
+      id: `note_${Date.now()}`,
+      text: newNote.trim(),
+      timestamp: new Date().toISOString()
+    };
+    
+    const updatedDream = {
+      ...localDream,
+      notes: [note, ...localDream.notes]
+    };
+    
+    setLocalDream(updatedDream);
+    setNewNote('');
+    setHasChanges(true);
+    
+    const historyEntry = {
+      id: `history_${Date.now()}`,
+      type: 'note',
+      action: 'Added new note',
+      timestamp: new Date().toISOString()
+    };
+    
+    updatedDream.history = [historyEntry, ...updatedDream.history];
+    setLocalDream(updatedDream);
+  }, [newNote, localDream, canEdit]);
+
+  // Coach message handlers
+  const addCoachMessage = useCallback(async (message, coachId = null) => {
+    if (!message.trim()) {
+      console.log('⚠️ Empty message, skipping');
+      return null;
     }
-  }, [newNote, localDream]);
+    
+    // Determine member ID - if coach is viewing, use team member's ID; otherwise use current user's ID
+    let memberId;
+    if (isCoachViewing && teamMember) {
+      memberId = teamMember.id || teamMember.userId || teamMember.email;
+    } else {
+      // User replying to their own dream
+      memberId = currentUser?.id || currentUser?.userId || currentUser?.email;
+    }
+    
+    if (!memberId) {
+      console.error('❌ Cannot add coach message: No member ID available', {
+        isCoachViewing,
+        teamMember: {
+          id: teamMember?.id,
+          userId: teamMember?.userId,
+          email: teamMember?.email
+        },
+        currentUser: {
+          id: currentUser?.id,
+          userId: currentUser?.userId,
+          email: currentUser?.email
+        }
+      });
+      return null;
+    }
+    
+    // Determine if this is a coach message or user message
+    // If coachId is provided and isCoachViewing is true, it's a coach message
+    // Otherwise, it's a user message (coachId should be null)
+    const isCoachMessage = isCoachViewing && !!coachId;
+    const messageCoachId = isCoachMessage ? coachId : null;
+    
+    // Log dream ID for debugging
+    console.log('💬 Adding coach message:', {
+      memberId,
+      dreamId: localDream.id,
+      dreamIdType: typeof localDream.id,
+      dreamTitle: localDream.title,
+      isCoachViewing,
+      coachIdParam: coachId,
+      isCoachMessage: !!messageCoachId,
+      messageCoachId,
+      messageLength: message.trim().length,
+      teamMember: teamMember?.id || teamMember?.userId,
+      currentUserId: currentUser?.id || currentUser?.userId
+    });
+    
+    // Optimistically add message to local state
+    const coachNote = {
+      id: `coach_note_${Date.now()}`,
+      coachId: messageCoachId,
+      message: message.trim(),
+      timestamp: new Date().toISOString()
+    };
+    
+    const updatedDream = {
+      ...localDream,
+      coachNotes: [...(localDream.coachNotes || []), coachNote]
+    };
+    
+    setLocalDream(updatedDream);
+    
+    // Save to backend via service
+    try {
+      console.log('📤 Calling coachingService.addCoachMessageToMemberDream:', {
+        memberId,
+        dreamId: localDream.id,
+        message: message.trim(),
+        messageCoachId
+      });
+      
+      const result = await coachingService.addCoachMessageToMemberDream(
+        memberId,
+        localDream.id,
+        message.trim(),
+        messageCoachId
+      );
+      
+      console.log('📥 Response from coachingService:', {
+        success: result.success,
+        hasData: !!result.data,
+        error: result.error,
+        coachNotes: result.data?.coachNotes?.length
+      });
+      
+      if (result.success) {
+        // Update local dream with saved message (in case backend modified it)
+        let finalDream;
+        if (result.data && result.data.coachNotes) {
+          console.log('✅ Updating local dream with saved coachNotes:', result.data.coachNotes.length);
+          finalDream = {
+            ...localDream,
+            coachNotes: result.data.coachNotes
+          };
+          setLocalDream(finalDream);
+        } else {
+          console.log('⚠️ Response successful but no coachNotes in data, keeping optimistic update');
+          finalDream = updatedDream;
+        }
+        
+        // IMPORTANT: Update global state so dream prop has latest coachNotes when modal reopens
+        // Only update if user is viewing their own dream (not coach viewing)
+        if (!isCoachViewing && onUpdate) {
+          console.log('💾 Updating global state with latest coachNotes');
+          onUpdate(finalDream);
+        }
+        
+        return coachNote;
+      } else {
+        // Revert optimistic update on error
+        console.error('❌ Failed to save coach message:', result.error);
+        setLocalDream(localDream);
+        return null;
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      console.error('❌ Exception saving coach message:', error);
+      setLocalDream(localDream);
+      return null;
+    }
+  }, [localDream, isCoachViewing, teamMember, currentUser, onUpdate]);
 
   // Save handler
   const handleSave = useCallback(() => {
+    if (!canEdit) return; // Don't allow saves when coach is viewing
     onUpdate(localDream);
     setHasChanges(false);
-  }, [localDream, onUpdate]);
+  }, [localDream, onUpdate, canEdit]);
 
   // Privacy handler
   const handlePrivacyChange = useCallback((isPublic) => {
+    if (!canEdit) return; // Don't allow privacy changes when coach is viewing
     const updatedDream = {
       ...localDream,
       isPublic: isPublic
     };
     setLocalDream(updatedDream);
     setHasChanges(true);
-  }, [localDream]);
+  }, [localDream, canEdit]);
 
   // Helper functions
   const getCategoryIcon = useCallback((category) => {
@@ -569,6 +788,15 @@ export function useDreamTracker(dream, onUpdate) {
   }, [dreamGoals]);
   
   const totalGoals = useMemo(() => dreamGoals.length, [dreamGoals]);
+
+  // Get coach notes (from coachNotes array or fallback to notes with isCoachNote flag)
+  const coachNotes = useMemo(() => {
+    if (localDream.coachNotes && localDream.coachNotes.length > 0) {
+      return localDream.coachNotes;
+    }
+    // Fallback to old format for backward compatibility
+    return (localDream.notes || []).filter(note => note.isCoachNote);
+  }, [localDream.coachNotes, localDream.notes]);
 
   return {
     // State
@@ -601,6 +829,9 @@ export function useDreamTracker(dream, onUpdate) {
     // Note handlers
     addNote,
     
+    // Coach message handlers
+    addCoachMessage,
+    
     // Save handler
     handleSave,
     
@@ -616,6 +847,10 @@ export function useDreamTracker(dream, onUpdate) {
     completedGoals,
     totalGoals,
     dreamGoals, // Goals filtered from templates
+    
+    // Coach mode
+    canEdit,
+    coachNotes,
   };
 }
 

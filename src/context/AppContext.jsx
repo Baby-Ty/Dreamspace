@@ -1063,6 +1063,30 @@ export const AppProvider = ({ children, initialUser }) => {
     },
 
     /**
+     * Update a connect status (simplified: pending → completed)
+     * @param {string} connectId - Connect ID to update
+     * @param {string} status - New status ('pending' | 'completed')
+     * @returns {Promise<void>}
+     */
+    updateConnect: async (connectId, status) => {
+      const userId = state.currentUser?.id;
+      if (!userId) return;
+
+      console.log('💾 Updating connect:', { connectId, status });
+
+      // Update via connect service
+      const result = await connectService.updateConnectStatus(userId, connectId, status);
+      if (!result.success) {
+        console.error('Failed to update connect:', result.error);
+        return;
+      }
+
+      // Update local state with the updated connect
+      const updatedConnect = result.data;
+      dispatch({ type: actionTypes.UPDATE_CONNECT, payload: updatedConnect });
+    },
+
+    /**
      * Add a goal to a dream and preserve all weekly goal templates
      * @param {string} dreamId - ID of the dream to add goal to
      * @param {Object} goal - Goal object to add

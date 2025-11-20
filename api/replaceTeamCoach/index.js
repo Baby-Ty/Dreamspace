@@ -288,6 +288,7 @@ module.exports = async function (context, req) {
             const updatedOldCoachUser = {
               ...oldCoachUser,
               role: 'user',
+              isCoach: false,
               assignedCoachId: assignToTeamId,
               assignedTeamName: targetTeam.teamName,
               demotedAt: new Date().toISOString(),
@@ -301,6 +302,7 @@ module.exports = async function (context, req) {
           const updatedOldCoachUser = {
             ...oldCoachUser,
             role: 'user',
+            isCoach: false,
             assignedCoachId: null,
             assignedTeamName: null,
             demotedAt: new Date().toISOString(),
@@ -315,6 +317,7 @@ module.exports = async function (context, req) {
     const updatedNewCoachUser = {
       ...newCoach,
       role: 'coach',
+      isCoach: true,
       promotedAt: newCoach.promotedAt || new Date().toISOString(),
       lastModified: new Date().toISOString()
     };

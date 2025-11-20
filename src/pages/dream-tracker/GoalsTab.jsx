@@ -32,7 +32,8 @@ export function GoalsTab({
   onCancelEditingGoal,
   onSaveEditedGoal,
   goalEditData,
-  setGoalEditData
+  setGoalEditData,
+  canEdit = true
 }) {
   const completedCount = goals.filter(g => g.completed).length;
   
@@ -58,15 +59,23 @@ export function GoalsTab({
         </div>
       </div>
 
+      {!canEdit && (
+        <div className="text-xs text-professional-gray-500 italic mb-2">
+          View only - Coach viewing mode
+        </div>
+      )}
+
       {/* Add New Goal Button or Form */}
       {!isAddingGoal ? (
-        <button
-          onClick={() => setIsAddingGoal(true)}
-          className="w-full bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-3 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Goal</span>
-        </button>
+        canEdit && (
+          <button
+            onClick={() => setIsAddingGoal(true)}
+            className="w-full bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-3 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Goal</span>
+          </button>
+        )
       ) : (
         <div className="bg-professional-gray-50 rounded-xl border border-professional-gray-200 p-4 space-y-4 shadow-lg">
           <div className="flex items-center justify-between">
@@ -246,15 +255,16 @@ export function GoalsTab({
             <div key={goal.id} role="listitem">
               <GoalAccordion
                 goal={goal}
-                onToggleGoal={onToggleGoal}
-                onDeleteGoal={onDeleteGoal}
+                onToggleGoal={canEdit ? onToggleGoal : undefined}
+                onDeleteGoal={canEdit ? onDeleteGoal : undefined}
                 dreamProgress={dreamProgress}
                 isEditing={editingGoal === goal.id}
-                onStartEditing={onStartEditingGoal}
+                onStartEditing={canEdit ? onStartEditingGoal : undefined}
                 onCancelEditing={onCancelEditingGoal}
                 onSaveEditing={onSaveEditedGoal}
                 editData={goalEditData}
                 setEditData={setGoalEditData}
+                canEdit={canEdit}
               />
             </div>
           ))
@@ -297,10 +307,12 @@ GoalsTab.propTypes = {
     startDate: PropTypes.string,
     targetDate: PropTypes.string
   }).isRequired,
-  setGoalEditData: PropTypes.func.isRequired
+  setGoalEditData: PropTypes.func.isRequired,
+  canEdit: PropTypes.bool
 };
 
 export default React.memo(GoalsTab);
+
 
 
 

@@ -35,11 +35,11 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <img
-                src={item.avatar}
+                src={item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=56`}
                 alt={`${item.name}'s profile`}
                 className="w-14 h-14 rounded-full ring-2 ring-white shadow-lg object-cover"
                 onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=6366f1&color=fff&size=56`;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=56`;
                 }}
               />
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-netsurit-coral border-2 border-white rounded-full"></div>

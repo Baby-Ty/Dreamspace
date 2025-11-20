@@ -130,11 +130,81 @@ class CoachingService {
       return null;
     }
   }
+
+  /**
+   * Add a coach message to a team member's dream
+   * @param {string} memberId - Team member's user ID
+   * @param {string} dreamId - Dream ID
+   * @param {string} message - Message text
+   * @param {string} coachId - Coach's user ID (null for user messages)
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async addCoachMessageToMemberDream(memberId, dreamId, message, coachId = null) {
+    try {
+      console.log('💬 Adding coach message:', { memberId, dreamId, coachId: coachId || 'user', messageLength: message.length });
+
+      const response = await fetch(`${this.apiBase}/saveCoachMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          memberId,
+          dreamId,
+          message,
+          coachId
+        })
+      });
+
+      const responseText = await response.text();
+
+      if (response.ok) {
+        if (!responseText || responseText.trim() === '') {
+          console.error('❌ Empty response from API');
+          return fail(ErrorCodes.SAVE_ERROR, 'Empty response from API');
+        }
+
+        try {
+          const result = JSON.parse(responseText);
+          console.log('✅ Coach message saved successfully');
+          return ok(result);
+        } catch (parseError) {
+          console.error('❌ Invalid JSON response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, 'Invalid JSON response from API');
+        }
+      } else {
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error saving coach message:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to save coach message');
+        } catch (parseError) {
+          console.error('❌ Error response:', responseText);
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to save coach message');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error saving coach message:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save coach message');
+    }
+  }
+
+  /**
+   * Add a user message to coach notes (user responding to coach)
+   * @param {string} userId - User's ID
+   * @param {string} dreamId - Dream ID
+   * @param {string} message - Message text
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async addUserMessageToCoachNotes(userId, dreamId, message) {
+    // User messages have coachId = null
+    return this.addCoachMessageToMemberDream(userId, dreamId, message, null);
+  }
 }
 
 // Create and export singleton instance
 export const coachingService = new CoachingService();
 export default coachingService;
+
 
 
 

@@ -91,6 +91,7 @@ module.exports = async function (context, req) {
     }
 
     // Prepare the document - simplified structure with goals instead of milestones
+    // IMPORTANT: Always use 'dreams' field, never 'dreamBook' to avoid duplicates
     const document = {
       id: documentId,
       userId: userId,
@@ -120,6 +121,7 @@ module.exports = async function (context, req) {
         targetDate: dream.targetDate,
         image: dream.image || dream.picture, // Support both image (new) and picture (legacy)
         notes: dream.notes || [],
+        coachNotes: dream.coachNotes || [], // Coach-user conversation messages
         history: dream.history || [],
         completed: dream.completed || false,
         isPublic: dream.isPublic || false,
@@ -150,6 +152,13 @@ module.exports = async function (context, req) {
       createdAt: existingDoc?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+
+    // IMPORTANT: Remove 'dreamBook' field if it exists to prevent duplicates
+    // Cosmos DB upsert replaces the entire document, but we want to be explicit
+    if (document.dreamBook) {
+      delete document.dreamBook;
+      context.log('⚠️ Removed duplicate dreamBook field from document');
+    }
 
     context.log('💾 WRITE:', {
       container: 'dreams',

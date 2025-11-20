@@ -47,6 +47,14 @@ export const NoteSchema = z.object({
   isCoachNote: z.boolean().optional()
 }).passthrough();
 
+// Coach note message schema (simplified chat-like structure)
+export const CoachNoteMessageSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  coachId: z.string().nullable().optional(), // Present = coach message, null/undefined = user message
+  message: z.string(),
+  timestamp: z.string()
+}).passthrough();
+
 // History entry schema
 export const HistorySchema = z.object({
   id: z.union([z.string(), z.number()]),
@@ -85,6 +93,7 @@ export const DreamSchema = z.object({
   image: z.string().url().optional(),
   goals: z.array(GoalSchema).default([]),
   notes: z.array(NoteSchema).default([]),
+  coachNotes: z.array(CoachNoteMessageSchema).default([]),
   history: z.array(HistorySchema).default([]),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()
@@ -111,6 +120,7 @@ export function parseDream(data) {
       image: data?.image,
       goals: [],
       notes: [],
+      coachNotes: [],
       history: []
     };
   }
@@ -198,5 +208,19 @@ export function parseWeeklyGoalTemplateList(data) {
       return parseWeeklyGoalTemplate(item);
     }
   }).filter(Boolean);
+}
+
+export function parseCoachNoteMessage(data) {
+  try {
+    return CoachNoteMessageSchema.parse(data);
+  } catch (error) {
+    console.warn('Failed to parse coach note message:', error.message);
+    return {
+      id: data?.id || `note_${Date.now()}`,
+      coachId: data?.coachId || null,
+      message: data?.message || '',
+      timestamp: data?.timestamp || new Date().toISOString()
+    };
+  }
 }
 

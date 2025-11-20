@@ -21,7 +21,7 @@ import { HistoryTab } from './HistoryTab';
  * Uses useDreamTracker hook for state and renders tabs
  * @component
  */
-export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
+export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, teamMember }) {
   const SELF_PROGRESS_STAGES = [
     {
       id: 0,
@@ -113,6 +113,9 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
     // Note handlers
     addNote,
     
+    // Coach message handlers
+    addCoachMessage,
+    
     // Save handler
     handleSave,
     
@@ -128,7 +131,11 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
     completedGoals,
     totalGoals,
     dreamGoals,
-  } = useDreamTracker(dream, onUpdate);
+    
+    // Coach mode
+    canEdit,
+    coachNotes,
+  } = useDreamTracker(dream, onUpdate, isCoachViewing, teamMember);
 
   return (
     <>
@@ -168,7 +175,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
       )}
 
       {/* Main Modal */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
         <div className="w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-2xl flex flex-col max-h-full overflow-hidden">
           {/* Header */}
@@ -179,6 +186,11 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 <div className="text-white min-w-0 flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-white truncate">{localDream.title}</h2>
                   <div className="flex items-center gap-3 text-xs sm:text-sm text-white/80">
+                    {isCoachViewing && teamMember && (
+                      <span className="px-2 py-0.5 bg-white/20 rounded-md text-white font-medium">
+                        Viewing {teamMember.name}'s Dream
+                      </span>
+                    )}
                     <span className="flex items-center space-x-1">
                       <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>{localDream.category}</span>
@@ -191,7 +203,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 </div>
               </div>
               <div className="flex items-center space-x-2 flex-shrink-0">
-                {hasChanges && (
+                {hasChanges && canEdit && (
                   <button
                     onClick={handleSave}
                     className="bg-white bg-opacity-20 text-white px-3 py-1.5 rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center space-x-1.5 text-sm font-medium"
@@ -262,8 +274,11 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                           <button
                             key={stage.id}
                             type="button"
-                            onClick={() => handleStageChange(index)}
-                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full transition-all duration-300 hover:scale-125 focus:outline-none z-10"
+                            onClick={() => canEdit && handleStageChange(index)}
+                            disabled={!canEdit}
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full transition-all duration-300 focus:outline-none z-10 ${
+                              canEdit ? 'hover:scale-125 cursor-pointer' : 'cursor-not-allowed opacity-60'
+                            }`}
                             style={{ 
                               left: `${(index / (SELF_PROGRESS_STAGES.length - 1)) * 100}%`,
                               width: isActive ? '20px' : '14px',
@@ -289,40 +304,45 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                       })}
                       
                       {/* Invisible Range Input for Dragging */}
-                      <input
-                        type="range"
-                        min="0"
-                        max={SELF_PROGRESS_STAGES.length - 1}
-                        step="1"
-                        value={selfProgressStage}
-                        onChange={(e) => handleStageChange(parseInt(e.target.value))}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                        style={{ margin: 0 }}
-                        aria-label="Slide to adjust your dream progress stage"
-                        role="slider"
-                        aria-valuemin="0"
-                        aria-valuemax={SELF_PROGRESS_STAGES.length - 1}
-                        aria-valuenow={selfProgressStage}
-                        aria-valuetext={activeStage.label}
-                      />
+                      {canEdit && (
+                        <input
+                          type="range"
+                          min="0"
+                          max={SELF_PROGRESS_STAGES.length - 1}
+                          step="1"
+                          value={selfProgressStage}
+                          onChange={(e) => handleStageChange(parseInt(e.target.value))}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                          style={{ margin: 0 }}
+                          aria-label="Slide to adjust your dream progress stage"
+                          role="slider"
+                          aria-valuemin="0"
+                          aria-valuemax={SELF_PROGRESS_STAGES.length - 1}
+                          aria-valuenow={selfProgressStage}
+                          aria-valuetext={activeStage.label}
+                        />
+                      )}
                     </div>
                     
                     {/* Stage Labels Below Slider */}
                     <div className="relative flex justify-between mt-3 -mx-1">
                       {SELF_PROGRESS_STAGES.map((stage, index) => (
-                        <button
-                          key={`label-${stage.id}`}
-                          type="button"
-                          onClick={() => handleStageChange(index)}
-                          className={`text-[9px] sm:text-[10px] font-medium transition-colors duration-200 text-center hover:text-netsurit-coral focus:outline-none px-1 ${
-                            index === selfProgressStage 
-                              ? 'text-netsurit-red font-semibold' 
-                              : 'text-professional-gray-500'
-                          }`}
-                          style={{ width: '20%' }}
-                        >
-                          {stage.shortLabel || stage.label}
-                        </button>
+                    <button
+                      key={`label-${stage.id}`}
+                      type="button"
+                      onClick={() => canEdit && handleStageChange(index)}
+                      disabled={!canEdit}
+                      className={`text-[9px] sm:text-[10px] font-medium transition-colors duration-200 text-center focus:outline-none px-1 ${
+                        canEdit ? 'hover:text-netsurit-coral cursor-pointer' : 'cursor-not-allowed opacity-60'
+                      } ${
+                        index === selfProgressStage 
+                          ? 'text-netsurit-red font-semibold' 
+                          : 'text-professional-gray-500'
+                      }`}
+                      style={{ width: '20%' }}
+                    >
+                      {stage.shortLabel || stage.label}
+                    </button>
                       ))}
                     </div>
                   </div>
@@ -382,7 +402,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
               >
                 <span className="hidden sm:inline">Coach Notes</span>
                 <span className="sm:hidden">Coach</span>
-                <span className="ml-1">({localDream.notes?.filter(note => note.isCoachNote).length || 0})</span>
+                <span className="ml-1">({coachNotes?.length || localDream.coachNotes?.length || localDream.notes?.filter(note => note.isCoachNote).length || 0})</span>
               </button>
               <button
                 onClick={() => setActiveTab('history')}
@@ -407,6 +427,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 getCategoryIcon={getCategoryIcon}
                 formatDate={formatDate}
                 handlePrivacyChange={handlePrivacyChange}
+                canEdit={canEdit}
               />
             )}
 
@@ -428,6 +449,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 onSaveEditedGoal={saveEditedGoal}
                 goalEditData={goalEditData}
                 setGoalEditData={setGoalEditData}
+                canEdit={canEdit}
               />
             )}
 
@@ -438,13 +460,18 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 setNewNote={setNewNote}
                 onAddNote={addNote}
                 formatDate={formatDate}
+                canEdit={canEdit}
               />
             )}
 
             {activeTab === 'coach-notes' && (
               <CoachNotesTab 
-                coachNotes={localDream.notes?.filter(note => note.isCoachNote) || []}
+                coachNotes={coachNotes || localDream.coachNotes || []}
                 formatDate={formatDate}
+                onAddMessage={addCoachMessage}
+                currentUser={isCoachViewing ? teamMember : undefined}
+                isCoach={isCoachViewing}
+                teamMember={teamMember}
               />
             )}
 
@@ -472,10 +499,16 @@ DreamTrackerLayout.propTypes = {
     image: PropTypes.string,
     goals: PropTypes.array,
     notes: PropTypes.array,
+    coachNotes: PropTypes.array,
     history: PropTypes.array
   }).isRequired,
   onClose: PropTypes.func.isRequired,
-  onUpdate: PropTypes.func.isRequired
+  onUpdate: PropTypes.func.isRequired,
+  isCoachViewing: PropTypes.bool,
+  teamMember: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string
+  })
 };
 
 export default DreamTrackerLayout;

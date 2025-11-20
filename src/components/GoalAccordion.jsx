@@ -30,7 +30,8 @@ function GoalAccordion({
   onCancelEditing,
   onSaveEditing,
   editData,
-  setEditData
+  setEditData,
+  canEdit = true
 }) {
   // Early return if no goal
   if (!goal) {
@@ -45,7 +46,7 @@ function GoalAccordion({
   
   // Handle goalType for templates, type for legacy goals
   const actualType = isTemplate ? goal.goalType : goal.type;
-  const isConsistency = actualType === 'consistency';
+  const isConsistency = actualType === 'consistency' || actualType === 'weekly_goal' || goal.recurrence;
   const isDeadline = actualType === 'deadline';
   const isWeekly = goal.recurrence === 'weekly';
   const isMonthly = goal.recurrence === 'monthly';
@@ -209,9 +210,10 @@ function GoalAccordion({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onToggleGoal(goal.id);
+            canEdit && onToggleGoal && onToggleGoal(goal.id);
           }}
-          className="flex-shrink-0 mt-1"
+          disabled={!canEdit || !onToggleGoal}
+          className={`flex-shrink-0 mt-1 ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
           aria-label={isChecked ? (isTemplate ? 'Deactivate goal' : 'Mark goal incomplete') : (isTemplate ? 'Activate goal' : 'Mark goal complete')}
           data-testid={`goal-toggle-${goal.id}`}
         >
@@ -224,15 +226,56 @@ function GoalAccordion({
         
         <div className="flex-1 min-w-0">
           {/* Goal Title and Badges */}
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between mb-2 gap-2">
             <div className="flex-1">
-              <p className={`font-medium ${
-                isChecked 
-                  ? 'text-professional-gray-700 line-through' 
-                  : 'text-professional-gray-900'
-              }`}>
-                {goal.title}
-              </p>
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className={`font-medium ${
+                  isChecked 
+                    ? 'text-professional-gray-700 line-through' 
+                    : 'text-professional-gray-900'
+                }`}>
+                  {goal.title}
+                </p>
+                
+                {/* Weeks remaining - top right */}
+                {isConsistency && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <Clock className={`w-3.5 h-3.5 ${
+                      goal.weeksRemaining === 0 ? 'text-netsurit-orange' :
+                      goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
+                      'text-professional-gray-500'
+                    }`} aria-hidden="true" />
+                    <span className={`text-xs font-medium whitespace-nowrap ${
+                      goal.weeksRemaining === 0 ? 'text-netsurit-orange font-semibold' :
+                      goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
+                      'text-professional-gray-600'
+                    }`}>
+                      {goal.weeksRemaining === 0 ? 'Final week!' :
+                       goal.weeksRemaining === 1 ? '1 week left' :
+                       `${goal.weeksRemaining} weeks left`}
+                    </span>
+                  </div>
+                )}
+                
+                {isDeadline && goal.targetDate && (
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <Clock className={`w-3.5 h-3.5 ${
+                      weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-600' :
+                      weeksUntilDeadline === 0 ? 'text-netsurit-orange' :
+                      weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
+                      'text-professional-gray-500'
+                    }`} aria-hidden="true" />
+                    <span className={`text-xs font-medium whitespace-nowrap ${
+                      weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-700 font-semibold' :
+                      weeksUntilDeadline === 0 ? 'text-netsurit-orange font-semibold' :
+                      weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
+                      'text-professional-gray-600'
+                    }`}>
+                      {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                )}
+              </div>
               
               {goal.description && (
                 <p className="text-xs text-professional-gray-600 mt-1">{goal.description}</p>
@@ -270,31 +313,15 @@ function GoalAccordion({
                         {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     )}
-                    {weeksUntilDeadline !== null && (
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center space-x-1 ${
-                        weeksUntilDeadline < 0 ? 'bg-red-100 text-red-700' :
-                        weeksUntilDeadline === 0 ? 'bg-orange-100 text-orange-700' :
-                        weeksUntilDeadline === 1 ? 'bg-netsurit-coral/20 text-netsurit-coral' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        <Clock className="w-3 h-3" aria-hidden="true" />
-                        <span>
-                          {weeksUntilDeadline < 0 ? 'Past deadline' :
-                           weeksUntilDeadline === 0 ? 'Due this week!' :
-                           weeksUntilDeadline === 1 ? '1 week left' :
-                           `${weeksUntilDeadline} weeks left`}
-                        </span>
-                      </span>
-                    )}
                   </>
                 )}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               {/* Edit Button */}
-              {onStartEditing && (
+              {onStartEditing && canEdit && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -309,7 +336,7 @@ function GoalAccordion({
               )}
               
               {/* Delete Button */}
-              {onDeleteGoal && (
+              {onDeleteGoal && canEdit && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -372,13 +399,14 @@ GoalAccordion.propTypes = {
     active: PropTypes.bool,
     completedAt: PropTypes.string
   }).isRequired,
-  onToggleGoal: PropTypes.func.isRequired,
+  onToggleGoal: PropTypes.func,
   onDeleteGoal: PropTypes.func,
   dreamProgress: PropTypes.number,
   isEditing: PropTypes.bool,
   onStartEditing: PropTypes.func,
   onCancelEditing: PropTypes.func,
   onSaveEditing: PropTypes.func,
+  canEdit: PropTypes.bool,
   editData: PropTypes.object,
   setEditData: PropTypes.func
 };

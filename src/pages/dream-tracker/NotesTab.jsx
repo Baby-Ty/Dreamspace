@@ -9,28 +9,37 @@ import { Plus, Edit3, Calendar } from 'lucide-react';
  * Notes Tab - User personal notes for dreams
  * @component
  */
-export function NotesTab({ notes, newNote, setNewNote, onAddNote, formatDate }) {
+export function NotesTab({ notes, newNote, setNewNote, onAddNote, formatDate, canEdit = true }) {
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-bold text-professional-gray-900">Notes</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-professional-gray-900">Personal Notes</h3>
+        {!canEdit && (
+          <span className="text-xs text-professional-gray-500 italic">
+            View only - Coach viewing mode
+          </span>
+        )}
+      </div>
 
       {/* Add New Note */}
-      <div className="space-y-2">
-        <textarea
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note about your progress, thoughts, or experiences..."
-          className="w-full h-24 px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 resize-none text-sm"
-        />
-        <button
-          onClick={onAddNote}
-          disabled={!newNote.trim()}
-          className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-3 py-1.5 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 text-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Note</span>
-        </button>
-      </div>
+      {canEdit && (
+        <div className="space-y-2">
+          <textarea
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            placeholder="Add a note about your progress, thoughts, or experiences..."
+            className="w-full h-24 px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 resize-none text-sm"
+          />
+          <button
+            onClick={onAddNote}
+            disabled={!newNote.trim()}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-3 py-1.5 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 text-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Note</span>
+          </button>
+        </div>
+      )}
 
       {/* Notes List */}
       <div className="space-y-2">
@@ -64,10 +73,12 @@ NotesTab.propTypes = {
   newNote: PropTypes.string.isRequired,
   setNewNote: PropTypes.func.isRequired,
   onAddNote: PropTypes.func.isRequired,
-  formatDate: PropTypes.func.isRequired
+  formatDate: PropTypes.func.isRequired,
+  canEdit: PropTypes.bool
 };
 
 export default React.memo(NotesTab);
+
 
 
 

@@ -15,7 +15,7 @@ import {
  * Overview Tab - Displays dream overview with What/Why/How and progress stats
  * @component
  */
-export function OverviewTab({ localDream, completedGoals, totalGoals, getCategoryIcon, formatDate, handlePrivacyChange }) {
+export function OverviewTab({ localDream, completedGoals, totalGoals, getCategoryIcon, formatDate, handlePrivacyChange, canEdit = true }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
       {/* Dream Overview - What, Why, How */}
@@ -117,6 +117,11 @@ export function OverviewTab({ localDream, completedGoals, totalGoals, getCategor
                     : 'Private - only visible to you'}
                 </span>
               </div>
+              {!canEdit && (
+                <div className="text-xs text-professional-gray-500 italic mb-2">
+                  View only - Coach viewing mode
+                </div>
+              )}
               <div 
                 className="flex items-center space-x-2"
                 role="group"
@@ -124,10 +129,13 @@ export function OverviewTab({ localDream, completedGoals, totalGoals, getCategor
               >
                 <button
                   type="button"
-                  onClick={() => handlePrivacyChange(false)}
+                  onClick={() => canEdit && handlePrivacyChange(false)}
+                  disabled={!canEdit}
                   aria-pressed={!localDream.isPublic}
                   data-testid="private-button"
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    !canEdit ? 'opacity-60 cursor-not-allowed' : ''
+                  } ${
                     !localDream.isPublic 
                       ? 'bg-professional-gray-600 text-white' 
                       : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
@@ -137,10 +145,13 @@ export function OverviewTab({ localDream, completedGoals, totalGoals, getCategor
                 </button>
                 <button
                   type="button"
-                  onClick={() => handlePrivacyChange(true)}
+                  onClick={() => canEdit && handlePrivacyChange(true)}
+                  disabled={!canEdit}
                   aria-pressed={localDream.isPublic}
                   data-testid="public-button"
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    !canEdit ? 'opacity-60 cursor-not-allowed' : ''
+                  } ${
                     localDream.isPublic 
                       ? 'bg-netsurit-red text-white' 
                       : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
@@ -198,7 +209,8 @@ OverviewTab.propTypes = {
   totalGoals: PropTypes.number.isRequired,
   getCategoryIcon: PropTypes.func.isRequired,
   formatDate: PropTypes.func.isRequired,
-  handlePrivacyChange: PropTypes.func.isRequired
+  handlePrivacyChange: PropTypes.func.isRequired,
+  canEdit: PropTypes.bool
 };
 
 export default React.memo(OverviewTab);

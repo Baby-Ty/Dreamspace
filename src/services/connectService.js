@@ -129,6 +129,76 @@ class ConnectService {
       return fail(ErrorCodes.DELETE_ERROR, error.message || 'Failed to delete connect');
     }
   }
+
+  /**
+   * Update connect status (simplified: pending → completed)
+   * @param {string} userId - User ID (partition key)
+   * @param {string} connectId - Connect ID
+   * @param {string} status - New status ('pending' | 'completed')
+   * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+   */
+  async updateConnectStatus(userId, connectId, status) {
+    try {
+      // First, get the existing connect to update it
+      const connectsResult = await this.getConnects(userId);
+      if (!connectsResult.success) {
+        return fail(ErrorCodes.LOAD_ERROR, 'Failed to load connect for update');
+      }
+
+      const existingConnect = connectsResult.data.find(c => c.id === connectId);
+      if (!existingConnect) {
+        return fail(ErrorCodes.NOT_FOUND, 'Connect not found');
+      }
+
+      // Update the connect with new status
+      const updatedConnect = {
+        ...existingConnect,
+        status,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Save updated connect (Cosmos DB upsert)
+      return await this.saveConnect(userId, updatedConnect);
+    } catch (error) {
+      console.error('❌ Error updating connect status:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to update connect status');
+    }
+  }
+
+  /**
+   * Update connect details (generic update method)
+   * @param {string} userId - User ID (partition key)
+   * @param {string} connectId - Connect ID
+   * @param {object} updates - Partial connect object with fields to update
+   * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+   */
+  async updateConnectDetails(userId, connectId, updates) {
+    try {
+      // First, get the existing connect to update it
+      const connectsResult = await this.getConnects(userId);
+      if (!connectsResult.success) {
+        return fail(ErrorCodes.LOAD_ERROR, 'Failed to load connect for update');
+      }
+
+      const existingConnect = connectsResult.data.find(c => c.id === connectId);
+      if (!existingConnect) {
+        return fail(ErrorCodes.NOT_FOUND, 'Connect not found');
+      }
+
+      // Merge updates with existing connect
+      const updatedConnect = {
+        ...existingConnect,
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Save updated connect (Cosmos DB upsert)
+      return await this.saveConnect(userId, updatedConnect);
+    } catch (error) {
+      console.error('❌ Error updating connect details:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to update connect details');
+    }
+  }
 }
 
 // Create singleton instance

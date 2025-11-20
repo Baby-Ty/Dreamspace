@@ -1,7 +1,7 @@
 const { CosmosClient } = require('@azure/cosmos');
 
 // Initialize Cosmos client only if environment variables are present
-let client, database, connectsContainer;
+let client, database, connectsContainer, usersContainer;
 if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   client = new CosmosClient({
     endpoint: process.env.COSMOS_ENDPOINT,
@@ -9,6 +9,7 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
   });
   database = client.database('dreamspace');
   connectsContainer = database.container('connects');
+  usersContainer = database.container('users');
 }
 
 module.exports = async function (context, req) {
@@ -61,11 +62,60 @@ module.exports = async function (context, req) {
     
     context.log(`Loaded ${connects.length} connects for user ${userId}`);
     
-    // Clean up Cosmos metadata
-    const cleanConnects = connects.map(connect => {
+    // Clean up Cosmos metadata and enrich with current user avatars
+    const cleanConnects = await Promise.all(connects.map(async (connect) => {
       const { _rid, _self, _etag, _attachments, _ts, ...cleanConnect } = connect;
+      
+      // Enrich with current avatar from users container
+      // Use withWhomId if available (user's email/ID), otherwise try withWhom if it's an email
+      if (usersContainer) {
+        try {
+          const userIdToLookup = cleanConnect.withWhomId || 
+                                 (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null);
+          
+          if (userIdToLookup) {
+            try {
+              const { resource: userDoc } = await usersContainer.item(userIdToLookup, userIdToLookup).read();
+              if (userDoc) {
+                // Prioritize currentUser.avatar, then user.avatar, then fallback
+                const currentUser = userDoc.currentUser || {};
+                const bestAvatar = currentUser.avatar || userDoc.avatar || userDoc.picture;
+                const bestName = currentUser.name || userDoc.name || userDoc.displayName;
+                const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
+                
+                // Update connect with current user data from blob storage
+                if (bestAvatar) {
+                  cleanConnect.avatar = bestAvatar;
+                }
+                if (bestName) {
+                  cleanConnect.name = bestName;
+                }
+                if (bestOffice) {
+                  cleanConnect.office = bestOffice;
+                }
+                
+                context.log(`Enriched connect ${cleanConnect.id} with avatar from user ${userIdToLookup}`);
+              }
+            } catch (readError) {
+              // User not found - use stored avatar
+              if (readError.code === 404) {
+                context.log(`User ${userIdToLookup} not found in users container, using stored avatar`);
+              } else {
+                context.log.warn(`Error reading user ${userIdToLookup}:`, readError.message);
+              }
+            }
+          } else {
+            // No user ID available for lookup - use stored avatar
+            context.log(`No user ID available for connect ${cleanConnect.id}, using stored avatar`);
+          }
+        } catch (enrichError) {
+          context.log.warn(`Could not enrich connect ${cleanConnect.id} with user avatar:`, enrichError.message);
+          // Continue with stored avatar
+        }
+      }
+      
       return cleanConnect;
-    });
+    }));
     
     context.res = {
       status: 200,

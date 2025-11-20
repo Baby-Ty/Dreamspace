@@ -304,12 +304,12 @@ function WeekGoalsWidget({
             {/* Goals List */}
             <div className="flex-1 space-y-3 overflow-y-auto pr-2">
               {currentWeekGoals.map((goal) => (
-                <div key={goal.id} className={`p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg ${
+                <div key={goal.id} className={`p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg flex flex-col ${
                   goal.completed 
                     ? 'bg-gradient-to-r from-professional-gray-50 to-white border-professional-gray-300 shadow-sm' 
                     : 'bg-white border-professional-gray-200 hover:border-netsurit-red/30 shadow-md hover:scale-[1.01]'
                 }`} data-testid={`goal-${goal.id}`}>
-                  <div className="flex items-start space-x-3.5">
+                  <div className="flex items-start space-x-3.5 flex-1">
                     <button
                       ref={(el) => (buttonRefs.current[goal.id] = el)}
                       onClick={() => handleToggleWithCelebration(goal.id)}
@@ -325,11 +325,65 @@ function WeekGoalsWidget({
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <h3 className={`text-base font-semibold leading-snug ${
-                        goal.completed ? 'line-through text-professional-gray-500' : 'text-professional-gray-900'
-                      }`}>
-                        {goal.title}
-                      </h3>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className={`text-base font-semibold leading-snug flex-1 ${
+                          goal.completed ? 'line-through text-professional-gray-500' : 'text-professional-gray-900'
+                        }`}>
+                          {goal.title}
+                        </h3>
+                        
+                        {/* Weeks remaining - top right */}
+                        {(goal.type === 'weekly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+                          <div className="flex items-center space-x-1 flex-shrink-0">
+                            <Clock className={`w-3.5 h-3.5 ${
+                              goal.weeksRemaining === 0 
+                                ? 'text-netsurit-orange' 
+                                : goal.weeksRemaining === 1
+                                  ? 'text-netsurit-coral'
+                                  : 'text-professional-gray-500'
+                            }`} aria-hidden="true" />
+                            <span className={`text-xs font-medium whitespace-nowrap ${
+                              goal.weeksRemaining === 0 
+                                ? 'text-netsurit-orange font-semibold' 
+                                : goal.weeksRemaining === 1
+                                  ? 'text-netsurit-coral'
+                                  : 'text-professional-gray-600'
+                            }`}>
+                              {goal.weeksRemaining === 0 
+                                ? 'Final week!' 
+                                : goal.weeksRemaining === 1
+                                  ? '1 week left' 
+                                  : `${goal.weeksRemaining} weeks left`}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Deadline goal due date - top right */}
+                        {goal.type === 'deadline' && goal.targetDate && (
+                          <div className="flex items-center space-x-1 flex-shrink-0">
+                            <Clock className={`w-3.5 h-3.5 ${
+                              goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
+                                ? 'text-red-600' 
+                                : goal.weeksRemaining === 0
+                                  ? 'text-netsurit-orange'
+                                  : goal.weeksRemaining === 1
+                                    ? 'text-netsurit-coral'
+                                    : 'text-professional-gray-500'
+                            }`} aria-hidden="true" />
+                            <span className={`text-xs font-medium whitespace-nowrap ${
+                              goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
+                                ? 'text-red-700 font-semibold' 
+                                : goal.weeksRemaining === 0
+                                  ? 'text-netsurit-orange font-semibold'
+                                  : goal.weeksRemaining === 1
+                                    ? 'text-netsurit-coral'
+                                    : 'text-professional-gray-600'
+                            }`}>
+                              {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       
                       {/* Monthly goal counter */}
                       {goal.recurrence === 'monthly' && goal.frequency && (
@@ -353,61 +407,33 @@ function WeekGoalsWidget({
                         </div>
                       )}
                       
-                      {/* Deadline goal weeks remaining */}
-                      {goal.type === 'deadline' && goal.targetDate && goal.weeksRemaining !== undefined && (
-                        <div className="mt-2 flex items-center space-x-1.5">
-                          <Clock className={`w-3.5 h-3.5 ${
-                            goal.weeksRemaining === 0 
-                              ? 'text-netsurit-orange' 
-                              : goal.weeksRemaining === 1
-                                ? 'text-netsurit-coral'
-                                : 'text-professional-gray-500'
-                          }`} aria-hidden="true" />
-                          <span className={`text-xs font-medium ${
-                            goal.weeksRemaining === 0 
-                              ? 'text-netsurit-orange font-semibold' 
-                              : goal.weeksRemaining === 1
-                                ? 'text-netsurit-coral'
-                                : 'text-professional-gray-600'
-                          }`}>
-                            {goal.weeksRemaining === 0 
-                              ? 'Due this week!' 
-                              : goal.weeksRemaining === 1 
-                                ? '1 week left' 
-                                : `${goal.weeksRemaining} weeks left`}
-                            {goal.targetDate && (
-                              <span className="text-professional-gray-500 ml-1">
-                                ({new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      )}
-                      
+                      {/* Dream title */}
                       {goal.dreamTitle && (
-                        <div className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                        <p className={`text-xs mt-2 ${
                           goal.completed 
-                            ? 'bg-professional-gray-200 text-professional-gray-600' 
-                            : 'bg-gradient-to-r from-netsurit-red/10 to-netsurit-coral/10 text-netsurit-red border border-netsurit-red/20'
+                            ? 'text-professional-gray-500' 
+                            : 'text-professional-gray-700'
                         }`}>
-                          {goal.dreamTitle}
-                        </div>
-                      )}
-                      
-                      {/* Skip button (only for non-completed template-based goals) */}
-                      {!goal.completed && goal.templateId && onSkipGoal && (
-                        <button
-                          onClick={() => onSkipGoal(goal.id)}
-                          className="mt-2 inline-flex items-center space-x-1 text-xs text-professional-gray-500 hover:text-netsurit-red transition-colors group"
-                          aria-label="Skip this week"
-                          data-testid={`skip-goal-${goal.id}`}
-                        >
-                          <SkipForward className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                          <span className="underline decoration-dotted">Skip this week</span>
-                        </button>
+                          dream: {goal.dreamTitle}
+                        </p>
                       )}
                     </div>
                   </div>
+                  
+                  {/* Skip button - bottom right */}
+                  {!goal.completed && goal.templateId && onSkipGoal && (
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={() => onSkipGoal(goal.id)}
+                        className="inline-flex items-center space-x-1 text-xs text-professional-gray-500 hover:text-netsurit-red transition-colors group"
+                        aria-label="Skip this week"
+                        data-testid={`skip-goal-${goal.id}`}
+                      >
+                        <SkipForward className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        <span className="underline decoration-dotted">Skip this week</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
               

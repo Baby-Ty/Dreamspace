@@ -6,10 +6,10 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "get",
+        "post",
         "options"
       ],
-      "route": "getScoring/{userId}"
+      "route": "saveCoachMessage"
     },
     {
       "type": "http",
@@ -18,11 +18,4 @@
     }
   ]
 }
-
-
-
-
-
-
-
 

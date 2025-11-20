@@ -11,6 +11,7 @@ export const actionTypes = {
   REORDER_DREAMS: 'REORDER_DREAMS',
   UPDATE_USER_SCORE: 'UPDATE_USER_SCORE',
   ADD_CONNECT: 'ADD_CONNECT',
+  UPDATE_CONNECT: 'UPDATE_CONNECT',
   SET_WEEKLY_GOALS: 'SET_WEEKLY_GOALS',
   ADD_WEEKLY_GOAL: 'ADD_WEEKLY_GOAL',
   UPDATE_WEEKLY_GOAL: 'UPDATE_WEEKLY_GOAL',
@@ -103,6 +104,18 @@ export const appReducer = (state, action) => {
         currentUser: {
           ...state.currentUser,
           connects: [...state.currentUser.connects, action.payload]
+        }
+      };
+
+    case actionTypes.UPDATE_CONNECT:
+      const updatedConnects = state.currentUser.connects.map(connect =>
+        connect.id === action.payload.id ? action.payload : connect
+      );
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          connects: updatedConnects
         }
       };
 

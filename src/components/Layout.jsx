@@ -13,7 +13,8 @@ import {
   Users2,
   UserCog,
   FileText,
-  Eye
+  Eye,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';
@@ -28,6 +29,7 @@ const Layout = ({ children }) => {
   const activeNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
+    { name: 'Dream Team', href: '/dream-team', icon: UserPlus },
     // Week Ahead removed - current week goals now shown on Dashboard
   ];
 
