@@ -539,6 +539,16 @@ export function useDreamTracker(dream, onUpdate) {
     setHasChanges(false);
   }, [localDream, onUpdate]);
 
+  // Privacy handler
+  const handlePrivacyChange = useCallback((isPublic) => {
+    const updatedDream = {
+      ...localDream,
+      isPublic: isPublic
+    };
+    setLocalDream(updatedDream);
+    setHasChanges(true);
+  }, [localDream]);
+
   // Helper functions
   const getCategoryIcon = useCallback((category) => {
     const icons = { 'Health': '💪', 'Travel': '✈️', 'Career': '💼', 'Learning': '📚', 'Creative': '🎨', 
@@ -593,6 +603,9 @@ export function useDreamTracker(dream, onUpdate) {
     
     // Save handler
     handleSave,
+    
+    // Privacy handler
+    handlePrivacyChange,
     
     // Helpers
     getCategoryIcon,

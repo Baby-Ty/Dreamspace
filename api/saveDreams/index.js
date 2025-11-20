@@ -122,6 +122,7 @@ module.exports = async function (context, req) {
         notes: dream.notes || [],
         history: dream.history || [],
         completed: dream.completed || false,
+        isPublic: dream.isPublic || false,
         createdAt: dream.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       })),

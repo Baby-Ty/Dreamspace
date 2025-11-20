@@ -6,14 +6,16 @@ import PropTypes from 'prop-types';
 import { 
   TrendingUp, 
   Clock, 
-  Target 
+  Target,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 /**
  * Overview Tab - Displays dream overview with What/Why/How and progress stats
  * @component
  */
-export function OverviewTab({ localDream, completedGoals, totalGoals, getCategoryIcon, formatDate }) {
+export function OverviewTab({ localDream, completedGoals, totalGoals, getCategoryIcon, formatDate, handlePrivacyChange }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
       {/* Dream Overview - What, Why, How */}
@@ -94,6 +96,63 @@ export function OverviewTab({ localDream, completedGoals, totalGoals, getCategor
           </div>
         </div>
 
+        {/* Dream Settings */}
+        <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
+          <div className="p-2 px-3 border-b border-professional-gray-200 bg-professional-gray-50">
+            <h4 className="font-bold text-professional-gray-900 flex items-center space-x-2 text-sm">
+              {localDream.isPublic ? (
+                <Eye className="h-4 w-4 text-netsurit-red" />
+              ) : (
+                <EyeOff className="h-4 w-4 text-professional-gray-600" />
+              )}
+              <span>Dream Visibility</span>
+            </h4>
+          </div>
+          <div className="p-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-professional-gray-600">
+                  {localDream.isPublic 
+                    ? 'Visible to coaches and team members' 
+                    : 'Private - only visible to you'}
+                </span>
+              </div>
+              <div 
+                className="flex items-center space-x-2"
+                role="group"
+                aria-label="Dream visibility"
+              >
+                <button
+                  type="button"
+                  onClick={() => handlePrivacyChange(false)}
+                  aria-pressed={!localDream.isPublic}
+                  data-testid="private-button"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    !localDream.isPublic 
+                      ? 'bg-professional-gray-600 text-white' 
+                      : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
+                  }`}
+                >
+                  Private
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrivacyChange(true)}
+                  aria-pressed={localDream.isPublic}
+                  data-testid="public-button"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    localDream.isPublic 
+                      ? 'bg-netsurit-red text-white' 
+                      : 'bg-professional-gray-100 text-professional-gray-600 hover:bg-professional-gray-200'
+                  }`}
+                >
+                  Public
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Recent Activity */}
         <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
           <div className="p-2 px-3 border-b border-professional-gray-200 bg-professional-gray-50">
@@ -131,16 +190,19 @@ OverviewTab.propTypes = {
     approach: PropTypes.string,
     category: PropTypes.string.isRequired,
     progress: PropTypes.number.isRequired,
+    isPublic: PropTypes.bool,
     notes: PropTypes.array,
     history: PropTypes.array
   }).isRequired,
   completedGoals: PropTypes.number.isRequired,
   totalGoals: PropTypes.number.isRequired,
   getCategoryIcon: PropTypes.func.isRequired,
-  formatDate: PropTypes.func.isRequired
+  formatDate: PropTypes.func.isRequired,
+  handlePrivacyChange: PropTypes.func.isRequired
 };
 
 export default React.memo(OverviewTab);
+
 
 
 

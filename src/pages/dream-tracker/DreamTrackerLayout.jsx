@@ -116,6 +116,9 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
     // Save handler
     handleSave,
     
+    // Privacy handler
+    handlePrivacyChange,
+    
     // Helpers
     getCategoryIcon,
     getProgressColor,
@@ -403,6 +406,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate }) {
                 totalGoals={totalGoals}
                 getCategoryIcon={getCategoryIcon}
                 formatDate={formatDate}
+                handlePrivacyChange={handlePrivacyChange}
               />
             )}
 
