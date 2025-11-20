@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Users, 
   Heart, 
@@ -73,6 +73,15 @@ export default function DreamConnectLayout() {
     columnsCount: 3 // Matches lg:grid-cols-3
   });
   const [schedulingOption, setSchedulingOption] = useState('teams');
+
+  // Debug: Log connects whenever they change
+  useEffect(() => {
+    console.log('🔗 Dream Connect Page - Connects updated:', {
+      count: currentUser?.connects?.length || 0,
+      connects: currentUser?.connects || [],
+      userId: currentUser?.id
+    });
+  }, [currentUser?.connects, currentUser?.id]);
 
   // Filter change handler
   const handleFilterChange = (key, value) => {

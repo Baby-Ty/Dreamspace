@@ -474,8 +474,17 @@ module.exports = async function (context, req) {
       }
       
       // Extract connects
-      const connects = connectsResult.status === 'fulfilled' ? 
-        connectsResult.value.resources.map(cleanCosmosMetadata) : [];
+      let connects = [];
+      if (connectsResult.status === 'fulfilled') {
+        connects = connectsResult.value.resources.map(cleanCosmosMetadata);
+        context.log(`✅ Loaded ${connects.length} connects from connects container`);
+        if (connects.length > 0) {
+          context.log(`📋 Connect IDs: ${connects.map(c => c.id).join(', ')}`);
+        }
+      } else {
+        context.log.warn(`⚠️ Failed to load connects: ${connectsResult.reason?.message || 'Unknown error'}`);
+        connects = [];
+      }
       
       // Extract and flatten week goals from nested structure
       let weeklyGoals = [...templates]; // Start with templates

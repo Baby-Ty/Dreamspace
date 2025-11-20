@@ -75,6 +75,10 @@ export const AppProvider = ({ children, initialUser }) => {
   console.log('🚀 AppContext initializing with data from API:');
   console.log('   👤 User:', userToUse?.email || 'none');
   console.log('   📚 Dreams:', userToUse?.dreamBook?.length || 0);
+  console.log('   🔗 Connects from API:', userToUse?.connects?.length || 0);
+  if (userToUse?.connects && userToUse.connects.length > 0) {
+    console.log('   🔗 Connect IDs:', userToUse.connects.map(c => c.id));
+  }
   console.log('   📋 Weekly goals from API:', weeklyGoalsFromAPI.length);
   console.log('   📋 Templates from API:', weeklyGoalsFromAPI.filter(g => g.type === 'weekly_goal_template').length);
   
@@ -223,6 +227,41 @@ export const AppProvider = ({ children, initialUser }) => {
     
     loadData();
   }, [userId]);
+
+  // Load connects from API on mount and when user changes to ensure they're always up-to-date
+  useEffect(() => {
+    const userId = state.currentUser?.id;
+    if (!userId) return;
+
+    let isMounted = true;
+    const currentUserSnapshot = state.currentUser;
+
+    const loadConnects = async () => {
+      try {
+        const result = await connectService.getConnects(userId);
+        if (!isMounted) return;
+
+        if (result.success && Array.isArray(result.data)) {
+          // Update connects in state with fresh data from API
+          dispatch({
+            type: actionTypes.SET_USER_DATA,
+            payload: {
+              ...currentUserSnapshot,
+              connects: result.data
+            }
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error loading connects:', error);
+      }
+    };
+
+    loadConnects();
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.currentUser?.id]);
 
   // DEPRECATED: Bulk instantiation removed - currentWeek + pastWeeks model creates goals on-demand
   // Templates are no longer pre-instantiated into weeks{year} containers
