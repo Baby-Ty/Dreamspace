@@ -60,16 +60,23 @@ function DashboardDreamCard({ dream, onClick }) {
       <div className="flex flex-col flex-grow p-4 bg-gradient-to-b from-white to-professional-gray-50/30">
         {/* Title */}
         <h3 
-          className="text-base font-bold text-professional-gray-900 mb-3 line-clamp-2 leading-snug group-hover:text-netsurit-red transition-colors"
+          className="text-base font-bold text-professional-gray-900 mb-3 line-clamp-2 leading-snug group-hover:text-netsurit-red transition-colors text-center"
           data-testid="dream-title"
         >
           {dream.title}
         </h3>
 
+        {/* Description */}
+        {dream.description && (
+          <p className="text-sm text-professional-gray-600 line-clamp-2 leading-relaxed mb-3 text-center">
+            {dream.description}
+          </p>
+        )}
+
         {/* Progress Bar */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-semibold text-professional-gray-600">Progress</span>
+          {/* Progress Percentage - Centered above bar */}
+          <div className="flex justify-center">
             <span 
               className="text-sm font-bold text-netsurit-red"
               data-testid="dream-progress"
@@ -113,6 +120,7 @@ DashboardDreamCard.propTypes = {
   dream: PropTypes.shape({
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    description: PropTypes.string,
     category: PropTypes.string.isRequired,
     image: PropTypes.string,
     progress: PropTypes.number.isRequired,

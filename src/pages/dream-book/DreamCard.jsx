@@ -81,18 +81,18 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
       {/* Content */}
       <div className="flex flex-col h-full p-5">
         <div className="flex-1">
-          <h3 className="font-bold text-lg text-professional-gray-900 mb-3 line-clamp-2 group-hover:text-netsurit-red transition-colors duration-200">
+          <h3 className="font-bold text-lg text-professional-gray-900 mb-3 line-clamp-2 group-hover:text-netsurit-red transition-colors duration-200 text-center">
             {dream.title}
           </h3>
-          <p className="text-sm text-professional-gray-600 line-clamp-3 leading-relaxed mb-4">
+          <p className="text-sm text-professional-gray-600 line-clamp-3 leading-relaxed mb-4 text-center">
             {dream.description}
           </p>
         </div>
 
         {/* Progress Section */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-professional-gray-700">Progress</span>
+          {/* Progress Percentage - Centered above bar */}
+          <div className="flex justify-center">
             <span 
               className="text-sm font-bold text-netsurit-red"
               data-testid="dream-progress"
