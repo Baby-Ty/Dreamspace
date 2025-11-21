@@ -157,6 +157,7 @@ module.exports = async function (context, req) {
       teamMembers,
       teamName: team.teamName,
       mission: team.mission || null,
+      nextMeeting: team.nextMeeting || null,
       managerId: team.managerId,
       lastUpdated: new Date().toISOString()
     };

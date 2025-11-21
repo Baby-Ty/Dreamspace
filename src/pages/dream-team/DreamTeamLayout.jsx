@@ -279,8 +279,11 @@ export default function DreamTeamLayout() {
           <MeetingScheduleCard 
             teamId={teamId}
             isCoach={isCoach}
+            nextMeeting={teamData?.nextMeeting}
             onSave={(data) => {
               console.log('Meeting schedule saved:', data);
+              // Refresh team data to show updated meeting
+              refreshData();
             }}
           />
           ) : (

@@ -235,6 +235,42 @@ class CoachingService {
       return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update team mission');
     }
   }
+
+  /**
+   * Update team meeting schedule
+   * @param {string} managerId - Manager/Coach ID
+   * @param {object} meeting - Meeting data { date, time, location, agenda }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateTeamMeeting(managerId, meeting) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/updateTeamMeeting/${managerId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ meeting })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+          return fail(ErrorCodes.NETWORK, errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Team meeting updated successfully');
+        return ok(result.data);
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Team meeting would be saved to localStorage');
+        return ok({ meeting, managerId, lastModified: new Date().toISOString() });
+      }
+    } catch (error) {
+      console.error('❌ Error updating team meeting:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update team meeting');
+    }
+  }
 }
 
 // Create and export singleton instance

@@ -1,16 +1,24 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
-import { Heart, MapPin, Award, Eye } from 'lucide-react';
+import { Heart, MapPin, Award, BookOpen } from 'lucide-react';
+import { useMemo } from 'react';
 
 /**
  * Pure presentational component for displaying a connection card
- * @param {Object} item - Connection user object with sharedCategories, sampleDreams, etc.
+ * Aligned with Team Member card design - centered vertical layout
+ * @param {Object} item - Connection user object with dreamBook, dreamsCount, connectsCount, etc.
  * @param {Function} onInvite - Callback when connect button clicked (user) => void
  * @param {Function} onPreview - Optional callback for preview button (user) => void
  * @param {Object} rovingProps - Props from useRovingFocus for keyboard navigation
  */
 function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
   if (!item) return null;
+
+  // Filter public dreams from item's dreamBook
+  const publicDreams = useMemo(() => {
+    if (!item.dreamBook || !Array.isArray(item.dreamBook)) return [];
+    return item.dreamBook.filter(dream => dream.isPublic === true);
+  }, [item.dreamBook]);
 
   const handleKeyDown = (e) => {
     // Allow Enter or Space to activate the connect button
@@ -20,121 +28,121 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
     }
   };
 
+  // Get accent color class based on item's accentColor
+  const getAccentColorClass = () => {
+    const color = item.accentColor || 'netsurit-red';
+    const colorMap = {
+      'netsurit-red': 'ring-netsurit-red',
+      'netsurit-coral': 'ring-netsurit-coral',
+      'netsurit-orange': 'ring-netsurit-orange'
+    };
+    return colorMap[color] || 'ring-netsurit-red';
+  };
+
   return (
     <div 
       {...rovingProps}
-      className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden hover:scale-[1.02] hover:border-netsurit-red/30 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2"
+      className="group bg-white rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-2xl hover:border-netsurit-red/20 hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden flex flex-col relative"
       role="gridcell"
       aria-label={`Connection suggestion: ${item.name}`}
       data-testid={`connection-card-${item.id}`}
       onKeyDown={handleKeyDown}
     >
-      {/* Header */}
-      <div className="relative bg-gradient-to-br from-netsurit-red/5 via-netsurit-coral/5 to-netsurit-orange/5 p-4 border-b border-professional-gray-100">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <img
-                src={item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=56`}
-                alt={`${item.name}'s profile`}
-                className="w-14 h-14 rounded-full ring-2 ring-white shadow-lg object-cover"
-                onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=56`;
-                }}
-              />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-netsurit-coral border-2 border-white rounded-full"></div>
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-base text-professional-gray-900 truncate">
-                {item.name}
-              </h3>
-              <div className="flex items-center text-sm text-professional-gray-600 mt-0.5">
-                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" aria-hidden="true" />
-                <span className="truncate">{item.office}</span>
-              </div>
-              {item.score !== undefined && (
-                <div className="flex items-center text-xs text-netsurit-coral mt-1">
-                  <Award className="w-3 h-3 mr-1" aria-hidden="true" />
-                  <span className="font-medium">{item.score} pts</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {onPreview && (
-            <button
-              onClick={() => onPreview(item)}
-              className="p-1.5 text-professional-gray-400 hover:text-netsurit-red hover:bg-white rounded-lg transition-colors"
-              title="Preview profile"
-              aria-label={`Preview ${item.name}'s profile`}
-            >
-              <Eye className="w-4 h-4" aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        {/* Shared Categories */}
-        {item.sharedCategories && item.sharedCategories.length > 0 && (
-          <div className="mt-3" data-testid={`shared-categories-${item.id}`}>
-            <p className="text-xs font-semibold text-professional-gray-700 mb-1.5">
-              Shared interests:
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {item.sharedCategories.slice(0, 3).map((category) => (
-                <span
-                  key={category}
-                  className="px-2 py-1 bg-white text-netsurit-red text-xs font-medium rounded-full border border-netsurit-red/20 shadow-sm"
-                >
-                  {category}
-                </span>
-              ))}
-              {item.sharedCategories.length > 3 && (
-                <span className="px-2 py-1 bg-professional-gray-100 text-professional-gray-600 text-xs font-medium rounded-full">
-                  +{item.sharedCategories.length - 3}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Sample Dreams */}
-      {item.sampleDreams && item.sampleDreams.length > 0 && (
-        <div className="p-3" data-testid={`sample-dreams-${item.id}`}>
-          <p className="text-xs font-semibold text-professional-gray-700 mb-2">
-            Recent dreams:
-          </p>
-          <div className="space-y-2">
-            {item.sampleDreams.slice(0, 2).map((dream, idx) => (
-              <div 
-                key={idx}
-                className="flex items-center space-x-2 p-2 bg-professional-gray-50 rounded-lg border border-professional-gray-100 hover:border-netsurit-red/20 transition-colors"
-              >
-                <img
-                  src={dream.image}
-                  alt={dream.title}
-                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=600&q=60&auto=format&fit=crop';
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-professional-gray-900 truncate">
-                    {dream.title}
-                  </p>
-                  <p className="text-xs text-professional-gray-500 truncate">
-                    {dream.category}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Points Badge - Top Right */}
+      {item.score !== undefined && (
+        <div 
+          className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-netsurit-coral to-netsurit-orange text-white rounded-full shadow-md"
+          data-testid={`connection-${item.id}-points-badge`}
+        >
+          <Award className="w-2.5 h-2.5" aria-hidden="true" />
+          <span className="text-xs font-bold">{item.score} pts</span>
         </div>
       )}
 
-      {/* Footer with Connect Button */}
-      <div className="p-3 pt-2 border-t border-professional-gray-100 bg-gradient-to-br from-white to-professional-gray-50">
+      {/* Main Content - Centered */}
+      <div className="p-4 pt-6 flex flex-col items-center flex-1">
+        {/* Profile Picture - Centered */}
+        <div className="relative mb-3">
+          <img
+            src={item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`}
+            alt={`${item.name}'s profile`}
+            className={`w-20 h-20 rounded-full ring-2 ${getAccentColorClass()} shadow-lg object-cover`}
+            onError={(e) => {
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+            }}
+            data-testid={`connection-${item.id}-avatar`}
+          />
+        </div>
+
+        {/* Name & Location - Centered */}
+        <h3 className="text-lg font-bold text-professional-gray-900 text-center mb-1" data-testid={`connection-${item.id}-name`}>
+          {item.name}
+        </h3>
+        {item.office && (
+          <div className="flex items-center text-xs text-professional-gray-600 mb-3" data-testid={`connection-${item.id}-location`}>
+            <MapPin className="w-2.5 h-2.5 mr-1 flex-shrink-0" aria-hidden="true" />
+            <span>{item.office}</span>
+          </div>
+        )}
+
+        {/* Stats Pills - Horizontal Row */}
+        <div className="flex items-center justify-center gap-1.5 mb-3 w-full">
+          <div 
+            className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"
+            data-testid={`connection-${item.id}-dreams-pill`}
+          >
+            <BookOpen className="w-3 h-3 text-professional-gray-600" aria-hidden="true" />
+            <span className="text-xs font-medium">{item.dreamsCount || 0} dreams</span>
+          </div>
+          <div 
+            className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-netsurit-red/20 to-netsurit-coral/20 text-professional-gray-900 rounded-full"
+            data-testid={`connection-${item.id}-connects-pill`}
+          >
+            <Heart className="w-3 h-3 text-netsurit-red" aria-hidden="true" />
+            <span className="text-xs font-medium">{item.connectsCount || 0} connects</span>
+          </div>
+        </div>
+
+        {/* Public Dreams List */}
+        <div className="w-full mt-3 pt-3 border-t border-professional-gray-200 self-stretch" data-testid={`connection-${item.id}-public-dreams`}>
+          <h4 className="text-xs font-semibold text-professional-gray-700 uppercase tracking-wide mb-1.5">
+            Public Dreams
+          </h4>
+          {publicDreams.length > 0 ? (
+            <ul className="space-y-1" role="list">
+              {publicDreams.slice(0, 3).map((dream, idx) => (
+                <li 
+                  key={dream.id || idx} 
+                  className="flex items-start text-xs text-professional-gray-700"
+                  data-testid={`connection-${item.id}-dream-${idx}`}
+                >
+                  <span className="text-netsurit-coral mr-1.5 flex-shrink-0">•</span>
+                  <span className="truncate">{dream.title}</span>
+                </li>
+              ))}
+              {publicDreams.length > 3 && (
+                <li 
+                  className="text-xs text-professional-gray-500 italic pl-3"
+                  data-testid={`connection-${item.id}-more-dreams`}
+                >
+                  (+ {publicDreams.length - 3} more dream{publicDreams.length - 3 !== 1 ? 's' : ''})
+                </li>
+              )}
+            </ul>
+          ) : (
+            <p 
+              className="text-xs text-professional-gray-500 italic"
+              data-testid={`connection-${item.id}-no-dreams`}
+            >
+              No public dreams
+            </p>
+          )}
+        </div>
+
+        {/* Spacer to push button to bottom */}
+        <div className="flex-1"></div>
+
+        {/* Quick Connect Button */}
         <button
           onClick={() => onInvite(item)}
           onKeyDown={(e) => {
@@ -143,12 +151,12 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
               onInvite(item);
             }
           }}
-          className="w-full bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2.5 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center font-semibold text-sm group-hover:scale-[1.02]"
+          className="w-full mt-3 px-3 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-300 shadow-sm hover:shadow-md font-medium text-xs flex items-center justify-center gap-1.5"
           aria-label={`Send connect request to ${item.name}`}
           data-testid={`connect-button-${item.id}`}
         >
-          <Heart className="w-4 h-4 mr-2" aria-hidden="true" />
-          <span>Connect</span>
+          <Heart className="w-3.5 h-3.5" aria-hidden="true" />
+          Quick Connect
         </button>
       </div>
     </div>
@@ -162,6 +170,17 @@ ConnectionCard.propTypes = {
     avatar: PropTypes.string,
     office: PropTypes.string,
     score: PropTypes.number,
+    dreamsCount: PropTypes.number,
+    connectsCount: PropTypes.number,
+    accentColor: PropTypes.string,
+    dreamBook: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string,
+        title: PropTypes.string,
+        isPublic: PropTypes.bool
+      })
+    ),
+    // Legacy support for sharedCategories and sampleDreams
     sharedCategories: PropTypes.arrayOf(PropTypes.string),
     sampleDreams: PropTypes.arrayOf(
       PropTypes.shape({

@@ -2,13 +2,15 @@
 import { Calendar, MapPin, Save } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { coachingService } from '../../services/coachingService';
 
 /**
  * Meeting Schedule Card Component
  * Displays and allows editing of next team meeting (coach-only)
  */
-export default function MeetingScheduleCard({ teamId, isCoach, onSave }) {
+export default function MeetingScheduleCard({ teamId, isCoach, onSave, nextMeeting }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [meetingData, setMeetingData] = useState({
     date: '',
     time: '',
@@ -16,64 +18,67 @@ export default function MeetingScheduleCard({ teamId, isCoach, onSave }) {
     agenda: ''
   });
 
-  // Load meeting data from localStorage
+  // Load meeting data from prop (from API) or initialize empty
   useEffect(() => {
-    if (teamId) {
-      const stored = localStorage.getItem(`dreamspace_team_meeting_${teamId}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setMeetingData({
-            date: parsed.date || '',
-            time: parsed.time || '',
-            location: parsed.location || '',
-            agenda: parsed.agenda || ''
-          });
-        } catch (err) {
-          console.error('Error parsing meeting data:', err);
-        }
-      }
+    if (nextMeeting) {
+      setMeetingData({
+        date: nextMeeting.date || '',
+        time: nextMeeting.time || '',
+        location: nextMeeting.location || '',
+        agenda: nextMeeting.agenda || ''
+      });
+    } else {
+      setMeetingData({
+        date: '',
+        time: '',
+        location: '',
+        agenda: ''
+      });
     }
-  }, [teamId]);
+  }, [nextMeeting]);
 
-  const handleSave = () => {
-    if (teamId) {
-      const dataToSave = {
-        ...meetingData,
-        updatedAt: new Date().toISOString()
-      };
-      localStorage.setItem(`dreamspace_team_meeting_${teamId}`, JSON.stringify(dataToSave));
-      if (onSave) {
-        onSave(dataToSave);
+  const handleSave = async () => {
+    if (!teamId) {
+      console.error('❌ Cannot save meeting: No team ID');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await coachingService.updateTeamMeeting(teamId, meetingData);
+      if (result.success) {
+        setIsEditing(false);
+        if (onSave) {
+          onSave(result.data);
+        }
+      } else {
+        console.error('❌ Failed to save meeting:', result.error);
+        alert(`Failed to save meeting: ${result.error}`);
       }
-      setIsEditing(false);
+    } catch (error) {
+      console.error('❌ Error saving meeting:', error);
+      alert(`Error saving meeting: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    // Reload from localStorage
-    if (teamId) {
-      const stored = localStorage.getItem(`dreamspace_team_meeting_${teamId}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setMeetingData({
-            date: parsed.date || '',
-            time: parsed.time || '',
-            location: parsed.location || '',
-            agenda: parsed.agenda || ''
-          });
-        } catch (err) {
-          // Ignore parse errors
-        }
-      } else {
-        setMeetingData({
-          date: '',
-          time: '',
-          location: '',
-          agenda: ''
-        });
-      }
+    // Reload from prop (from API)
+    if (nextMeeting) {
+      setMeetingData({
+        date: nextMeeting.date || '',
+        time: nextMeeting.time || '',
+        location: nextMeeting.location || '',
+        agenda: nextMeeting.agenda || ''
+      });
+    } else {
+      setMeetingData({
+        date: '',
+        time: '',
+        location: '',
+        agenda: ''
+      });
     }
     setIsEditing(false);
   };
@@ -168,11 +173,12 @@ export default function MeetingScheduleCard({ teamId, isCoach, onSave }) {
           <div className="flex gap-2 pt-2">
             <button
               onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium flex items-center justify-center"
+              disabled={isSaving}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="save-meeting-button"
             >
               <Save className="w-4 h-4 mr-2" aria-hidden="true" />
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
             <button
               onClick={handleCancel}
@@ -235,12 +241,20 @@ export default function MeetingScheduleCard({ teamId, isCoach, onSave }) {
 MeetingScheduleCard.propTypes = {
   teamId: PropTypes.string,
   isCoach: PropTypes.bool,
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
+  nextMeeting: PropTypes.shape({
+    date: PropTypes.string,
+    time: PropTypes.string,
+    location: PropTypes.string,
+    agenda: PropTypes.string,
+    updatedAt: PropTypes.string
+  })
 };
 
 MeetingScheduleCard.defaultProps = {
   teamId: null,
   isCoach: false,
-  onSave: null
+  onSave: null,
+  nextMeeting: null
 };
 
