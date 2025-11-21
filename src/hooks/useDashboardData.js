@@ -552,6 +552,72 @@ export function useDashboardData() {
   }, [currentWeekGoals, currentUser?.id, currentUser?.dreamBook, updateDeadlineGoalAndTemplate, weeklyGoals]);
 
   /**
+   * Decrement goal completion count (undo) with optimistic updates
+   */
+  const handleDecrementGoal = useCallback(async (goalId) => {
+    const goal = currentWeekGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    // Only allow decrement for goals with frequency (weekly/monthly with counter)
+    if (!goal.recurrence || !goal.frequency) return;
+    
+    // Don't allow decrement if count is already 0
+    const currentCount = goal.completionCount || 0;
+    if (currentCount === 0) return;
+    
+    const currentWeekIso = getCurrentIsoWeek();
+    
+    // Optimistic update
+    const optimisticGoals = currentWeekGoals.map(g => {
+      if (g.id === goalId) {
+        const newCount = Math.max(0, currentCount - 1);
+        const isComplete = newCount >= g.frequency;
+        
+        // Remove the most recent completion date
+        const completionDates = [...(g.completionDates || [])];
+        if (completionDates.length > 0) {
+          completionDates.pop();
+        }
+        
+        return {
+          ...g,
+          completionCount: newCount,
+          completed: isComplete,
+          completionDates
+        };
+      }
+      return g;
+    });
+    setCurrentWeekGoals(optimisticGoals);
+    
+    // Persist to server
+    try {
+      const result = goal.recurrence === 'monthly'
+        ? await currentWeekService.decrementMonthlyGoal(
+            currentUser.id,
+            currentWeekIso,
+            goalId,
+            currentWeekGoals
+          )
+        : await currentWeekService.decrementWeeklyGoal(
+            currentUser.id,
+            currentWeekIso,
+            goalId,
+            currentWeekGoals
+          );
+      
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      console.log('✅ Goal decremented:', goalId);
+    } catch (error) {
+      console.error('❌ Failed to decrement goal, reverting:', error);
+      setCurrentWeekGoals(currentWeekGoals);
+      alert('Failed to undo goal. Please try again.');
+    }
+  }, [currentWeekGoals, currentUser?.id]);
+
+  /**
    * Add new goal directly to currentWeek container (NEW SIMPLIFIED SYSTEM)
    */
   const handleAddGoal = useCallback(async (e) => {
@@ -812,6 +878,7 @@ export function useDashboardData() {
 
     // Actions
     handleToggleGoal,
+    handleDecrementGoal,
     handleAddGoal,
     handleSkipGoal,
     loadCurrentWeekGoals,

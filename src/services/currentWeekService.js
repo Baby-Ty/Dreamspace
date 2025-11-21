@@ -276,6 +276,74 @@ export async function incrementWeeklyGoal(userId, weekId, goalId, currentGoals) 
   return await saveCurrentWeek(userId, weekId, updatedGoals);
 }
 
+/**
+ * Decrement completion count for monthly goal
+ * @param {string} userId - User ID
+ * @param {string} weekId - ISO week ID
+ * @param {string} goalId - Goal ID to decrement
+ * @param {Array} currentGoals - Current goals array
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function decrementMonthlyGoal(userId, weekId, goalId, currentGoals) {
+  const updatedGoals = currentGoals.map(g => {
+    if (g.id === goalId && g.recurrence === 'monthly') {
+      const currentCount = g.completionCount || 0;
+      const newCount = Math.max(0, currentCount - 1);
+      const isComplete = newCount >= g.frequency;
+      
+      // Remove the most recent completion date
+      const completionDates = [...(g.completionDates || [])];
+      if (completionDates.length > 0) {
+        completionDates.pop();
+      }
+      
+      return {
+        ...g,
+        completionCount: newCount,
+        completed: isComplete,
+        completionDates
+      };
+    }
+    return g;
+  });
+
+  return await saveCurrentWeek(userId, weekId, updatedGoals);
+}
+
+/**
+ * Decrement completion count for weekly goal
+ * @param {string} userId - User ID
+ * @param {string} weekId - ISO week ID
+ * @param {string} goalId - Goal ID to decrement
+ * @param {Array} currentGoals - Current goals array
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function decrementWeeklyGoal(userId, weekId, goalId, currentGoals) {
+  const updatedGoals = currentGoals.map(g => {
+    if (g.id === goalId && g.recurrence === 'weekly') {
+      const currentCount = g.completionCount || 0;
+      const newCount = Math.max(0, currentCount - 1);
+      const isComplete = newCount >= g.frequency;
+      
+      // Remove the most recent completion date
+      const completionDates = [...(g.completionDates || [])];
+      if (completionDates.length > 0) {
+        completionDates.pop();
+      }
+      
+      return {
+        ...g,
+        completionCount: newCount,
+        completed: isComplete,
+        completionDates
+      };
+    }
+    return g;
+  });
+
+  return await saveCurrentWeek(userId, weekId, updatedGoals);
+}
+
 export default {
   getCurrentWeek,
   saveCurrentWeek,
@@ -283,6 +351,8 @@ export default {
   toggleGoalCompletion,
   skipGoal,
   incrementMonthlyGoal,
-  incrementWeeklyGoal
+  incrementWeeklyGoal,
+  decrementMonthlyGoal,
+  decrementWeeklyGoal
 };
 

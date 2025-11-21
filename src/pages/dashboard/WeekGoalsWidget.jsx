@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward, History, FastForward } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward, History, FastForward, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -21,6 +21,7 @@ function WeekGoalsWidget({
   dreamBook,
   isLoading,
   onToggleGoal,
+  onDecrementGoal,
   onSkipGoal,
   onShowAddGoal,
   onHideAddGoal,
@@ -446,6 +447,18 @@ function WeekGoalsWidget({
                       {/* Monthly goal counter */}
                       {goal.recurrence === 'monthly' && goal.frequency && (
                         <div className="mt-2 flex items-center space-x-2">
+                          {/* Undo button - only show when completionCount > 0 */}
+                          {(goal.completionCount || 0) > 0 && onDecrementGoal && (
+                            <button
+                              onClick={() => onDecrementGoal(goal.id)}
+                              className="flex-shrink-0 p-1 rounded-full hover:bg-professional-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-1"
+                              aria-label="Undo last completion"
+                              data-testid={`undo-goal-${goal.id}`}
+                              title="Undo last completion"
+                            >
+                              <ChevronLeft className="w-4 h-4 text-professional-gray-500 hover:text-netsurit-red transition-colors" />
+                            </button>
+                          )}
                           <div className="flex space-x-1">
                             {Array.from({ length: goal.frequency }).map((_, i) => (
                               <div
@@ -471,6 +484,18 @@ function WeekGoalsWidget({
                         const completionCount = goal.completionCount || 0;
                         return (
                           <div className="mt-2 flex items-center space-x-2">
+                            {/* Undo button - only show when completionCount > 0 */}
+                            {completionCount > 0 && onDecrementGoal && (
+                              <button
+                                onClick={() => onDecrementGoal(goal.id)}
+                                className="flex-shrink-0 p-1 rounded-full hover:bg-professional-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-1"
+                                aria-label="Undo last completion"
+                                data-testid={`undo-goal-${goal.id}`}
+                                title="Undo last completion"
+                              >
+                                <ChevronLeft className="w-4 h-4 text-professional-gray-500 hover:text-netsurit-red transition-colors" />
+                              </button>
+                            )}
                             <div className="flex space-x-1">
                               {Array.from({ length: frequency }).map((_, i) => (
                                 <div
@@ -569,6 +594,8 @@ WeekGoalsWidget.propTypes = {
   isLoading: PropTypes.bool,
   /** Callback to toggle goal completion */
   onToggleGoal: PropTypes.func.isRequired,
+  /** Callback to decrement goal completion count (undo) */
+  onDecrementGoal: PropTypes.func,
   /** Callback to skip goal for current week */
   onSkipGoal: PropTypes.func,
   /** Callback to show add goal form */
