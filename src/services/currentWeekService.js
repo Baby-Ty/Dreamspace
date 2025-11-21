@@ -246,12 +246,43 @@ export async function incrementMonthlyGoal(userId, weekId, goalId, currentGoals)
   return await saveCurrentWeek(userId, weekId, updatedGoals);
 }
 
+/**
+ * Increment completion count for weekly goal
+ * @param {string} userId - User ID
+ * @param {string} weekId - ISO week ID
+ * @param {string} goalId - Goal ID to increment
+ * @param {Array} currentGoals - Current goals array
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function incrementWeeklyGoal(userId, weekId, goalId, currentGoals) {
+  const updatedGoals = currentGoals.map(g => {
+    if (g.id === goalId && g.recurrence === 'weekly') {
+      const newCount = Math.min((g.completionCount || 0) + 1, g.frequency || 1);
+      const isComplete = newCount >= g.frequency;
+      
+      return {
+        ...g,
+        completionCount: newCount,
+        completed: isComplete,
+        completionDates: [
+          ...(g.completionDates || []),
+          new Date().toISOString()
+        ]
+      };
+    }
+    return g;
+  });
+
+  return await saveCurrentWeek(userId, weekId, updatedGoals);
+}
+
 export default {
   getCurrentWeek,
   saveCurrentWeek,
   archiveWeek,
   toggleGoalCompletion,
   skipGoal,
-  incrementMonthlyGoal
+  incrementMonthlyGoal,
+  incrementWeeklyGoal
 };
 

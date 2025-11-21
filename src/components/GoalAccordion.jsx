@@ -136,10 +136,16 @@ function GoalAccordion({
                 </label>
                 <select
                   value={editData.recurrence || 'weekly'}
-                  onChange={(e) => setEditData({ ...editData, recurrence: e.target.value })}
+                  onChange={(e) => {
+                    const newRecurrence = e.target.value;
+                    setEditData({ 
+                      ...editData, 
+                      recurrence: newRecurrence,
+                      frequency: newRecurrence === 'weekly' ? 1 : (newRecurrence === 'monthly' ? 2 : editData.frequency)
+                    });
+                  }}
                   className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
                 >
-                  <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                 </select>
@@ -147,7 +153,7 @@ function GoalAccordion({
               
               <div>
                 <label className="block text-sm font-medium text-professional-gray-700 mb-1">
-                  Target {editData.recurrence === 'daily' ? 'Days' : editData.recurrence === 'weekly' ? 'Weeks' : 'Months'}
+                  Target {editData.recurrence === 'weekly' ? 'Weeks' : 'Months'}
                 </label>
                 <input
                   type="number"
@@ -158,6 +164,54 @@ function GoalAccordion({
                   max="52"
                 />
               </div>
+              
+              {/* Weekly frequency input */}
+              {editData.recurrence === 'weekly' && (
+                <div>
+                  <label className="block text-sm font-medium text-professional-gray-700 mb-1">
+                    Completions per week <span className="text-netsurit-red">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={editData.frequency || 1}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setEditData({ ...editData, frequency: Math.max(1, Math.min(7, value)) });
+                    }}
+                    min="1"
+                    max="7"
+                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                    placeholder="e.g., 3"
+                  />
+                  <p className="text-xs text-professional-gray-500 mt-1">
+                    How many times you want to complete this goal each week
+                  </p>
+                </div>
+              )}
+              
+              {/* Monthly frequency input */}
+              {editData.recurrence === 'monthly' && (
+                <div>
+                  <label className="block text-sm font-medium text-professional-gray-700 mb-1">
+                    Completions per month <span className="text-netsurit-red">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={editData.frequency || 2}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setEditData({ ...editData, frequency: Math.max(1, Math.min(31, value)) });
+                    }}
+                    min="1"
+                    max="31"
+                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                    placeholder="e.g., 2"
+                  />
+                  <p className="text-xs text-professional-gray-500 mt-1">
+                    How many times you want to complete this goal each month
+                  </p>
+                </div>
+              )}
             </>
           )}
           
@@ -296,7 +350,7 @@ function GoalAccordion({
                     )}
                     {goal.targetWeeks && (
                       <span className="text-xs bg-netsurit-warm-orange/20 text-netsurit-orange px-2 py-1 rounded-full font-medium">
-                        Target: {goal.targetWeeks} {goal.recurrence === 'daily' ? 'days' : goal.recurrence === 'weekly' ? 'weeks' : 'months'}
+                        Target: {goal.targetWeeks} {goal.recurrence === 'weekly' ? 'weeks' : 'months'}
                       </span>
                     )}
                   </>

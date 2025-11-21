@@ -108,11 +108,11 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
 
   // Goal add state
   const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [newGoalData, setNewGoalData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
+  const [newGoalData, setNewGoalData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
 
   // Goal edit state
   const [editingGoal, setEditingGoal] = useState(null);
-  const [goalEditData, setGoalEditData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
+  const [goalEditData, setGoalEditData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
 
   // Update local dream when prop changes
   useEffect(() => {
@@ -192,6 +192,9 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       recurrence: newGoalData.type === 'consistency' ? newGoalData.recurrence : undefined,
       targetWeeks: targetWeeks, // All goal types now use targetWeeks
       targetMonths: newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly' ? parseInt(newGoalData.targetMonths) : undefined,
+      frequency: newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly' 
+        ? (parseInt(newGoalData.frequency) || 2) 
+        : (newGoalData.type === 'consistency' && newGoalData.recurrence === 'weekly' ? (parseInt(newGoalData.frequency) || 1) : undefined),
       startDate: newGoalData.startDate || nowIso,
       // targetDate is kept for backward compatibility but targetWeeks is the source of truth
       targetDate: newGoalData.type === 'deadline' ? newGoalData.targetDate : undefined,
@@ -206,7 +209,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     // Dashboard auto-instantiation will read from dream.goals[] to create weekly instances
     await addGoal(localDream.id, goal);
     
-    setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
+    setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
     setIsAddingGoal(false);
     
     // NOTE: No need to manually create weekly entries or add to currentWeek.
@@ -444,6 +447,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       recurrence: goal.recurrence || 'weekly',
       targetWeeks: goal.targetWeeks || 12,
       targetMonths: goal.targetMonths || 6,
+      frequency: goal.frequency || 2,
       startDate: goal.startDate || new Date().toISOString(),
       targetDate: goal.targetDate || ''
     });
@@ -451,7 +455,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
 
   const cancelEditingGoal = useCallback(() => {
     setEditingGoal(null);
-    setGoalEditData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, startDate: '', targetDate: '' });
+    setGoalEditData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 2, startDate: '', targetDate: '' });
   }, []);
 
   const saveEditedGoal = useCallback(async () => {
@@ -490,6 +494,9 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       recurrence: goalEditData.type === 'consistency' ? goalEditData.recurrence : undefined,
       targetWeeks: targetWeeks, // All goal types now use targetWeeks
       targetMonths: goalEditData.type === 'consistency' && goalEditData.recurrence === 'monthly' ? parseInt(goalEditData.targetMonths) : undefined,
+      frequency: goalEditData.type === 'consistency' && goalEditData.recurrence === 'monthly' 
+        ? (parseInt(goalEditData.frequency) || goal.frequency || 2) 
+        : (goalEditData.type === 'consistency' && goalEditData.recurrence === 'weekly' ? (parseInt(goalEditData.frequency) || goal.frequency || 1) : undefined),
       startDate: goalEditData.startDate,
       // targetDate is kept for backward compatibility but targetWeeks is the source of truth
       targetDate: goalEditData.type === 'deadline' ? goalEditData.targetDate : undefined,
@@ -546,6 +553,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
                 targetWeeks: updatedGoal.targetWeeks,
                 targetDate: updatedGoal.targetDate,
                 targetMonths: updatedGoal.targetMonths,
+                frequency: updatedGoal.frequency, // Sync frequency to currentWeek
                 weeksRemaining: updatedGoal.weeksRemaining,
                 type: updatedGoal.type,
                 recurrence: updatedGoal.recurrence,

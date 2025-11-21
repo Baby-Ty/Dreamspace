@@ -45,6 +45,7 @@ export function GoalsTab({
       recurrence: 'weekly',
       targetWeeks: 12,
       targetMonths: 6,
+      frequency: 1, // Default to 1 for weekly (will be 2 for monthly)
       startDate: '',
       targetDate: ''
     });
@@ -166,7 +167,14 @@ export function GoalsTab({
                   </label>
                   <select
                     value={newGoalData.recurrence}
-                    onChange={(e) => setNewGoalData(prev => ({ ...prev, recurrence: e.target.value }))}
+                    onChange={(e) => {
+                      const newRecurrence = e.target.value;
+                      setNewGoalData(prev => ({ 
+                        ...prev, 
+                        recurrence: newRecurrence,
+                        frequency: newRecurrence === 'weekly' ? 1 : (newRecurrence === 'monthly' ? 2 : prev.frequency)
+                      }));
+                    }}
                     className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
                   >
                     <option value="weekly">Weekly</option>
@@ -196,9 +204,56 @@ export function GoalsTab({
                   />
                 </div>
               </div>
+              {/* Weekly frequency input */}
+              {newGoalData.recurrence === 'weekly' && (
+                <div>
+                  <label className="block text-xs font-medium text-professional-gray-700 mb-1">
+                    Completions per week <span className="text-netsurit-red">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={newGoalData.frequency || 1}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(7, value)) }));
+                    }}
+                    min="1"
+                    max="7"
+                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
+                    placeholder="e.g., 3"
+                  />
+                  <p className="text-xs text-professional-gray-500 mt-1">
+                    How many times you want to complete this goal each week (e.g., 3x = three times per week)
+                  </p>
+                </div>
+              )}
+              
+              {/* Monthly frequency input */}
+              {newGoalData.recurrence === 'monthly' && (
+                <div>
+                  <label className="block text-xs font-medium text-professional-gray-700 mb-1">
+                    Completions per month <span className="text-netsurit-red">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={newGoalData.frequency || 2}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(31, value)) }));
+                    }}
+                    min="1"
+                    max="31"
+                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
+                    placeholder="e.g., 2"
+                  />
+                  <p className="text-xs text-professional-gray-500 mt-1">
+                    How many times you want to complete this goal each month (e.g., 2x = twice per month)
+                  </p>
+                </div>
+              )}
               <p className="text-xs text-professional-gray-500 mt-1">
-                {newGoalData.recurrence === 'weekly' && 'Goal will show up every week for the duration'}
-                {newGoalData.recurrence === 'monthly' && 'Goal will show every week; completing it marks the entire month'}
+                {newGoalData.recurrence === 'weekly' && `Goal will show every week; complete it ${newGoalData.frequency || 1}x per week to mark the week complete`}
+                {newGoalData.recurrence === 'monthly' && `Goal will show every week; complete it ${newGoalData.frequency || 2}x per month to mark the month complete`}
               </p>
             </>
           )}
@@ -285,6 +340,7 @@ GoalsTab.propTypes = {
     recurrence: PropTypes.string,
     targetWeeks: PropTypes.number,
     targetMonths: PropTypes.number,
+    frequency: PropTypes.number,
     startDate: PropTypes.string,
     targetDate: PropTypes.string
   }).isRequired,

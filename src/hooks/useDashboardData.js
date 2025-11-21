@@ -30,7 +30,8 @@ export function useDashboardData() {
     dreamId: '',
     consistency: 'weekly',
     targetWeeks: 12,
-    targetMonths: 6
+    targetMonths: 6,
+    frequency: 1 // Default to 1 for weekly (will be 2 for monthly)
   });
 
   /**
@@ -226,6 +227,11 @@ export function useDashboardData() {
             recurrence: template.recurrence || 'weekly',
             targetWeeks: template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined),
             targetMonths: template.targetMonths,
+            frequency: template.recurrence === 'weekly' 
+              ? (template.frequency || 1) 
+              : (template.recurrence === 'monthly' ? (template.frequency || 2) : undefined), // Copy frequency with defaults
+            completionCount: 0, // Initialize completion count
+            completionDates: [], // Initialize completion dates
             weeksRemaining: template.weeksRemaining !== undefined 
               ? template.weeksRemaining 
               : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined)),
@@ -300,6 +306,11 @@ export function useDashboardData() {
               recurrence: dreamGoal.recurrence || 'weekly',
               targetWeeks: dreamGoal.targetWeeks || (dreamGoal.targetMonths ? monthsToWeeks(dreamGoal.targetMonths) : undefined),
               targetMonths: dreamGoal.targetMonths,
+              frequency: dreamGoal.recurrence === 'weekly' 
+                ? (dreamGoal.frequency || 1) 
+                : (dreamGoal.recurrence === 'monthly' ? (dreamGoal.frequency || 2) : undefined), // Copy frequency with defaults
+              completionCount: 0, // Initialize completion count
+              completionDates: [], // Initialize completion dates
               weeksRemaining: dreamGoal.weeksRemaining !== undefined 
                 ? dreamGoal.weeksRemaining 
                 : (dreamGoal.targetWeeks || (dreamGoal.targetMonths ? monthsToWeeks(dreamGoal.targetMonths) : undefined)),
@@ -406,7 +417,47 @@ export function useDashboardData() {
       return;
     }
     
-    // Handle regular weekly goals
+    // Handle weekly goals with frequency (increment counter)
+    if (goal.recurrence === 'weekly' && goal.frequency) {
+      const currentWeekIso = getCurrentIsoWeek();
+      
+      // Optimistic update
+      const optimisticGoals = currentWeekGoals.map(g => {
+        if (g.id === goalId) {
+          const newCount = Math.min((g.completionCount || 0) + 1, g.frequency || 1);
+          return {
+            ...g,
+            completionCount: newCount,
+            completed: newCount >= g.frequency,
+            completionDates: [...(g.completionDates || []), new Date().toISOString()]
+          };
+        }
+        return g;
+      });
+      setCurrentWeekGoals(optimisticGoals);
+      
+      // Persist to server
+      try {
+        const result = await currentWeekService.incrementWeeklyGoal(
+          currentUser.id,
+          currentWeekIso,
+          goalId,
+          currentWeekGoals
+        );
+        
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+        console.log('✅ Weekly goal incremented:', goalId);
+      } catch (error) {
+        console.error('❌ Failed to increment weekly goal, reverting:', error);
+        setCurrentWeekGoals(currentWeekGoals);
+        alert('Failed to save goal. Please try again.');
+      }
+      return;
+    }
+    
+    // Handle regular weekly goals (no frequency - simple boolean toggle)
     const currentWeekIso = getCurrentIsoWeek();
     
     // 1. OPTIMISTIC UPDATE: Update UI immediately for instant feedback
@@ -535,7 +586,9 @@ export function useDashboardData() {
           ? newGoal.targetWeeks 
           : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : null),
         targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : null,
-        frequency: newGoal.consistency === 'monthly' ? 2 : null, // Default 2x per month
+        frequency: newGoal.consistency === 'monthly' 
+          ? (newGoal.frequency || 2) 
+          : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : null), // Monthly: default 2x/month, Weekly: default 1x/week
         completionCount: 0,
         completionDates: [],
         completed: false,
@@ -578,6 +631,9 @@ export function useDashboardData() {
             ? newGoal.targetWeeks 
             : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : undefined),
           targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : undefined,
+          frequency: newGoal.consistency === 'monthly' 
+            ? (newGoal.frequency || 2) 
+            : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : undefined),
           weeksRemaining: newGoal.consistency === 'weekly' 
             ? newGoal.targetWeeks 
             : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : undefined),
@@ -607,7 +663,8 @@ export function useDashboardData() {
         dreamId: '',
         consistency: 'weekly',
         targetWeeks: 12,
-        targetMonths: 6
+        targetMonths: 6,
+        frequency: 1 // Default to 1 for weekly, will be 2 for monthly
       });
       setShowAddGoal(false);
     } catch (error) {

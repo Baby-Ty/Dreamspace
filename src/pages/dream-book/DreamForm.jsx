@@ -200,7 +200,11 @@ function DreamForm({
                     type="button"
                     onClick={() => setFormData({ 
                       ...formData, 
-                      firstGoal: { ...formData.firstGoal, consistency: 'weekly' }
+                      firstGoal: { 
+                        ...formData.firstGoal, 
+                        consistency: 'weekly',
+                        frequency: formData.firstGoal.consistency === 'weekly' ? formData.firstGoal.frequency : 1
+                      }
                     })}
                     aria-pressed={formData.firstGoal.consistency === 'weekly'}
                     data-testid="weekly-consistency-button"
@@ -217,7 +221,11 @@ function DreamForm({
                     type="button"
                     onClick={() => setFormData({ 
                       ...formData, 
-                      firstGoal: { ...formData.firstGoal, consistency: 'monthly' }
+                      firstGoal: { 
+                        ...formData.firstGoal, 
+                        consistency: 'monthly',
+                        frequency: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.frequency : 2
+                      }
                     })}
                     aria-pressed={formData.firstGoal.consistency === 'monthly'}
                     data-testid="monthly-consistency-button"
@@ -312,6 +320,70 @@ function DreamForm({
                       ? 'Default: 6 months' 
                       : 'Default: 12 weeks'}
                   </p>
+                  
+                  {/* Weekly frequency input */}
+                  {formData.firstGoal.consistency === 'weekly' && (
+                    <div className="mt-3">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Completions per week <span className="text-netsurit-red">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="7"
+                        value={formData.firstGoal.frequency || 1}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          setFormData({ 
+                            ...formData, 
+                            firstGoal: { 
+                              ...formData.firstGoal, 
+                              frequency: Math.max(1, Math.min(7, value))
+                            }
+                          });
+                        }}
+                        className="input-field text-sm w-24"
+                        aria-label="Completions per week"
+                        data-testid="goal-frequency-input-weekly"
+                        placeholder="e.g., 3"
+                      />
+                      <p className="text-xs text-professional-gray-500 mt-1">
+                        How many times you want to complete this goal each week
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Monthly frequency input */}
+                  {formData.firstGoal.consistency === 'monthly' && (
+                    <div className="mt-3">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Completions per month <span className="text-netsurit-red">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={formData.firstGoal.frequency || 2}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          setFormData({ 
+                            ...formData, 
+                            firstGoal: { 
+                              ...formData.firstGoal, 
+                              frequency: Math.max(1, Math.min(31, value))
+                            }
+                          });
+                        }}
+                        className="input-field text-sm w-24"
+                        aria-label="Completions per month"
+                        data-testid="goal-frequency-input-monthly"
+                        placeholder="e.g., 2"
+                      />
+                      <p className="text-xs text-professional-gray-500 mt-1">
+                        How many times you want to complete this goal each month
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

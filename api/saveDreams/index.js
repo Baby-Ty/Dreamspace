@@ -108,6 +108,7 @@ module.exports = async function (context, req) {
           recurrence: goal.recurrence,
           targetWeeks: goal.targetWeeks,
           targetMonths: goal.targetMonths,
+          frequency: goal.frequency, // Persist frequency for weekly/monthly goals
           startDate: goal.startDate,
           targetDate: goal.targetDate,
           weeksRemaining: goal.weeksRemaining, // ← NEW: Persist weeks remaining

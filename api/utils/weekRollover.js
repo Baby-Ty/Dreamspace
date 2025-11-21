@@ -360,6 +360,13 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
       
       instance.weeksRemaining = newWeeksRemaining;
       
+      // Handle frequency-based weekly goals (completion count resets each week)
+      instance.frequency = template.frequency || 1; // Copy frequency from template (default to 1 if not set)
+      // Reset completion count each week (unlike monthly which carries forward)
+      instance.completionCount = 0;
+      instance.completionDates = [];
+      instance.completed = false;
+      
       // Track template update for next rollover
       if (template.weeksRemaining !== newWeeksRemaining) {
         templateUpdates.set(template.id, {
@@ -617,6 +624,9 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
               dreamCategory: dream.category,
               recurrence: 'weekly',
               targetWeeks: goal.targetWeeks,
+              frequency: goal.frequency || 1, // Copy frequency from dream goal (default to 1 if not set)
+              completionCount: 0, // Reset completion count each week
+              completionDates: [], // Reset completion dates each week
               weeksRemaining: newWeeksRemaining,
               completed: false,
               completedAt: null,

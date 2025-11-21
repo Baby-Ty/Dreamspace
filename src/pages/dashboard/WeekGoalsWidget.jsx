@@ -229,7 +229,7 @@ function WeekGoalsWidget({
                   >
                     <button
                       type="button"
-                      onClick={() => onNewGoalChange({ ...newGoal, consistency: 'weekly' })}
+                      onClick={() => onNewGoalChange({ ...newGoal, consistency: 'weekly', frequency: newGoal.consistency === 'weekly' ? newGoal.frequency : 1 })}
                       aria-pressed={newGoal.consistency === 'weekly'}
                       data-testid="weekly-consistency-button"
                       className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
@@ -243,7 +243,7 @@ function WeekGoalsWidget({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onNewGoalChange({ ...newGoal, consistency: 'monthly' })}
+                      onClick={() => onNewGoalChange({ ...newGoal, consistency: 'monthly', frequency: newGoal.consistency === 'monthly' ? newGoal.frequency : 2 })}
                       aria-pressed={newGoal.consistency === 'monthly'}
                       data-testid="monthly-consistency-button"
                       className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
@@ -270,7 +270,7 @@ function WeekGoalsWidget({
                     value={newGoal.consistency === 'monthly' ? newGoal.targetMonths : newGoal.targetWeeks}
                     onChange={(e) => {
                       const value = parseInt(e.target.value) || (newGoal.consistency === 'monthly' ? 6 : 12);
-                      onNewGoalChange({ 
+                      onNewGoalChange({
                         ...newGoal, 
                         ...(newGoal.consistency === 'monthly' 
                           ? { targetMonths: value }
@@ -282,6 +282,64 @@ function WeekGoalsWidget({
                     data-testid="goal-duration-input"
                   />
                 </div>
+
+                {/* Monthly frequency input */}
+                {newGoal.consistency === 'monthly' && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-professional-gray-600">
+                      Completions per month <span className="text-netsurit-red">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={newGoal.frequency || 2}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        onNewGoalChange({
+                          ...newGoal,
+                          frequency: Math.max(1, Math.min(31, value))
+                        });
+                      }}
+                      className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
+                      aria-label="Completions per month"
+                      data-testid="goal-frequency-input"
+                      placeholder="e.g., 2"
+                    />
+                    <p className="text-xs text-professional-gray-500">
+                      How many times you want to complete this goal each month
+                    </p>
+                  </div>
+                )}
+
+                {/* Weekly frequency input */}
+                {newGoal.consistency === 'weekly' && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-professional-gray-600">
+                      Completions per week <span className="text-netsurit-red">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="7"
+                      value={newGoal.frequency || 1}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        onNewGoalChange({
+                          ...newGoal,
+                          frequency: Math.max(1, Math.min(7, value))
+                        });
+                      }}
+                      className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
+                      aria-label="Completions per week"
+                      data-testid="goal-frequency-input-weekly"
+                      placeholder="e.g., 3"
+                    />
+                    <p className="text-xs text-professional-gray-500">
+                      How many times you want to complete this goal each week
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex space-x-2 pt-1">
                   <button
@@ -316,7 +374,7 @@ function WeekGoalsWidget({
                       className="flex-shrink-0 mt-0.5 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-110"
                       aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
                       data-testid={`toggle-goal-${goal.id}`}
-                      disabled={goal.recurrence === 'monthly' && goal.completionCount >= goal.frequency}
+                      disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
                     >
                       {goal.completed ? (
                         <CheckCircle2 className="w-7 h-7 text-netsurit-red drop-shadow-sm" />
@@ -333,7 +391,7 @@ function WeekGoalsWidget({
                         </h3>
                         
                         {/* Weeks remaining - top right */}
-                        {(goal.type === 'weekly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+                        {((goal.type === 'weekly_goal' || goal.type === 'monthly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0) && (
                           <div className="flex items-center space-x-1 flex-shrink-0">
                             <Clock className={`w-3.5 h-3.5 ${
                               goal.weeksRemaining === 0 
@@ -406,6 +464,32 @@ function WeekGoalsWidget({
                           </span>
                         </div>
                       )}
+                      
+                      {/* Weekly goal counter */}
+                      {goal.recurrence === 'weekly' && (() => {
+                        const frequency = goal.frequency || 1;
+                        const completionCount = goal.completionCount || 0;
+                        return (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <div className="flex space-x-1">
+                              {Array.from({ length: frequency }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                                    i < completionCount
+                                      ? 'bg-netsurit-red shadow-sm' 
+                                      : 'bg-professional-gray-300'
+                                  }`}
+                                  aria-label={`Completion ${i + 1} of ${frequency}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-professional-gray-600 font-medium">
+                              {completionCount}/{frequency} this week
+                            </span>
+                          </div>
+                        );
+                      })()}
                       
                       {/* Dream title */}
                       {goal.dreamTitle && (

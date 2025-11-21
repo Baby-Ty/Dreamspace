@@ -23,7 +23,7 @@ export function useDreamBook() {
   const [showInspiration, setShowInspiration] = useState(false);
   const [inspirationCategory, setInspirationCategory] = useState('All');
   const [currentFormData, setCurrentFormData] = useState(null);
-  const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, targetDate: '' } });
+  const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, targetDate: '' } });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [tempDreamId, setTempDreamId] = useState(null);
   const [draggingIndex, setDraggingIndex] = useState(null);
@@ -105,6 +105,7 @@ export function useDreamBook() {
         consistency: 'weekly',
         targetWeeks: 12,
         targetMonths: 6,
+        frequency: 2,
         targetDate: ''
       }
     });
@@ -126,6 +127,7 @@ export function useDreamBook() {
         consistency: 'weekly',
         targetWeeks: 12,
         targetMonths: 6,
+        frequency: 2,
         targetDate: ''
       }
     });
@@ -175,6 +177,9 @@ export function useDreamBook() {
           recurrence: formData.firstGoal.consistency === 'deadline' ? undefined : formData.firstGoal.consistency,
           targetWeeks: targetWeeks, // All goal types now use targetWeeks
           targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : undefined,
+          frequency: formData.firstGoal.consistency === 'monthly' 
+            ? (formData.firstGoal.frequency || 2) 
+            : (formData.firstGoal.consistency === 'weekly' ? (formData.firstGoal.frequency || 1) : undefined),
           startDate: nowIso,
           // targetDate is kept for backward compatibility but targetWeeks is the source of truth
           targetDate: formData.firstGoal.consistency === 'deadline' ? formData.firstGoal.targetDate : undefined,
@@ -204,7 +209,9 @@ export function useDreamBook() {
             targetWeeks: goal.targetWeeks,
             targetMonths: goal.targetMonths,
             targetDate: goal.targetDate,
-            frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' ? 2 : null,
+            frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' 
+              ? (goal.frequency || 2) 
+              : (goal.type === 'consistency' && goal.recurrence === 'weekly' ? (goal.frequency || 1) : null),
             completionCount: 0,
             completionDates: [],
             completed: false,
@@ -279,6 +286,7 @@ export function useDreamBook() {
         consistency: 'weekly',
         targetWeeks: 12,
         targetMonths: 6,
+        frequency: 2,
         targetDate: ''
       }
     });
@@ -300,6 +308,7 @@ export function useDreamBook() {
         consistency: 'weekly',
         targetWeeks: 12,
         targetMonths: 6,
+        frequency: 2,
         targetDate: ''
       }
     });
