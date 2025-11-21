@@ -361,7 +361,7 @@ function WeekGoalsWidget({
             )}
 
             {/* Goals List */}
-            <div className="flex-1 space-y-2.5 overflow-y-auto pr-2">
+            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
               {currentWeekGoals.map((goal) => {
                 const isDeadline = goal.type === 'deadline';
                 const isWeeklyRecurring = (goal.type === 'weekly_goal' || goal.type === 'monthly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence;
@@ -371,46 +371,46 @@ function WeekGoalsWidget({
                 return (
                   <div 
                     key={goal.id} 
-                    className={`rounded-2xl border border-slate-100 bg-white px-4 py-4 shadow-sm flex items-center gap-4 transition-all duration-200 hover:shadow-md ${
+                    className={`rounded-2xl border border-slate-100 bg-white px-5 py-5 shadow-sm flex items-center gap-5 transition-all duration-200 hover:shadow-md ${
                       goal.completed ? 'opacity-75' : ''
                     }`} 
                     data-testid={`goal-${goal.id}`}
                   >
                     {/* Left: Checkbox Column with counter below */}
-                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
                       {/* Checkbox with counter inside (top) */}
                       <button
                         ref={(el) => (buttonRefs.current[goal.id] = el)}
                         onClick={() => handleToggleWithCelebration(goal.id)}
-                        className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 hover:scale-105"
+                        className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-105"
                         aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
                         data-testid={`toggle-goal-${goal.id}`}
                         disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
                       >
                         {goal.completed ? (
-                          <CheckCircle2 className="w-10 h-10 text-netsurit-red" />
+                          <CheckCircle2 className="w-12 h-12 text-netsurit-red" />
                         ) : isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') ? (
                           // Circle with counter inside for recurring goals
                           <div className="relative">
-                            <Circle className="w-10 h-10 text-slate-300" />
-                            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-600">
+                            <Circle className="w-12 h-12 text-slate-300" />
+                            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-700">
                               {completionCount}/{frequency}
                             </span>
                           </div>
                         ) : (
-                          <Circle className="w-10 h-10 text-slate-300" />
+                          <Circle className="w-12 h-12 text-slate-300" />
                         )}
                       </button>
                       
                       {/* Progress tracker - below checkbox */}
                       {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           {/* Undo button */}
                           {onDecrementGoal && (
                             <button
                               onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
                               disabled={completionCount === 0}
-                              className={`flex-shrink-0 p-0.5 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
+                              className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
                                 completionCount > 0
                                   ? 'hover:bg-slate-100 cursor-pointer'
                                   : 'cursor-not-allowed pointer-events-none'
@@ -418,16 +418,16 @@ function WeekGoalsWidget({
                               aria-label="Undo last completion"
                               data-testid={`undo-goal-${goal.id}`}
                             >
-                              <ChevronLeft className="w-3 h-3 text-slate-400 hover:text-netsurit-red" />
+                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
                             </button>
                           )}
                           
                           {/* Progress dots */}
-                          <div className="flex gap-0.5">
+                          <div className="flex gap-1">
                             {Array.from({ length: frequency }).map((_, i) => (
                               <div
                                 key={i}
-                                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                className={`w-2 h-2 rounded-full transition-all ${
                                   i < completionCount
                                     ? 'bg-netsurit-red' 
                                     : 'bg-slate-300'
@@ -441,11 +441,11 @@ function WeekGoalsWidget({
                           {!goal.completed && completionCount < frequency && (
                             <button
                               onClick={() => handleToggleWithCelebration(goal.id)}
-                              className="flex-shrink-0 p-0.5 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
+                              className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
                               aria-label="Add completion"
                               data-testid={`add-completion-${goal.id}`}
                             >
-                              <ChevronLeft className="w-3 h-3 text-slate-400 hover:text-netsurit-red rotate-180" />
+                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
                             </button>
                           )}
                         </div>
@@ -455,7 +455,7 @@ function WeekGoalsWidget({
                     {/* Middle: Content Column (flex-1) */}
                     <div className="flex-1 min-w-0 self-center text-center">
                       {/* Title */}
-                      <h3 className={`text-sm md:text-base font-semibold leading-tight ${
+                      <h3 className={`text-base md:text-lg font-semibold leading-tight ${
                         goal.completed ? 'line-through text-slate-500' : 'text-slate-900'
                       }`}>
                         {goal.title}
@@ -463,7 +463,7 @@ function WeekGoalsWidget({
                       
                       {/* From: Dream Name */}
                       {goal.dreamTitle && (
-                        <p className="text-xs leading-tight mt-0.5">
+                        <p className="text-sm leading-tight mt-1">
                           <span className="text-slate-400">From: </span>
                           <span className="text-slate-600 font-medium">{goal.dreamTitle}</span>
                         </p>
@@ -471,11 +471,11 @@ function WeekGoalsWidget({
                     </div>
 
                     {/* Right: Meta Column (auto width) */}
-                    <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
+                    <div className="flex flex-col items-end gap-1.5 text-right flex-shrink-0">
                       {/* Deadline: Clock + Date */}
                       {isDeadline && goal.targetDate && (
-                        <div className="flex items-center gap-1">
-                          <Clock className={`w-3.5 h-3.5 ${
+                        <div className="flex items-center gap-1.5">
+                          <Clock className={`w-4 h-4 ${
                             goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
                               ? 'text-red-600' 
                               : goal.weeksRemaining === 0
@@ -484,7 +484,7 @@ function WeekGoalsWidget({
                                   ? 'text-netsurit-coral'
                                   : 'text-slate-500'
                           }`} aria-hidden="true" />
-                          <span className={`text-xs font-medium whitespace-nowrap ${
+                          <span className={`text-sm font-medium whitespace-nowrap ${
                             goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
                               ? 'text-red-700 font-semibold' 
                               : goal.weeksRemaining === 0
@@ -500,12 +500,12 @@ function WeekGoalsWidget({
                       
                       {/* Weekly/Recurring: Weeks Left */}
                       {isWeeklyRecurring && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
-                        <span className={`text-xs md:text-sm font-medium whitespace-nowrap ${
+                        <span className={`text-sm md:text-base font-semibold whitespace-nowrap ${
                           goal.weeksRemaining === 0 
-                            ? 'text-netsurit-orange font-semibold' 
+                            ? 'text-netsurit-orange' 
                             : goal.weeksRemaining === 1
                               ? 'text-netsurit-coral'
-                              : 'text-slate-600'
+                              : 'text-slate-700'
                         }`}>
                           {goal.weeksRemaining === 0 
                             ? 'Final week!' 
@@ -519,7 +519,7 @@ function WeekGoalsWidget({
                       {!goal.completed && goal.templateId && onSkipGoal && (
                         <button
                           onClick={() => onSkipGoal(goal.id)}
-                          className="text-[11px] text-slate-400 underline hover:text-slate-600 transition-colors"
+                          className="text-xs text-slate-400 underline hover:text-slate-600 transition-colors"
                           aria-label="Skip this week"
                           data-testid={`skip-goal-${goal.id}`}
                         >
