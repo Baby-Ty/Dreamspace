@@ -97,13 +97,13 @@ export function useWeekRollover() {
         });
         
         // 6. New week will be created by useDashboardData auto-instantiation
-        // Just trigger a reload to let the Dashboard create fresh goals
-        logger.info('useWeekRollover', 'Rollover complete! Reloading dashboard...');
+        // Trigger refresh event instead of page reload to prevent reload loop
+        logger.info('useWeekRollover', 'Rollover complete! Triggering dashboard refresh...');
         
-        // Mark as checked before reload
+        // Mark as checked before triggering refresh
         hasChecked.current = true;
         
-        // Trigger dashboard reload event
+        // Trigger dashboard refresh event (Dashboard will listen and refresh data)
         window.dispatchEvent(new CustomEvent('week-rolled-over', {
           detail: {
             fromWeek: currentWeekDoc.weekId,
@@ -116,11 +116,8 @@ export function useWeekRollover() {
         console.log(`✅ Week rollover complete! Welcome to ${actualWeekId}`);
         console.log(`📊 Last week: ${summary.completedGoals}/${summary.totalGoals} goals completed (${summary.score} points)`);
         
-        // Reload the current week goals
-        // The Dashboard's useDashboardData will auto-instantiate new goals
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+        // Note: Dashboard will listen to 'week-rolled-over' event and refresh data
+        // No page reload needed - prevents reload loop issue
         
       } catch (error) {
         logger.error('useWeekRollover', 'Rollover check failed', { 

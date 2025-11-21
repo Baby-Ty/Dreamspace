@@ -1,7 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; 
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Plus } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -57,6 +57,28 @@ export default function DashboardLayout() {
     setShowPastWeeks(true);
     refreshPastWeeks(); // Refresh data when modal opens
   }, [refreshPastWeeks]);
+
+  // Listen for week rollover events and refresh dashboard data
+  useEffect(() => {
+    const handleWeekRollover = async (event) => {
+      const { fromWeek, toWeek, stats } = event.detail;
+      console.log('🔄 Week rollover event received:', { fromWeek, toWeek });
+      
+      // Wait a moment for Cosmos DB eventual consistency
+      setTimeout(async () => {
+        // Refresh current week goals (will auto-instantiate new goals)
+        await loadCurrentWeekGoals();
+        // Refresh past weeks to show the newly archived week
+        refreshPastWeeks();
+        console.log('✅ Dashboard refreshed after week rollover');
+      }, 1000);
+    };
+
+    window.addEventListener('week-rolled-over', handleWeekRollover);
+    return () => {
+      window.removeEventListener('week-rolled-over', handleWeekRollover);
+    };
+  }, [loadCurrentWeekGoals, refreshPastWeeks]);
   
   // Test week rollover handler
   const handleTestRollover = useCallback(async () => {
@@ -86,12 +108,12 @@ export default function DashboardLayout() {
             `Refreshing dashboard...`);
           
           // ⏱️ Wait for Cosmos DB eventual consistency before loading goals
-          // The server-side rollover has retry logic, but we still need to wait
-          // before the client loads data to avoid reading stale data
-          // Trigger a page refresh to ensure all data is synced
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000); // Increased to 2 seconds to allow for eventual consistency
+          // Use event-driven refresh instead of page reload to prevent reload loop
+          setTimeout(async () => {
+            await loadCurrentWeekGoals();
+            refreshPastWeeks();
+            console.log('✅ Dashboard refreshed after test rollover');
+          }, 2000); // Wait 2 seconds to allow for eventual consistency
         } else {
           alert(`ℹ️ ${result.message || 'No rollover needed'}`);
         }
