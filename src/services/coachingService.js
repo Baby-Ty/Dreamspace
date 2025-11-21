@@ -199,6 +199,42 @@ class CoachingService {
     // User messages have coachId = null
     return this.addCoachMessageToMemberDream(userId, dreamId, message, null);
   }
+
+  /**
+   * Update team mission statement
+   * @param {string} managerId - Manager/Coach ID
+   * @param {string} mission - Mission statement text
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateTeamMission(managerId, mission) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/updateTeamMission/${managerId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ mission })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+          return fail(ErrorCodes.NETWORK, errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Team mission updated successfully');
+        return ok(result.data);
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Team mission would be saved to localStorage');
+        return ok({ mission, managerId, lastModified: new Date().toISOString() });
+      }
+    } catch (error) {
+      console.error('❌ Error updating team mission:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update team mission');
+    }
+  }
 }
 
 // Create and export singleton instance

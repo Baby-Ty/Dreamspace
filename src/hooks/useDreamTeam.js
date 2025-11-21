@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { coachingService } from '../services/coachingService';
 import { useApp } from '../context/AppContext';
 import databaseService from '../services/databaseService';
+import { getCurrentWeek } from '../services/currentWeekService';
 
 /**
  * Custom hook for Dream Team data management
@@ -157,6 +158,94 @@ export function useDreamTeam() {
     }
   }, [currentUser]);
 
+  // Helper: Generate accent color from user ID hash
+  const getAccentColor = useCallback((userId) => {
+    if (!userId) return 'netsurit-red';
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+      hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    // Map to Netsurit colors
+    const colors = ['netsurit-red', 'netsurit-coral', 'netsurit-orange'];
+    return colors[Math.abs(hash) % colors.length];
+  }, []);
+
+  // Helper: Calculate activity status based on recent activity
+  const getActivityStatus = useCallback((member) => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Check dreams for recent updates (most reliable indicator)
+    const recentDreamUpdates = (member.dreamBook || []).filter(dream => {
+      const updatedAt = dream.updatedAt || dream.createdAt;
+      if (!updatedAt) return false;
+      const updateDate = new Date(updatedAt);
+      return updateDate > oneWeekAgo;
+    });
+
+    // Check connects count change (if connectsCount exists and was recently updated)
+    // Note: We don't have access to individual connect timestamps here,
+    // so we'll rely primarily on dream updates
+    const hasRecentActivity = recentDreamUpdates.length > 0;
+
+    if (hasRecentActivity) {
+      return 'active'; // Active this week
+    }
+
+    // Check for activity in the past month
+    const monthDreamUpdates = (member.dreamBook || []).filter(dream => {
+      const updatedAt = dream.updatedAt || dream.createdAt;
+      if (!updatedAt) return false;
+      const updateDate = new Date(updatedAt);
+      return updateDate > oneMonthAgo;
+    });
+
+    if (monthDreamUpdates.length > 0) {
+      return 'recent'; // Active this month
+    }
+
+    return 'inactive'; // No recent activity
+  }, []);
+
+  // Helper: Calculate completed goals and dreams counts
+  const calculateCompletionStats = useCallback((member) => {
+    const dreams = member.dreamBook || [];
+    
+    // Count completed goals across all dreams
+    let completedGoalsCount = 0;
+    dreams.forEach(dream => {
+      const goals = dream.goals || [];
+      completedGoalsCount += goals.filter(g => g.completed === true).length;
+    });
+
+    // Count completed dreams (progress === 100 or completed === true)
+    const completedDreamsCount = dreams.filter(dream => 
+      dream.progress === 100 || dream.completed === true
+    ).length;
+
+    return { completedGoalsCount, completedDreamsCount };
+  }, []);
+
+  // Helper: Calculate weekly progress percentage
+  const calculateWeeklyProgress = useCallback(async (memberId) => {
+    try {
+      const weekResult = await getCurrentWeek(memberId);
+      if (weekResult.success && weekResult.data?.goals) {
+        const goals = weekResult.data.goals;
+        const totalGoals = goals.length;
+        if (totalGoals === 0) return 0;
+        const completedGoals = goals.filter(g => g.completed === true).length;
+        return Math.round((completedGoals / totalGoals) * 100);
+      }
+      return 0;
+    } catch (error) {
+      console.warn(`⚠️ Could not calculate weekly progress for member ${memberId}:`, error);
+      return 0;
+    }
+  }, []);
+
   // Determine if current user is the coach
   // Check multiple sources: team relationship, user role field, or roles.coach
   const isCoach = useMemo(() => {
@@ -210,13 +299,40 @@ export function useDreamTeam() {
     return false;
   }, [teamData, currentUser]);
 
-  // Get team members (exclude coach if viewing as member)
-  const teamMembers = useMemo(() => {
-    if (!teamData?.teamMembers) return [];
-    // If user is coach, show all members including themselves
-    // If user is member, show all members (coach will be marked with isCoach flag)
-    return teamData.teamMembers;
-  }, [teamData]);
+  // Get team members with enhanced metrics (exclude coach if viewing as member)
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  useEffect(() => {
+    const enhanceMembers = async () => {
+      if (!teamData?.teamMembers) {
+        setTeamMembers([]);
+        return;
+      }
+
+      const enhanced = await Promise.all(
+        teamData.teamMembers.map(async (member) => {
+          const memberId = member.id || member.userId;
+          const { completedGoalsCount, completedDreamsCount } = calculateCompletionStats(member);
+          const weeklyProgress = await calculateWeeklyProgress(memberId);
+          const activityStatus = getActivityStatus(member);
+          const accentColor = getAccentColor(memberId);
+
+          return {
+            ...member,
+            completedGoalsCount,
+            completedDreamsCount,
+            weeklyProgress,
+            activityStatus,
+            accentColor
+          };
+        })
+      );
+
+      setTeamMembers(enhanced);
+    };
+
+    enhanceMembers();
+  }, [teamData, calculateCompletionStats, calculateWeeklyProgress, getActivityStatus, getAccentColor]);
 
   // Compute team statistics
   const teamStats = useMemo(() => {

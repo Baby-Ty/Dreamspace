@@ -16,6 +16,7 @@ export const GoalSchema = z.object({
   recurrence: z.enum(['weekly', 'monthly']).optional(),
   targetWeeks: z.number().optional(), // How many weeks to track (for weekly AND deadline goals)
   targetMonths: z.number().optional(), // How many months to track (for monthly)
+  frequency: z.number().optional(), // How many times to complete per month (for monthly goals only)
   startDate: z.string().optional(), // ISO date when tracking starts
   // For deadline goals (backward compatibility - targetWeeks is now primary)
   targetDate: z.string().optional(), // ISO date for deadline (kept for backward compatibility, targetWeeks is source of truth)

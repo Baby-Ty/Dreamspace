@@ -9,7 +9,7 @@
         "post",
         "options"
       ],
-      "route": "uploadDreamPicture/{userId}/{dreamId}"
+      "route": "updateTeamMission/{managerId}"
     },
     {
       "type": "http",
@@ -18,14 +18,4 @@
     }
   ]
 }
-
-
-
-
-
-
-
-
-
-
 

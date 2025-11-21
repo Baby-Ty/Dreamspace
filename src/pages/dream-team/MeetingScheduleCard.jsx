@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { Calendar, MapPin, Edit2, Save, X } from 'lucide-react';
+import { Calendar, MapPin, Save } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
@@ -82,30 +82,28 @@ export default function MeetingScheduleCard({ teamId, isCoach, onSave }) {
 
   return (
     <div 
-      className="bg-white rounded-lg shadow p-4 border border-professional-gray-200"
+      className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 relative group"
       data-testid="meeting-schedule-card"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <Calendar className="h-5 w-5 text-netsurit-red mr-2" aria-hidden="true" />
-          <h3 className="text-sm font-bold text-professional-gray-900">
-            Next Team Meeting
-          </h3>
-        </div>
-        {isCoach && (
-          <button
-            onClick={() => isEditing ? handleCancel() : setIsEditing(true)}
-            className="p-1.5 text-professional-gray-400 hover:text-netsurit-red hover:bg-professional-gray-100 rounded-lg transition-colors"
-            aria-label={isEditing ? 'Cancel editing' : 'Edit meeting schedule'}
-            data-testid="edit-meeting-button"
-          >
-            {isEditing ? (
-              <X className="w-4 h-4" />
-            ) : (
-              <Edit2 className="w-4 h-4" />
-            )}
-          </button>
-        )}
+      {/* Edit Button (Coach Only) - Aligned with mission card */}
+      {isCoach && !isEditing && (
+        <button
+          onClick={() => setIsEditing(true)}
+          className="absolute top-4 right-4 p-2 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+          aria-label="Edit meeting schedule"
+          data-testid="edit-meeting-button"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+      )}
+
+      <div className="flex items-center mb-4">
+        <Calendar className="h-5 w-5 text-netsurit-red mr-2" aria-hidden="true" />
+        <h3 className="text-sm font-bold text-professional-gray-900">
+          Next Team Meeting
+        </h3>
       </div>
 
       {isEditing ? (
