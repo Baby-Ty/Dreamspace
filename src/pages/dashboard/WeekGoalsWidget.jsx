@@ -361,190 +361,175 @@ function WeekGoalsWidget({
             )}
 
             {/* Goals List */}
-            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
-              {currentWeekGoals.map((goal) => (
-                <div key={goal.id} className={`p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg flex flex-col ${
-                  goal.completed 
-                    ? 'bg-gradient-to-r from-professional-gray-50 to-white border-professional-gray-300 shadow-sm' 
-                    : 'bg-white border-professional-gray-200 hover:border-netsurit-red/30 shadow-md hover:scale-[1.01]'
-                }`} data-testid={`goal-${goal.id}`}>
-                  <div className="flex items-start space-x-3.5 flex-1">
-                    <button
-                      ref={(el) => (buttonRefs.current[goal.id] = el)}
-                      onClick={() => handleToggleWithCelebration(goal.id)}
-                      className="flex-shrink-0 mt-0.5 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-110"
-                      aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                      data-testid={`toggle-goal-${goal.id}`}
-                      disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
-                    >
-                      {goal.completed ? (
-                        <CheckCircle2 className="w-7 h-7 text-netsurit-red drop-shadow-sm" />
-                      ) : (
-                        <Circle className="w-7 h-7 text-professional-gray-300 hover:text-netsurit-red" />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className={`text-base font-semibold leading-snug flex-1 ${
-                          goal.completed ? 'line-through text-professional-gray-500' : 'text-professional-gray-900'
-                        }`}>
-                          {goal.title}
-                        </h3>
-                        
-                        {/* Weeks remaining - top right */}
-                        {((goal.type === 'weekly_goal' || goal.type === 'monthly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0) && (
-                          <div className="flex items-center space-x-1 flex-shrink-0">
-                            <Clock className={`w-3.5 h-3.5 ${
-                              goal.weeksRemaining === 0 
-                                ? 'text-netsurit-orange' 
-                                : goal.weeksRemaining === 1
-                                  ? 'text-netsurit-coral'
-                                  : 'text-professional-gray-500'
-                            }`} aria-hidden="true" />
-                            <span className={`text-xs font-medium whitespace-nowrap ${
-                              goal.weeksRemaining === 0 
-                                ? 'text-netsurit-orange font-semibold' 
-                                : goal.weeksRemaining === 1
-                                  ? 'text-netsurit-coral'
-                                  : 'text-professional-gray-600'
-                            }`}>
-                              {goal.weeksRemaining === 0 
-                                ? 'Final week!' 
-                                : goal.weeksRemaining === 1
-                                  ? '1 week left' 
-                                  : `${goal.weeksRemaining} weeks left`}
+            <div className="flex-1 space-y-2.5 overflow-y-auto pr-2">
+              {currentWeekGoals.map((goal) => {
+                const isDeadline = goal.type === 'deadline';
+                const isWeeklyRecurring = (goal.type === 'weekly_goal' || goal.type === 'monthly_goal' || goal.type === 'consistency' || goal.goalType === 'consistency') && goal.recurrence;
+                const frequency = goal.frequency || 1;
+                const completionCount = goal.completionCount || 0;
+                
+                return (
+                  <div 
+                    key={goal.id} 
+                    className={`rounded-2xl border border-slate-100 bg-white px-4 py-4 shadow-sm flex items-center gap-4 transition-all duration-200 hover:shadow-md ${
+                      goal.completed ? 'opacity-75' : ''
+                    }`} 
+                    data-testid={`goal-${goal.id}`}
+                  >
+                    {/* Left: Checkbox Column with counter below */}
+                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                      {/* Checkbox with counter inside (top) */}
+                      <button
+                        ref={(el) => (buttonRefs.current[goal.id] = el)}
+                        onClick={() => handleToggleWithCelebration(goal.id)}
+                        className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 hover:scale-105"
+                        aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                        data-testid={`toggle-goal-${goal.id}`}
+                        disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
+                      >
+                        {goal.completed ? (
+                          <CheckCircle2 className="w-10 h-10 text-netsurit-red" />
+                        ) : isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') ? (
+                          // Circle with counter inside for recurring goals
+                          <div className="relative">
+                            <Circle className="w-10 h-10 text-slate-300" />
+                            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-600">
+                              {completionCount}/{frequency}
                             </span>
                           </div>
+                        ) : (
+                          <Circle className="w-10 h-10 text-slate-300" />
                         )}
-                        
-                        {/* Deadline goal due date - top right */}
-                        {goal.type === 'deadline' && goal.targetDate && (
-                          <div className="flex items-center space-x-1 flex-shrink-0">
-                            <Clock className={`w-3.5 h-3.5 ${
-                              goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
-                                ? 'text-red-600' 
-                                : goal.weeksRemaining === 0
-                                  ? 'text-netsurit-orange'
-                                  : goal.weeksRemaining === 1
-                                    ? 'text-netsurit-coral'
-                                    : 'text-professional-gray-500'
-                            }`} aria-hidden="true" />
-                            <span className={`text-xs font-medium whitespace-nowrap ${
-                              goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
-                                ? 'text-red-700 font-semibold' 
-                                : goal.weeksRemaining === 0
-                                  ? 'text-netsurit-orange font-semibold'
-                                  : goal.weeksRemaining === 1
-                                    ? 'text-netsurit-coral'
-                                    : 'text-professional-gray-600'
-                            }`}>
-                              {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      </button>
                       
-                      {/* Monthly goal counter */}
-                      {goal.recurrence === 'monthly' && goal.frequency && (
-                        <div className="mt-2 flex items-center space-x-2">
-                          {/* Undo button - only show when completionCount > 0 */}
-                          {(goal.completionCount || 0) > 0 && onDecrementGoal && (
+                      {/* Progress tracker - below checkbox */}
+                      {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
+                        <div className="flex items-center gap-1">
+                          {/* Undo button */}
+                          {onDecrementGoal && (
                             <button
-                              onClick={() => onDecrementGoal(goal.id)}
-                              className="flex-shrink-0 p-1 rounded-full hover:bg-professional-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-1"
+                              onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
+                              disabled={completionCount === 0}
+                              className={`flex-shrink-0 p-0.5 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
+                                completionCount > 0
+                                  ? 'hover:bg-slate-100 cursor-pointer'
+                                  : 'cursor-not-allowed pointer-events-none'
+                              }`}
                               aria-label="Undo last completion"
                               data-testid={`undo-goal-${goal.id}`}
-                              title="Undo last completion"
                             >
-                              <ChevronLeft className="w-4 h-4 text-professional-gray-500 hover:text-netsurit-red transition-colors" />
+                              <ChevronLeft className="w-3 h-3 text-slate-400 hover:text-netsurit-red" />
                             </button>
                           )}
-                          <div className="flex space-x-1">
-                            {Array.from({ length: goal.frequency }).map((_, i) => (
+                          
+                          {/* Progress dots */}
+                          <div className="flex gap-0.5">
+                            {Array.from({ length: frequency }).map((_, i) => (
                               <div
                                 key={i}
-                                className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                                  i < (goal.completionCount || 0)
-                                    ? 'bg-netsurit-red shadow-sm' 
-                                    : 'bg-professional-gray-300'
+                                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                  i < completionCount
+                                    ? 'bg-netsurit-red' 
+                                    : 'bg-slate-300'
                                 }`}
-                                aria-label={`Completion ${i + 1} of ${goal.frequency}`}
+                                aria-label={`Completion ${i + 1} of ${frequency}`}
                               />
                             ))}
                           </div>
-                          <span className="text-xs text-professional-gray-600 font-medium">
-                            {goal.completionCount || 0}/{goal.frequency} this month
+                          
+                          {/* Add/increment button */}
+                          {!goal.completed && completionCount < frequency && (
+                            <button
+                              onClick={() => handleToggleWithCelebration(goal.id)}
+                              className="flex-shrink-0 p-0.5 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
+                              aria-label="Add completion"
+                              data-testid={`add-completion-${goal.id}`}
+                            >
+                              <ChevronLeft className="w-3 h-3 text-slate-400 hover:text-netsurit-red rotate-180" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Middle: Content Column (flex-1) */}
+                    <div className="flex-1 min-w-0 self-center text-center">
+                      {/* Title */}
+                      <h3 className={`text-sm md:text-base font-semibold leading-tight ${
+                        goal.completed ? 'line-through text-slate-500' : 'text-slate-900'
+                      }`}>
+                        {goal.title}
+                      </h3>
+                      
+                      {/* From: Dream Name */}
+                      {goal.dreamTitle && (
+                        <p className="text-xs leading-tight mt-0.5">
+                          <span className="text-slate-400">From: </span>
+                          <span className="text-slate-600 font-medium">{goal.dreamTitle}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Right: Meta Column (auto width) */}
+                    <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
+                      {/* Deadline: Clock + Date */}
+                      {isDeadline && goal.targetDate && (
+                        <div className="flex items-center gap-1">
+                          <Clock className={`w-3.5 h-3.5 ${
+                            goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
+                              ? 'text-red-600' 
+                              : goal.weeksRemaining === 0
+                                ? 'text-netsurit-orange'
+                                : goal.weeksRemaining === 1
+                                  ? 'text-netsurit-coral'
+                                  : 'text-slate-500'
+                          }`} aria-hidden="true" />
+                          <span className={`text-xs font-medium whitespace-nowrap ${
+                            goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
+                              ? 'text-red-700 font-semibold' 
+                              : goal.weeksRemaining === 0
+                                ? 'text-netsurit-orange font-semibold'
+                                : goal.weeksRemaining === 1
+                                  ? 'text-netsurit-coral'
+                                  : 'text-slate-600'
+                          }`}>
+                            {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
                         </div>
                       )}
                       
-                      {/* Weekly goal counter */}
-                      {goal.recurrence === 'weekly' && (() => {
-                        const frequency = goal.frequency || 1;
-                        const completionCount = goal.completionCount || 0;
-                        return (
-                          <div className="mt-2 flex items-center space-x-2">
-                            {/* Undo button - only show when completionCount > 0 */}
-                            {completionCount > 0 && onDecrementGoal && (
-                              <button
-                                onClick={() => onDecrementGoal(goal.id)}
-                                className="flex-shrink-0 p-1 rounded-full hover:bg-professional-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-1"
-                                aria-label="Undo last completion"
-                                data-testid={`undo-goal-${goal.id}`}
-                                title="Undo last completion"
-                              >
-                                <ChevronLeft className="w-4 h-4 text-professional-gray-500 hover:text-netsurit-red transition-colors" />
-                              </button>
-                            )}
-                            <div className="flex space-x-1">
-                              {Array.from({ length: frequency }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                                    i < completionCount
-                                      ? 'bg-netsurit-red shadow-sm' 
-                                      : 'bg-professional-gray-300'
-                                  }`}
-                                  aria-label={`Completion ${i + 1} of ${frequency}`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-xs text-professional-gray-600 font-medium">
-                              {completionCount}/{frequency} this week
-                            </span>
-                          </div>
-                        );
-                      })()}
-                      
-                      {/* Dream title */}
-                      {goal.dreamTitle && (
-                        <p className={`text-xs mt-2 ${
-                          goal.completed 
-                            ? 'text-professional-gray-500' 
-                            : 'text-professional-gray-700'
+                      {/* Weekly/Recurring: Weeks Left */}
+                      {isWeeklyRecurring && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+                        <span className={`text-xs md:text-sm font-medium whitespace-nowrap ${
+                          goal.weeksRemaining === 0 
+                            ? 'text-netsurit-orange font-semibold' 
+                            : goal.weeksRemaining === 1
+                              ? 'text-netsurit-coral'
+                              : 'text-slate-600'
                         }`}>
-                          dream: {goal.dreamTitle}
-                        </p>
+                          {goal.weeksRemaining === 0 
+                            ? 'Final week!' 
+                            : goal.weeksRemaining === 1
+                              ? '1 week left' 
+                              : `${goal.weeksRemaining} weeks left`}
+                        </span>
+                      )}
+                      
+                      {/* Skip this week */}
+                      {!goal.completed && goal.templateId && onSkipGoal && (
+                        <button
+                          onClick={() => onSkipGoal(goal.id)}
+                          className="text-[11px] text-slate-400 underline hover:text-slate-600 transition-colors"
+                          aria-label="Skip this week"
+                          data-testid={`skip-goal-${goal.id}`}
+                        >
+                          Skip this week
+                        </button>
                       )}
                     </div>
                   </div>
-                  
-                  {/* Skip button - bottom right */}
-                  {!goal.completed && goal.templateId && onSkipGoal && (
-                    <div className="flex justify-end mt-2">
-                      <button
-                        onClick={() => onSkipGoal(goal.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-professional-gray-500 hover:text-netsurit-red transition-colors group"
-                        aria-label="Skip this week"
-                        data-testid={`skip-goal-${goal.id}`}
-                      >
-                        <SkipForward className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                        <span className="underline decoration-dotted">Skip this week</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
               
               {!showAddGoal && currentWeekGoals.length > 0 && (
                 <button
