@@ -45,7 +45,12 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
     return groups;
   }, {});
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!newMessage.trim() || isSending) return;
 
     setIsSending(true);
@@ -79,7 +84,8 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      e.stopPropagation();
+      handleSendMessage(e);
     }
   };
 
@@ -188,6 +194,7 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
             data-testid="coach-note-input"
           />
           <button
+            type="button"
             onClick={handleSendMessage}
             disabled={!newMessage.trim() || isSending}
             className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5"

@@ -459,7 +459,8 @@ export function useDreamBook() {
 
   const handleUpdateDream = useCallback((updatedDream) => {
     updateDream(updatedDream);
-    setViewingDream(null);
+    // Update the viewing dream to reflect changes, but keep modal open
+    setViewingDream(updatedDream);
   }, [updateDream]);
 
   // Stock photo search handlers
