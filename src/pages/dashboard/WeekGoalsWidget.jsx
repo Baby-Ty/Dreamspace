@@ -88,7 +88,7 @@ function WeekGoalsWidget({
         <div className="flex items-center space-x-2">
           <button
             onClick={onShowPastWeeks}
-            className="inline-flex items-center space-x-1.5 text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="inline-flex items-center space-x-1.5 text-sm bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-red font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
             data-testid="past-weeks-button"
             aria-label="View past weeks"
           >
@@ -404,50 +404,57 @@ function WeekGoalsWidget({
                       
                       {/* Progress tracker - below checkbox */}
                       {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                        <div className="flex items-center gap-1.5">
-                          {/* Undo button */}
-                          {onDecrementGoal && (
-                            <button
-                              onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
-                              disabled={completionCount === 0}
-                              className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
-                                completionCount > 0
-                                  ? 'hover:bg-slate-100 cursor-pointer'
-                                  : 'cursor-not-allowed pointer-events-none'
-                              }`}
-                              aria-label="Undo last completion"
-                              data-testid={`undo-goal-${goal.id}`}
-                            >
-                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
-                            </button>
-                          )}
-                          
-                          {/* Progress dots */}
-                          <div className="flex gap-1">
-                            {Array.from({ length: frequency }).map((_, i) => (
-                              <div
-                                key={i}
-                                className={`w-2 h-2 rounded-full transition-all ${
-                                  i < completionCount
-                                    ? 'bg-netsurit-red' 
-                                    : 'bg-slate-300'
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-1.5">
+                            {/* Undo button */}
+                            {onDecrementGoal && (
+                              <button
+                                onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
+                                disabled={completionCount === 0}
+                                className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
+                                  completionCount > 0
+                                    ? 'hover:bg-slate-100 cursor-pointer'
+                                    : 'cursor-not-allowed pointer-events-none'
                                 }`}
-                                aria-label={`Completion ${i + 1} of ${frequency}`}
-                              />
-                            ))}
+                                aria-label="Undo last completion"
+                                data-testid={`undo-goal-${goal.id}`}
+                              >
+                                <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
+                              </button>
+                            )}
+                            
+                            {/* Progress dots */}
+                            <div className="flex gap-1">
+                              {Array.from({ length: frequency }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`w-2 h-2 rounded-full transition-all ${
+                                    i < completionCount
+                                      ? 'bg-netsurit-red' 
+                                      : 'bg-slate-300'
+                                  }`}
+                                  aria-label={`Completion ${i + 1} of ${frequency}`}
+                                />
+                              ))}
+                            </div>
+                            
+                            {/* Add/increment button */}
+                            {!goal.completed && completionCount < frequency && (
+                              <button
+                                onClick={() => handleToggleWithCelebration(goal.id)}
+                                className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
+                                aria-label="Add completion"
+                                data-testid={`add-completion-${goal.id}`}
+                              >
+                                <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
+                              </button>
+                            )}
                           </div>
                           
-                          {/* Add/increment button */}
-                          {!goal.completed && completionCount < frequency && (
-                            <button
-                              onClick={() => handleToggleWithCelebration(goal.id)}
-                              className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
-                              aria-label="Add completion"
-                              data-testid={`add-completion-${goal.id}`}
-                            >
-                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
-                            </button>
-                          )}
+                          {/* Frequency label */}
+                          <span className="text-xs text-slate-500 font-medium">
+                            per {goal.recurrence === 'weekly' ? 'week' : 'month'}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -465,7 +472,7 @@ function WeekGoalsWidget({
                       {goal.dreamTitle && (
                         <p className="text-sm leading-tight mt-1">
                           <span className="text-slate-400">From: </span>
-                          <span className="text-slate-600 font-medium">{goal.dreamTitle}</span>
+                          <span className="text-netsurit-red font-medium">{goal.dreamTitle}</span>
                         </p>
                       )}
                     </div>

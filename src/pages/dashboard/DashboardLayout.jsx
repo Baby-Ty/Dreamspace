@@ -203,7 +203,7 @@ export default function DashboardLayout() {
             </div>
             <Link 
               to="/dream-book"
-              className="text-sm bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="text-sm bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-red font-semibold focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               View All
             </Link>

@@ -143,7 +143,7 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
             onClick={(e) => { e.stopPropagation(); onView(); }}
             aria-label={`View details for ${dream.title}`}
             data-testid="view-dream-button"
-            className="w-full py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl font-semibold text-sm hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="w-full py-3 bg-netsurit-red text-white rounded-xl font-semibold text-sm hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             View Details
           </button>

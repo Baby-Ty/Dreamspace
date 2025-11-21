@@ -85,7 +85,7 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
       </div>
 
       {/* Vision Builder Demo CTA - Disabled */}
-      <div className="bg-gradient-to-r from-netsurit-red via-netsurit-coral to-netsurit-orange rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20 opacity-60">
+      <div className="bg-netsurit-red rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20 opacity-60">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
           <div className="text-white">
             <div className="flex items-center space-x-2 mb-1">
