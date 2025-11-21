@@ -10,9 +10,10 @@ const { getCosmosProvider } = require('./cosmosProvider');
  * Perform week rollover for a single user
  * @param {string} userId - User ID
  * @param {object} context - Azure Function context (for logging)
+ * @param {boolean} simulate - Force simulation mode (always use nextWeekId, ignore system date)
  * @returns {Promise<{success: boolean, rolled: boolean, message: string}>}
  */
-async function rolloverWeekForUser(userId, context = null) {
+async function rolloverWeekForUser(userId, context = null, simulate = false) {
   const log = context?.log || console.log;
   
   try {
@@ -31,8 +32,8 @@ async function rolloverWeekForUser(userId, context = null) {
     const systemWeekId = getCurrentIsoWeek();
     const nextWeekId = getNextWeekId(currentWeekDoc.weekId);
     
-    // Use next week if we're simulating (system date hasn't changed), otherwise use system date
-    const actualWeekId = systemWeekId === currentWeekDoc.weekId ? nextWeekId : systemWeekId;
+    // Use next week if simulating OR if system date hasn't changed, otherwise use system date
+    const actualWeekId = (simulate || systemWeekId === currentWeekDoc.weekId) ? nextWeekId : systemWeekId;
     
     if (currentWeekDoc.weekId === actualWeekId) {
       log(`✅ ${userId}: Already on current week (${actualWeekId})`);
@@ -40,7 +41,8 @@ async function rolloverWeekForUser(userId, context = null) {
     }
     
     // 3. ROLLOVER NEEDED
-    log(`🔄 ${userId}: Rolling over from ${currentWeekDoc.weekId} to ${actualWeekId}${systemWeekId === currentWeekDoc.weekId ? ' (simulated)' : ''}`);
+    const isSimulated = simulate || systemWeekId === currentWeekDoc.weekId;
+    log(`🔄 ${userId}: Rolling over from ${currentWeekDoc.weekId} to ${actualWeekId}${isSimulated ? ' (simulated)' : ''}`);
     
     // Calculate weeks to archive (in case user missed multiple weeks)
     const weeksToArchive = getWeeksBetween(currentWeekDoc.weekId, actualWeekId);
@@ -376,11 +378,14 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
       if (isSameMonth && previousInstance) {
         instance.completionCount = previousInstance.completionCount || 0;
         instance.completionDates = previousInstance.completionDates || [];
-        instance.completed = previousInstance.completed || false;
+        // Ensure completed flag is set correctly based on completionCount
+        const frequency = template.frequency || 2;
+        instance.completed = (instance.completionCount >= frequency) || previousInstance.completed || false;
       } else {
         // New month - reset
         instance.completionCount = 0;
         instance.completionDates = [];
+        instance.completed = false;
       }
       
       // Convert months to weeks for unified tracking
@@ -682,12 +687,12 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
               targetWeeks: goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined),
               targetMonths: goal.targetMonths, // Keep for display
               weeksRemaining: newWeeksRemaining,
-              frequency: 2,
+              frequency: goal.frequency || 2,
               monthId: currentMonthId,
               completionCount: isSameMonth && previousInstance ? (previousInstance.completionCount || 0) : 0,
               completionDates: isSameMonth && previousInstance ? (previousInstance.completionDates || []) : [],
-              completed: false,
-              completedAt: null,
+              completed: isSameMonth && previousInstance ? ((previousInstance.completionCount || 0) >= (goal.frequency || 2)) || previousInstance.completed || false : false,
+              completedAt: isSameMonth && previousInstance && previousInstance.completed ? (previousInstance.completedAt || null) : null,
               skipped: false,
               weekId: weekId,
               createdAt: new Date().toISOString()

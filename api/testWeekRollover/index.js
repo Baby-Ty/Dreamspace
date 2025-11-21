@@ -3,11 +3,14 @@
  * HTTP endpoint to manually trigger week rollover for testing
  * 
  * Route: POST /api/testWeekRollover/{userId}
- * Body: (optional) { force: true } to force rollover even if week is current
+ * Body: (optional) { force: true } - Parameter accepted but not required (kept for backward compatibility)
+ * 
+ * Note: Forces simulation mode (simulate=true) to always use nextWeekId, ensuring proper forward
+ * week progression during testing (W46 → W47 → W48 → W49...) without rollback issues.
+ * 
  * Returns: Rollover result
  */
 
-const { getCosmosProvider } = require('../utils/cosmosProvider');
 const { rolloverWeekForUser, getCurrentIsoWeek } = require('../utils/weekRollover');
 
 module.exports = async function (context, req) {
@@ -44,43 +47,10 @@ module.exports = async function (context, req) {
   }
 
   try {
-    // If force is true, we need to manually advance the week
-    if (force) {
-      context.log('⚠️ Force mode: Manually advancing week for testing');
-      
-      const cosmosProvider = getCosmosProvider();
-      const currentWeekDoc = await cosmosProvider.getCurrentWeekDocument(userId);
-      
-      if (currentWeekDoc) {
-        // Manually set weekId to previous week to force rollover
-        const currentWeekId = currentWeekDoc.weekId;
-        const [year, week] = currentWeekId.split('-W').map(Number);
-        let prevWeek = week - 1;
-        let prevYear = year;
-        
-        if (prevWeek < 1) {
-          prevWeek = 52;
-          prevYear = year - 1;
-        }
-        
-        const prevWeekId = `${prevYear}-W${String(prevWeek).padStart(2, '0')}`;
-        
-        context.log(`🔄 Forcing rollover: Setting current week from ${currentWeekId} to ${prevWeekId}`);
-        
-        // Update the weekId using upsertCurrentWeek
-        await cosmosProvider.upsertCurrentWeek(
-          userId,
-          prevWeekId,
-          currentWeekDoc.goals || [],
-          currentWeekDoc.stats || {}
-        );
-        
-        context.log(`✅ Week set to ${prevWeekId}, now triggering rollover...`);
-      }
-    }
-
-    // Perform rollover
-    const result = await rolloverWeekForUser(userId, context);
+    // Perform rollover in simulation mode
+    // Force simulation mode to always use nextWeekId, ensuring proper week progression during testing
+    // This prevents rollback when current week is ahead of system week
+    const result = await rolloverWeekForUser(userId, context, true);
 
     context.log('✅ Test rollover complete:', result);
 

@@ -13,7 +13,16 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 }
 
 module.exports = async function (context, req) {
-  const userId = context.bindingData.userId;
+  // Decode userId from URL (handles email encoding)
+  let userId = context.bindingData.userId;
+  if (userId) {
+    try {
+      userId = decodeURIComponent(userId);
+    } catch (e) {
+      // If decoding fails, use original
+      context.log.warn('Failed to decode userId, using as-is:', userId);
+    }
+  }
 
   // Set CORS headers
   const headers = {
@@ -52,6 +61,8 @@ module.exports = async function (context, req) {
   }
 
   try {
+    context.log(`Querying connects for userId: ${userId}`);
+    
     // Query all connects for this user
     const { resources: connects } = await connectsContainer.items
       .query({
@@ -61,6 +72,13 @@ module.exports = async function (context, req) {
       .fetchAll();
     
     context.log(`Loaded ${connects.length} connects for user ${userId}`);
+    
+    // If no connects found with email format, try GUID format (for migration compatibility)
+    if (connects.length === 0 && userId.includes('@')) {
+      context.log(`No connects found with email format, checking if user has GUID-based connects...`);
+      // This is a fallback - we won't query GUID format here as it requires knowing the GUID
+      // Instead, we'll return empty array and let the migration handle it
+    }
     
     // Clean up Cosmos metadata and enrich with current user avatars
     const cleanConnects = await Promise.all(connects.map(async (connect) => {
@@ -123,13 +141,24 @@ module.exports = async function (context, req) {
       headers
     };
   } catch (error) {
-    context.log.error('Error loading connects:', error);
+    context.log.error('Error loading connects:', {
+      userId: userId,
+      errorMessage: error.message,
+      errorCode: error.code,
+      errorStack: error.stack
+    });
+    
+    // Return more detailed error for debugging
+    const errorDetails = {
+      error: 'Internal server error',
+      details: error.message,
+      userId: userId,
+      code: error.code
+    };
+    
     context.res = {
       status: 500,
-      body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
-      }),
+      body: JSON.stringify(errorDetails),
       headers
     };
   }
