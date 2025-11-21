@@ -453,9 +453,16 @@ function WeekGoalsWidget({
                           
                           {/* Frequency label */}
                           <span className="text-xs text-slate-500 font-medium">
-                            per {goal.recurrence === 'weekly' ? 'week' : 'month'}
+                            {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
                           </span>
                         </div>
+                      )}
+                      
+                      {/* Deadline: Due date label - below checkbox */}
+                      {isDeadline && goal.targetDate && (
+                        <span className="text-xs text-slate-500 font-medium text-center">
+                          Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
                       )}
                     </div>
 
@@ -479,34 +486,8 @@ function WeekGoalsWidget({
 
                     {/* Right: Meta Column (auto width) */}
                     <div className="flex flex-col items-end gap-1.5 text-right flex-shrink-0">
-                      {/* Deadline: Clock + Date */}
-                      {isDeadline && goal.targetDate && (
-                        <div className="flex items-center gap-1.5">
-                          <Clock className={`w-4 h-4 ${
-                            goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
-                              ? 'text-red-600' 
-                              : goal.weeksRemaining === 0
-                                ? 'text-netsurit-orange'
-                                : goal.weeksRemaining === 1
-                                  ? 'text-netsurit-coral'
-                                  : 'text-slate-500'
-                          }`} aria-hidden="true" />
-                          <span className={`text-sm font-medium whitespace-nowrap ${
-                            goal.weeksRemaining !== undefined && goal.weeksRemaining < 0
-                              ? 'text-red-700 font-semibold' 
-                              : goal.weeksRemaining === 0
-                                ? 'text-netsurit-orange font-semibold'
-                                : goal.weeksRemaining === 1
-                                  ? 'text-netsurit-coral'
-                                  : 'text-slate-600'
-                          }`}>
-                            {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* Weekly/Recurring: Weeks Left */}
-                      {isWeeklyRecurring && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+                      {/* Weeks Left - for both recurring and deadline goals */}
+                      {(isWeeklyRecurring || isDeadline) && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
                         <span className={`text-sm md:text-base font-semibold whitespace-nowrap ${
                           goal.weeksRemaining === 0 
                             ? 'text-netsurit-orange' 
