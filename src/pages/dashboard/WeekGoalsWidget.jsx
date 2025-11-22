@@ -376,9 +376,9 @@ function WeekGoalsWidget({
                     }`} 
                     data-testid={`goal-${goal.id}`}
                   >
-                    {/* Left: Checkbox Column with counter below */}
-                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                      {/* Checkbox with counter inside (top) */}
+                    {/* Left: Checkbox Column with frequency label */}
+                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                      {/* Checkbox with counter inside */}
                       <button
                         ref={(el) => (buttonRefs.current[goal.id] = el)}
                         onClick={() => handleToggleWithCelebration(goal.id)}
@@ -402,66 +402,10 @@ function WeekGoalsWidget({
                         )}
                       </button>
                       
-                      {/* Progress tracker - below checkbox */}
+                      {/* Frequency label */}
                       {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-1.5">
-                            {/* Undo button */}
-                            {onDecrementGoal && (
-                              <button
-                                onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
-                                disabled={completionCount === 0}
-                                className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
-                                  completionCount > 0
-                                    ? 'hover:bg-slate-100 cursor-pointer'
-                                    : 'cursor-not-allowed pointer-events-none'
-                                }`}
-                                aria-label="Undo last completion"
-                                data-testid={`undo-goal-${goal.id}`}
-                              >
-                                <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
-                              </button>
-                            )}
-                            
-                            {/* Progress dots */}
-                            <div className="flex gap-1">
-                              {Array.from({ length: frequency }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-2 h-2 rounded-full transition-all ${
-                                    i < completionCount
-                                      ? 'bg-netsurit-red' 
-                                      : 'bg-slate-300'
-                                  }`}
-                                  aria-label={`Completion ${i + 1} of ${frequency}`}
-                                />
-                              ))}
-                            </div>
-                            
-                            {/* Add/increment button */}
-                            {!goal.completed && completionCount < frequency && (
-                              <button
-                                onClick={() => handleToggleWithCelebration(goal.id)}
-                                className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
-                                aria-label="Add completion"
-                                data-testid={`add-completion-${goal.id}`}
-                              >
-                                <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
-                              </button>
-                            )}
-                          </div>
-                          
-                          {/* Frequency label */}
-                          <span className="text-xs text-slate-500 font-medium">
-                            {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* Deadline: Due date label - below checkbox */}
-                      {isDeadline && goal.targetDate && (
-                        <span className="text-xs text-slate-500 font-medium text-center">
-                          Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <span className="text-xs text-slate-500 font-medium">
+                          {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
                         </span>
                       )}
                     </div>
@@ -480,6 +424,62 @@ function WeekGoalsWidget({
                         <p className="text-sm leading-tight mt-1">
                           <span className="text-slate-400">From: </span>
                           <span className="text-netsurit-red font-medium">{goal.dreamTitle}</span>
+                        </p>
+                      )}
+                      
+                      {/* Progress tracker - below dream name */}
+                      {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
+                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                          {/* Undo button */}
+                          {onDecrementGoal && (
+                            <button
+                              onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
+                              disabled={completionCount === 0}
+                              className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
+                                completionCount > 0
+                                  ? 'hover:bg-slate-100 cursor-pointer'
+                                  : 'cursor-not-allowed pointer-events-none opacity-30'
+                              }`}
+                              aria-label="Undo last completion"
+                              data-testid={`undo-goal-${goal.id}`}
+                            >
+                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
+                            </button>
+                          )}
+                          
+                          {/* Progress dots */}
+                          <div className="flex gap-1">
+                            {Array.from({ length: frequency }).map((_, i) => (
+                              <div
+                                key={i}
+                                className={`w-2 h-2 rounded-full transition-all ${
+                                  i < completionCount
+                                    ? 'bg-netsurit-red' 
+                                    : 'bg-slate-300'
+                                }`}
+                                aria-label={`Completion ${i + 1} of ${frequency}`}
+                              />
+                            ))}
+                          </div>
+                          
+                          {/* Add/increment button */}
+                          {!goal.completed && completionCount < frequency && (
+                            <button
+                              onClick={() => handleToggleWithCelebration(goal.id)}
+                              className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
+                              aria-label="Add completion"
+                              data-testid={`add-completion-${goal.id}`}
+                            >
+                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Deadline: Due date - below dream name */}
+                      {isDeadline && goal.targetDate && (
+                        <p className="text-xs text-slate-500 font-medium mt-2">
+                          Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                       )}
                     </div>
