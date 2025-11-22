@@ -63,77 +63,162 @@ module.exports = async function (context, req) {
   try {
     context.log(`Querying connects for userId: ${userId}`);
     
-    // Query all connects for this user
-    const { resources: connects } = await connectsContainer.items
-      .query({
-        query: 'SELECT * FROM c WHERE c.userId = @userId ORDER BY c.when DESC',
+    let connects = [];
+    
+    // Query 1: Connects where user is the sender (userId matches)
+    try {
+      // Simplified query - order by createdAt only (more reliable than when field)
+      const querySpec = {
+        query: 'SELECT * FROM c WHERE c.userId = @userId',
         parameters: [{ name: '@userId', value: userId }]
-      })
-      .fetchAll();
-    
-    context.log(`Loaded ${connects.length} connects for user ${userId}`);
-    
-    // If no connects found with email format, try GUID format (for migration compatibility)
-    if (connects.length === 0 && userId.includes('@')) {
-      context.log(`No connects found with email format, checking if user has GUID-based connects...`);
-      // This is a fallback - we won't query GUID format here as it requires knowing the GUID
-      // Instead, we'll return empty array and let the migration handle it
+      };
+      
+      // Query connects - Cosmos DB will automatically use partition key from WHERE clause
+      const queryResult = await connectsContainer.items
+        .query(querySpec)
+        .fetchAll();
+      
+      // Sort in JavaScript after fetching (more reliable than SQL ORDER BY with nullable fields)
+      const senderConnects = (queryResult.resources || []).sort((a, b) => {
+        // Sort by createdAt first (most reliable), then by when, then by id
+        const aCreated = new Date(a.createdAt || 0).getTime();
+        const bCreated = new Date(b.createdAt || 0).getTime();
+        if (aCreated !== bCreated) return bCreated - aCreated;
+        
+        const aWhen = a.when ? new Date(a.when).getTime() : 0;
+        const bWhen = b.when ? new Date(b.when).getTime() : 0;
+        if (aWhen !== bWhen) return bWhen - aWhen;
+        
+        return (b.id || '').localeCompare(a.id || '');
+      });
+      
+      context.log(`Found ${senderConnects.length} connects where user is sender`);
+      
+      connects = connects.concat(senderConnects);
+    } catch (queryError) {
+      context.log.error(`Error querying connects where user is sender:`, {
+        message: queryError.message,
+        code: queryError.code,
+        stack: queryError.stack
+      });
     }
     
-    // Clean up Cosmos metadata and enrich with current user avatars
-    const cleanConnects = await Promise.all(connects.map(async (connect) => {
-      const { _rid, _self, _etag, _attachments, _ts, ...cleanConnect } = connect;
+    // Query 2: Connects where user is the recipient (withWhomId matches)
+    // This requires cross-partition query since connects are stored in sender's partition
+    // Split into separate queries to avoid OR clause issues with Cosmos DB
+    let recipientConnects = [];
+    try {
+      // Query by withWhomId (the actual user ID/email)
+      // Use IS_DEFINED to ensure the field exists and is not null
+      const recipientQuerySpec = {
+        query: 'SELECT * FROM c WHERE IS_DEFINED(c.withWhomId) AND c.withWhomId = @userId',
+        parameters: [{ name: '@userId', value: userId }]
+      };
       
-      // Enrich with current avatar from users container
-      // Use withWhomId if available (user's email/ID), otherwise try withWhom if it's an email
-      if (usersContainer) {
-        try {
-          const userIdToLookup = cleanConnect.withWhomId || 
-                                 (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null);
-          
-          if (userIdToLookup) {
-            try {
-              const { resource: userDoc } = await usersContainer.item(userIdToLookup, userIdToLookup).read();
-              if (userDoc) {
-                // Prioritize currentUser.avatar, then user.avatar, then fallback
-                const currentUser = userDoc.currentUser || {};
-                const bestAvatar = currentUser.avatar || userDoc.avatar || userDoc.picture;
-                const bestName = currentUser.name || userDoc.name || userDoc.displayName;
-                const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
-                
-                // Update connect with current user data from blob storage
-                if (bestAvatar) {
-                  cleanConnect.avatar = bestAvatar;
+      // Cross-partition query (no partitionKey specified) to find connects where user is recipient
+      // Must explicitly enable cross-partition queries for this to work
+      const queryOptions = { 
+        enableCrossPartitionQuery: true,
+        maxItemCount: 100
+      };
+      
+      const recipientQueryResult = await connectsContainer.items
+        .query(recipientQuerySpec, queryOptions)
+        .fetchAll();
+      
+      recipientConnects = recipientQueryResult.resources || [];
+      
+      // Sort in JavaScript after fetching
+      recipientConnects = recipientConnects.sort((a, b) => {
+        const aCreated = new Date(a.createdAt || 0).getTime();
+        const bCreated = new Date(b.createdAt || 0).getTime();
+        if (aCreated !== bCreated) return bCreated - aCreated;
+        
+        const aWhen = a.when ? new Date(a.when).getTime() : 0;
+        const bWhen = b.when ? new Date(b.when).getTime() : 0;
+        if (aWhen !== bWhen) return bWhen - aWhen;
+        
+        return (b.id || '').localeCompare(a.id || '');
+      });
+      
+      // Add recipient connects that aren't already in the list (deduplicate)
+      const existingIds = new Set(connects.map(c => c.id));
+      recipientConnects.forEach(rc => {
+        if (!existingIds.has(rc.id)) {
+          connects.push(rc);
+        }
+      });
+    } catch (queryError) {
+      context.log.error(`Error querying connects where user is recipient:`, {
+        message: queryError.message,
+        code: queryError.code
+      });
+    }
+    
+    context.log(`Total connects loaded: ${connects.length}`);
+    
+    // Clean up Cosmos metadata and enrich with current user avatars
+    // Use Promise.allSettled to handle individual enrichment errors gracefully
+    const cleanConnectsPromises = connects.map(async (connect) => {
+      try {
+        const { _rid, _self, _etag, _attachments, _ts, ...cleanConnect } = connect;
+        
+        // Enrich with current avatar from users container
+        // Use withWhomId if available (user's email/ID), otherwise try withWhom if it's an email
+        if (usersContainer) {
+          try {
+            const userIdToLookup = cleanConnect.withWhomId || 
+                                   (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null);
+            
+            if (userIdToLookup) {
+              try {
+                const { resource: userDoc } = await usersContainer.item(userIdToLookup, userIdToLookup).read();
+                if (userDoc) {
+                  // Prioritize currentUser.avatar, then user.avatar, then fallback
+                  const currentUser = userDoc.currentUser || {};
+                  const bestAvatar = currentUser.avatar || userDoc.avatar || userDoc.picture;
+                  const bestName = currentUser.name || userDoc.name || userDoc.displayName;
+                  const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
+                  
+                  // Update connect with current user data from blob storage
+                  if (bestAvatar) {
+                    cleanConnect.avatar = bestAvatar;
+                  }
+                  if (bestName) {
+                    cleanConnect.name = bestName;
+                  }
+                  if (bestOffice) {
+                    cleanConnect.office = bestOffice;
+                  }
                 }
-                if (bestName) {
-                  cleanConnect.name = bestName;
+              } catch (readError) {
+                // User not found - use stored avatar (silent fail for 404)
+                if (readError.code !== 404) {
+                  context.log.warn(`Error reading user ${userIdToLookup}:`, readError.message);
                 }
-                if (bestOffice) {
-                  cleanConnect.office = bestOffice;
-                }
-                
-                context.log(`Enriched connect ${cleanConnect.id} with avatar from user ${userIdToLookup}`);
-              }
-            } catch (readError) {
-              // User not found - use stored avatar
-              if (readError.code === 404) {
-                context.log(`User ${userIdToLookup} not found in users container, using stored avatar`);
-              } else {
-                context.log.warn(`Error reading user ${userIdToLookup}:`, readError.message);
               }
             }
-          } else {
-            // No user ID available for lookup - use stored avatar
-            context.log(`No user ID available for connect ${cleanConnect.id}, using stored avatar`);
+          } catch (enrichError) {
+            // Continue with stored avatar (silent fail)
           }
-        } catch (enrichError) {
-          context.log.warn(`Could not enrich connect ${cleanConnect.id} with user avatar:`, enrichError.message);
-          // Continue with stored avatar
         }
+        
+        return cleanConnect;
+      } catch (error) {
+        // If cleaning fails for a single connect, return a minimal version
+        context.log.warn(`Error processing connect ${connect.id || 'unknown'}:`, error.message);
+        const { _rid, _self, _etag, _attachments, _ts, ...minimalConnect } = connect;
+        return minimalConnect;
       }
-      
-      return cleanConnect;
-    }));
+    });
+    
+    const cleanConnectsResults = await Promise.allSettled(cleanConnectsPromises);
+    const cleanConnects = cleanConnectsResults
+      .filter(result => result.status === 'fulfilled')
+      .map(result => result.value)
+      .filter(Boolean); // Remove any null/undefined values
+    
+    context.log(`Returning ${cleanConnects.length} connects for user ${userId}`);
     
     context.res = {
       status: 200,

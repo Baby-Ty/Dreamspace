@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Users, 
   Heart, 
@@ -32,7 +32,7 @@ import HelpTooltip from '../../components/HelpTooltip';
  * Handles orchestration, modals, and state management
  */
 export default function DreamConnectLayout() {
-  const { currentUser, addConnect, updateConnect } = useApp();
+  const { currentUser, addConnect, updateConnect, reloadConnects } = useApp();
   const {
     connections,
     filteredCount,
@@ -73,15 +73,6 @@ export default function DreamConnectLayout() {
     columnsCount: 3 // Matches lg:grid-cols-3
   });
   const [schedulingOption, setSchedulingOption] = useState('teams');
-
-  // Debug: Log connects whenever they change
-  useEffect(() => {
-    console.log('🔗 Dream Connect Page - Connects updated:', {
-      count: currentUser?.connects?.length || 0,
-      connects: currentUser?.connects || [],
-      userId: currentUser?.id
-    });
-  }, [currentUser?.connects, currentUser?.id]);
 
   // Filter change handler
   const handleFilterChange = (key, value) => {
@@ -137,13 +128,6 @@ export default function DreamConnectLayout() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-
-      console.log('✅ Dream Connect request created:', {
-        to: selectedUser.name,
-        agenda: agenda,
-        weeks: proposedWeeks.length,
-        scheduling: schedulingOption
-      });
 
       // Add connect via AppContext (will save to connects container + add scoring)
       await addConnect(connectData);
@@ -425,6 +409,15 @@ export default function DreamConnectLayout() {
               Start building your dream network
             </p>
           </div>
+          <button
+            onClick={reloadConnects}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-professional-gray-600 hover:text-professional-gray-900 bg-white border border-professional-gray-200 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
+            aria-label="Refresh connects"
+            data-testid="reload-connects-button"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
         </div>
 
         {/* Recent Connects List or Empty State */}
@@ -454,7 +447,7 @@ export default function DreamConnectLayout() {
                 const bDate = new Date(b.when || b.date || b.createdAt);
                 return bDate - aDate;
               })
-              .slice(0, 6)
+              .slice(0, 12) // Show up to 12 recent connects (2 rows of 6)
               .map((connect) => (
                 <div
                   key={connect.id}
@@ -465,99 +458,99 @@ export default function DreamConnectLayout() {
                   }}
                   data-testid={`connect-card-${connect.id}`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-start space-x-3 flex-1 min-w-0">
-                      <img
-                        src={connect.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(connect.withWhom || connect.name || 'User')}&background=EC4B5C&color=fff&size=48`}
-                        alt={connect.withWhom || connect.name}
-                        className="w-12 h-12 rounded-full ring-2 ring-professional-gray-100 flex-shrink-0 object-cover"
-                        onError={(e) => {
-                          const name = connect.withWhom || connect.name || 'User';
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EC4B5C&color=fff&size=48`;
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-professional-gray-900 truncate">
-                          {connect.withWhom || connect.name}
+                  {(() => {
+                    // Helper to get first name
+                    const getFirstName = (fullName) => {
+                      if (!fullName) return '';
+                      return fullName.split(' ')[0];
+                    };
+                    
+                    // Determine which user is which
+                    const isSender = connect.userId === (currentUser?.email || currentUser?.id);
+                    const currentUserFirstName = getFirstName(currentUser?.name || '');
+                    const otherUserName = connect.withWhom || connect.name || '';
+                    const otherUserFirstName = getFirstName(otherUserName);
+                    
+                    // Get avatars
+                    const currentUserAvatar = currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=EC4B5C&color=fff&size=64`;
+                    const otherUserAvatar = connect.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUserName || 'User')}&background=6366f1&color=fff&size=64`;
+                    
+                    // Format names: always show "User1 x User2" where User1 is the sender
+                    const displayName = isSender
+                      ? `${currentUserFirstName} x ${otherUserFirstName}`
+                      : `${otherUserFirstName} x ${currentUserFirstName}`;
+                    
+                    return (
+                      <>
+                        {/* Two profile pictures side by side */}
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                          <img
+                            src={isSender ? currentUserAvatar : otherUserAvatar}
+                            alt={isSender ? currentUser?.name : otherUserName}
+                            className="w-14 h-14 rounded-full ring-2 ring-professional-gray-200 object-cover"
+                            onError={(e) => {
+                              const name = isSender ? currentUser?.name : otherUserName;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=EC4B5C&color=fff&size=64`;
+                            }}
+                          />
+                          <img
+                            src={isSender ? otherUserAvatar : currentUserAvatar}
+                            alt={isSender ? otherUserName : currentUser?.name}
+                            className="w-14 h-14 rounded-full ring-2 ring-professional-gray-200 object-cover"
+                            onError={(e) => {
+                              const name = isSender ? otherUserName : currentUser?.name;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=6366f1&color=fff&size=64`;
+                            }}
+                          />
+                        </div>
+                        
+                        {/* FirstName x FirstName */}
+                        <h4 className="font-semibold text-professional-gray-900 text-center mb-3">
+                          {displayName}
                         </h4>
-                        <p className="text-xs text-professional-gray-500 mt-0.5">
-                          {connect.when 
-                            ? new Date(connect.when).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })
-                            : connect.date
-                            ? new Date(connect.date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })
-                            : new Date(connect.createdAt).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
+                        
+                        {/* Weeks for meeting */}
+                        {connect.proposedWeeks && connect.proposedWeeks.length > 0 && (
+                          <div className="mb-3">
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {connect.proposedWeeks.slice(0, 2).map((week, idx) => {
+                                const { year, week: weekNum } = parseIsoWeek(week);
+                                const jan4 = new Date(year, 0, 4);
+                                const jan4Day = jan4.getDay() || 7;
+                                const monday = new Date(year, 0, 4 + (1 - jan4Day) + (weekNum - 1) * 7);
+                                const weekLabel = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                return (
+                                  <span
+                                    key={idx}
+                                    className="text-xs px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-md font-medium"
+                                  >
+                                    Week of {weekLabel}
+                                  </span>
+                                );
                               })}
-                        </p>
-                      </div>
-                    </div>
-                    <ConnectStatusBadge status={connect.status || 'pending'} />
-                  </div>
-                  
-                  {connect.agenda && (
-                    <div className="mb-2">
-                      <p className="text-xs font-semibold text-professional-gray-700 mb-1">Agenda:</p>
-                      <p className="text-sm text-professional-gray-600 line-clamp-1">
-                        {connect.agenda}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {connect.proposedWeeks && connect.proposedWeeks.length > 0 && connect.status === 'pending' && (
-                    <div className="mb-2">
-                      <p className="text-xs font-semibold text-professional-gray-700 mb-1">
-                        Available weeks ({connect.proposedWeeks.length}):
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {connect.proposedWeeks.slice(0, 2).map((week, idx) => {
-                          const { year, week: weekNum } = parseIsoWeek(week);
-                          const jan4 = new Date(year, 0, 4);
-                          const jan4Day = jan4.getDay() || 7;
-                          const monday = new Date(year, 0, 4 + (1 - jan4Day) + (weekNum - 1) * 7);
-                          const weekLabel = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                          return (
-                            <span
-                              key={idx}
-                              className="text-xs px-2 py-0.5 bg-professional-gray-100 text-professional-gray-600 rounded"
-                            >
-                              Week of {weekLabel}
-                            </span>
-                          );
-                        })}
-                        {connect.proposedWeeks.length > 2 && (
-                          <span className="text-xs px-2 py-0.5 bg-professional-gray-100 text-professional-gray-600 rounded">
-                            +{connect.proposedWeeks.length - 2} more
-                          </span>
+                              {connect.proposedWeeks.length > 2 && (
+                                <span className="text-xs px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-md font-medium">
+                                  +{connect.proposedWeeks.length - 2} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {connect.category && (
-                    <span className="inline-block mt-2 px-2 py-0.5 bg-professional-gray-100 text-professional-gray-600 text-xs rounded-full">
-                      {connect.category}
-                    </span>
-                  )}
-                  
-                  {connect.notes && !connect.agenda && (
-                    <p className="text-sm text-professional-gray-600 mt-2 line-clamp-2">
-                      {connect.notes}
-                    </p>
-                  )}
-                  
-                  <p className="text-xs text-professional-gray-400 mt-2 italic">
-                    Click to view details
-                  </p>
+                        
+                        {/* Bottom row: Shared interests | Pending */}
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-professional-gray-100">
+                          {connect.category && (
+                            <span className="text-xs text-professional-gray-600 font-medium">
+                              {connect.category}
+                            </span>
+                          )}
+                          <div className="ml-auto">
+                            <ConnectStatusBadge status={connect.status || 'pending'} />
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ))}
           </div>
@@ -568,6 +561,7 @@ export default function DreamConnectLayout() {
       {showDetailModal && selectedConnect && (
         <ConnectDetailModal
           connect={selectedConnect}
+          currentUser={currentUser}
           recipientName={selectedConnect.withWhom || selectedConnect.name}
           onClose={() => {
             setShowDetailModal(false);

@@ -230,26 +230,32 @@ export const AppProvider = ({ children, initialUser }) => {
 
   // Load connects from API on mount and when user changes to ensure they're always up-to-date
   useEffect(() => {
-    const userId = state.currentUser?.id;
+    // Use email as userId for connects (connects are saved with email format)
+    // Prefer email over GUID to match how connects are stored in Cosmos DB
+    const userId = state.currentUser?.email || state.currentUser?.id;
     if (!userId) return;
 
     let isMounted = true;
-    const currentUserSnapshot = state.currentUser;
 
     const loadConnects = async () => {
       try {
+        console.log('🔄 Loading connects for user:', userId);
         const result = await connectService.getConnects(userId);
         if (!isMounted) return;
 
         if (result.success && Array.isArray(result.data)) {
+          console.log(`✅ Loaded ${result.data.length} connects from API`);
           // Update connects in state with fresh data from API
+          // Use functional update to ensure we have the latest state
           dispatch({
             type: actionTypes.SET_USER_DATA,
             payload: {
-              ...currentUserSnapshot,
+              ...state.currentUser,
               connects: result.data
             }
           });
+        } else {
+          console.warn('⚠️ getConnects returned unsuccessful result:', result);
         }
       } catch (error) {
         console.error('❌ Error loading connects:', error);
@@ -1069,7 +1075,8 @@ export const AppProvider = ({ children, initialUser }) => {
 
     addConnect: async (connect) => {
       // Save to connects container first
-      const userId = state.currentUser?.id;
+      // Use email as userId for connects (connects are saved with email format in Cosmos DB)
+      const userId = state.currentUser?.email || state.currentUser?.id;
       if (userId) {
         console.log('💾 Saving connect to connects container:', connect.id);
         const result = await connectService.saveConnect(userId, connect);
@@ -1077,9 +1084,38 @@ export const AppProvider = ({ children, initialUser }) => {
           console.error('Failed to save connect to database:', result.error);
           return;
         }
+        
+        // Add connect to local state immediately using the saved data from API response
+        // This avoids Cosmos DB eventual consistency issues where immediate queries might not find the new connect
+        const savedConnect = result.data || connect;
+        dispatch({ type: actionTypes.ADD_CONNECT, payload: savedConnect });
+        console.log('✅ Connect added to local state:', savedConnect.id);
+        
+        // Reload connects from API after a short delay to account for eventual consistency
+        // This ensures we get the complete list with all fields, but doesn't block the UI
+        setTimeout(async () => {
+          try {
+            console.log('🔄 Reloading connects from API after save (delayed for eventual consistency)');
+            const reloadResult = await connectService.getConnects(userId);
+            if (reloadResult.success && Array.isArray(reloadResult.data)) {
+              dispatch({
+                type: actionTypes.SET_USER_DATA,
+                payload: {
+                  ...state.currentUser,
+                  connects: reloadResult.data
+                }
+              });
+              console.log(`✅ Reloaded ${reloadResult.data.length} connects from API`);
+            }
+          } catch (reloadError) {
+            console.error('❌ Error reloading connects after save:', reloadError);
+            // Non-critical - connect is already in local state
+          }
+        }, 1000); // 1 second delay to allow Cosmos DB to propagate the write
+      } else {
+        // If no userId, still add to local state (for offline/dev scenarios)
+        dispatch({ type: actionTypes.ADD_CONNECT, payload: connect });
       }
-      
-      dispatch({ type: actionTypes.ADD_CONNECT, payload: connect });
       
       // Add scoring entry via scoring service
       const currentYear = new Date().getFullYear();
@@ -1108,7 +1144,8 @@ export const AppProvider = ({ children, initialUser }) => {
      * @returns {Promise<void>}
      */
     updateConnect: async (connectId, status) => {
-      const userId = state.currentUser?.id;
+      // Use email as userId for connects (connects are saved with email format in Cosmos DB)
+      const userId = state.currentUser?.email || state.currentUser?.id;
       if (!userId) return;
 
       console.log('💾 Updating connect:', { connectId, status });
@@ -1120,9 +1157,54 @@ export const AppProvider = ({ children, initialUser }) => {
         return;
       }
 
-      // Update local state with the updated connect
-      const updatedConnect = result.data;
-      dispatch({ type: actionTypes.UPDATE_CONNECT, payload: updatedConnect });
+      // Reload all connects to ensure we have the latest data
+      const reloadResult = await connectService.getConnects(userId);
+      if (reloadResult.success && Array.isArray(reloadResult.data)) {
+        dispatch({
+          type: actionTypes.SET_USER_DATA,
+          payload: {
+            ...state.currentUser,
+            connects: reloadResult.data
+          }
+        });
+      } else {
+        // Fallback: update local state with the updated connect
+        const updatedConnect = result.data;
+        dispatch({ type: actionTypes.UPDATE_CONNECT, payload: updatedConnect });
+      }
+    },
+
+    /**
+     * Manually reload connects from the API
+     * Useful for refreshing the connects list after external changes
+     * @returns {Promise<void>}
+     */
+    reloadConnects: async () => {
+      // Use email as userId for connects (connects are saved with email format in Cosmos DB)
+      const userId = state.currentUser?.email || state.currentUser?.id;
+      if (!userId) {
+        console.warn('⚠️ Cannot reload connects: no user ID');
+        return;
+      }
+
+      console.log('🔄 Manually reloading connects for user:', userId);
+      try {
+        const result = await connectService.getConnects(userId);
+        if (result.success && Array.isArray(result.data)) {
+          dispatch({
+            type: actionTypes.SET_USER_DATA,
+            payload: {
+              ...state.currentUser,
+              connects: result.data
+            }
+          });
+          console.log(`✅ Reloaded ${result.data.length} connects`);
+        } else {
+          console.error('❌ Failed to reload connects:', result.error);
+        }
+      } catch (error) {
+        console.error('❌ Error reloading connects:', error);
+      }
     },
 
     /**

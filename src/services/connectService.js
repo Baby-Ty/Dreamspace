@@ -9,7 +9,6 @@ class ConnectService {
   constructor() {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
     this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
-    console.log('🔗 Connect Service initialized');
   }
 
   /**
@@ -20,8 +19,6 @@ class ConnectService {
    */
   async saveConnect(userId, connectData) {
     try {
-      console.log('💾 Saving connect:', { userId, connectId: connectData.id });
-
       const response = await fetch(`${this.apiBase}/saveConnect`, {
         method: 'POST',
         headers: {
@@ -43,7 +40,6 @@ class ConnectService {
         
         try {
           const result = JSON.parse(responseText);
-          console.log('✅ Connect saved:', result.id);
           return ok(result.connect);
         } catch (parseError) {
           console.error('❌ Invalid JSON response:', responseText);
@@ -75,16 +71,12 @@ class ConnectService {
       const encodedUserId = encodeURIComponent(userId);
       const url = `${this.apiBase}/getConnects/${encodedUserId}`;
 
-      console.log('📂 Loading connects for user:', userId);
-
       const response = await fetch(url);
 
       if (response.ok) {
         const connects = await response.json();
-        console.log(`✅ Loaded ${connects.length} connects`);
         return ok(connects);
       } else if (response.status === 404) {
-        console.log('ℹ️ No connects found for user');
         return ok([]);
       } else {
         const error = await response.json();
@@ -105,8 +97,6 @@ class ConnectService {
    */
   async deleteConnect(userId, connectId) {
     try {
-      console.log('🗑️ Deleting connect:', { userId, connectId });
-
       const response = await fetch(
         `${this.apiBase}/deleteConnect/${encodeURIComponent(connectId)}?userId=${encodeURIComponent(userId)}`,
         { method: 'DELETE' }
@@ -114,10 +104,8 @@ class ConnectService {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Connect deleted:', connectId);
         return ok(result);
       } else if (response.status === 404) {
-        console.log('ℹ️ Connect not found');
         return fail(ErrorCodes.NOT_FOUND, 'Connect not found');
       } else {
         const error = await response.json();
@@ -140,6 +128,7 @@ class ConnectService {
   async updateConnectStatus(userId, connectId, status) {
     try {
       // First, get the existing connect to update it
+      // This will find connects where user is sender OR recipient
       const connectsResult = await this.getConnects(userId);
       if (!connectsResult.success) {
         return fail(ErrorCodes.LOAD_ERROR, 'Failed to load connect for update');
@@ -157,8 +146,12 @@ class ConnectService {
         updatedAt: new Date().toISOString()
       };
 
-      // Save updated connect (Cosmos DB upsert)
-      return await this.saveConnect(userId, updatedConnect);
+      // IMPORTANT: Use the original sender's userId (from connectData.userId) as partition key
+      // This ensures the connect stays in the correct partition regardless of who updates it
+      const senderUserId = existingConnect.userId;
+
+      // Save updated connect using the original sender's userId as partition key
+      return await this.saveConnect(senderUserId, updatedConnect);
     } catch (error) {
       console.error('❌ Error updating connect status:', error);
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to update connect status');
@@ -192,8 +185,12 @@ class ConnectService {
         updatedAt: new Date().toISOString()
       };
 
-      // Save updated connect (Cosmos DB upsert)
-      return await this.saveConnect(userId, updatedConnect);
+      // IMPORTANT: Use the original sender's userId (from connectData.userId) as partition key
+      // This ensures the connect stays in the correct partition regardless of who updates it
+      const senderUserId = existingConnect.userId;
+
+      // Save updated connect using the original sender's userId as partition key
+      return await this.saveConnect(senderUserId, updatedConnect);
     } catch (error) {
       console.error('❌ Error updating connect details:', error);
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to update connect details');

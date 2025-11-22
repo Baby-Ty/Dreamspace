@@ -30,19 +30,23 @@ module.exports = async function (context, req) {
 
   context.log('Saving connect:', { userId, connectId: connectData?.id });
 
-  if (!userId) {
+  if (!connectData) {
     context.res = {
       status: 400,
-      body: JSON.stringify({ error: 'userId is required' }),
+      body: JSON.stringify({ error: 'connectData is required' }),
       headers
     };
     return;
   }
 
-  if (!connectData) {
+  // Use the connect's userId (sender's ID) as partition key, not the request userId
+  // This ensures connects stay in the sender's partition even when recipient updates them
+  const partitionUserId = connectData.userId || userId;
+  
+  if (!partitionUserId) {
     context.res = {
       status: 400,
-      body: JSON.stringify({ error: 'connectData is required' }),
+      body: JSON.stringify({ error: 'userId is required in connectData' }),
       headers
     };
     return;
@@ -65,28 +69,46 @@ module.exports = async function (context, req) {
     // Create the connect document
     const connectId = connectData.id 
       ? String(connectData.id) 
-      : `connect_${userId}_${Date.now()}`;
+      : `connect_${partitionUserId}_${Date.now()}`;
     
+    // Save all fields from connectData to preserve complete connect information
+    // Use partitionUserId (sender's ID) to keep connect in correct partition
     const document = {
       id: connectId,
-      userId: userId,
-      type: 'connect',
-      dreamId: connectData.dreamId || undefined,
+      userId: partitionUserId, // Always use sender's userId as partition key
+      type: connectData.type || 'connect',
+      // Core fields
       withWhom: connectData.withWhom,
+      withWhomId: connectData.withWhomId,
       when: connectData.when,
       notes: connectData.notes || '',
+      status: connectData.status || 'pending',
+      // Scheduling fields
+      agenda: connectData.agenda,
+      proposedWeeks: connectData.proposedWeeks || [],
+      schedulingMethod: connectData.schedulingMethod,
+      // Optional fields
+      dreamId: connectData.dreamId || undefined,
+      // Display metadata (preserved for UI consistency)
+      name: connectData.name,
+      category: connectData.category,
+      avatar: connectData.avatar,
+      office: connectData.office,
+      // Timestamps
       createdAt: connectData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    // Upsert the connect
+    // Upsert the connect using sender's userId as partition key
     context.log('💾 WRITE:', {
       container: 'connects',
-      partitionKey: userId,
+      partitionKey: partitionUserId,
       id: document.id,
-      operation: 'upsert'
+      operation: 'upsert',
+      note: 'Using sender userId as partition key for both sender and recipient updates'
     });
     
+    // Upsert using the partition key - Cosmos DB SDK will use document.userId automatically
     const { resource } = await connectsContainer.items.upsert(document);
     
     context.log('Successfully saved connect:', resource.id);

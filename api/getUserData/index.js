@@ -400,9 +400,61 @@ module.exports = async function (context, req) {
       }
       
       // Fetch from all containers in parallel
+      // First, query connects separately (both sender and recipient)
+      let connects = [];
+      try {
+        // Query 1: Sender connects (in user's partition)
+        const senderQuery = await connectsContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.userId = @userId',
+          parameters: [{ name: '@userId', value: userId }]
+        }).fetchAll();
+        const senderConnects = senderQuery.resources || [];
+        context.log(`Found ${senderConnects.length} connects where user is sender`);
+        
+        // Query 2: Recipient connects (cross-partition query)
+        const recipientQuery = await connectsContainer.items.query({
+          query: 'SELECT * FROM c WHERE IS_DEFINED(c.withWhomId) AND c.withWhomId = @userId',
+          parameters: [{ name: '@userId', value: userId }]
+        }, { enableCrossPartitionQuery: true }).fetchAll();
+        const recipientConnects = recipientQuery.resources || [];
+        context.log(`Found ${recipientConnects.length} connects where user is recipient`);
+        
+        // Combine and deduplicate
+        const seenIds = new Set();
+        senderConnects.forEach(c => {
+          if (!seenIds.has(c.id)) {
+            connects.push(c);
+            seenIds.add(c.id);
+          }
+        });
+        recipientConnects.forEach(c => {
+          if (!seenIds.has(c.id)) {
+            connects.push(c);
+            seenIds.add(c.id);
+          }
+        });
+        
+        // Sort in JavaScript (more reliable than SQL ORDER BY with nullable fields)
+        connects.sort((a, b) => {
+          const aCreated = new Date(a.createdAt || 0).getTime();
+          const bCreated = new Date(b.createdAt || 0).getTime();
+          if (aCreated !== bCreated) return bCreated - aCreated;
+          
+          const aWhen = a.when ? new Date(a.when).getTime() : 0;
+          const bWhen = b.when ? new Date(b.when).getTime() : 0;
+          if (aWhen !== bWhen) return bWhen - aWhen;
+          
+          return (b.id || '').localeCompare(a.id || '');
+        });
+        
+        context.log(`Loaded ${connects.length} connects (${senderConnects.length} sent, ${recipientConnects.length} received)`);
+      } catch (connectsError) {
+        context.log.warn(`⚠️ Failed to load connects: ${connectsError.message}`);
+        connects = [];
+      }
+      
       const [
         oldDreamsResult,
-        connectsResult,
         scoringResult
       ] = await Promise.allSettled([
         // 1. Check for old individual documents (for migration)
@@ -411,13 +463,7 @@ module.exports = async function (context, req) {
           parameters: [{ name: '@userId', value: userId }]
         }).fetchAll() : Promise.resolve({ resources: [] }),
         
-        // 2. Connects from connects container
-        connectsContainer.items.query({
-          query: 'SELECT * FROM c WHERE c.userId = @userId ORDER BY c.when DESC',
-          parameters: [{ name: '@userId', value: userId }]
-        }).fetchAll(),
-        
-        // 3. Current year scoring from scoring container
+        // 2. Current year scoring from scoring container
         scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read()
       ]);
       
@@ -473,18 +519,9 @@ module.exports = async function (context, req) {
         }
       }
       
-      // Extract connects
-      let connects = [];
-      if (connectsResult.status === 'fulfilled') {
-        connects = connectsResult.value.resources.map(cleanCosmosMetadata);
-        context.log(`✅ Loaded ${connects.length} connects from connects container`);
-        if (connects.length > 0) {
-          context.log(`📋 Connect IDs: ${connects.map(c => c.id).join(', ')}`);
-        }
-      } else {
-        context.log.warn(`⚠️ Failed to load connects: ${connectsResult.reason?.message || 'Unknown error'}`);
-        connects = [];
-      }
+      // Connects are already loaded above (both sender and recipient)
+      // Clean Cosmos metadata
+      connects = connects.map(cleanCosmosMetadata);
       
       // Extract and flatten week goals from nested structure
       let weeklyGoals = [...templates]; // Start with templates

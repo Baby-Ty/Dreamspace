@@ -13,7 +13,7 @@ import { parseIsoWeek } from '../../utils/dateUtils';
  * - onUpdateStatus: Callback when status is updated (connectId, newStatus) => void
  * - recipientName: Name of the person being connected with (for Teams message)
  */
-export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, recipientName }) {
+export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, recipientName, currentUser }) {
   const [copied, setCopied] = useState(false);
 
   if (!connect) return null;
@@ -156,7 +156,35 @@ export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, r
               />
               <div>
                 <p className="font-semibold text-professional-gray-900">
-                  {connect.withWhom || connect.name || 'Unknown'}
+                  {(() => {
+                    // Format as "FirstName x FirstName" for both users
+                    const getFirstName = (fullName) => {
+                      if (!fullName) return '';
+                      return fullName.split(' ')[0];
+                    };
+                    
+                    if (!currentUser) {
+                      return connect.withWhom || connect.name || 'Unknown';
+                    }
+                    
+                    const currentUserFirstName = getFirstName(currentUser?.name || '');
+                    const otherUserName = connect.withWhom || connect.name || '';
+                    const otherUserFirstName = getFirstName(otherUserName);
+                    
+                    // If user is the sender (userId matches), show "CurrentUser x OtherUser"
+                    // If user is the recipient (withWhomId matches), show "OtherUser x CurrentUser"
+                    const isSender = connect.userId === (currentUser?.email || currentUser?.id);
+                    
+                    if (isSender) {
+                      return currentUserFirstName && otherUserFirstName 
+                        ? `${currentUserFirstName} x ${otherUserFirstName}`
+                        : otherUserName || 'Unknown';
+                    } else {
+                      return otherUserFirstName && currentUserFirstName
+                        ? `${otherUserFirstName} x ${currentUserFirstName}`
+                        : otherUserName || 'Unknown';
+                    }
+                  })()}
                 </p>
                 {connect.office && (
                   <p className="text-sm text-professional-gray-600 flex items-center mt-1">

@@ -13,9 +13,9 @@ export default function ConnectStatusBadge({ status = 'pending', className = '' 
     pending: {
       label: 'Pending',
       icon: Clock,
-      bgClass: 'bg-gradient-to-r from-amber-400 to-amber-500',
-      textClass: 'text-white',
-      iconClass: 'text-white'
+      bgClass: 'bg-professional-gray-200',
+      textClass: 'text-professional-gray-700',
+      iconClass: 'text-professional-gray-700'
     },
     completed: {
       label: 'Completed',
