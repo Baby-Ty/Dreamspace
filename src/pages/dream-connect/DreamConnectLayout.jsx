@@ -590,52 +590,82 @@ export default function DreamConnectLayout() {
           aria-modal="true"
         >
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-professional-gray-200 overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="relative bg-gradient-to-r from-netsurit-red to-netsurit-coral p-4 text-white flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-white/20"></div>
-              <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 id="connect-modal-title" className="text-lg font-bold">
-                      Connect with {selectedUser.name}
-                    </h3>
-                    <p className="text-white/90 text-sm">Send a connection request</p>
-                  </div>
+            {/* Modal Header - Clean white header like Connect Detail Modal */}
+            <div className="p-4 border-b border-professional-gray-200 bg-white flex-shrink-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 id="connect-modal-title" className="text-xl font-bold text-professional-gray-900">
+                    Connect with {selectedUser.name}
+                  </h3>
                 </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all duration-200"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  <button
+                    onClick={handleCloseModal}
+                    className="p-1.5 text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-professional-gray-500"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-5">
-                {/* User Info */}
-                <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-professional-gray-50 to-professional-gray-100/50 rounded-lg border border-professional-gray-200">
-                  <img
-                    src={selectedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name || 'User')}&background=EC4B5C&color=fff&size=48`}
-                    alt={selectedUser.name}
-                    className="w-12 h-12 rounded-full ring-2 ring-white shadow-lg object-cover"
-                    onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name || 'User')}&background=EC4B5C&color=fff&size=48`;
-                    }}
-                  />
-                  <div className="flex-1">
-                    <p className="font-bold text-base text-professional-gray-900">
-                      {selectedUser.name}
-                    </p>
-                    <p className="text-sm text-professional-gray-600 flex items-center mt-1">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {selectedUser.office}
-                    </p>
+                {/* User Info - Side by side layout matching Connect Detail Modal */}
+                <div>
+                  <label className="block text-sm font-bold text-professional-gray-700 mb-2">
+                    Connect With
+                  </label>
+                  <div className="p-4 bg-professional-gray-50 rounded-lg border border-professional-gray-200 space-y-3">
+                    {/* User 1 pic + name | User 2 pic + name */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 flex-1">
+                        <img
+                          src={currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=EC4B5C&color=fff&size=48`}
+                          alt={currentUser?.name}
+                          className="w-8 h-8 rounded-full ring-2 ring-white object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=EC4B5C&color=fff&size=48`;
+                          }}
+                        />
+                        <p className="text-sm font-medium text-professional-gray-900 truncate">
+                          {currentUser?.name}
+                        </p>
+                      </div>
+                      <div className="w-px h-8 bg-professional-gray-300"></div>
+                      <div className="flex items-center gap-2 flex-1">
+                        <img
+                          src={selectedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name || 'User')}&background=6366f1&color=fff&size=48`}
+                          alt={selectedUser.name}
+                          className="w-8 h-8 rounded-full ring-2 ring-white object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name || 'User')}&background=6366f1&color=fff&size=48`;
+                          }}
+                        />
+                        <p className="text-sm font-medium text-professional-gray-900 truncate">
+                          {selectedUser.name}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* User 1 location | User 2 location */}
+                    <div className="flex items-center justify-between gap-4 pt-2 border-t border-professional-gray-200">
+                      <div className="flex items-center gap-1 flex-1">
+                        <MapPin className="w-3 h-3 text-professional-gray-500 flex-shrink-0" />
+                        <p className="text-xs text-professional-gray-600 truncate">
+                          {currentUser?.office || 'Unknown'}
+                        </p>
+                      </div>
+                      <div className="w-px h-4 bg-professional-gray-300"></div>
+                      <div className="flex items-center gap-1 flex-1">
+                        <MapPin className="w-3 h-3 text-professional-gray-500 flex-shrink-0" />
+                        <p className="text-xs text-professional-gray-600 truncate">
+                          {selectedUser.office || 'Unknown'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -749,21 +779,24 @@ export default function DreamConnectLayout() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-professional-gray-200 flex gap-3 flex-shrink-0">
-              <button
-                onClick={handleCloseModal}
-                className="flex-1 px-4 py-2 bg-professional-gray-100 text-professional-gray-700 rounded-lg hover:bg-professional-gray-200 focus:outline-none focus:ring-2 focus:ring-professional-gray-300 transition-all duration-200 font-medium"
-              >
-                Cancel
-              </button>
+            <div className="p-4 border-t border-professional-gray-200 flex gap-2 flex-shrink-0">
+              {/* Send Request Button - Left, Red, Large */}
               <button
                 onClick={handleSendRequest}
                 disabled={!requestMessage.trim() || !agenda.trim() || proposedWeeks.length === 0}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 data-testid="send-connect-request-button"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Send Request
+              </button>
+              
+              {/* Cancel Button - Right, Grey, Small */}
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                Cancel
               </button>
             </div>
           </div>
