@@ -414,6 +414,61 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
         await deleteWeeklyGoal(weeklyGoal.id);
       }
       
+      // ✅ CRITICAL: Remove goal from currentWeek container immediately
+      try {
+        console.log('🗑️ Removing goal from currentWeek:', { goalId });
+        
+        const currentWeekIso = getCurrentIsoWeek();
+        const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+        
+        if (currentWeekResponse.success && currentWeekResponse.data?.goals) {
+          const existingGoals = currentWeekResponse.data.goals;
+          
+          // Filter out goals matching the goalId using multiple matching strategies
+          // Match by: exact id, templateId, or pattern match (goalId_weekId)
+          const updatedGoals = existingGoals.filter(g => {
+            const isMatch = g.id === goalId || 
+                          g.templateId === goalId || 
+                          g.id === `${goalId}_${currentWeekIso}` ||
+                          g.goalId === goalId;
+            
+            if (isMatch) {
+              console.log('🗑️ Removing goal from currentWeek:', {
+                id: g.id,
+                templateId: g.templateId,
+                goalId: g.goalId,
+                title: g.title
+              });
+            }
+            
+            return !isMatch;
+          });
+          
+          // Only save if we actually removed goals
+          if (updatedGoals.length < existingGoals.length) {
+            const removedCount = existingGoals.length - updatedGoals.length;
+            console.log(`✅ Removed ${removedCount} goal(s) from currentWeek`);
+            
+            const result = await currentWeekService.saveCurrentWeek(
+              currentUser.id,
+              currentWeekIso,
+              updatedGoals
+            );
+            
+            if (result.success) {
+              console.log('✅ Goal removed from currentWeek successfully');
+            } else {
+              console.error('❌ Failed to remove goal from currentWeek:', result.error);
+            }
+          } else {
+            console.log('⚠️ Goal not found in currentWeek (may have already been removed)');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error removing goal from currentWeek:', error);
+        // Don't fail the whole operation if this fails
+      }
+      
       // Delete the goal from the dream
       await deleteGoal(localDream.id, goalId);
       
@@ -432,7 +487,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       console.error('❌ Error deleting goal:', error);
       alert(`Failed to delete goal: ${error.message}`);
     }
-  }, [localDream.id, deleteGoal, weeklyGoals, deleteWeeklyGoal, onUpdate]);
+  }, [localDream.id, deleteGoal, weeklyGoals, deleteWeeklyGoal, onUpdate, currentUser.id]);
 
   const startEditingGoal = useCallback((goal) => {
     setEditingGoal(goal.id);
