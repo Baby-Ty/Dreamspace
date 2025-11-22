@@ -25,7 +25,6 @@ import { logger } from '../../utils/logger';
 import { getCountryCode } from '../../utils/regionUtils';
 
 // Lazy-load heavy modals with named chunks
-const CoachDetailModal = lazy(() => import(/* webpackChunkName: "coach-detail-modal" */ '../../components/coach/CoachDetailModal'));
 const ReportBuilderModal = lazy(() => import(/* webpackChunkName: "report-builder-modal" */ '../../components/ReportBuilderModal'));
 const UnassignUserModal = lazy(() => import(/* webpackChunkName: "unassign-user-modal" */ '../../components/UnassignUserModal'));
 const ReplaceCoachModal = lazy(() => import(/* webpackChunkName: "replace-coach-modal" */ '../../components/ReplaceCoachModal'));
@@ -57,8 +56,6 @@ export default function PeopleDashboardLayout() {
   } = usePeopleData();
 
   // Modal state
-  const [selectedCoach, setSelectedCoach] = useState(null);
-  const [showCoachModal, setShowCoachModal] = useState(false);
   const [showReportBuilder, setShowReportBuilder] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [showUnassignModal, setShowUnassignModal] = useState(false);
@@ -70,11 +67,10 @@ export default function PeopleDashboardLayout() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Coach selection handler
+  // Coach selection handler (deprecated - now handled by CoachList toggle)
   const handleViewCoach = (coach) => {
-    console.log('🔍 Viewing coach:', coach.name);
-    setSelectedCoach(coach);
-    setShowCoachModal(true);
+    // This is no longer used - CoachList now handles expansion internally
+    console.log('🔍 Coach expansion handled by CoachList component');
   };
 
   // Unassign user handler
@@ -267,9 +263,9 @@ export default function PeopleDashboardLayout() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
       {/* Header with Inline KPIs */}
-      <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+      <div className="pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Title and Description */}
           <div>
@@ -354,7 +350,7 @@ export default function PeopleDashboardLayout() {
       </div>
 
       {/* Two-Panel Layout */}
-      <div className="px-4 sm:px-6 pb-6">
+      <div className="pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel: Coaches/Teams */}
           <div className="space-y-4">
@@ -385,6 +381,7 @@ export default function PeopleDashboardLayout() {
               onSelect={handleViewCoach}
               onUnassignUser={handleUnassignUser}
               onReplaceCoach={handleReplaceCoach}
+              onRefresh={refreshData}
             />
           </div>
 
@@ -446,40 +443,37 @@ export default function PeopleDashboardLayout() {
                   role="listitem"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className="w-12 h-12 rounded-full object-cover flex-shrink-0 ring-2 ring-professional-gray-100"
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0 ring-2 ring-professional-gray-200"
                         onError={(e) => {
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=EC4B5C&color=fff&size=100`;
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-professional-gray-900 truncate">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-base font-semibold text-professional-gray-900 truncate">
                             {user.name}
                           </h4>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="p-1 text-professional-gray-400 hover:text-netsurit-red transition-colors duration-200"
+                            className="p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded transition-colors duration-200"
                             title="Edit user"
                             aria-label={`Edit ${user.name}`}
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap text-xs text-professional-gray-500 mt-0.5">
-                          <span className="flex items-center gap-1">
-                            <FlagIcon countryCode={getCountryCode(user.office)} className="w-3 h-3" />
+                        <div className="flex items-center gap-3 flex-wrap text-sm text-professional-gray-600 mt-1">
+                          <span className="flex items-center gap-1.5">
+                            <FlagIcon countryCode={getCountryCode(user.office)} className="w-4 h-4" />
                             {user.office}
                           </span>
-                          <span>•</span>
-                          <span>{user.score || 0}pts</span>
-                          <span>•</span>
-                          <span>{user.dreamsCount || 0} dreams</span>
-                          <span>•</span>
-                          <span>{user.connectsCount || 0} connects</span>
+                          <span className="text-professional-gray-700">{user.score || 0}pts</span>
+                          <span className="text-professional-gray-700">{user.dreamsCount || 0} dreams</span>
+                          <span className="text-professional-gray-700">{user.connectsCount || 0} connects</span>
                         </div>
                       </div>
                     </div>
@@ -546,17 +540,7 @@ export default function PeopleDashboardLayout() {
 
       {/* Modals */}
       {/* Lazy-loaded Modals with Suspense */}
-      {showCoachModal && selectedCoach && (
-        <Suspense fallback={<LoadingSpinner />}>
-          <CoachDetailModal
-            coach={selectedCoach}
-            onClose={() => {
-              setShowCoachModal(false);
-              setSelectedCoach(null);
-            }}
-          />
-        </Suspense>
-      )}
+      {/* Coach Detail Modal removed - now using inline expansion in CoachList */}
 
       {showReportBuilder && (
         <Suspense fallback={<LoadingSpinner />}>

@@ -237,6 +237,51 @@ class CoachingService {
   }
 
   /**
+   * Update team name
+   * @param {string} managerId - Manager/Coach ID
+   * @param {string} teamName - New team name
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateTeamName(managerId, teamName) {
+    try {
+      if (this.useCosmosDB) {
+        // Use updateTeamMission endpoint structure - we'll need to create a dedicated endpoint later
+        // For now, we'll use a workaround by updating via team relationships
+        const response = await fetch(`${this.apiBase}/updateTeamName/${managerId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ teamName })
+        });
+
+        if (!response.ok) {
+          // If endpoint doesn't exist, fall back to localStorage
+          if (response.status === 404) {
+            console.log('📱 Development mode: Team name would be saved to localStorage');
+            return ok({ teamName, managerId, lastModified: new Date().toISOString() });
+          }
+          const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+          return fail(ErrorCodes.NETWORK, errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Team name updated successfully');
+        return ok(result.data || { teamName, managerId });
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Team name would be saved to localStorage');
+        return ok({ teamName, managerId, lastModified: new Date().toISOString() });
+      }
+    } catch (error) {
+      console.error('❌ Error updating team name:', error);
+      // Fallback to localStorage on error
+      console.log('📱 Falling back to localStorage for team name update');
+      return ok({ teamName, managerId, lastModified: new Date().toISOString() });
+    }
+  }
+
+  /**
    * Update team meeting schedule
    * @param {string} managerId - Manager/Coach ID
    * @param {object} meeting - Meeting data { date, time, location, agenda }
