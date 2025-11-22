@@ -19,7 +19,8 @@ const Login = () => {
             <img 
               src="/logo.png" 
               alt="DreamSpace Logo" 
-              className="w-12 h-12 rounded-xl object-contain shadow-lg"
+              className="w-12 h-12 object-contain"
+              style={{ backgroundColor: 'transparent' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -36,7 +37,7 @@ const Login = () => {
             Welcome to the Dreams Program
           </h2>
           <p className="text-professional-gray-600 mb-8">
-            Track your dreams, connect with colleagues, and achieve your goals together.
+            A space to dream bigger, learn from others, and track the steps that get you there.
           </p>
         </div>
 
@@ -49,7 +50,7 @@ const Login = () => {
               </div>
               <div>
                 <h3 className="font-medium text-professional-gray-900">Dream Book</h3>
-                <p className="text-sm text-professional-gray-600">Document and track your personal dreams</p>
+                <p className="text-sm text-professional-gray-600">Capture your dreams and keep them moving.</p>
               </div>
             </div>
             
@@ -59,7 +60,7 @@ const Login = () => {
               </div>
               <div>
                 <h3 className="font-medium text-professional-gray-900">Dream Connect</h3>
-                <p className="text-sm text-professional-gray-600">Connect with colleagues sharing similar dreams</p>
+                <p className="text-sm text-professional-gray-600">Meet colleagues with similar dreams. Share, learn, inspire.</p>
               </div>
             </div>
             
@@ -69,7 +70,7 @@ const Login = () => {
               </div>
               <div>
                 <h3 className="font-medium text-professional-gray-900">Progress Tracking</h3>
-                <p className="text-sm text-professional-gray-600">Monitor your journey and earn points</p>
+                <p className="text-sm text-professional-gray-600">Monitor your journey and celebrate your progress.</p>
               </div>
             </div>
           </div>
@@ -95,16 +96,16 @@ const Login = () => {
           <button
             onClick={() => login(false)}
             disabled={isLoading}
-            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-light-coral focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-lg disabled:opacity-50"
+            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-light-coral focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold text-lg disabled:opacity-50"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
             ) : (
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="currentColor">
-                <path d="M1 1h10v10H1z"/>
-                <path d="M12 1h10v10H12z"/>
-                <path d="M1 12h10v10H1z"/>
-                <path d="M12 12h10v10H12z"/>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 21 21" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Microsoft logo">
+                <path d="M0 0h9.5v9.5H0V0z"/>
+                <path d="M11.5 0H21v9.5h-9.5V0z"/>
+                <path d="M0 11.5h9.5V21H0V11.5z"/>
+                <path d="M11.5 11.5H21V21h-9.5V11.5z"/>
               </svg>
             )}
             Sign in with Microsoft
