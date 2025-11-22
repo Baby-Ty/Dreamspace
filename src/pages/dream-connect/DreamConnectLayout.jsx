@@ -434,7 +434,7 @@ export default function DreamConnectLayout() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {currentUser.connects
               .sort((a, b) => {
                 // Sort by status priority (pending first), then by date
@@ -447,7 +447,7 @@ export default function DreamConnectLayout() {
                 const bDate = new Date(b.when || b.date || b.createdAt);
                 return bDate - aDate;
               })
-              .slice(0, 12) // Show up to 12 recent connects (2 rows of 6)
+              .slice(0, 12) // Show up to 12 recent connects (3 rows of 4)
               .map((connect) => (
                 <div
                   key={connect.id}
