@@ -377,20 +377,20 @@ function WeekGoalsWidget({
                     data-testid={`goal-${goal.id}`}
                   >
                     {/* Title Tab at Top Center */}
-                    <div className="flex justify-center pb-2">
-                      <h3 className={`inline-block px-4 py-2 rounded-b-lg text-center text-base md:text-lg font-semibold leading-tight whitespace-nowrap ${
+                    <div className="flex justify-center pb-1.5">
+                      <h3 className={`inline-block px-4 py-1.5 rounded-b-lg text-center text-base md:text-lg font-semibold leading-tight whitespace-nowrap ${
                         goal.completed 
                           ? 'line-through text-professional-gray-500 bg-professional-gray-100' 
-                          : 'text-professional-gray-700 bg-professional-gray-200'
+                          : 'text-professional-gray-700 bg-professional-gray-100'
                       }`}>
                         {goal.title}
                       </h3>
                     </div>
 
                     {/* Card Content */}
-                    <div className="px-5 pb-5 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
+                    <div className="px-5 pt-1 pb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
                       {/* Left: Checkbox Column with frequency label */}
-                      <div className="flex flex-col items-center gap-1.5 justify-self-start">
+                      <div className="flex flex-col items-center gap-1 justify-self-start self-center">
                         {/* Checkbox with counter inside */}
                         <button
                           ref={(el) => (buttonRefs.current[goal.id] = el)}
@@ -424,7 +424,7 @@ function WeekGoalsWidget({
                       </div>
 
                       {/* Middle: Content Column - centered */}
-                      <div className="grid grid-rows-[1fr_auto_1fr] items-center text-center h-full min-h-[80px]">
+                      <div className="grid grid-rows-[1fr_auto_1fr] items-center text-center h-full min-h-[60px]">
                       
                       {/* Top spacer */}
                       <div></div>
@@ -498,7 +498,7 @@ function WeekGoalsWidget({
                     </div>
 
                     {/* Right: Meta Column (auto width) */}
-                    <div className="flex flex-col items-end gap-1.5 text-right justify-self-end">
+                    <div className="flex flex-col items-end gap-1 text-right justify-self-end self-center">
                       {/* Weeks Left - for both recurring and deadline goals */}
                       {(isWeeklyRecurring || isDeadline) && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
                         <span className={`text-sm md:text-base font-semibold whitespace-nowrap ${
