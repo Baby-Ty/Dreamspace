@@ -51,7 +51,7 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
       {/* Points Badge - Top Right */}
       {item.score !== undefined && (
         <div 
-          className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-netsurit-coral to-netsurit-orange text-white rounded-full shadow-md"
+          className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-professional-gray-600 text-white rounded-full shadow-md"
           data-testid={`connection-${item.id}-points-badge`}
         >
           <Award className="w-2.5 h-2.5" aria-hidden="true" />
@@ -95,10 +95,10 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
             <span className="text-xs font-medium">{item.dreamsCount || 0} dreams</span>
           </div>
           <div 
-            className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-netsurit-red/20 to-netsurit-coral/20 text-professional-gray-900 rounded-full"
+            className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"
             data-testid={`connection-${item.id}-connects-pill`}
           >
-            <Heart className="w-3 h-3 text-netsurit-red" aria-hidden="true" />
+            <Heart className="w-3 h-3 text-professional-gray-600" aria-hidden="true" />
             <span className="text-xs font-medium">{item.connectsCount || 0} connects</span>
           </div>
         </div>
@@ -151,7 +151,7 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
               onInvite(item);
             }
           }}
-          className="w-full mt-3 px-3 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-300 shadow-sm hover:shadow-md font-medium text-xs flex items-center justify-center gap-1.5"
+          className="w-full mt-3 px-3 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-red transition-all duration-300 shadow-sm hover:shadow-md font-medium text-xs flex items-center justify-center gap-1.5"
           aria-label={`Send connect request to ${item.name}`}
           data-testid={`connect-button-${item.id}`}
         >

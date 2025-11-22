@@ -182,7 +182,7 @@ export default function DreamConnectLayout() {
           <p className="text-professional-gray-600 mb-4">{error}</p>
           <button
             onClick={refreshData}
-            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+            className="bg-netsurit-red text-white px-4 py-2 rounded-xl hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             <span>Retry</span>
@@ -322,7 +322,7 @@ export default function DreamConnectLayout() {
                   setLocationFilter('All');
                 }
               }}
-              className="mt-6 px-6 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+              className="mt-6 px-6 py-3 bg-netsurit-red text-white rounded-xl hover:bg-netsurit-red transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
             >
               {categoryFilter === 'All' ? 'Refresh' : 'Show All Colleagues'}
             </button>
@@ -355,7 +355,7 @@ export default function DreamConnectLayout() {
                   className={`p-2 rounded-lg border transition-all duration-200 ${
                     !hasPrevPage
                       ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
+                      : 'bg-professional-gray-600 text-white border-transparent hover:bg-professional-gray-700 hover:shadow-md'
                   }`}
                   aria-label="Previous page"
                 >
@@ -369,8 +369,8 @@ export default function DreamConnectLayout() {
                       onClick={() => goToPage(pageNum)}
                       className={`w-10 h-10 rounded-lg border font-medium text-sm transition-all duration-200 ${
                         currentPage === pageNum
-                          ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white border-netsurit-red shadow-md'
-                          : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
+                          ? 'bg-netsurit-red text-white border-netsurit-red shadow-md'
+                          : 'bg-professional-gray-600 text-white border-transparent hover:bg-professional-gray-700 hover:shadow-md'
                       }`}
                       aria-label={`Go to page ${pageNum}`}
                       aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -386,7 +386,7 @@ export default function DreamConnectLayout() {
                   className={`p-2 rounded-lg border transition-all duration-200 ${
                     !hasNextPage
                       ? 'border-professional-gray-200 text-professional-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white border-transparent hover:from-professional-gray-700 hover:to-professional-gray-800 hover:shadow-md'
+                      : 'bg-professional-gray-600 text-white border-transparent hover:bg-professional-gray-700 hover:shadow-md'
                   }`}
                   aria-label="Next page"
                 >
@@ -794,7 +794,7 @@ export default function DreamConnectLayout() {
               {/* Cancel Button - Right, Grey, Small */}
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                className="px-4 py-2 bg-professional-gray-600 text-white rounded-lg hover:bg-professional-gray-700 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 Cancel
               </button>

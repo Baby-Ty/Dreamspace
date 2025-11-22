@@ -186,7 +186,7 @@ export default function DreamBookLayout() {
                 onClick={handleCreate}
                 aria-label="Add new dream"
                 data-testid="add-dream-button"
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
+                className="inline-flex items-center justify-center px-6 py-3 bg-netsurit-red text-white rounded-xl hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2"
               >
                 <Plus className="w-5 h-5" aria-hidden="true" />
                 <span>Add Dream</span>

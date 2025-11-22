@@ -314,7 +314,7 @@ export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, r
           {/* Send Teams Message Button - Right, Grey, Small */}
           <button
             onClick={handleCopyTeamsMessage}
-            className="px-4 py-2 bg-gradient-to-r from-professional-gray-600 to-professional-gray-700 text-white rounded-lg hover:from-professional-gray-700 hover:to-professional-gray-800 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center gap-2"
+            className="px-4 py-2 bg-professional-gray-600 text-white rounded-lg hover:bg-professional-gray-700 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center gap-2"
             data-testid="copy-teams-message"
           >
             {copied ? (

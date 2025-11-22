@@ -134,7 +134,7 @@ function ConnectionFilters({ filters, onChange, locations, onRefresh }) {
                 onClick={() => handleCategoryClick(category)}
                 className={`px-3 py-1 text-sm font-medium rounded-lg transition-all duration-200 h-8 whitespace-nowrap flex-shrink-0 ${
                   filters.category === category
-                    ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white shadow-md'
+                    ? 'bg-netsurit-red text-white shadow-md'
                     : 'bg-professional-gray-100 text-professional-gray-700 hover:bg-professional-gray-200'
                 }`}
                 aria-pressed={filters.category === category}

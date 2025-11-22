@@ -131,7 +131,7 @@ function InspirationModal({
                     disabled={!canAddDream}
                     aria-label={`Add ${item.title} to dream book`}
                     data-testid={`add-inspiration-${item.id}`}
-                    className="mt-auto w-full inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-auto w-full inline-flex items-center justify-center px-4 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add to My Dream Book
                   </button>
