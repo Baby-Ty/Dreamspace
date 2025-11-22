@@ -1,7 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; 
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { 
   TrendingUp, 
@@ -15,46 +15,166 @@ import {
  * Overview Tab - Displays dream overview with What/Why/How and progress stats
  * @component
  */
-export function OverviewTab({ localDream, completedGoals, totalGoals, getCategoryIcon, formatDate, handlePrivacyChange, canEdit = true }) {
+export function OverviewTab({ 
+  localDream, 
+  completedGoals, 
+  totalGoals, 
+  getCategoryIcon, 
+  formatDate, 
+  handlePrivacyChange,
+  handleUpdateDescription,
+  handleUpdateMotivation,
+  handleUpdateApproach,
+  canEdit = true 
+}) {
+  const [editingField, setEditingField] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (editingField && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [editingField]);
+
+  const handleStartEdit = (field, currentValue) => {
+    if (!canEdit) return;
+    setEditingField(field);
+    setEditValue(currentValue || '');
+  };
+
+  const handleSaveEdit = (field) => {
+    if (!canEdit) return;
+    
+    const trimmedValue = editValue.trim();
+    
+    if (field === 'what') {
+      handleUpdateDescription(trimmedValue);
+    } else if (field === 'why') {
+      handleUpdateMotivation(trimmedValue);
+    } else if (field === 'how') {
+      handleUpdateApproach(trimmedValue);
+    }
+    
+    setEditingField(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingField(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = (e, field) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit(field);
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
+
+  const EditableField = ({ field, label, color, value, placeholder, onUpdate }) => {
+    const isEditing = editingField === field;
+    const displayValue = value || '';
+    const showPlaceholder = !value && !isEditing;
+
+    return (
+      <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
+        <div className="p-3">
+          <div className="flex items-center space-x-2 mb-2">
+            <div className={`w-2 h-2 ${color} rounded-full`}></div>
+            <h4 className="font-bold text-professional-gray-900 text-sm">{label}</h4>
+            {field === 'what' && (
+              <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
+            )}
+            {field !== 'what' && showPlaceholder && (
+              <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
+            )}
+          </div>
+          {isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                ref={textareaRef}
+                value={editValue}
+                onChange={(e) => {
+                  setEditValue(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => handleKeyDown(e, field)}
+                className="w-full text-sm text-professional-gray-700 leading-relaxed border border-professional-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-netsurit-red resize-none"
+                placeholder={placeholder}
+                rows={3}
+                data-testid={`edit-${field}-textarea`}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSaveEdit(field)}
+                  className="px-3 py-1 bg-netsurit-red text-white text-xs rounded-lg hover:bg-netsurit-coral transition-colors"
+                  data-testid={`save-${field}-button`}
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 bg-professional-gray-200 text-professional-gray-700 text-xs rounded-lg hover:bg-professional-gray-300 transition-colors"
+                  data-testid={`cancel-${field}-button`}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => canEdit && handleStartEdit(field, displayValue)}
+              className={`text-professional-gray-700 leading-relaxed text-sm min-h-[1.5rem] ${
+                canEdit ? 'cursor-text hover:bg-professional-gray-50 rounded p-1 -m-1 transition-colors' : ''
+              }`}
+              data-testid={`${field}-display`}
+            >
+              {displayValue || (
+                <span className="text-professional-gray-400 italic">{placeholder}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
       {/* Dream Overview - What, Why, How */}
       <div className="space-y-3">
-        <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
-          <div className="p-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-netsurit-red rounded-full"></div>
-              <h4 className="font-bold text-professional-gray-900 text-sm">What</h4>
-            </div>
-            <p className="text-professional-gray-700 leading-relaxed text-sm">
-              {localDream.description || "This dream represents a personal goal or aspiration that you're working towards achieving."}
-            </p>
-          </div>
-        </div>
+        <EditableField
+          field="what"
+          label="What"
+          color="bg-netsurit-red"
+          value={localDream.description}
+          placeholder="What is your dream? Describe what you want to achieve..."
+          onUpdate={handleUpdateDescription}
+        />
 
-        <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
-          <div className="p-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-netsurit-coral rounded-full"></div>
-              <h4 className="font-bold text-professional-gray-900 text-sm">Why</h4>
-            </div>
-            <p className="text-professional-gray-700 leading-relaxed text-sm">
-              {localDream.motivation || `This ${localDream.category.toLowerCase()} goal is important for your personal growth and development, contributing to overall life satisfaction and achievement.`}
-            </p>
-          </div>
-        </div>
+        <EditableField
+          field="why"
+          label="Why"
+          color="bg-netsurit-coral"
+          value={localDream.motivation}
+          placeholder="Why is this important to you? What will it mean when you achieve this..."
+          onUpdate={handleUpdateMotivation}
+        />
 
-        <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
-          <div className="p-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-netsurit-orange rounded-full"></div>
-              <h4 className="font-bold text-professional-gray-900 text-sm">How</h4>
-            </div>
-            <p className="text-professional-gray-700 leading-relaxed text-sm">
-              {localDream.approach || `Through structured goals and consistent progress tracking, you're pursuing this dream with ${totalGoals} defined steps towards completion.`}
-            </p>
-          </div>
-        </div>
+        <EditableField
+          field="how"
+          label="How"
+          color="bg-netsurit-orange"
+          value={localDream.approach}
+          placeholder="How will you achieve this? What's your approach or strategy..."
+          onUpdate={handleUpdateApproach}
+        />
       </div>
 
       {/* Key Stats */}
@@ -83,10 +203,6 @@ export function OverviewTab({ localDream, completedGoals, totalGoals, getCategor
               <div className="flex justify-between">
                 <span className="text-xs font-medium text-professional-gray-600">Goals Completed</span>
                 <span className="font-bold text-professional-gray-900 text-xs">{completedGoals}/{totalGoals}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xs font-medium text-professional-gray-600">Personal Notes</span>
-                <span className="font-bold text-professional-gray-900 text-xs">{localDream.notes?.length || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-xs font-medium text-professional-gray-600">Activity History</span>
@@ -210,6 +326,9 @@ OverviewTab.propTypes = {
   getCategoryIcon: PropTypes.func.isRequired,
   formatDate: PropTypes.func.isRequired,
   handlePrivacyChange: PropTypes.func.isRequired,
+  handleUpdateDescription: PropTypes.func.isRequired,
+  handleUpdateMotivation: PropTypes.func.isRequired,
+  handleUpdateApproach: PropTypes.func.isRequired,
   canEdit: PropTypes.bool
 };
 

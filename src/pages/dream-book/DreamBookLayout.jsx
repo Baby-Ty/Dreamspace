@@ -109,7 +109,7 @@ export default function DreamBookLayout() {
       title: item.title,
       category: tpl.category,
       description: tpl.description,
-      progress: 0,
+      progress: 25,
       image: item.image,
       milestones: tpl.milestones,
       notes: tpl.notes,

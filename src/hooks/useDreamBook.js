@@ -142,7 +142,7 @@ export function useDreamBook() {
         description: formData.description,
         isPublic: formData.isPublic,
         image: formData.image,
-        progress: 0,
+        progress: 25,
         milestones: [],
         notes: [],
         history: []

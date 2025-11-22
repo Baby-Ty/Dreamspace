@@ -339,17 +339,17 @@ function GoalAccordion({
               <div className="flex items-center flex-wrap gap-2 mt-2">
                 {isConsistency && (
                   <>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
+                    <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
                       <Repeat className="w-3 h-3" aria-hidden="true" />
                       <span>Consistency</span>
                     </span>
                     {goal.recurrence && (
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium capitalize">
+                      <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium capitalize">
                         {goal.recurrence}
                       </span>
                     )}
                     {goal.targetWeeks && (
-                      <span className="text-xs bg-netsurit-warm-orange/20 text-netsurit-orange px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-netsurit-orange/10 text-netsurit-orange px-2 py-1 rounded-full font-medium">
                         Target: {goal.targetWeeks} {goal.recurrence === 'weekly' ? 'weeks' : 'months'}
                       </span>
                     )}
@@ -358,12 +358,12 @@ function GoalAccordion({
                 
                 {isDeadline && (
                   <>
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
+                    <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
                       <Calendar className="w-3 h-3" aria-hidden="true" />
                       <span>Deadline</span>
                     </span>
                     {goal.targetDate && (
-                      <span className="text-xs bg-netsurit-light-coral/50 text-netsurit-red px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium">
                         {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     )}

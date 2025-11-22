@@ -776,6 +776,37 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     setHasChanges(true);
   }, [localDream, canEdit]);
 
+  // What/Why/How handlers
+  const handleUpdateDescription = useCallback((description) => {
+    if (!canEdit) return;
+    const updatedDream = {
+      ...localDream,
+      description: description
+    };
+    setLocalDream(updatedDream);
+    setHasChanges(true);
+  }, [localDream, canEdit]);
+
+  const handleUpdateMotivation = useCallback((motivation) => {
+    if (!canEdit) return;
+    const updatedDream = {
+      ...localDream,
+      motivation: motivation
+    };
+    setLocalDream(updatedDream);
+    setHasChanges(true);
+  }, [localDream, canEdit]);
+
+  const handleUpdateApproach = useCallback((approach) => {
+    if (!canEdit) return;
+    const updatedDream = {
+      ...localDream,
+      approach: approach
+    };
+    setLocalDream(updatedDream);
+    setHasChanges(true);
+  }, [localDream, canEdit]);
+
   // Helper functions
   const getCategoryIcon = useCallback((category) => {
     const icons = { 'Health': '💪', 'Travel': '✈️', 'Career': '💼', 'Learning': '📚', 'Creative': '🎨', 
@@ -845,6 +876,11 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     
     // Privacy handler
     handlePrivacyChange,
+    
+    // What/Why/How handlers
+    handleUpdateDescription,
+    handleUpdateMotivation,
+    handleUpdateApproach,
     
     // Helpers
     getCategoryIcon,
