@@ -371,65 +371,77 @@ function WeekGoalsWidget({
                 return (
                   <div 
                     key={goal.id} 
-                    className={`rounded-2xl border border-slate-100 bg-white px-5 py-5 shadow-sm flex items-center gap-5 transition-all duration-200 hover:shadow-md ${
+                    className={`rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden ${
                       goal.completed ? 'opacity-75' : ''
                     }`} 
                     data-testid={`goal-${goal.id}`}
                   >
-                    {/* Left: Checkbox Column with frequency label */}
-                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                      {/* Checkbox with counter inside */}
-                      <button
-                        ref={(el) => (buttonRefs.current[goal.id] = el)}
-                        onClick={() => handleToggleWithCelebration(goal.id)}
-                        className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-105"
-                        aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                        data-testid={`toggle-goal-${goal.id}`}
-                        disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
-                      >
-                        {goal.completed ? (
-                          <CheckCircle2 className="w-12 h-12 text-netsurit-red" />
-                        ) : isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') ? (
-                          // Circle with counter inside for recurring goals
-                          <div className="relative">
-                            <Circle className="w-12 h-12 text-slate-300" />
-                            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-700">
-                              {completionCount}/{frequency}
-                            </span>
-                          </div>
-                        ) : (
-                          <Circle className="w-12 h-12 text-slate-300" />
-                        )}
-                      </button>
-                      
-                      {/* Frequency label */}
-                      {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                        <span className="text-xs text-slate-500 font-medium">
-                          {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Middle: Content Column (flex-1) */}
-                    <div className="flex-1 min-w-0 self-center text-center">
-                      {/* Title */}
-                      <h3 className={`text-base md:text-lg font-semibold leading-tight ${
-                        goal.completed ? 'line-through text-slate-500' : 'text-slate-900'
+                    {/* Title Tab at Top Center */}
+                    <div className="flex justify-center pb-2">
+                      <h3 className={`inline-block px-4 py-2 rounded-b-lg text-center text-base md:text-lg font-semibold leading-tight whitespace-nowrap ${
+                        goal.completed 
+                          ? 'line-through text-professional-gray-500 bg-professional-gray-100' 
+                          : 'text-professional-gray-700 bg-professional-gray-200'
                       }`}>
                         {goal.title}
                       </h3>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="px-5 pb-5 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
+                      {/* Left: Checkbox Column with frequency label */}
+                      <div className="flex flex-col items-center gap-1.5 justify-self-start">
+                        {/* Checkbox with counter inside */}
+                        <button
+                          ref={(el) => (buttonRefs.current[goal.id] = el)}
+                          onClick={() => handleToggleWithCelebration(goal.id)}
+                          className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-105"
+                          aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                          data-testid={`toggle-goal-${goal.id}`}
+                          disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
+                        >
+                          {goal.completed ? (
+                            <CheckCircle2 className="w-12 h-12 text-netsurit-red" />
+                          ) : isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') ? (
+                            // Circle with counter inside for recurring goals
+                            <div className="relative">
+                              <Circle className="w-12 h-12 text-slate-300" />
+                              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-700">
+                                {completionCount}/{frequency}
+                              </span>
+                            </div>
+                          ) : (
+                            <Circle className="w-12 h-12 text-slate-300" />
+                          )}
+                        </button>
+                        
+                        {/* Frequency label */}
+                        {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
+                          <span className="text-xs text-slate-500 font-medium">
+                            {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Middle: Content Column - centered */}
+                      <div className="grid grid-rows-[1fr_auto_1fr] items-center text-center h-full min-h-[80px]">
                       
-                      {/* From: Dream Name */}
+                      {/* Top spacer */}
+                      <div></div>
+                      
+                      {/* From: Dream Name - centered */}
                       {goal.dreamTitle && (
-                        <p className="text-sm leading-tight mt-1">
+                        <p className="text-sm leading-tight">
                           <span className="text-slate-400">From: </span>
                           <span className="text-netsurit-red font-medium">{goal.dreamTitle}</span>
                         </p>
                       )}
                       
-                      {/* Progress tracker - below dream name */}
-                      {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                      {/* Bottom spacer with progress tracker */}
+                      <div className="flex items-end justify-center">
+                        {/* Progress tracker - at bottom */}
+                        {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
+                          <div className="flex items-center justify-center gap-1.5">
                           {/* Undo button */}
                           {onDecrementGoal && (
                             <button
@@ -473,19 +485,20 @@ function WeekGoalsWidget({
                               <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
                             </button>
                           )}
-                        </div>
-                      )}
-                      
-                      {/* Deadline: Due date - below dream name */}
-                      {isDeadline && goal.targetDate && (
-                        <p className="text-xs text-slate-500 font-medium mt-2">
-                          Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
-                      )}
+                          </div>
+                        )}
+                        
+                        {/* Deadline: Due date - at bottom */}
+                        {isDeadline && goal.targetDate && (
+                          <p className="text-xs text-slate-500 font-medium">
+                            Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Right: Meta Column (auto width) */}
-                    <div className="flex flex-col items-end gap-1.5 text-right flex-shrink-0">
+                    <div className="flex flex-col items-end gap-1.5 text-right justify-self-end">
                       {/* Weeks Left - for both recurring and deadline goals */}
                       {(isWeeklyRecurring || isDeadline) && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
                         <span className={`text-sm md:text-base font-semibold whitespace-nowrap ${
@@ -514,6 +527,7 @@ function WeekGoalsWidget({
                           Skip this week
                         </button>
                       )}
+                    </div>
                     </div>
                   </div>
                 );
