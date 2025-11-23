@@ -67,7 +67,9 @@ export default function DreamConnectLayout() {
   const [proposedWeeks, setProposedWeeks] = useState([]);
 
   // Roving tabindex for keyboard navigation in grid (3 columns on large screens)
-  const { getItemProps, onKeyDown: handleRovingKeyDown } = useRovingFocus(connections.length, {
+  // Ensure connections is always an array to prevent hook errors
+  const connectionsCount = Array.isArray(connections) ? connections.length : 0;
+  const { getItemProps, onKeyDown: handleRovingKeyDown } = useRovingFocus(connectionsCount, {
     loop: true,
     direction: 'both',
     columnsCount: 3 // Matches lg:grid-cols-3
