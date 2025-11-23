@@ -168,54 +168,101 @@ module.exports = async function (context, req) {
         if (usersContainer) {
           try {
             // Try multiple ways to find the user ID for lookup
-            const userIdToLookup = cleanConnect.withWhomId || 
-                                   (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null) ||
-                                   (cleanConnect.name && cleanConnect.name.includes('@') ? cleanConnect.name : null);
+            let userIdToLookup = cleanConnect.withWhomId || 
+                                 (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null) ||
+                                 (cleanConnect.name && cleanConnect.name.includes('@') ? cleanConnect.name : null);
             
+            let userDoc = null;
+            
+            // First try: Lookup by ID/email if available
             if (userIdToLookup) {
               try {
-                const { resource: userDoc } = await usersContainer.item(userIdToLookup, userIdToLookup).read();
-                if (userDoc) {
-                  // Prioritize currentUser.avatar, then user.avatar, then fallback
-                  const currentUser = userDoc.currentUser || {};
-                  const bestAvatar = currentUser.avatar || userDoc.avatar || userDoc.picture;
-                  const bestName = currentUser.name || userDoc.name || userDoc.displayName;
-                  const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
-                  
-                  // Always update connect with current user data if available
-                  // This ensures profile pictures are always up-to-date
-                  // Accept http, https, or blob URLs (blob URLs are used for Microsoft Graph photos)
-                  if (bestAvatar && typeof bestAvatar === 'string' && bestAvatar.trim()) {
-                    const trimmed = bestAvatar.trim();
-                    // Accept http, https, or blob URLs
-                    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
-                      cleanConnect.avatar = trimmed;
-                      context.log(`✅ Enriched connect ${cleanConnect.id} with avatar for user ${userIdToLookup}`);
-                    } else {
-                      context.log.warn(`⚠️ Invalid avatar URL format for user ${userIdToLookup}: ${trimmed.substring(0, 50)}`);
-                    }
-                  } else {
-                    context.log.warn(`⚠️ No avatar found for user ${userIdToLookup} in userDoc`);
-                  }
-                  if (bestName && bestName.trim()) {
-                    cleanConnect.name = bestName;
-                    // Also update withWhom if it was just a name
-                    if (!cleanConnect.withWhomId && bestName) {
-                      cleanConnect.withWhom = bestName;
-                    }
-                  }
-                  if (bestOffice && bestOffice.trim()) {
-                    cleanConnect.office = bestOffice;
-                  }
-                } else {
-                  context.log.warn(`⚠️ User document not found for ${userIdToLookup}`);
+                const { resource } = await usersContainer.item(userIdToLookup, userIdToLookup).read();
+                if (resource) {
+                  userDoc = resource;
+                  context.log(`✅ Found user ${userIdToLookup} by ID/email for connect ${cleanConnect.id}`);
                 }
               } catch (readError) {
-                // User not found - use stored avatar (silent fail for 404)
+                // User not found by ID - will try by name below
                 if (readError.code !== 404) {
-                  context.log.warn(`Error reading user ${userIdToLookup} for connect enrichment:`, readError.message);
+                  context.log.warn(`Error reading user ${userIdToLookup} by ID:`, readError.message);
                 }
               }
+            }
+            
+            // Second try: If not found by ID and we have a name, try to find by name
+            if (!userDoc && cleanConnect.withWhom && !cleanConnect.withWhom.includes('@')) {
+              try {
+                const nameToSearch = cleanConnect.withWhom.trim();
+                // Extract first name from "FirstName x LastName" format
+                const firstName = nameToSearch.split(' x ')[0] || nameToSearch.split(' ')[0];
+                
+                // Query users by name (check both name and currentUser.name fields)
+                const nameQuery = {
+                  query: 'SELECT * FROM c WHERE (c.name = @name OR c.currentUser.name = @name OR c.displayName = @name)',
+                  parameters: [{ name: '@name', value: firstName }]
+                };
+                
+                const { resources: nameMatches } = await usersContainer.items
+                  .query(nameQuery, { enableCrossPartitionQuery: true })
+                  .fetchAll();
+                
+                if (nameMatches && nameMatches.length > 0) {
+                  // Use first match (prefer exact match if available)
+                  const exactMatch = nameMatches.find(u => 
+                    (u.name === nameToSearch || u.currentUser?.name === nameToSearch) ||
+                    (u.name === firstName || u.currentUser?.name === firstName)
+                  );
+                  userDoc = exactMatch || nameMatches[0];
+                  userIdToLookup = userDoc.userId || userDoc.id;
+                  context.log(`✅ Found user by name "${nameToSearch}" (${firstName}) for connect ${cleanConnect.id}`);
+                  
+                  // Update connect with withWhomId for future lookups
+                  if (!cleanConnect.withWhomId && userIdToLookup) {
+                    cleanConnect.withWhomId = userIdToLookup;
+                  }
+                }
+              } catch (nameQueryError) {
+                context.log.warn(`Error querying user by name for connect ${cleanConnect.id}:`, nameQueryError.message);
+              }
+            }
+            
+            // Enrich connect with user data if found
+            if (userDoc) {
+              // Prioritize currentUser.avatar, then user.avatar, then fallback
+              const currentUser = userDoc.currentUser || {};
+              const bestAvatar = currentUser.avatar || userDoc.avatar || userDoc.picture;
+              const bestName = currentUser.name || userDoc.name || userDoc.displayName;
+              const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
+              
+              // Always update connect with current user data if available
+              // This ensures profile pictures are always up-to-date
+              // Accept http, https, or blob URLs (blob URLs are used for Microsoft Graph photos)
+              if (bestAvatar && typeof bestAvatar === 'string' && bestAvatar.trim()) {
+                const trimmed = bestAvatar.trim();
+                // Accept http, https, or blob URLs
+                if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
+                  cleanConnect.avatar = trimmed;
+                  context.log(`✅ Enriched connect ${cleanConnect.id} with avatar for user ${userIdToLookup}`);
+                } else {
+                  context.log.warn(`⚠️ Invalid avatar URL format for user ${userIdToLookup}: ${trimmed.substring(0, 50)}`);
+                }
+              } else {
+                context.log.warn(`⚠️ No avatar found for user ${userIdToLookup} in userDoc`);
+              }
+              if (bestName && bestName.trim()) {
+                cleanConnect.name = bestName;
+                // Also update withWhom if it was just a name
+                if (!cleanConnect.withWhomId && userIdToLookup) {
+                  cleanConnect.withWhomId = userIdToLookup;
+                }
+              }
+              if (bestOffice && bestOffice.trim()) {
+                cleanConnect.office = bestOffice;
+              }
+            } else {
+              // No user found - log for debugging
+              context.log.warn(`⚠️ Could not find user for connect ${cleanConnect.id}: withWhom="${cleanConnect.withWhom}", withWhomId="${cleanConnect.withWhomId}"`);
             }
           } catch (enrichError) {
             // Continue with stored avatar (silent fail)

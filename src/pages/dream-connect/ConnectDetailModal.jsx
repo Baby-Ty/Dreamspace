@@ -160,9 +160,34 @@ export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, r
               const otherUserName = connect.withWhom || connect.name || '';
               const otherUserFirstName = getFirstName(otherUserName);
               
+              // Helper to get valid avatar URL - blob URLs don't work, use fallback
+              const getAvatarUrl = (avatar, name, defaultColor = 'EC4B5C') => {
+                if (!avatar || typeof avatar !== 'string') {
+                  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=${defaultColor}&color=fff&size=48`;
+                }
+                const trimmed = avatar.trim();
+                // Blob URLs are temporary and cause security errors - use fallback instead
+                if (trimmed.startsWith('blob:')) {
+                  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=${defaultColor}&color=fff&size=48`;
+                }
+                // Only use http/https URLs
+                if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                  return trimmed;
+                }
+                return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=${defaultColor}&color=fff&size=48`;
+              };
+              
               // Get avatars
-              const currentUserAvatar = currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=EC4B5C&color=fff&size=48`;
-              const otherUserAvatar = connect.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUserName || 'User')}&background=6366f1&color=fff&size=48`;
+              const currentUserAvatar = getAvatarUrl(
+                currentUser?.avatar,
+                currentUser?.name || 'User',
+                'EC4B5C'
+              );
+              const otherUserAvatar = getAvatarUrl(
+                connect.avatar,
+                otherUserName || 'User',
+                '6366f1'
+              );
               
               // Get locations
               const currentUserLocation = currentUser?.office || 'Unknown';

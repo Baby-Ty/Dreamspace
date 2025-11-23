@@ -39,6 +39,24 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
     return colorMap[color] || 'ring-netsurit-red';
   };
 
+  // Helper to get valid avatar URL - blob URLs don't work across page loads, so use fallback
+  const getAvatarUrl = (avatar) => {
+    if (!avatar || typeof avatar !== 'string') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+    }
+    const trimmed = avatar.trim();
+    // Blob URLs are temporary and cause security errors - use fallback instead
+    if (trimmed.startsWith('blob:')) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+    }
+    // Only use http/https URLs
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    // Fallback for invalid URLs
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+  };
+
   return (
     <div 
       {...rovingProps}
@@ -48,27 +66,21 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
       data-testid={`connection-card-${item.id}`}
       onKeyDown={handleKeyDown}
     >
-      {/* Points Badge - Top Right */}
-      {item.score !== undefined && (
-        <div 
-          className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-professional-gray-600 text-white rounded-full shadow-md"
-          data-testid={`connection-${item.id}-points-badge`}
-        >
-          <Award className="w-2.5 h-2.5" aria-hidden="true" />
-          <span className="text-xs font-bold">{item.score} pts</span>
-        </div>
-      )}
-
       {/* Main Content - Centered */}
-      <div className="p-4 pt-6 flex flex-col items-center flex-1">
+      <div className="p-4 flex flex-col items-center flex-1">
         {/* Profile Picture - Centered */}
         <div className="relative mb-3">
           <img
-            src={item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`}
+            src={getAvatarUrl(item.avatar)}
             alt={`${item.name}'s profile`}
-            className={`w-20 h-20 rounded-full ring-2 ${getAccentColorClass()} shadow-lg object-cover`}
+            className={`w-20 h-20 rounded-full ring-2 ${getAccentColorClass()} shadow-lg object-cover bg-professional-gray-100`}
+            loading="lazy"
             onError={(e) => {
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+              const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+              // Only update if not already using fallback to prevent infinite loop
+              if (e.target.src !== fallbackUrl) {
+                e.target.src = fallbackUrl;
+              }
             }}
             data-testid={`connection-${item.id}-avatar`}
           />
@@ -87,6 +99,15 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
 
         {/* Stats Pills - Horizontal Row */}
         <div className="flex items-center justify-center gap-1.5 mb-3 w-full">
+          {item.score !== undefined && (
+            <div 
+              className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"
+              data-testid={`connection-${item.id}-points-badge`}
+            >
+              <Award className="w-3 h-3 text-professional-gray-600" aria-hidden="true" />
+              <span className="text-xs font-medium">{item.score} pts</span>
+            </div>
+          )}
           <div 
             className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"
             data-testid={`connection-${item.id}-dreams-pill`}

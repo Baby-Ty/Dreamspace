@@ -448,9 +448,12 @@ export default function DreamConnectLayout() {
                 return bDate - aDate;
               })
               .slice(0, 12) // Show up to 12 recent connects (3 rows of 4)
-              .map((connect, index) => (
+              .map((connect, index) => {
+                // Create a stable key that includes avatar URL to force re-render when avatar changes
+                const avatarHash = connect.avatar ? connect.avatar.substring(0, 50) : 'no-avatar';
+                return (
                 <div
-                  key={`connect-${connect.id}-${connect.avatar || 'no-avatar'}-${index}`}
+                  key={`connect-${connect.id}-${avatarHash}-${connect.updatedAt || connect.createdAt || index}`}
                   className="bg-white rounded-xl p-4 border border-professional-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col min-h-[240px]"
                   onClick={() => {
                     setSelectedConnect(connect);
@@ -499,15 +502,19 @@ export default function DreamConnectLayout() {
                     const otherUserFirstName = getFirstName(otherUserName);
                     
                     // Helper to get valid avatar URL - prioritize actual profile picture, fallback to generated
+                    // NOTE: Blob URLs are temporary and cause security errors - they should be converted to permanent storage URLs
                     const getAvatarUrl = (avatar, name, defaultColor = 'EC4B5C') => {
                       // Check multiple avatar fields and validate URL
                       const avatarUrl = avatar || null;
                       
-                      // If avatar exists and is a valid URL (not empty string, starts with http/https or blob:)
                       if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim()) {
                         const trimmed = avatarUrl.trim();
-                        // Accept http, https, or blob URLs (blob URLs are used for Microsoft Graph photos)
-                        if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
+                        // Blob URLs are temporary and cause security errors - use fallback instead
+                        if (trimmed.startsWith('blob:')) {
+                          return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=${defaultColor}&color=fff&size=64`;
+                        }
+                        // Only accept http/https URLs (permanent storage)
+                        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
                           return trimmed;
                         }
                       }
@@ -519,20 +526,14 @@ export default function DreamConnectLayout() {
                     // Check multiple possible avatar fields in connect object
                     const connectAvatar = connect.avatar || connect.picture || null;
                     
-                    // Debug logging (remove in production if needed)
-                    if (!connectAvatar && process.env.NODE_ENV === 'development') {
-                      console.log(`⚠️ No avatar found for connect ${connect.id}:`, {
-                        connectId: connect.id,
-                        withWhom: connect.withWhom,
-                        withWhomId: connect.withWhomId,
-                        name: connect.name,
-                        hasAvatar: !!connect.avatar,
-                        hasPicture: !!connect.picture
-                      });
+                    // Ensure we have currentUser avatar - if not, use fallback but log for debugging
+                    const currentUserAvatarValue = currentUser?.avatar;
+                    if (!currentUserAvatarValue && process.env.NODE_ENV === 'development') {
+                      console.log(`⚠️ Current user avatar not loaded yet for connect ${connect.id}`);
                     }
                     
                     const currentUserAvatar = getAvatarUrl(
-                      currentUser?.avatar,
+                      currentUserAvatarValue,
                       currentUser?.name || 'User',
                       'EC4B5C'
                     );
@@ -541,6 +542,19 @@ export default function DreamConnectLayout() {
                       otherUserName || 'User',
                       '6366f1'
                     );
+                    
+                    // Debug logging (remove in production if needed)
+                    if (!connectAvatar && process.env.NODE_ENV === 'development') {
+                      console.log(`⚠️ No avatar found for connect ${connect.id}:`, {
+                        connectId: connect.id,
+                        withWhom: connect.withWhom,
+                        withWhomId: connect.withWhomId,
+                        name: connect.name,
+                        hasAvatar: !!connect.avatar,
+                        hasPicture: !!connect.picture,
+                        currentUserHasAvatar: !!currentUserAvatarValue
+                      });
+                    }
                     
                     // Format names: always show "User1 x User2" where User1 is the sender
                     const displayName = isSender
@@ -644,7 +658,8 @@ export default function DreamConnectLayout() {
                     );
                   })()}
                 </div>
-              ))}
+                );
+              })}
           </div>
         )}
       </div>
