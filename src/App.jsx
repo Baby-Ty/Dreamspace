@@ -17,7 +17,6 @@ const DreamConnect = lazy(() => import(/* webpackChunkName: "dream-connect" */ '
 const CareerBook = lazy(() => import(/* webpackChunkName: "career-book" */ './pages/career/CareerBookLayout'));
 const Scorecard = lazy(() => import(/* webpackChunkName: "scorecard" */ './pages/Scorecard'));
 const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin-dashboard" */ './pages/AdminDashboard'));
-const DreamCoach = lazy(() => import(/* webpackChunkName: "dream-coach" */ './pages/DreamCoach'));
 const DreamTeam = lazy(() => import(/* webpackChunkName: "dream-team" */ './pages/DreamTeam'));
 const PeopleDashboard = lazy(() => import(/* webpackChunkName: "people-dashboard" */ './pages/people/PeopleDashboardLayout'));
 const HealthCheck = lazy(() => import(/* webpackChunkName: "health-check" */ './pages/HealthCheck'));
@@ -58,7 +57,6 @@ function AppContent() {
               <Route path="/dream-connect" element={<DreamConnect />} />
               <Route path="/career-book" element={<CareerBook />} />
               <Route path="/scorecard" element={<Scorecard />} />
-              <Route path="/dream-coach" element={<DreamCoach />} />
               <Route path="/dream-team" element={<DreamTeam />} />
               <Route path="/people" element={<PeopleDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />

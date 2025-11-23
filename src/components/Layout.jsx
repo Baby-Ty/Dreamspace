@@ -10,7 +10,6 @@ import {
   LogOut,
   Star,
   Calendar,
-  Users2,
   UserCog,
   FileText,
   Eye,
@@ -38,7 +37,6 @@ const Layout = ({ children }) => {
   // Coming soon items (visible but disabled)
   const comingSoonNavigation = [
     { name: 'Scorecard', icon: Trophy, previewHref: '/scorecard' },
-    { name: 'Dream Coach', icon: Users2, previewHref: '/dream-coach' },
   ];
 
   // Bottom navigation (visible to all until RBAC is implemented)
@@ -127,10 +125,7 @@ const Layout = ({ children }) => {
                 </div>
                 {comingSoonNavigation.map((item) => {
                   const Icon = item.icon;
-                  // Only show Dream Coach preview for coaches and admins
-                  const isDreamCoach = item.name === 'Dream Coach';
-                  const isCoachOrAdmin = userRole === 'coach' || userRole === 'admin' || userRole === 'manager';
-                  const showPreview = item.previewHref && (!isDreamCoach || isCoachOrAdmin);
+                  const showPreview = item.previewHref;
                   
                   return (
                     <div
