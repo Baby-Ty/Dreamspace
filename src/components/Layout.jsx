@@ -31,6 +31,7 @@ const Layout = ({ children }) => {
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Dream Team', href: '/dream-team', icon: UserPlus },
     { name: 'Dream Connect', href: '/dream-connect', icon: Users },
+    { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
     // Week Ahead removed - current week goals now shown on Dashboard
   ];
 
@@ -38,7 +39,6 @@ const Layout = ({ children }) => {
   const comingSoonNavigation = [
     { name: 'Scorecard', icon: Trophy, previewHref: '/scorecard' },
     { name: 'Dream Coach', icon: Users2, previewHref: '/dream-coach' },
-    { name: 'People Hub', icon: UserCog, previewHref: '/people', roleLabel: 'Admin' },
   ];
 
   // Bottom navigation (visible to all until RBAC is implemented)
@@ -95,15 +95,21 @@ const Layout = ({ children }) => {
             {/* Active navigation items */}
             {activeNavigation.map((item) => {
               const Icon = item.icon;
+              const active = isActive(item.href);
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`sidebar-link ${isActive(item.href) ? 'active' : ''}`}
+                  className={`sidebar-link ${active ? 'active' : ''}`}
                   onClick={() => setSidebarOpen(false)}
                 >
                   <Icon className="w-5 h-5 mr-3" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {item.roleLabel && (
+                    <span className={`text-xs ${active ? 'text-white/80' : 'text-slate-500'}`}>
+                      {item.roleLabel}
+                    </span>
+                  )}
                 </Link>
               );
             })}
