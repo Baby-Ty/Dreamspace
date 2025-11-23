@@ -1,6 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
-import { Filter, MapPin, RefreshCw, Search, X } from 'lucide-react';
+import { Filter, Search, X } from 'lucide-react';
 import FlagIcon from '../../components/FlagIcon';
 
 /**
@@ -62,61 +62,40 @@ function ConnectionFilters({ filters, onChange, locations, onRefresh }) {
             </h3>
           </div>
 
-          {/* Right: Region Label + Flags + Refresh */}
-          <div className="flex items-center gap-3" data-testid="location-filter">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-netsurit-coral" aria-hidden="true" />
-              <span className="text-sm font-medium text-professional-gray-700 whitespace-nowrap">
-                Region
-              </span>
-              <div 
-                className="flex items-center gap-2"
-                role="group"
-                aria-label="Region filters"
-              >
-                {regionFlags.map((region) => (
-                  <button
-                    key={region.code}
-                    onClick={() => handleLocationChange({ target: { value: region.code } })}
-                    className={`
-                      relative w-9 h-9 flex items-center justify-center rounded-lg 
-                      transition-all duration-200 
-                      border-2 shadow-sm
-                      ${filters.location === region.code
-                        ? 'border-netsurit-red bg-gradient-to-br from-netsurit-red/5 to-netsurit-coral/5 scale-105 shadow-md'
-                        : 'border-professional-gray-200 bg-white hover:border-netsurit-coral hover:bg-gradient-to-br hover:from-professional-gray-50 hover:to-white hover:scale-105 hover:shadow-md'
-                      }
-                    `}
-                    title={region.label}
-                    aria-label={`Filter by ${region.label}`}
-                    aria-pressed={filters.location === region.code}
-                  >
-                    <div className={`transition-all duration-200 ${
-                      filters.location === region.code
-                        ? 'opacity-100'
-                        : 'opacity-70 group-hover:opacity-100'
-                    }`}>
-                      <FlagIcon countryCode={region.countryCode} className="w-6 h-6" />
-                    </div>
-                    {filters.location === region.code && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-netsurit-red rounded-full" />
-                    )}
-                  </button>
-                ))}
-              </div>
+          {/* Right: Region Flags */}
+          <div className="flex items-center gap-2" data-testid="location-filter">
+            <div 
+              className="flex items-center gap-2"
+              role="group"
+              aria-label="Region filters"
+            >
+              {regionFlags.map((region) => (
+                <button
+                  key={region.code}
+                  onClick={() => handleLocationChange({ target: { value: region.code } })}
+                  className={`
+                    relative w-9 h-9 flex items-center justify-center rounded-lg 
+                    transition-all duration-200 
+                    border-2
+                    ${filters.location === region.code
+                      ? 'border-netsurit-red bg-white shadow-sm'
+                      : 'border-professional-gray-200 bg-white hover:border-professional-gray-300 hover:bg-professional-gray-50'
+                    }
+                  `}
+                  title={region.label}
+                  aria-label={`Filter by ${region.label}`}
+                  aria-pressed={filters.location === region.code}
+                >
+                  <div className={`transition-all duration-200 ${
+                    filters.location === region.code
+                      ? 'opacity-100'
+                      : 'opacity-70 group-hover:opacity-100'
+                  }`}>
+                    <FlagIcon countryCode={region.countryCode} className="w-6 h-6" />
+                  </div>
+                </button>
+              ))}
             </div>
-
-            {/* Refresh Button */}
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                className="p-1.5 text-professional-gray-400 hover:text-netsurit-red hover:bg-professional-gray-100 rounded-lg transition-colors"
-                title="Refresh connections"
-                aria-label="Refresh connections"
-              >
-                <RefreshCw className="w-4 h-4" aria-hidden="true" />
-              </button>
-            )}
           </div>
         </div>
         

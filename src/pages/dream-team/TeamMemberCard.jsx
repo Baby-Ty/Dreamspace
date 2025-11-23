@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { MapPin, Award, BookOpen, Heart, Users2, CheckCircle } from 'lucide-react';
+import { MapPin, Award, Heart, Users2, CheckCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -47,19 +47,8 @@ export default function TeamMemberCard({ member }) {
       aria-label={`Team member: ${member.name}`}
       data-testid={`team-member-card-${member.id}`}
     >
-      {/* Points Badge - Top Right */}
-      {member.score !== undefined && (
-        <div 
-          className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-professional-gray-600 text-white rounded-full shadow-md"
-          data-testid={`member-${member.id}-points-badge`}
-        >
-          <Award className="w-2.5 h-2.5" aria-hidden="true" />
-          <span className="text-xs font-bold">{member.score} pts</span>
-        </div>
-      )}
-
       {/* Main Content - Centered */}
-      <div className="p-4 pt-6 flex flex-col items-center flex-1">
+      <div className="p-4 flex flex-col items-center flex-1">
         {/* Profile Picture - Centered */}
         <div className="relative mb-3">
           <img
@@ -100,10 +89,10 @@ export default function TeamMemberCard({ member }) {
         <div className="flex items-center justify-center gap-1.5 mb-3 w-full">
           <div 
             className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"
-            data-testid={`member-${member.id}-dreams-pill`}
+            data-testid={`member-${member.id}-points-pill`}
           >
-            <BookOpen className="w-3 h-3 text-professional-gray-600" aria-hidden="true" />
-            <span className="text-xs font-medium">{member.dreamsCount || 0} dreams</span>
+            <Award className="w-3 h-3 text-professional-gray-600" aria-hidden="true" />
+            <span className="text-xs font-medium">{member.score || 0} pts</span>
           </div>
           <div 
             className="flex items-center gap-1 px-2 py-1 bg-professional-gray-100 text-professional-gray-700 rounded-full border border-professional-gray-200"

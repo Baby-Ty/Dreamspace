@@ -443,7 +443,7 @@ export default function DreamTeamLayout() {
               teamStats.sharedInterests.map((interest, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 bg-netsurit-red/10 text-netsurit-red text-sm rounded-full border border-netsurit-red/20"
+                  className="px-3 py-1 bg-professional-gray-100 text-professional-gray-700 text-sm rounded-full"
                   data-testid={`interest-${idx}`}
                 >
                   {interest}
