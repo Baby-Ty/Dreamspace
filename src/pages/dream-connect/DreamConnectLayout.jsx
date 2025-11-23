@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Users, 
   Heart, 
@@ -33,7 +33,6 @@ import HelpTooltip from '../../components/HelpTooltip';
  */
 export default function DreamConnectLayout() {
   const { currentUser, addConnect, updateConnect, reloadConnects } = useApp();
-  const [connectsLoading, setConnectsLoading] = useState(true);
   const {
     connections,
     filteredCount,
@@ -210,51 +209,9 @@ export default function DreamConnectLayout() {
     );
   }
 
-  // Track when connects have been loaded from API (not just initial data)
+  // Wait for currentUser to be fully loaded (have email/id) before rendering connects
   // This prevents showing stale/cached data with wrong name ordering
-  useEffect(() => {
-    // Reset loading when user changes
-    if (!currentUser?.email && !currentUser?.id) {
-      setConnectsLoading(true);
-      return;
-    }
-    
-    // If we have connects and user email/id, mark as loaded
-    // But give a small delay to ensure API enrichment has completed
-    if (currentUser?.connects && Array.isArray(currentUser.connects) && (currentUser?.email || currentUser?.id)) {
-      // Small delay to ensure API enrichment completes
-      const timer = setTimeout(() => {
-        setConnectsLoading(false);
-      }, 500); // Wait 500ms for API enrichment to complete
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentUser?.connects, currentUser?.email, currentUser?.id]);
-
-  // Wait for currentUser to be fully loaded (have email/id AND connects array) before rendering connects
-  // This prevents showing stale/cached data with wrong name ordering
-  // Also ensure connects array exists (might be undefined initially)
-  const isUserFullyLoaded = !!(currentUser?.email || currentUser?.id) && 
-                            Array.isArray(currentUser?.connects) &&
-                            !connectsLoading;
-
-  // Memoize connects to ensure we're using the latest data and prevent stale renders
-  const sortedConnects = useMemo(() => {
-    if (!currentUser?.connects || !Array.isArray(currentUser.connects)) {
-      return [];
-    }
-    return [...currentUser.connects].sort((a, b) => {
-      // Sort by status priority (pending first), then by date
-      const statusPriority = { pending: 0, completed: 1 };
-      const aStatus = statusPriority[a.status] ?? 1;
-      const bStatus = statusPriority[b.status] ?? 1;
-      if (aStatus !== bStatus) return aStatus - bStatus;
-      // Then by date (newest first)
-      const aDate = new Date(a.when || a.date || a.createdAt);
-      const bDate = new Date(b.when || b.date || b.createdAt);
-      return bDate - aDate;
-    }).slice(0, 12); // Show up to 12 recent connects (3 rows of 4)
-  }, [currentUser?.connects, currentUser?.email, currentUser?.id]); // Re-sort when connects or user changes
+  const isUserFullyLoaded = !!(currentUser?.email || currentUser?.id);
 
   const uniqueCategories = currentUser.dreamBook 
     ? new Set(currentUser.dreamBook.map(d => d.category)).size 
@@ -468,7 +425,7 @@ export default function DreamConnectLayout() {
         </div>
 
         {/* Recent Connects List or Empty State */}
-        {!isUserFullyLoaded || connectsLoading ? (
+        {!isUserFullyLoaded ? (
           <div className="bg-gradient-to-br from-white to-professional-gray-50 rounded-2xl border border-professional-gray-200 shadow-lg p-12 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-professional-gray-100 to-professional-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
               <Loader2 className="w-10 h-10 text-professional-gray-400 animate-spin" />
@@ -494,16 +451,26 @@ export default function DreamConnectLayout() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {sortedConnects.map((connect, index) => {
+            {currentUser.connects
+              .sort((a, b) => {
+                // Sort by status priority (pending first), then by date
+                const statusPriority = { pending: 0, completed: 1 };
+                const aStatus = statusPriority[a.status] ?? 1;
+                const bStatus = statusPriority[b.status] ?? 1;
+                if (aStatus !== bStatus) return aStatus - bStatus;
+                // Then by date (newest first)
+                const aDate = new Date(a.when || a.date || a.createdAt);
+                const bDate = new Date(b.when || b.date || b.createdAt);
+                return bDate - aDate;
+              })
+              .slice(0, 12) // Show up to 12 recent connects (3 rows of 4)
+              .map((connect, index) => {
                 // Create a stable key that includes avatar URL and currentUser to force re-render when data changes
-                // Include currentUser email/id in key to force re-render when user data loads
                 const avatarHash = connect.avatar ? connect.avatar.substring(0, 50) : 'no-avatar';
                 const userHash = currentUser?.email || currentUser?.id || 'no-user';
-                const connectUserId = connect.userId || 'no-connect-user';
-                // Include both user identifiers to ensure proper re-render when user data changes
                 return (
                 <div
-                  key={`connect-${connect.id}-${avatarHash}-${userHash}-${connectUserId}-${connect.updatedAt || connect.createdAt || index}`}
+                  key={`connect-${connect.id}-${avatarHash}-${userHash}-${connect.updatedAt || connect.createdAt || index}`}
                   className="bg-white rounded-xl p-4 border border-professional-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col min-h-[240px]"
                   onClick={() => {
                     setSelectedConnect(connect);
@@ -549,19 +516,12 @@ export default function DreamConnectLayout() {
                     // Check both email and id formats since connects can be stored with either
                     const currentUserId = currentUser?.email || currentUser?.id || '';
                     const connectUserId = connect.userId || '';
-                    
                     // More robust check: compare both email and id formats
-                    // Default to true (current user is sender) if we can't determine - this ensures consistent ordering
-                    let isSender = true; // Default assumption: current user is always first
-                    
-                    if (currentUserId && connectUserId) {
-                      // Only set to false if we're certain the current user is NOT the sender
-                      isSender = connectUserId === currentUserId || 
-                                connectUserId === currentUser?.email || 
-                                connectUserId === currentUser?.id ||
-                                (currentUser?.email && connectUserId.includes(currentUser.email)) ||
-                                (currentUser?.id && connectUserId.includes(currentUser.id));
-                    }
+                    const isSender = connectUserId === currentUserId || 
+                                    connectUserId === currentUser?.email || 
+                                    connectUserId === currentUser?.id ||
+                                    (currentUser?.email && connectUserId.includes(currentUser.email)) ||
+                                    (currentUser?.id && connectUserId.includes(currentUser.id));
                     
                     const currentUserFirstName = getFirstName(currentUser?.name || '');
                     const otherUserName = connect.withWhom || connect.name || '';
