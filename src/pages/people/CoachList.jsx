@@ -11,7 +11,8 @@ import {
   X,
   BookOpen,
   Heart,
-  Users2
+  Users2,
+  Sparkles
 } from 'lucide-react';
 import VirtualList from '../../components/VirtualList';
 import FlagIcon from '../../components/FlagIcon';
@@ -20,6 +21,7 @@ import { useRovingFocus } from '../../hooks/useRovingFocus';
 import { getCountryCode } from '../../utils/regionUtils';
 import { coachingService } from '../../services/coachingService';
 import { showToast } from '../../utils/toast';
+import { generateRandomTeamName } from '../../utils/teamNameGenerator';
 
 /**
  * Pure presentational component for displaying a list of coaches
@@ -62,6 +64,12 @@ export default function CoachList({ coaches, onSelect, onUnassignUser, onReplace
     e.stopPropagation();
     setEditingTeamName(null);
     setEditedTeamName('');
+  };
+
+  const handleGenerateRandomTeamName = (e) => {
+    e.stopPropagation();
+    const randomName = generateRandomTeamName();
+    setEditedTeamName(randomName);
   };
 
   const handleSaveTeamName = async (coach, e) => {
@@ -167,16 +175,27 @@ export default function CoachList({ coaches, onSelect, onUnassignUser, onReplace
                           value={editedTeamName}
                           onChange={(e) => setEditedTeamName(e.target.value)}
                           onKeyDown={(e) => {
+                            // Prevent event propagation to parent handlers (especially spacebar)
+                            e.stopPropagation();
                             if (e.key === 'Enter') {
                               handleSaveTeamName(coach, e);
                             } else if (e.key === 'Escape') {
                               handleCancelEditTeamName(e);
                             }
+                            // Allow spacebar and other keys to work normally in the input
                           }}
                           className="text-sm px-3 py-1.5 border-2 border-netsurit-red rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red flex-1 min-w-0"
                           autoFocus
                           onClick={(e) => e.stopPropagation()}
                         />
+                        <button
+                          onClick={(e) => handleGenerateRandomTeamName(e)}
+                          className="p-1.5 text-netsurit-coral hover:text-netsurit-red hover:bg-netsurit-coral/10 rounded-lg transition-colors"
+                          aria-label="Generate random team name"
+                          title="Generate random team name"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={(e) => handleSaveTeamName(coach, e)}
                           className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"

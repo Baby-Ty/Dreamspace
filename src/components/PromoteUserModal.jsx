@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { X, Crown } from 'lucide-react';
+import { X, Crown, Sparkles } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { generateRandomTeamName } from '../utils/teamNameGenerator';
 
 /**
  * Promote User to Coach Modal
@@ -62,17 +63,29 @@ const PromoteUserModal = ({ user, onClose, onConfirm }) => {
               <label htmlFor="teamName" className="block text-sm font-medium text-professional-gray-700 mb-2">
                 Team Name <span className="text-netsurit-red">*</span>
               </label>
-              <input
-                type="text"
-                id="teamName"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="Enter team name for this coach"
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
-                required
-                autoFocus
-                disabled={isSubmitting}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  id="teamName"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="Enter team name for this coach"
+                  className="flex-1 px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red"
+                  required
+                  autoFocus
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setTeamName(generateRandomTeamName())}
+                  disabled={isSubmitting}
+                  className="p-2 text-netsurit-coral hover:text-netsurit-red hover:bg-netsurit-coral/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Generate random team name"
+                  title="Generate random team name"
+                >
+                  <Sparkles className="w-5 h-5" />
+                </button>
+              </div>
               <p className="text-xs text-professional-gray-500 mt-2">
                 This user will become a coach and lead the specified team
               </p>

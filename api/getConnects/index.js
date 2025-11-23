@@ -167,8 +167,10 @@ module.exports = async function (context, req) {
         // Use withWhomId if available (user's email/ID), otherwise try withWhom if it's an email
         if (usersContainer) {
           try {
+            // Try multiple ways to find the user ID for lookup
             const userIdToLookup = cleanConnect.withWhomId || 
-                                   (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null);
+                                   (cleanConnect.withWhom && cleanConnect.withWhom.includes('@') ? cleanConnect.withWhom : null) ||
+                                   (cleanConnect.name && cleanConnect.name.includes('@') ? cleanConnect.name : null);
             
             if (userIdToLookup) {
               try {
@@ -180,26 +182,44 @@ module.exports = async function (context, req) {
                   const bestName = currentUser.name || userDoc.name || userDoc.displayName;
                   const bestOffice = currentUser.office || userDoc.office || userDoc.officeLocation;
                   
-                  // Update connect with current user data from blob storage
-                  if (bestAvatar) {
-                    cleanConnect.avatar = bestAvatar;
+                  // Always update connect with current user data if available
+                  // This ensures profile pictures are always up-to-date
+                  // Accept http, https, or blob URLs (blob URLs are used for Microsoft Graph photos)
+                  if (bestAvatar && typeof bestAvatar === 'string' && bestAvatar.trim()) {
+                    const trimmed = bestAvatar.trim();
+                    // Accept http, https, or blob URLs
+                    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
+                      cleanConnect.avatar = trimmed;
+                      context.log(`✅ Enriched connect ${cleanConnect.id} with avatar for user ${userIdToLookup}`);
+                    } else {
+                      context.log.warn(`⚠️ Invalid avatar URL format for user ${userIdToLookup}: ${trimmed.substring(0, 50)}`);
+                    }
+                  } else {
+                    context.log.warn(`⚠️ No avatar found for user ${userIdToLookup} in userDoc`);
                   }
-                  if (bestName) {
+                  if (bestName && bestName.trim()) {
                     cleanConnect.name = bestName;
+                    // Also update withWhom if it was just a name
+                    if (!cleanConnect.withWhomId && bestName) {
+                      cleanConnect.withWhom = bestName;
+                    }
                   }
-                  if (bestOffice) {
+                  if (bestOffice && bestOffice.trim()) {
                     cleanConnect.office = bestOffice;
                   }
+                } else {
+                  context.log.warn(`⚠️ User document not found for ${userIdToLookup}`);
                 }
               } catch (readError) {
                 // User not found - use stored avatar (silent fail for 404)
                 if (readError.code !== 404) {
-                  context.log.warn(`Error reading user ${userIdToLookup}:`, readError.message);
+                  context.log.warn(`Error reading user ${userIdToLookup} for connect enrichment:`, readError.message);
                 }
               }
             }
           } catch (enrichError) {
             // Continue with stored avatar (silent fail)
+            context.log.warn(`Error enriching connect ${cleanConnect.id}:`, enrichError.message);
           }
         }
         

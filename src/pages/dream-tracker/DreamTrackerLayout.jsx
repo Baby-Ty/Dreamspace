@@ -1,12 +1,14 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; 
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { 
   X, 
   Bookmark, 
-  Save 
+  Save,
+  Edit3,
+  Check
 } from 'lucide-react';
 import { useDreamTracker } from '../../hooks/useDreamTracker';
 import { OverviewTab } from './OverviewTab';
@@ -57,6 +59,15 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
   });
 
   const [isImageExpanded, setIsImageExpanded] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(dream?.title || '');
+
+  // Sync editedTitle when dream prop or localDream changes
+  useEffect(() => {
+    if (!isEditingTitle) {
+      setEditedTitle(localDream?.title || dream?.title || '');
+    }
+  }, [localDream?.title, dream?.title, isEditingTitle]);
 
   const activeStage = SELF_PROGRESS_STAGES[selfProgressStage] || SELF_PROGRESS_STAGES[0];
 
@@ -112,6 +123,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
     handleUpdateDescription,
     handleUpdateMotivation,
     handleUpdateApproach,
+    handleUpdateTitle,
     
     // Helpers
     getCategoryIcon,
@@ -194,7 +206,70 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
               <div className="flex-1 min-w-0 flex flex-col justify-between">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-xl sm:text-2xl font-bold text-professional-gray-900 mb-1">{localDream.title}</h2>
+                    {isEditingTitle && canEdit ? (
+                      <div className="flex items-center gap-2 mb-1">
+                        <input
+                          type="text"
+                          value={editedTitle}
+                          onChange={(e) => setEditedTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (editedTitle.trim()) {
+                                handleUpdateTitle(editedTitle);
+                                setIsEditingTitle(false);
+                              }
+                            } else if (e.key === 'Escape') {
+                              setEditedTitle(localDream.title);
+                              setIsEditingTitle(false);
+                            }
+                          }}
+                          className="flex-1 text-xl sm:text-2xl font-bold text-professional-gray-900 border-2 border-netsurit-red rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                          autoFocus
+                          data-testid="dream-title-input"
+                        />
+                        <button
+                          onClick={() => {
+                            if (editedTitle.trim()) {
+                              handleUpdateTitle(editedTitle);
+                              setIsEditingTitle(false);
+                            }
+                          }}
+                          className="p-1.5 text-netsurit-red hover:bg-netsurit-red hover:text-white rounded-lg transition-all duration-200"
+                          aria-label="Save title"
+                          data-testid="save-title-button"
+                        >
+                          <Check className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditedTitle(localDream.title);
+                            setIsEditingTitle(false);
+                          }}
+                          className="p-1.5 text-professional-gray-600 hover:bg-professional-gray-100 rounded-lg transition-all duration-200"
+                          aria-label="Cancel editing title"
+                          data-testid="cancel-title-button"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 group">
+                        <h2 className="text-xl sm:text-2xl font-bold text-professional-gray-900 mb-1">{localDream.title}</h2>
+                        {canEdit && (
+                          <button
+                            onClick={() => {
+                              setEditedTitle(localDream.title);
+                              setIsEditingTitle(true);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-professional-gray-100 rounded transition-all duration-200"
+                            aria-label="Edit dream title"
+                            data-testid="edit-title-button"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-professional-gray-600 mb-3">
                       {isCoachViewing && teamMember && (
                         <span className="px-2 py-0.5 bg-professional-gray-100 rounded-md text-professional-gray-700 text-xs font-medium">

@@ -1,6 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState, useMemo } from 'react';
-import { X, Users2, AlertTriangle, ArrowRight, Crown, Search, UserCheck, UserX } from 'lucide-react';
+import { X, Users2, AlertTriangle, ArrowRight, Crown, Search, UserCheck, UserX, Sparkles } from 'lucide-react';
+import { generateRandomTeamName } from '../utils/teamNameGenerator';
 
 const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onConfirm }) => {
   const [selectedReplacementId, setSelectedReplacementId] = useState('');
@@ -337,14 +338,25 @@ const ReplaceCoachModal = ({ coach, availableReplacements, coaches, onClose, onC
               <label className="block text-sm font-bold text-professional-gray-700 mb-2">
                 New Team Name (Optional)
               </label>
-              <input
-                type="text"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder={selectedReplacement ? `${selectedReplacement.name}'s Team` : 'Leave blank for default'}
-                className="w-full p-2.5 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-                aria-label="New team name"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  placeholder={selectedReplacement ? `${selectedReplacement.name}'s Team` : 'Leave blank for default'}
+                  className="flex-1 p-2.5 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
+                  aria-label="New team name"
+                />
+                <button
+                  type="button"
+                  onClick={() => setNewTeamName(generateRandomTeamName())}
+                  className="p-2.5 text-netsurit-coral hover:text-netsurit-red hover:bg-netsurit-coral/10 rounded-lg transition-colors"
+                  aria-label="Generate random team name"
+                  title="Generate random team name"
+                >
+                  <Sparkles className="w-5 h-5" />
+                </button>
+              </div>
               <p className="text-xs text-professional-gray-500 mt-1.5">
                 If left blank, will default to "{selectedReplacement?.name || 'New Coach'}'s Team"
               </p>

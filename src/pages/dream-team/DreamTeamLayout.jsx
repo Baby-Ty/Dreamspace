@@ -10,13 +10,19 @@ import {
   BookOpen,
   Heart,
   MapPin,
-  Award
+  Award,
+  Edit3,
+  Check,
+  X,
+  Sparkles
 } from 'lucide-react';
 import TeamMemberCard from './TeamMemberCard';
 import MeetingScheduleCard from './MeetingScheduleCard';
 import { useDreamTeam } from '../../hooks/useDreamTeam';
 import HelpTooltip from '../../components/HelpTooltip';
 import { coachingService } from '../../services/coachingService';
+import { generateRandomTeamName } from '../../utils/teamNameGenerator';
+import { showToast } from '../../utils/toast';
 
 /**
  * Main layout for Dream Team page
@@ -37,37 +43,63 @@ export default function DreamTeamLayout() {
   const [isEditingMission, setIsEditingMission] = useState(false);
   const [editedMission, setEditedMission] = useState('');
 
-  const handleEditMission = () => {
+  // Edit team name state
+  const [isEditingTeamName, setIsEditingTeamName] = useState(false);
+  const [editedTeamName, setEditedTeamName] = useState('');
+
+  const handleEditTeamInfo = () => {
     setEditedMission(teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.');
+    setEditedTeamName(teamData.teamName || 'Dream Team');
     setIsEditingMission(true);
+    setIsEditingTeamName(true);
   };
 
-  const handleSaveMission = async () => {
+  const handleSaveTeamInfo = async () => {
     const managerId = teamData?.managerId;
     if (!managerId) {
-      console.error('❌ Cannot save mission: No manager ID');
+      console.error('❌ Cannot save team info: No manager ID');
+      return;
+    }
+
+    if (!editedTeamName.trim()) {
+      showToast('Team name cannot be empty', 'error');
       return;
     }
 
     try {
-      const result = await coachingService.updateTeamMission(managerId, editedMission);
-      if (result.success) {
+      // Save both team name and mission
+      const [teamNameResult, missionResult] = await Promise.all([
+        coachingService.updateTeamName(managerId, editedTeamName.trim()),
+        coachingService.updateTeamMission(managerId, editedMission)
+      ]);
+
+      if (teamNameResult.success && missionResult.success) {
         setIsEditingMission(false);
-        // Refresh team data to show updated mission
+        setIsEditingTeamName(false);
+        showToast('Team information updated successfully', 'success');
+        // Refresh team data to show updated info
         refreshData();
       } else {
-        console.error('❌ Failed to save mission:', result.error);
-        alert(`Failed to save mission: ${result.error}`);
+        const errors = [];
+        if (!teamNameResult.success) errors.push(`Team name: ${teamNameResult.error}`);
+        if (!missionResult.success) errors.push(`Mission: ${missionResult.error}`);
+        showToast(`Failed to save: ${errors.join(', ')}`, 'error');
       }
     } catch (error) {
-      console.error('❌ Error saving mission:', error);
-      alert(`Error saving mission: ${error.message}`);
+      console.error('❌ Error saving team info:', error);
+      showToast(`Error saving team information: ${error.message}`, 'error');
     }
   };
 
   const handleCancelEdit = () => {
     setIsEditingMission(false);
+    setIsEditingTeamName(false);
     setEditedMission('');
+    setEditedTeamName('');
+  };
+
+  const handleGenerateRandomTeamName = () => {
+    setEditedTeamName(generateRandomTeamName());
   };
 
 
@@ -209,50 +241,80 @@ export default function DreamTeamLayout() {
         {/* Team Name + Mission Statement Card */}
         <div className="bg-gradient-to-br from-white to-professional-gray-50 rounded-lg shadow-md p-6 border border-professional-gray-200 flex flex-col h-full relative group">
           {/* Edit Button (Coach Only) */}
-          {isCoach && !isEditingMission && (
+          {isCoach && !isEditingMission && !isEditingTeamName && (
             <button
               className="absolute top-4 right-4 p-2 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
               aria-label="Edit team information"
-              onClick={handleEditMission}
+              onClick={handleEditTeamInfo}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+              <Edit3 className="w-5 h-5" />
             </button>
           )}
 
           {/* Team Name */}
           <div className="mb-4 pb-4 border-b border-professional-gray-200">
-            <h2 className="text-2xl font-bold text-professional-gray-900 mb-1">
-              {teamData.teamName || 'Dream Team'}
-            </h2>
-            <p className="text-xs text-professional-gray-500 uppercase tracking-wide font-medium">
-              {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
-            </p>
+            {isEditingTeamName ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editedTeamName}
+                    onChange={(e) => setEditedTeamName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSaveTeamInfo();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEdit();
+                      }
+                    }}
+                    className="flex-1 text-2xl font-bold text-professional-gray-900 px-3 py-2 border-2 border-netsurit-red rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleGenerateRandomTeamName}
+                    className="p-2 text-netsurit-coral hover:text-netsurit-red hover:bg-netsurit-coral/10 rounded-lg transition-colors"
+                    aria-label="Generate random team name"
+                    title="Generate random team name"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-xs text-professional-gray-500 uppercase tracking-wide font-medium">
+                  {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-2xl font-bold text-professional-gray-900 mb-1">
+                  {teamData.teamName || 'Dream Team'}
+                </h2>
+                <p className="text-xs text-professional-gray-500 uppercase tracking-wide font-medium">
+                  {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Mission Statement / Message from Coach */}
           <div className="flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-1 h-6 bg-gradient-to-b from-netsurit-red to-netsurit-coral rounded-full"></div>
-              <h3 className="text-sm font-bold text-professional-gray-700 uppercase tracking-wide">
-                {isCoach ? 'Team Mission' : 'Message from Coach'}
-              </h3>
-            </div>
-            
             {isEditingMission ? (
               <div className="flex-1 flex flex-col">
                 <textarea
                   value={editedMission}
                   onChange={(e) => setEditedMission(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      handleCancelEdit();
+                    }
+                  }}
                   className="flex-1 text-professional-gray-700 leading-relaxed border-2 border-netsurit-red/30 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent resize-none"
                   rows={4}
                   placeholder="Enter your team mission or message..."
-                  autoFocus
                 />
                 <div className="flex gap-2 mt-3">
                   <button
-                    onClick={handleSaveMission}
+                    onClick={handleSaveTeamInfo}
                     className="px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm"
                   >
                     Save
@@ -266,7 +328,7 @@ export default function DreamTeamLayout() {
                 </div>
               </div>
             ) : (
-              <blockquote className="text-professional-gray-700 leading-relaxed italic border-l-2 border-professional-gray-200 pl-4">
+              <blockquote className="text-professional-gray-700 leading-relaxed italic">
                 "{teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.'}"
               </blockquote>
             )}
