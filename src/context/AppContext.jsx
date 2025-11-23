@@ -112,13 +112,62 @@ export const AppProvider = ({ children, initialUser }) => {
   // Note: All weeks initialization is now handled by getUserData API on login
   // No separate frontend call needed
   
+  // Track if we've already loaded data to prevent duplicate loads
+  const hasLoadedRef = useRef(false);
+  
   useEffect(() => {
     if (!userId) return;
+    
+    // Prevent duplicate loads - only load once per userId
+    if (hasLoadedRef.current) {
+      console.log('⏭️ Skipping duplicate data load - already loaded for userId:', userId);
+      return;
+    }
+    
+    hasLoadedRef.current = true;
     
     // Skip redundant database call for demo user (Sarah Johnson) who already has data from login
     const isDemoUser = initialUser?.email === 'sarah.johnson@netsurit.com' || userId === 'sarah.johnson@netsurit.com';
     if (isDemoUser && initialUser?.dreamBook && initialUser.dreamBook.length > 0) {
       console.log('ℹ️ Skipping redundant data load for demo user - using initial data');
+      hasLoadedRef.current = true; // Mark as loaded
+      return;
+    }
+    
+    // ✅ FIX: If initialUser already has dreams from AuthContext, use those instead of loading
+    // This prevents dreams from disappearing when AppProvider remounts
+    if (initialUser?.dreamBook && initialUser.dreamBook.length > 0) {
+      console.log('✅ Using dreams from initialUser (already loaded by AuthContext):', initialUser.dreamBook.length);
+      // Still load persisted data to get weeklyGoals and scoringHistory, but preserve dreams from initialUser
+      const loadData = async () => {
+        const persistedData = await loadUserData(userId);
+        if (persistedData) {
+          const userData = persistedData.currentUser || persistedData;
+          const weeklyGoalsData = persistedData.weeklyGoals || userData.weeklyGoals || [];
+          const scoringHistoryData = persistedData.scoringHistory || userData.scoringHistory || [];
+          
+          // Use dreams from initialUser (already loaded by AuthContext), not from persistedData
+          const migratedUser = {
+            ...createEmptyUser(initialUser),
+            ...initialUser, // Preserve dreams from initialUser
+            ...userData,
+            dreamBook: initialUser.dreamBook, // ✅ CRITICAL: Use dreams from initialUser
+            connects: initialUser.connects || userData.connects || [],
+            dreamCategories: dreamCategories
+          };
+          
+          dispatch({
+            type: actionTypes.LOAD_PERSISTED_DATA,
+            payload: {
+              isAuthenticated: true,
+              currentUser: migratedUser,
+              weeklyGoals: Array.isArray(weeklyGoalsData) ? weeklyGoalsData : [],
+              scoringHistory: Array.isArray(scoringHistoryData) ? scoringHistoryData : []
+            }
+          });
+        }
+      };
+      loadData();
       return;
     }
     
@@ -226,7 +275,12 @@ export const AppProvider = ({ children, initialUser }) => {
     };
     
     loadData();
-  }, [userId]);
+    
+    // Reset ref when userId changes (user logs out/in)
+    return () => {
+      hasLoadedRef.current = false;
+    };
+  }, [userId]); // Only depend on userId, not initialUser properties
 
   // Load connects from API on mount and when user changes to ensure they're always up-to-date
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useMemo } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
@@ -28,11 +28,6 @@ const BuildOverview = lazy(() => import(/* webpackChunkName: "build-overview" */
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  // ✅ FIX: Memoize user to prevent unnecessary AppProvider remounts
-  // Only recreate AppProvider when userId actually changes
-  // Must be called before any conditional returns (Rules of Hooks)
-  const stableUser = useMemo(() => user, [user?.id]);
-
   console.log('App State:', { isAuthenticated, isLoading, hasUser: !!user });
 
   if (isLoading) {
@@ -52,7 +47,7 @@ function AppContent() {
   }
 
   return (
-    <AppProvider key={user?.id} initialUser={stableUser}>
+    <AppProvider key={user?.id} initialUser={user}>
       <Router basename={import.meta.env.BASE_URL}>
         <Layout>
           <Suspense fallback={<LoadingSpinner />}>
