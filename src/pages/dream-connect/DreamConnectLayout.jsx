@@ -37,6 +37,7 @@ export default function DreamConnectLayout() {
     connections,
     filteredCount,
     totalCount,
+    allUsersCount,
     locations,
     isLoading,
     error,
@@ -248,9 +249,9 @@ export default function DreamConnectLayout() {
                 <Users className="h-6 w-6 text-netsurit-red" />
               </div>
               <p className="text-xs font-medium text-professional-gray-500 uppercase tracking-wide">
-                Suggested
+                Dreamers
               </p>
-              <p className="text-xl font-bold text-professional-gray-900">{filteredCount}</p>
+              <p className="text-xl font-bold text-professional-gray-900">{allUsersCount || 0}</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-4 border border-professional-gray-200 hover:shadow-md transition-shadow text-center">
@@ -405,25 +406,14 @@ export default function DreamConnectLayout() {
       </div>
 
       {/* Recent Connections */}
-      <div className="mb-8 mt-3">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-xl font-bold text-professional-gray-900">
-              Your Recent Connects
-            </h2>
-            <p className="text-sm text-professional-gray-600 mt-1">
-              Start building your dream network
-            </p>
-          </div>
-          <button
-            onClick={reloadConnects}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-professional-gray-600 hover:text-professional-gray-900 bg-white border border-professional-gray-200 rounded-lg hover:bg-professional-gray-50 transition-all duration-200"
-            aria-label="Refresh connects"
-            data-testid="reload-connects-button"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
+      <div className="mb-8 mt-6">
+        <div className="mb-3">
+          <h2 className="text-xl font-bold text-professional-gray-900">
+            Your Recent Connects
+          </h2>
+          <p className="text-sm text-professional-gray-600 mt-1">
+            Start building your dream network
+          </p>
         </div>
 
         {/* Recent Connects List or Empty State */}

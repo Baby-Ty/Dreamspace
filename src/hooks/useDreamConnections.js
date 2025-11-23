@@ -204,6 +204,7 @@ export function useDreamConnections() {
     connections: paginatedConnections,
     filteredCount: filteredConnections.length,
     totalCount: suggestedConnections.length,
+    allUsersCount: allUsers.length,
     locations,
     
     // State
