@@ -30,7 +30,11 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           auth: ['@azure/msal-browser', '@azure/msal-react'],
           ui: ['lucide-react']
-        }
+        },
+        // Add hash to filenames for cache busting
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     // Increase chunk size warning limit since we're using large libraries

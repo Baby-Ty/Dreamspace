@@ -209,6 +209,10 @@ export default function DreamConnectLayout() {
     );
   }
 
+  // Wait for currentUser to be fully loaded (have email/id) before rendering connects
+  // This prevents showing stale/cached data with wrong name ordering
+  const isUserFullyLoaded = !!(currentUser?.email || currentUser?.id);
+
   const uniqueCategories = currentUser.dreamBook 
     ? new Set(currentUser.dreamBook.map(d => d.category)).size 
     : 0;
@@ -421,7 +425,19 @@ export default function DreamConnectLayout() {
         </div>
 
         {/* Recent Connects List or Empty State */}
-        {!currentUser.connects || currentUser.connects.length === 0 ? (
+        {!isUserFullyLoaded ? (
+          <div className="bg-gradient-to-br from-white to-professional-gray-50 rounded-2xl border border-professional-gray-200 shadow-lg p-12 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-professional-gray-100 to-professional-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-10 h-10 text-professional-gray-400 animate-spin" />
+            </div>
+            <h3 className="text-xl font-bold text-professional-gray-900 mb-3">
+              Loading connects...
+            </h3>
+            <p className="text-professional-gray-600">
+              Please wait while we load your connection data.
+            </p>
+          </div>
+        ) : !currentUser.connects || currentUser.connects.length === 0 ? (
           <div className="bg-gradient-to-br from-white to-professional-gray-50 rounded-2xl border border-professional-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-12 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Heart className="w-10 h-10 text-netsurit-red" />
@@ -449,11 +465,12 @@ export default function DreamConnectLayout() {
               })
               .slice(0, 12) // Show up to 12 recent connects (3 rows of 4)
               .map((connect, index) => {
-                // Create a stable key that includes avatar URL to force re-render when avatar changes
+                // Create a stable key that includes avatar URL and currentUser to force re-render when data changes
                 const avatarHash = connect.avatar ? connect.avatar.substring(0, 50) : 'no-avatar';
+                const userHash = currentUser?.email || currentUser?.id || 'no-user';
                 return (
                 <div
-                  key={`connect-${connect.id}-${avatarHash}-${connect.updatedAt || connect.createdAt || index}`}
+                  key={`connect-${connect.id}-${avatarHash}-${userHash}-${connect.updatedAt || connect.createdAt || index}`}
                   className="bg-white rounded-xl p-4 border border-professional-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col min-h-[240px]"
                   onClick={() => {
                     setSelectedConnect(connect);
@@ -496,7 +513,16 @@ export default function DreamConnectLayout() {
                     };
                     
                     // Determine which user is which
-                    const isSender = connect.userId === (currentUser?.email || currentUser?.id);
+                    // Check both email and id formats since connects can be stored with either
+                    const currentUserId = currentUser?.email || currentUser?.id || '';
+                    const connectUserId = connect.userId || '';
+                    // More robust check: compare both email and id formats
+                    const isSender = connectUserId === currentUserId || 
+                                    connectUserId === currentUser?.email || 
+                                    connectUserId === currentUser?.id ||
+                                    (currentUser?.email && connectUserId.includes(currentUser.email)) ||
+                                    (currentUser?.id && connectUserId.includes(currentUser.id));
+                    
                     const currentUserFirstName = getFirstName(currentUser?.name || '');
                     const otherUserName = connect.withWhom || connect.name || '';
                     const otherUserFirstName = getFirstName(otherUserName);
