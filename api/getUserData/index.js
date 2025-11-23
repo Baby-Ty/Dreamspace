@@ -267,9 +267,10 @@ module.exports = async function (context, req) {
     try {
       const { resource } = await usersContainer.item(userId, userId).read();
       profile = resource;
+      context.log(`✅ Profile read successfully for userId: ${userId}`);
     } catch (error) {
       if (error.code === 404) {
-        context.log('User profile not found');
+        context.log(`⚠️ User profile not found for userId: ${userId}`);
         context.res = {
           status: 404,
           body: JSON.stringify({ error: 'User not found' }),
@@ -285,10 +286,18 @@ module.exports = async function (context, req) {
     
     // Ensure profile exists and is valid
     if (!profile || !profile.id) {
-      context.log.error('Profile is null or invalid');
+      context.log.error(`❌ Profile validation failed for userId: ${userId}`, {
+        profileExists: !!profile,
+        profileId: profile?.id,
+        profileKeys: profile ? Object.keys(profile) : [],
+        profileType: typeof profile
+      });
       context.res = {
         status: 500,
-        body: JSON.stringify({ error: 'Invalid profile data' }),
+        body: JSON.stringify({ 
+          error: 'Invalid profile data',
+          details: profile ? `Profile exists but missing 'id' field. Found keys: ${Object.keys(profile).join(', ')}` : 'Profile is null or undefined'
+        }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'

@@ -180,11 +180,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user profile:', error);
       // Fallback to basic account info
+      // IMPORTANT: Always use email as ID (not GUID) to match Cosmos DB storage
       console.log('🔄 Using fallback basic user info');
+      const emailId = account.username || account.userPrincipalName || account.localAccountId;
       const basicUser = {
-        id: account.localAccountId || account.username || Date.now().toString(),
+        id: emailId, // Use email, not GUID, to match Cosmos DB storage
+        aadObjectId: account.localAccountId, // Store GUID separately for reference
         name: account.name,
-        email: account.username,
+        email: account.username || account.userPrincipalName,
         office: 'Remote',
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(account.name)}&background=EC4B5C&color=fff&size=100`,
         dreamBook: [],
