@@ -52,16 +52,6 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
   // Check if this is the current user's card
   const isCurrentUser = member.id === currentUserId;
   const hasBackground = !!member.cardBackgroundImage;
-  
-  // Debug logging for background image
-  if (isCurrentUser) {
-    console.log(`🎨 Card background check for ${member.name}:`, {
-      hasBackground,
-      cardBackgroundImage: member.cardBackgroundImage,
-      memberId: member.id,
-      currentUserId
-    });
-  }
 
   return (
     <div 
@@ -126,36 +116,36 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
             {/* Profile Picture - Large & Centered */}
             <div className="flex flex-col items-center justify-center flex-1">
               <div className={`relative rounded-full p-1 ${getAccentColorClass().replace('ring-', 'bg-')}`}>
-                <img
-                  src={member.avatar && !member.avatar.startsWith('blob:') 
-                    ? member.avatar 
+          <img
+            src={member.avatar && !member.avatar.startsWith('blob:') 
+              ? member.avatar 
                     : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`}
-                  alt={`${member.name}'s profile`}
+            alt={`${member.name}'s profile`}
                   className="w-32 h-32 rounded-full border-4 border-white shadow-2xl object-cover"
-                  onError={(e) => {
+            onError={(e) => {
                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
-                  }}
+            }}
                 />
               </div>
-            </div>
+        </div>
 
             {/* Bottom Info */}
             <div className="w-full text-center mt-auto pb-2">
               <h3 className={`text-2xl font-bold mb-1 ${hasBackground ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]' : 'text-professional-gray-900'}`}>
-                {member.name}
-              </h3>
+          {member.name}
+        </h3>
               
-              {member.office && (
+        {member.office && (
                 <div className={`flex items-center justify-center text-sm mb-2 ${hasBackground ? 'text-white/95 drop-shadow-md font-medium' : 'text-professional-gray-500'}`}>
                   <MapPin className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-                  <span>{member.office}</span>
-                </div>
-              )}
+            <span>{member.office}</span>
+          </div>
+        )}
 
               <div className={`text-[10px] font-medium uppercase tracking-widest flex items-center justify-center gap-1.5 opacity-80 ${hasBackground ? 'text-white' : 'text-professional-gray-400'}`}>
                 <RotateCw className="w-3 h-3" /> Click to view details
               </div>
-            </div>
+          </div>
           </div>
         </div>
 
@@ -174,8 +164,8 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
               />
               <span className="font-semibold text-sm text-professional-gray-900 truncate max-w-[140px]">
                 {member.name}
-              </span>
-            </div>
+          </span>
+        </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -212,52 +202,52 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
                 <span className="font-bold text-professional-gray-900">{member.weeklyProgress || 0}%</span>
               </div>
               <div className="w-full h-2 bg-professional-gray-100 rounded-full overflow-hidden">
-                <div 
+            <div 
                   className={`h-full ${getProgressBarColor()} transition-all duration-500`}
-                  style={{ width: `${member.weeklyProgress || 0}%` }}
-                />
-              </div>
-            </div>
+              style={{ width: `${member.weeklyProgress || 0}%` }}
+            />
+          </div>
+        </div>
 
             {/* Public Dreams */}
             <div>
               <h4 className="text-xs font-semibold text-professional-gray-500 uppercase tracking-wide mb-2">
-                Public Dreams
-              </h4>
-              {publicDreams.length > 0 ? (
+            Public Dreams
+          </h4>
+          {publicDreams.length > 0 ? (
                 <ul className="space-y-2">
-                  {publicDreams.slice(0, 3).map((dream, idx) => (
+              {publicDreams.slice(0, 3).map((dream, idx) => (
                     <li key={dream.id || idx} className="flex items-start text-xs text-professional-gray-700 bg-professional-gray-50 p-2 rounded-lg">
                       <span className="text-netsurit-coral mr-2">•</span>
                       <span className="line-clamp-2">{dream.title}</span>
-                    </li>
-                  ))}
-                  {publicDreams.length > 3 && (
+                </li>
+              ))}
+              {publicDreams.length > 3 && (
                     <li className="text-center text-xs text-professional-gray-400 italic pt-1">
                       + {publicDreams.length - 3} more
-                    </li>
-                  )}
-                </ul>
-              ) : (
+                </li>
+              )}
+            </ul>
+          ) : (
                 <p className="text-xs text-professional-gray-400 italic text-center py-2 bg-professional-gray-50 rounded-lg">
                   No public dreams visible
-                </p>
-              )}
+            </p>
+          )}
             </div>
-          </div>
+        </div>
 
           {/* Footer Action */}
           <div className="p-4 border-t border-professional-gray-100 bg-white">
-            <button
+        <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleConnect();
               }}
               className="w-full py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:shadow-lg transform transition-all duration-200 active:scale-95 font-medium text-sm flex items-center justify-center gap-2"
-            >
+        >
               <Heart className="w-4 h-4 fill-white/20" />
-              Quick Connect
-            </button>
+          Quick Connect
+        </button>
           </div>
         </div>
       </div>

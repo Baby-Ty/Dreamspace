@@ -145,20 +145,20 @@ export function useDreamTeam() {
             // This ensures we get the latest avatar and background from the user container
             // But only if we don't already have a real avatar from context
             if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:')) {
-              try {
-                const userDataResult = await databaseService.loadUserData(memberId);
+            try {
+              const userDataResult = await databaseService.loadUserData(memberId);
                 console.log(`🔍 Loading avatar for ${member.name} (${memberId}):`, {
                   success: userDataResult.success,
                   hasData: !!userDataResult.data,
                   dataKeys: userDataResult.data ? Object.keys(userDataResult.data) : []
                 });
                 
-                if (userDataResult.success && userDataResult.data) {
-                  // Extract avatar from userData (check multiple possible locations)
-                  // Priority: avatar field > currentUser.avatar > picture > profile.avatar
-                  let avatar = userDataResult.data.avatar || 
-                              userDataResult.data.currentUser?.avatar || 
-                              userDataResult.data.picture ||
+              if (userDataResult.success && userDataResult.data) {
+                // Extract avatar from userData (check multiple possible locations)
+                // Priority: avatar field > currentUser.avatar > picture > profile.avatar
+                let avatar = userDataResult.data.avatar || 
+                            userDataResult.data.currentUser?.avatar || 
+                            userDataResult.data.picture ||
                               userDataResult.data.profile?.avatar ||
                               userDataResult.data.profilePicture;
                   
@@ -183,23 +183,23 @@ export function useDreamTeam() {
                     isString: typeof cardBackgroundImage === 'string',
                     trimmed: cardBackgroundImage && typeof cardBackgroundImage === 'string' ? cardBackgroundImage.trim() : null
                   });
-                  
-                  // Check if avatar is a blob URL (temporary, origin-scoped, can't be used)
-                  if (avatar && typeof avatar === 'string' && avatar.startsWith('blob:')) {
-                    console.log(`⚠️ Avatar for ${member.name} is a blob URL (temporary), will use fallback`);
-                    avatar = null; // Blob URLs don't work across origins/sessions
-                  }
-                  
-                  // Update avatar if we found a real one (not a fallback or blob URL)
+                
+                // Check if avatar is a blob URL (temporary, origin-scoped, can't be used)
+                if (avatar && typeof avatar === 'string' && avatar.startsWith('blob:')) {
+                  console.log(`⚠️ Avatar for ${member.name} is a blob URL (temporary), will use fallback`);
+                  avatar = null; // Blob URLs don't work across origins/sessions
+                }
+                
+                // Update avatar if we found a real one (not a fallback or blob URL)
                   // Allow Azure Blob Storage URLs and other valid URLs
-                  if (avatar && typeof avatar === 'string' && avatar.trim() && 
-                      !avatar.includes('ui-avatars.com') && !avatar.startsWith('blob:')) {
+                if (avatar && typeof avatar === 'string' && avatar.trim() && 
+                    !avatar.includes('ui-avatars.com') && !avatar.startsWith('blob:')) {
                     console.log(`✅ Loaded avatar for ${member.name}:`, avatar.substring(0, 80));
-                    updatedMember.avatar = avatar;
-                  } else {
-                    // If no real avatar found, use fallback
+                  updatedMember.avatar = avatar;
+                } else {
+                  // If no real avatar found, use fallback
                     console.log(`ℹ️ No real avatar found for ${member.name}, using fallback. Extracted value:`, avatar);
-                    // Keep existing fallback or set new one
+                  // Keep existing fallback or set new one
                     if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:')) {
                       updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
                     }
@@ -219,7 +219,7 @@ export function useDreamTeam() {
                     updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
                   }
                 }
-              } catch (avatarError) {
+            } catch (avatarError) {
                 console.warn(`⚠️ Could not load avatar/background for ${member.name}:`, avatarError);
                 // Set fallback if we still don't have an avatar
                 if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:')) {

@@ -66,6 +66,7 @@ module.exports = async function (context, req) {
         email: bestEmail,
         office: bestOffice,
         avatar: bestAvatar,
+        cardBackgroundImage: currentUser.cardBackgroundImage || user.cardBackgroundImage,
         score: currentUser.score || user.score || 0,
         dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
         connectsCount: currentUser.connectsCount || user.connectsCount || 0,
