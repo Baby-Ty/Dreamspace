@@ -309,9 +309,19 @@ class PeopleService {
         console.log('✅ User background image uploaded from URL:', result.url);
         return ok({ url: result.url });
       } else {
-        const error = await response.json();
-        console.error('❌ Error uploading user background image from URL:', error);
-        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to upload user background image from URL');
+        // Handle 404 (function not deployed) or other errors
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Response is not JSON (e.g., 404 returns empty body)
+          if (response.status === 404) {
+            errorMessage = 'Upload endpoint not found. Please ensure the Azure Function is deployed.';
+          }
+        }
+        console.error('❌ Error uploading user background image from URL:', errorMessage);
+        return fail(ErrorCodes.SAVE_ERROR, errorMessage);
       }
     } catch (error) {
       console.error('❌ Error uploading user background image from URL:', error);
