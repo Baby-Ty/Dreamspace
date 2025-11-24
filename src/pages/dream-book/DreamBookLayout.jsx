@@ -9,6 +9,7 @@ import DreamForm from './DreamForm';
 import InspirationModal from './InspirationModal';
 import DreamTrackerModal from '../../components/DreamTrackerModal';
 import StockPhotoSearch from '../../components/StockPhotoSearch';
+import AIImageGenerator from '../../components/AIImageGenerator';
 import HelpTooltip from '../../components/HelpTooltip';
 import { buildTemplateFromInspiration } from '../../constants/dreamInspiration';
 
@@ -35,6 +36,7 @@ export default function DreamBookLayout() {
     // Modal state
     viewingDream,
     showStockPhotoSearch,
+    showAIImageGenerator,
     showInspiration,
     
     // Drag state
@@ -67,6 +69,11 @@ export default function DreamBookLayout() {
     handleOpenStockPhotoSearch,
     handleSelectStockPhoto,
     handleCloseStockPhotoSearch,
+    
+    // AI image generator handlers
+    handleOpenAIImageGenerator,
+    handleSelectAIImage,
+    handleCloseAIImageGenerator,
     
     // Inspiration handlers
     handleOpenInspiration,
@@ -225,6 +232,7 @@ export default function DreamBookLayout() {
         onCancel={handleCancel}
         onImageUpload={handleImageUpload}
         onOpenStockPhotoSearch={handleOpenStockPhotoSearch}
+        onOpenAIImageGenerator={handleOpenAIImageGenerator}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleViewDream}
@@ -267,6 +275,7 @@ export default function DreamBookLayout() {
                 onCancel={handleCancel}
                 onImageUpload={handleImageUpload}
                 onOpenStockPhotoSearch={handleOpenStockPhotoSearch}
+                onOpenAIImageGenerator={handleOpenAIImageGenerator}
                 dreamCategories={dreamCategories}
                 isEditing={false}
                 inputRef={editTitleRef}
@@ -292,6 +301,14 @@ export default function DreamBookLayout() {
           searchTerm=""
           onSelectImage={handleSelectStockPhoto}
           onClose={handleCloseStockPhotoSearch}
+        />
+      )}
+
+      {/* AI Image Generator Modal */}
+      {showAIImageGenerator && (
+        <AIImageGenerator
+          onSelectImage={handleSelectAIImage}
+          onClose={handleCloseAIImageGenerator}
         />
       )}
 

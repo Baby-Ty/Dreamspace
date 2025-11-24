@@ -30,6 +30,7 @@ function DreamGrid({
   onCancel,
   onImageUpload,
   onOpenStockPhotoSearch,
+  onOpenAIImageGenerator,
   onEdit,
   onDelete,
   onView,
@@ -89,6 +90,7 @@ function DreamGrid({
               onCancel={onCancel}
               onImageUpload={onImageUpload}
               onOpenStockPhotoSearch={onOpenStockPhotoSearch}
+              onOpenAIImageGenerator={onOpenAIImageGenerator}
               dreamCategories={dreamCategories}
               isEditing={true}
               inputRef={inputRef}
@@ -189,6 +191,8 @@ DreamGrid.propTypes = {
   onImageUpload: PropTypes.func.isRequired,
   /** Stock photo search handler */
   onOpenStockPhotoSearch: PropTypes.func.isRequired,
+  /** AI image generator handler */
+  onOpenAIImageGenerator: PropTypes.func.isRequired,
   /** Edit dream handler */
   onEdit: PropTypes.func.isRequired,
   /** Delete dream handler */

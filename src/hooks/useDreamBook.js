@@ -20,6 +20,7 @@ export function useDreamBook() {
   const [isCreating, setIsCreating] = useState(false);
   const [viewingDream, setViewingDream] = useState(null);
   const [showStockPhotoSearch, setShowStockPhotoSearch] = useState(false);
+  const [showAIImageGenerator, setShowAIImageGenerator] = useState(false);
   const [showInspiration, setShowInspiration] = useState(false);
   const [inspirationCategory, setInspirationCategory] = useState('All');
   const [currentFormData, setCurrentFormData] = useState(null);
@@ -485,6 +486,28 @@ export function useDreamBook() {
     setCurrentFormData(null);
   }, []);
 
+  // AI image generator handlers
+  const handleOpenAIImageGenerator = useCallback((formDataContext) => {
+    setCurrentFormData(formDataContext);
+    setShowAIImageGenerator(true);
+  }, []);
+
+  const handleSelectAIImage = useCallback((imageUrl) => {
+    if (currentFormData && currentFormData.setFormData) {
+      currentFormData.setFormData({ 
+        ...currentFormData.formData, 
+        image: imageUrl 
+      });
+    }
+    setShowAIImageGenerator(false);
+    setCurrentFormData(null);
+  }, [currentFormData]);
+
+  const handleCloseAIImageGenerator = useCallback(() => {
+    setShowAIImageGenerator(false);
+    setCurrentFormData(null);
+  }, []);
+
   // Inspiration modal handlers
   const handleOpenInspiration = useCallback(() => {
     setShowInspiration(true);
@@ -516,6 +539,7 @@ export function useDreamBook() {
     // Modal state
     viewingDream,
     showStockPhotoSearch,
+    showAIImageGenerator,
     showInspiration,
     
     // Drag state
@@ -548,6 +572,11 @@ export function useDreamBook() {
     handleOpenStockPhotoSearch,
     handleSelectStockPhoto,
     handleCloseStockPhotoSearch,
+    
+    // AI image generator handlers
+    handleOpenAIImageGenerator,
+    handleSelectAIImage,
+    handleCloseAIImageGenerator,
     
     // Inspiration handlers
     handleOpenInspiration,

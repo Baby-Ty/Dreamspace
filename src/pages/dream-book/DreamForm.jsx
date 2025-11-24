@@ -3,7 +3,7 @@
 
 import { memo } from 'react';
 import PropTypes from 'prop-types';
-import { Save, X, Upload, Search, Image, Repeat, Calendar, Target } from 'lucide-react';
+import { Save, X, Upload, Search, Image, Repeat, Calendar, Target, Sparkles } from 'lucide-react';
 import HelpTooltip from '../../components/HelpTooltip';
 
 /**
@@ -16,7 +16,8 @@ function DreamForm({
   onSave, 
   onCancel, 
   onImageUpload, 
-  onOpenStockPhotoSearch, 
+  onOpenStockPhotoSearch,
+  onOpenAIImageGenerator,
   dreamCategories, 
   isEditing, 
   inputRef, 
@@ -31,6 +32,10 @@ function DreamForm({
 
   const handleStockPhotoSearch = () => {
     onOpenStockPhotoSearch({ formData, setFormData });
+  };
+
+  const handleAIImageGenerator = () => {
+    onOpenAIImageGenerator({ formData, setFormData });
   };
 
   return (
@@ -76,7 +81,7 @@ function DreamForm({
         </div>
 
         {/* Image Upload Options */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <label className={`btn-secondary cursor-pointer flex items-center justify-center space-x-2 py-2 ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <Upload className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm">Upload File</span>
@@ -101,6 +106,18 @@ function DreamForm({
           >
             <Search className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm">Stock Photos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAIImageGenerator}
+            disabled={uploadingImage}
+            aria-label="Generate AI image"
+            data-testid="ai-image-generator-button"
+            className={`btn-secondary flex items-center justify-center space-x-2 py-2 ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm">Generate AI</span>
           </button>
         </div>
       </div>
@@ -480,6 +497,8 @@ DreamForm.propTypes = {
   onImageUpload: PropTypes.func.isRequired,
   /** Callback to open stock photo search */
   onOpenStockPhotoSearch: PropTypes.func.isRequired,
+  /** Callback to open AI image generator */
+  onOpenAIImageGenerator: PropTypes.func.isRequired,
   /** Array of available dream categories */
   dreamCategories: PropTypes.arrayOf(PropTypes.string).isRequired,
   /** Whether in editing mode (vs creating) */

@@ -56,6 +56,9 @@ const envSchema = z.object({
   // Unsplash API (optional - falls back to mock data)
   VITE_UNSPLASH_ACCESS_KEY: z.string().min(1).optional(),
 
+  // OpenAI API (optional - for DALL-E image generation)
+  VITE_OPENAI_API_KEY: z.string().min(1).optional(),
+
   // Microsoft Graph API
   VITE_GRAPH_API_BASE: z.string().url().default('https://graph.microsoft.com/v1.0'),
 
@@ -195,6 +198,7 @@ ${formatValidationErrors(validation.errors)}
 ║     VITE_COSMOS_ENDPOINT=https://your-cosmos.documents... ║
 ║     VITE_COSMOS_KEY=your-cosmos-key                       ║
 ║     VITE_UNSPLASH_ACCESS_KEY=your-unsplash-key            ║
+║     VITE_OPENAI_API_KEY=your-openai-api-key               ║
 ║                                                           ║
 ║  📚 See SETUP_UNSPLASH.md and AZURE_DEPLOYMENT.md         ║
 ║                                                           ║
@@ -224,6 +228,7 @@ export const env = validation.data || {
   VITE_COSMOS_CONTAINER: import.meta.env.VITE_COSMOS_CONTAINER || 'users',
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '/api',
   VITE_UNSPLASH_ACCESS_KEY: import.meta.env.VITE_UNSPLASH_ACCESS_KEY,
+  VITE_OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
   VITE_GRAPH_API_BASE: import.meta.env.VITE_GRAPH_API_BASE || 'https://graph.microsoft.com/v1.0',
   VITE_APPINSIGHTS_CONNECTION_STRING: import.meta.env.VITE_APPINSIGHTS_CONNECTION_STRING,
   VITE_APPINSIGHTS_INSTRUMENTATION_KEY: import.meta.env.VITE_APPINSIGHTS_INSTRUMENTATION_KEY,
@@ -254,6 +259,12 @@ export const config = {
   unsplash: {
     accessKey: env.VITE_UNSPLASH_ACCESS_KEY,
     isConfigured: !!env.VITE_UNSPLASH_ACCESS_KEY,
+  },
+
+  // OpenAI API
+  openai: {
+    apiKey: env.VITE_OPENAI_API_KEY,
+    isConfigured: !!env.VITE_OPENAI_API_KEY,
   },
 
   // Microsoft Graph API
@@ -288,6 +299,7 @@ export function logConfig() {
   console.log('  Environment:', config.env);
   console.log('  Cosmos DB:', config.cosmos.isConfigured ? '✅ Configured' : '❌ Not configured');
   console.log('  Unsplash API:', config.unsplash.isConfigured ? '✅ Configured' : '❌ Not configured (using mocks)');
+  console.log('  OpenAI API:', config.openai.isConfigured ? '✅ Configured' : '❌ Not configured (AI image generation disabled)');
   console.log('  App Insights:', config.appInsights.isConfigured ? '✅ Configured' : '❌ Not configured');
   
   if (config.app.version) {
