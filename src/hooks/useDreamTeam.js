@@ -143,8 +143,11 @@ export function useDreamTeam() {
             
             // Always load avatar and background image from user data for consistency (same mechanism for all users)
             // This ensures we get the latest avatar and background from the user container
-            // But only if we don't already have a real avatar from context
-            if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:')) {
+            // Load if we don't have a real avatar OR if we don't have a card background image
+            const needsAvatarLoad = !updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:');
+            const needsBackgroundLoad = !updatedMember.cardBackgroundImage || 
+                                      (typeof updatedMember.cardBackgroundImage === 'string' && !updatedMember.cardBackgroundImage.trim());
+            if (needsAvatarLoad || needsBackgroundLoad) {
             try {
               const userDataResult = await databaseService.loadUserData(memberId);
                 console.log(`🔍 Loading avatar for ${member.name} (${memberId}):`, {
