@@ -267,7 +267,11 @@ module.exports = async function (context, req) {
     try {
       const { resource } = await usersContainer.item(userId, userId).read();
       profile = resource;
-      context.log(`✅ Profile read successfully for userId: ${userId}`);
+      context.log(`✅ Profile read successfully for userId: ${userId}`, {
+        hasCardBackgroundImage: !!profile.cardBackgroundImage,
+        cardBackgroundImage: profile.cardBackgroundImage ? profile.cardBackgroundImage.substring(0, 80) : 'undefined',
+        profileKeys: Object.keys(profile).filter(k => !k.startsWith('_')).join(', ')
+      });
     } catch (error) {
       if (error.code === 404) {
         context.log(`⚠️ User profile not found for userId: ${userId}`);
@@ -591,7 +595,11 @@ module.exports = async function (context, req) {
         developmentPlan: [] // Disabled in Phase 1
       };
       
-      context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`);
+      context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`, {
+        cardBackgroundImageInResponse: !!userData.cardBackgroundImage,
+        cardBackgroundImage: userData.cardBackgroundImage ? userData.cardBackgroundImage.substring(0, 80) : 'undefined',
+        responseKeys: Object.keys(userData).filter(k => !k.startsWith('_')).join(', ')
+      });
       
       context.res = {
         status: 200,

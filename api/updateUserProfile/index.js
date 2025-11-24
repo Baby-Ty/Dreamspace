@@ -31,6 +31,11 @@ module.exports = async function (context, req) {
 
   context.log('Updating user profile for userId:', userId, 'Profile data:', JSON.stringify(profileData));
   context.log('Office/Region field mappings - region:', profileData.region, 'officeLocation:', profileData.officeLocation, 'city:', profileData.city, 'office:', profileData.office);
+  context.log('Card background image in request:', {
+    hasCardBackgroundImage: 'cardBackgroundImage' in profileData,
+    cardBackgroundImage: profileData.cardBackgroundImage ? profileData.cardBackgroundImage.substring(0, 80) : profileData.cardBackgroundImage,
+    type: typeof profileData.cardBackgroundImage
+  });
 
   if (!userId) {
     context.res = {
@@ -83,7 +88,9 @@ module.exports = async function (context, req) {
       email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
       office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
       avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
-      cardBackgroundImage: profileData.cardBackgroundImage !== undefined ? profileData.cardBackgroundImage : existingDocument?.cardBackgroundImage,
+      cardBackgroundImage: profileData.cardBackgroundImage !== undefined && profileData.cardBackgroundImage !== null && profileData.cardBackgroundImage !== '' 
+        ? profileData.cardBackgroundImage 
+        : (existingDocument?.cardBackgroundImage || undefined),
       // Additional profile fields
       title: profileData.title || existingDocument?.title || '',
       department: profileData.department || existingDocument?.department || '',
@@ -111,12 +118,13 @@ module.exports = async function (context, req) {
       partitionKey: userId,
       id: updatedDocument.id,
       operation: 'upsert',
-      dataStructureVersion: updatedDocument.dataStructureVersion
+      dataStructureVersion: updatedDocument.dataStructureVersion,
+      cardBackgroundImage: updatedDocument.cardBackgroundImage ? 'present' : 'missing'
     });
     
     const { resource } = await container.items.upsert(updatedDocument);
     
-    context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion);
+    context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion, 'cardBackgroundImage:', resource.cardBackgroundImage ? resource.cardBackgroundImage.substring(0, 80) : 'undefined');
     
     context.res = {
       status: 200,
