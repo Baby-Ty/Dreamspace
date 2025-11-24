@@ -37,6 +37,7 @@ jobs:
           VITE_APP_ENV: production
           VITE_COSMOS_ENDPOINT: https://cosmos-dreamspace-prod-20251013.documents.azure.com:443/
           VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 
       - name: 🚀 Deploy to Azure Static Web Apps
         id: builddeploy
