@@ -120,13 +120,25 @@ export default function DreamTeamLayout() {
     if (!selectedMemberForBackground) return;
 
     try {
-      const result = await peopleService.updateUserBackgroundImage(
+      // First upload the image to blob storage (backend fetches from URL server-side to avoid CORS)
+      const uploadResult = await peopleService.uploadUserBackgroundImageFromUrl(
         selectedMemberForBackground.id,
         imageUrl
       );
 
+      if (!uploadResult.success) {
+        showToast(`Failed to upload background: ${uploadResult.error}`, 'error');
+        return;
+      }
+
+      // Then save the blob storage URL to the user profile
+      const result = await peopleService.updateUserBackgroundImage(
+        selectedMemberForBackground.id,
+        uploadResult.data.url
+      );
+
       if (result.success) {
-        console.log('✅ Background image saved successfully, refreshing team data...');
+        console.log('✅ Background image uploaded and saved successfully, refreshing team data...');
         showToast('Background image updated successfully', 'success');
         setShowAIBackgroundGenerator(false);
         setSelectedMemberForBackground(null);

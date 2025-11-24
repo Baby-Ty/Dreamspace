@@ -286,9 +286,43 @@ class PeopleService {
   }
 
   /**
+   * Upload a user background image from a URL (e.g., DALL-E generated images)
+   * The backend will fetch the image server-side to avoid CORS issues
+   * @param {string} userId - User ID
+   * @param {string} imageUrl - URL of the image to upload
+   * @returns {Promise<{success: boolean, data?: {url: string}, error?: string}>}
+   */
+  async uploadUserBackgroundImageFromUrl(userId, imageUrl) {
+    try {
+      console.log('📸 Uploading user background image from URL:', { userId, imageUrl });
+
+      const response = await fetch(`${this.apiBase}/uploadUserBackgroundImage/${encodeURIComponent(userId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ imageUrl })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ User background image uploaded from URL:', result.url);
+        return ok({ url: result.url });
+      } else {
+        const error = await response.json();
+        console.error('❌ Error uploading user background image from URL:', error);
+        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to upload user background image from URL');
+      }
+    } catch (error) {
+      console.error('❌ Error uploading user background image from URL:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to upload user background image from URL');
+    }
+  }
+
+  /**
    * Update user's card background image
    * @param {string} userId - User ID
-   * @param {string} imageUrl - Background image URL
+   * @param {string} imageUrl - Background image URL (should be blob storage URL)
    * @returns {Promise<{success: boolean, data?: object, error?: object}>}
    */
   async updateUserBackgroundImage(userId, imageUrl) {
