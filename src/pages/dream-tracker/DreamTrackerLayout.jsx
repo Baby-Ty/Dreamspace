@@ -73,9 +73,11 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
     hasChanges,
     isAddingGoal,
     setIsAddingGoal,
+    isSavingGoal,
     newGoalData,
     setNewGoalData,
     editingGoal,
+    isSavingGoalEdit,
     goalEditData,
     setGoalEditData,
     
@@ -468,6 +470,8 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
                 goalEditData={goalEditData}
                 setGoalEditData={setGoalEditData}
                 canEdit={canEdit}
+                isSavingGoal={isSavingGoal}
+                isSavingGoalEdit={isSavingGoalEdit}
               />
             )}
 

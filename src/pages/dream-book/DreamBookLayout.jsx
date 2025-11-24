@@ -32,6 +32,7 @@ export default function DreamBookLayout() {
     formData,
     setFormData,
     uploadingImage,
+    isSaving,
     
     // Modal state
     viewingDream,
@@ -280,6 +281,7 @@ export default function DreamBookLayout() {
                 isEditing={false}
                 inputRef={editTitleRef}
                 uploadingImage={uploadingImage}
+                isSaving={isSaving}
               />
             </div>
           </div>

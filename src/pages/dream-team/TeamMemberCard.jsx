@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { MapPin, Award, Heart, Users2, Sparkles, RotateCw, X } from 'lucide-react';
+import { MapPin, Award, Heart, Sparkles, RotateCw, X } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -86,16 +86,7 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
           <div className="relative z-10 flex flex-col items-center justify-between h-full p-6">
             
             {/* Top Actions */}
-            <div className="w-full flex justify-between items-start">
-              {/* Coach Badge (Top Left) */}
-              {member.isCoach && (
-                <div className="bg-netsurit-red text-white p-1.5 rounded-lg shadow-md">
-                  <Users2 className="w-4 h-4" aria-hidden="true" />
-                </div>
-              )}
-              {/* Spacer if no coach badge */}
-              {!member.isCoach && <div />}
-
+            <div className="w-full flex justify-end items-start">
               {/* Generate Background Button (Current User Only) */}
               {isCurrentUser && onGenerateBackground && (
                 <button

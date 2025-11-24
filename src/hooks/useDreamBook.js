@@ -26,6 +26,7 @@ export function useDreamBook() {
   const [currentFormData, setCurrentFormData] = useState(null);
   const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, targetDate: '' } });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [tempDreamId, setTempDreamId] = useState(null);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -135,7 +136,10 @@ export function useDreamBook() {
   }, [dreamCategories]);
 
   const handleSave = useCallback(async () => {
-    if (isCreating) {
+    if (isSaving) return; // Prevent double-clicks
+    setIsSaving(true);
+    try {
+      if (isCreating) {
       const newDream = {
         id: tempDreamId,
         title: formData.title,
@@ -291,7 +295,10 @@ export function useDreamBook() {
         targetDate: ''
       }
     });
-  }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream, currentUser]);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream, currentUser, isSaving]);
 
   const handleCancel = useCallback(() => {
     setIsCreating(false);
@@ -560,6 +567,7 @@ export function useDreamBook() {
     formData,
     setFormData,
     uploadingImage,
+    isSaving,
     tempDreamId,
     
     // Modal state

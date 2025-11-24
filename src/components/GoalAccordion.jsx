@@ -13,7 +13,8 @@ import {
   X,
   Trash2,
   Repeat,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 
 /**
@@ -31,7 +32,8 @@ function GoalAccordion({
   onSaveEditing,
   editData,
   setEditData,
-  canEdit = true
+  canEdit = true,
+  isSavingGoalEdit = false
 }) {
   // Early return if no goal
   if (!goal) {
@@ -232,14 +234,25 @@ function GoalAccordion({
           <div className="flex space-x-2 pt-2">
             <button
               onClick={onSaveEditing}
-              className="flex-1 bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-coral transition-colors flex items-center justify-center space-x-2"
+              disabled={isSavingGoalEdit}
+              className="flex-1 bg-netsurit-red text-white px-4 py-2 rounded-lg hover:bg-netsurit-coral transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              <span>Save</span>
+              {isSavingGoalEdit ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save</span>
+                </>
+              )}
             </button>
             <button
               onClick={onCancelEditing}
-              className="flex-1 bg-professional-gray-200 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-professional-gray-300 transition-colors flex items-center justify-center space-x-2"
+              disabled={isSavingGoalEdit}
+              className="flex-1 bg-professional-gray-200 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-professional-gray-300 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <X className="w-4 h-4" />
               <span>Cancel</span>
@@ -462,7 +475,8 @@ GoalAccordion.propTypes = {
   onSaveEditing: PropTypes.func,
   canEdit: PropTypes.bool,
   editData: PropTypes.object,
-  setEditData: PropTypes.func
+  setEditData: PropTypes.func,
+  isSavingGoalEdit: PropTypes.bool
 };
 
 export default memo(GoalAccordion);

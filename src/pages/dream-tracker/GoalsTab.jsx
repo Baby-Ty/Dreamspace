@@ -8,7 +8,8 @@ import {
   X, 
   Target,
   Repeat,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import GoalAccordion from '../../components/GoalAccordion';
 
@@ -33,7 +34,9 @@ export function GoalsTab({
   onSaveEditedGoal,
   goalEditData,
   setGoalEditData,
-  canEdit = true
+  canEdit = true,
+  isSavingGoal = false,
+  isSavingGoalEdit = false
 }) {
   const completedCount = goals.filter(g => g.completed).length;
   
@@ -278,11 +281,20 @@ export function GoalsTab({
           <div className="flex gap-2 pt-2">
             <button
               onClick={onAddGoal}
-              disabled={!newGoalData.title.trim() || (newGoalData.type === 'deadline' && !newGoalData.targetDate)}
+              disabled={!newGoalData.title.trim() || (newGoalData.type === 'deadline' && !newGoalData.targetDate) || isSavingGoal}
               className="flex-1 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm font-medium"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Goal</span>
+              {isSavingGoal ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Adding...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span>Add Goal</span>
+                </>
+              )}
             </button>
             <button
               onClick={() => {
@@ -320,6 +332,7 @@ export function GoalsTab({
                 editData={goalEditData}
                 setEditData={setGoalEditData}
                 canEdit={canEdit}
+                isSavingGoalEdit={isSavingGoalEdit}
               />
             </div>
           ))
@@ -364,7 +377,9 @@ GoalsTab.propTypes = {
     targetDate: PropTypes.string
   }).isRequired,
   setGoalEditData: PropTypes.func.isRequired,
-  canEdit: PropTypes.bool
+  canEdit: PropTypes.bool,
+  isSavingGoal: PropTypes.bool,
+  isSavingGoalEdit: PropTypes.bool
 };
 
 export default React.memo(GoalsTab);

@@ -108,10 +108,12 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
 
   // Goal add state
   const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [newGoalData, setNewGoalData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
 
   // Goal edit state
   const [editingGoal, setEditingGoal] = useState(null);
+  const [isSavingGoalEdit, setIsSavingGoalEdit] = useState(false);
   const [goalEditData, setGoalEditData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
 
   // Update local dream when prop changes
@@ -161,9 +163,10 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
 
   // Goal handlers
   const handleAddGoal = useCallback(async () => {
-    if (!newGoalData.title.trim()) return;
-    
-    const nowIso = new Date().toISOString();
+    if (!newGoalData.title.trim() || isSavingGoal) return;
+    setIsSavingGoal(true);
+    try {
+      const nowIso = new Date().toISOString();
     const currentWeekIso = getCurrentIsoWeek();
     
     // Calculate targetWeeks and weeksRemaining for goals
@@ -216,11 +219,14 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     // Dashboard auto-instantiation (useDashboardData.js) reads from dream.goals[]
     // and automatically creates instances for the current week.
     
-    // Trigger dashboard refresh
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('goals-updated'));
-    }, 100);
-  }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, currentUser.id]);
+      // Trigger dashboard refresh
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goals-updated'));
+      }, 100);
+    } finally {
+      setIsSavingGoal(false);
+    }
+  }, [newGoalData, localDream.id, localDream.title, localDream.category, addGoal, currentUser.id, isSavingGoal]);
 
   const toggleGoal = useCallback(async (goalId) => {
     const goal = dreamGoals.find(g => g.id === goalId);
@@ -514,10 +520,11 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
   }, []);
 
   const saveEditedGoal = useCallback(async () => {
-    if (!goalEditData.title.trim()) return;
-
-    const goal = dreamGoals.find(g => g.id === editingGoal);
-    if (!goal) return;
+    if (!goalEditData.title.trim() || isSavingGoalEdit) return;
+    setIsSavingGoalEdit(true);
+    try {
+      const goal = dreamGoals.find(g => g.id === editingGoal);
+      if (!goal) return;
     
     const isTemplate = goal.type === 'weekly_goal_template';
     
@@ -647,12 +654,15 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       // Don't fail the whole operation if this fails
     }
 
-    // Re-create weekly entries if needed
-    // NOTE: No need to recreate weekly entries manually.
-    // Dashboard auto-instantiation reads from dream.goals[] and handles instances automatically.
+      // Re-create weekly entries if needed
+      // NOTE: No need to recreate weekly entries manually.
+      // Dashboard auto-instantiation reads from dream.goals[] and handles instances automatically.
 
-    cancelEditingGoal();
-  }, [goalEditData, editingGoal, dreamGoals, localDream.id, localDream.title, localDream.category, updateWeeklyGoal, updateGoal, cancelEditingGoal, currentUser.id]);
+      cancelEditingGoal();
+    } finally {
+      setIsSavingGoalEdit(false);
+    }
+  }, [goalEditData, editingGoal, dreamGoals, localDream.id, localDream.title, localDream.category, updateWeeklyGoal, updateGoal, cancelEditingGoal, currentUser.id, isSavingGoalEdit]);
 
   // Note handlers
   const addNote = useCallback(() => {
@@ -915,6 +925,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     newGoalData,
     setNewGoalData,
     editingGoal,
+    isSavingGoalEdit,
     goalEditData,
     setGoalEditData,
     

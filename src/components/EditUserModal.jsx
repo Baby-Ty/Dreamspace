@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Loader2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import FlagIcon from './FlagIcon';
 import { getCountryCode, getSupportedRegions } from '../utils/regionUtils';
@@ -279,9 +279,16 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
               type="submit"
               form="editUserForm"
               disabled={isSaving}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           </div>
         </div>

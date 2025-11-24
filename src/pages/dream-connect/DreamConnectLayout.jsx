@@ -66,6 +66,7 @@ export default function DreamConnectLayout() {
   const [requestMessage, setRequestMessage] = useState('');
   const [agenda, setAgenda] = useState('');
   const [proposedWeeks, setProposedWeeks] = useState([]);
+  const [isSavingConnect, setIsSavingConnect] = useState(false);
 
   // Roving tabindex for keyboard navigation in grid (3 columns on large screens)
   // Ensure connections is always an array to prevent hook errors
@@ -106,6 +107,9 @@ export default function DreamConnectLayout() {
       return;
     }
 
+    if (isSavingConnect) return; // Prevent double-clicks
+    setIsSavingConnect(true);
+
     try {
       // Create connect entry (matches enhanced schema)
       const connectData = {
@@ -144,6 +148,8 @@ export default function DreamConnectLayout() {
     } catch (err) {
       console.error('❌ Error sending connect request:', err);
       alert(`Failed to send connect request to ${selectedUser?.name}. Please try again.`);
+    } finally {
+      setIsSavingConnect(false);
     }
   };
 
@@ -908,12 +914,21 @@ export default function DreamConnectLayout() {
               {/* Send Request Button - Left, Red, Large */}
               <button
                 onClick={handleSendRequest}
-                disabled={!requestMessage.trim() || !agenda.trim() || proposedWeeks.length === 0}
+                disabled={!requestMessage.trim() || !agenda.trim() || proposedWeeks.length === 0 || isSavingConnect}
                 className="flex-1 px-4 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 data-testid="send-connect-request-button"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Send Request
+                {isSavingConnect ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Request
+                  </>
+                )}
               </button>
               
               {/* Cancel Button - Right, Grey, Small */}

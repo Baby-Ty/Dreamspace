@@ -21,10 +21,11 @@ export function DalleService(apiKey) {
 
   /**
    * Build DreamSpace-style prompt from user search term
-   * Combines user input with inspirational, realistic aesthetic
+   * Optimized for user card backgrounds - vibrant, adventurous, and exciting
+   * Combines user input with dynamic, action-packed aesthetic
    */
   const buildDreamSpacePrompt = (userSearchTerm) => {
-    const baseStyle = 'inspirational and aspirational scene, bright and motivating atmosphere, realistic photographic style, authentic lifestyle imagery, professional quality, uplifting and success-oriented';
+    const baseStyle = 'vibrant and adventurous scene, exciting and dynamic atmosphere, perfect for user card background, wide landscape orientation, bold colors, energetic composition, inspiring and action-packed, cinematic quality, dramatic lighting, compelling visual storytelling';
     return `A ${userSearchTerm}, ${baseStyle}`;
   };
 
