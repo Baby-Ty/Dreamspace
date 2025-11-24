@@ -62,28 +62,9 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(dream?.title || '');
 
-  // Sync editedTitle when dream prop or localDream changes
-  useEffect(() => {
-    if (!isEditingTitle) {
-      setEditedTitle(localDream?.title || dream?.title || '');
-    }
-  }, [localDream?.title, dream?.title, isEditingTitle]);
-
   const activeStage = SELF_PROGRESS_STAGES[selfProgressStage] || SELF_PROGRESS_STAGES[0];
-
-  // Handle stage change and persist
-  const handleStageChange = (newStage) => {
-    setSelfProgressStage(newStage);
-    
-    // Map stage to numeric progress for persistence (4 stages: 25%, 50%, 75%, 100%)
-    const stageToProgress = [25, 50, 75, 100];
-    const newProgress = stageToProgress[newStage] || 25;
-    
-    // Call handleProgressChange from the hook to trigger save
-    if (handleProgressChange) {
-      handleProgressChange(newProgress);
-    }
-  };
+  
+  // ✅ FIX: Call hook BEFORE using its return values
   const {
     // State
     activeTab,
@@ -139,6 +120,27 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
     canEdit,
     coachNotes,
   } = useDreamTracker(dream, onUpdate, isCoachViewing, teamMember);
+
+  // ✅ FIX: Handle stage change AFTER handleProgressChange is available from hook
+  const handleStageChange = (newStage) => {
+    setSelfProgressStage(newStage);
+    
+    // Map stage to numeric progress for persistence (4 stages: 25%, 50%, 75%, 100%)
+    const stageToProgress = [25, 50, 75, 100];
+    const newProgress = stageToProgress[newStage] || 25;
+    
+    // Call handleProgressChange from the hook to trigger save
+    if (handleProgressChange) {
+      handleProgressChange(newProgress);
+    }
+  };
+
+  // ✅ FIX: Sync editedTitle AFTER localDream is available from hook
+  useEffect(() => {
+    if (!isEditingTitle) {
+      setEditedTitle(localDream?.title || dream?.title || '');
+    }
+  }, [localDream?.title, dream?.title, isEditingTitle]);
 
   return (
     <>
