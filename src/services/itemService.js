@@ -287,6 +287,41 @@ class ItemService {
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to upload dream picture');
     }
   }
+
+  /**
+   * Upload a dream picture from a URL (e.g., DALL-E generated images)
+   * The backend will fetch the image server-side to avoid CORS issues
+   * @param {string} userId - User ID
+   * @param {string} dreamId - Dream ID
+   * @param {string} imageUrl - URL of the image to upload
+   * @returns {Promise<{success: boolean, data?: {url: string}, error?: string}>}
+   */
+  async uploadDreamPictureFromUrl(userId, dreamId, imageUrl) {
+    try {
+      console.log('📸 Uploading dream picture from URL:', { userId, dreamId, imageUrl });
+
+      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ imageUrl })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Dream picture uploaded from URL:', result.url);
+        return ok({ url: result.url });
+      } else {
+        const error = await response.json();
+        console.error('❌ Error uploading dream picture from URL:', error);
+        return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to upload dream picture from URL');
+      }
+    } catch (error) {
+      console.error('❌ Error uploading dream picture from URL:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to upload dream picture from URL');
+    }
+  }
 }
 
 // Create singleton instance

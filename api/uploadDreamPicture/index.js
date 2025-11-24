@@ -1,4 +1,6 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
+const https = require('https');
+const http = require('http');
 
 // Initialize Blob Service Client
 let blobServiceClient;
@@ -9,6 +11,30 @@ if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
 }
 
 const CONTAINER_NAME = 'dreams-pictures';
+
+/**
+ * Fetch image from URL (server-side, no CORS issues)
+ */
+function fetchImageFromUrl(url) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const client = urlObj.protocol === 'https:' ? https : http;
+    
+    client.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed to fetch image: ${res.statusCode} ${res.statusMessage}`));
+        return;
+      }
+      
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+      res.on('error', reject);
+    }).on('error', reject);
+  });
+}
 
 module.exports = async function (context, req) {
   // Set CORS headers
@@ -62,17 +88,61 @@ module.exports = async function (context, req) {
   }
 
   try {
-    // Get the image data from the request body
-    // Body should be the raw image data (blob)
-    const imageBuffer = req.body;
+    let imageBuffer;
+    let contentType = 'image/jpeg';
 
-    if (!imageBuffer || imageBuffer.length === 0) {
-      context.res = {
-        status: 400,
-        body: JSON.stringify({ error: 'Image data is required' }),
-        headers
-      };
-      return;
+    // Check if request body is JSON with imageUrl (for DALL-E images)
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      
+      if (body.imageUrl) {
+        // Fetch image from URL (server-side, no CORS issues)
+        context.log('Fetching image from URL:', body.imageUrl);
+        imageBuffer = await fetchImageFromUrl(body.imageUrl);
+        
+        // Detect content type from URL or buffer
+        if (body.imageUrl.includes('.png')) {
+          contentType = 'image/png';
+        } else if (body.imageUrl.includes('.gif')) {
+          contentType = 'image/gif';
+        } else if (body.imageUrl.includes('.webp')) {
+          contentType = 'image/webp';
+        } else if (imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50) {
+          contentType = 'image/png';
+        } else if (imageBuffer[0] === 0x47 && imageBuffer[1] === 0x49) {
+          contentType = 'image/gif';
+        } else if (imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49) {
+          contentType = 'image/webp';
+        }
+      } else {
+        context.res = {
+          status: 400,
+          body: JSON.stringify({ error: 'imageUrl is required in JSON body' }),
+          headers
+        };
+        return;
+      }
+    } else {
+      // Get the image data from the request body (binary upload)
+      imageBuffer = req.body;
+
+      if (!imageBuffer || imageBuffer.length === 0) {
+        context.res = {
+          status: 400,
+          body: JSON.stringify({ error: 'Image data is required' }),
+          headers
+        };
+        return;
+      }
+
+      // Detect content type from the buffer
+      if (imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50) {
+        contentType = 'image/png';
+      } else if (imageBuffer[0] === 0x47 && imageBuffer[1] === 0x49) {
+        contentType = 'image/gif';
+      } else if (imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49) {
+        contentType = 'image/webp';
+      }
     }
 
     // Get container client
@@ -87,20 +157,15 @@ module.exports = async function (context, req) {
     const safeUserId = userId.replace(/[^a-zA-Z0-9-_@.]/g, '_');
     const safeDreamId = dreamId.replace(/[^a-zA-Z0-9-_]/g, '_');
     const timestamp = Date.now();
-    const blobName = `${safeUserId}/${safeDreamId}_${timestamp}.jpg`;
+    
+    // Determine file extension from content type
+    const extension = contentType === 'image/png' ? 'png' : 
+                     contentType === 'image/gif' ? 'gif' : 
+                     contentType === 'image/webp' ? 'webp' : 'jpg';
+    const blobName = `${safeUserId}/${safeDreamId}_${timestamp}.${extension}`;
 
     // Get blob client
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-    // Detect content type from the buffer (basic detection)
-    let contentType = 'image/jpeg';
-    if (imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50) {
-      contentType = 'image/png';
-    } else if (imageBuffer[0] === 0x47 && imageBuffer[1] === 0x49) {
-      contentType = 'image/gif';
-    } else if (imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49) {
-      contentType = 'image/webp';
-    }
 
     // Upload the image
     const uploadOptions = {

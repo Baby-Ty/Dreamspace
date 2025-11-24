@@ -492,16 +492,42 @@ export function useDreamBook() {
     setShowAIImageGenerator(true);
   }, []);
 
-  const handleSelectAIImage = useCallback((imageUrl) => {
-    if (currentFormData && currentFormData.setFormData) {
-      currentFormData.setFormData({ 
-        ...currentFormData.formData, 
-        image: imageUrl 
-      });
+  const handleSelectAIImage = useCallback(async (imageUrl) => {
+    if (!currentFormData || !currentFormData.setFormData) {
+      return;
     }
-    setShowAIImageGenerator(false);
-    setCurrentFormData(null);
-  }, [currentFormData]);
+
+    try {
+      setUploadingImage(true);
+
+      // Upload to blob storage via backend (backend fetches from URL server-side to avoid CORS)
+      const dreamId = isCreating ? tempDreamId : editingDream;
+      const result = await itemService.uploadDreamPictureFromUrl(
+        currentUser.id,
+        dreamId,
+        imageUrl
+      );
+
+      if (result.success) {
+        // Set the blob storage URL in form data
+        currentFormData.setFormData({ 
+          ...currentFormData.formData, 
+          image: result.data.url 
+        });
+        console.log('✅ DALL-E image uploaded to blob storage successfully');
+      } else {
+        console.error('Failed to upload DALL-E image:', result.error);
+        alert('Failed to upload image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading DALL-E image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      setShowAIImageGenerator(false);
+      setCurrentFormData(null);
+    }
+  }, [currentFormData, isCreating, tempDreamId, editingDream, currentUser]);
 
   const handleCloseAIImageGenerator = useCallback(() => {
     setShowAIImageGenerator(false);
