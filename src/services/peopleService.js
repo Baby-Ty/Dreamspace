@@ -284,6 +284,61 @@ class PeopleService {
     const { userManagementService } = await import('./userManagementService.js');
     return userManagementService.replaceTeamCoach(oldCoachId, newCoachId, teamName, demoteOption, assignToTeamId);
   }
+
+  /**
+   * Update user's card background image
+   * @param {string} userId - User ID
+   * @param {string} imageUrl - Background image URL
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
+  async updateUserBackgroundImage(userId, imageUrl) {
+    if (!userId) {
+      return fail(ErrorCodes.INVALID_INPUT, 'User ID is required');
+    }
+
+    if (!imageUrl) {
+      return fail(ErrorCodes.INVALID_INPUT, 'Image URL is required');
+    }
+
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/updateUserProfile/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cardBackgroundImage: imageUrl
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          return fail(ErrorCodes.NETWORK, errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Updated user background image:', userId);
+        return ok(result);
+      } else {
+        // Fallback to localStorage for development
+        const users = await this.getLocalStorageUsers();
+        const userIndex = users.findIndex(u => u.id === userId || u.userId === userId);
+        
+        if (userIndex === -1) {
+          return fail(ErrorCodes.VALIDATION, 'User not found');
+        }
+
+        users[userIndex].cardBackgroundImage = imageUrl;
+        localStorage.setItem('dreamspace_all_users', JSON.stringify(users));
+        console.log('📱 Updated user background image in localStorage:', userId);
+        return ok({ success: true, id: userId });
+      }
+    } catch (error) {
+      console.error('❌ Error updating user background image:', error);
+      return fail(ErrorCodes.NETWORK, error.message || 'Failed to update background image');
+    }
+  }
 }
 
 // Create and export singleton instance

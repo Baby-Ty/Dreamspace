@@ -18,17 +18,21 @@ import {
 } from 'lucide-react';
 import TeamMemberCard from './TeamMemberCard';
 import MeetingScheduleCard from './MeetingScheduleCard';
+import AIImageGenerator from '../../components/AIImageGenerator';
 import { useDreamTeam } from '../../hooks/useDreamTeam';
+import { useApp } from '../../context/AppContext';
 import HelpTooltip from '../../components/HelpTooltip';
 import { coachingService } from '../../services/coachingService';
 import { generateRandomTeamName } from '../../utils/teamNameGenerator';
 import { showToast } from '../../utils/toast';
+import peopleService from '../../services/peopleService';
 
 /**
  * Main layout for Dream Team page
  * Handles orchestration, modals, and state management
  */
 export default function DreamTeamLayout() {
+  const { currentUser } = useApp();
   const {
     teamData,
     teamMembers,
@@ -46,6 +50,10 @@ export default function DreamTeamLayout() {
   // Edit team name state
   const [isEditingTeamName, setIsEditingTeamName] = useState(false);
   const [editedTeamName, setEditedTeamName] = useState('');
+
+  // AI Background Generator state
+  const [showAIBackgroundGenerator, setShowAIBackgroundGenerator] = useState(false);
+  const [selectedMemberForBackground, setSelectedMemberForBackground] = useState(null);
 
   const handleEditTeamInfo = () => {
     setEditedMission(teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.');
@@ -100,6 +108,42 @@ export default function DreamTeamLayout() {
 
   const handleGenerateRandomTeamName = () => {
     setEditedTeamName(generateRandomTeamName());
+  };
+
+  // AI Background Generator handlers
+  const handleOpenAIBackgroundGenerator = (member) => {
+    setSelectedMemberForBackground(member);
+    setShowAIBackgroundGenerator(true);
+  };
+
+  const handleSelectAIBackground = async (imageUrl) => {
+    if (!selectedMemberForBackground) return;
+
+    try {
+      const result = await peopleService.updateUserBackgroundImage(
+        selectedMemberForBackground.id,
+        imageUrl
+      );
+
+      if (result.success) {
+        console.log('✅ Background image saved successfully, refreshing team data...');
+        showToast('Background image updated successfully', 'success');
+        setShowAIBackgroundGenerator(false);
+        setSelectedMemberForBackground(null);
+        // Refresh team data to show new background (this will reload from database)
+        refreshData();
+      } else {
+        showToast(`Failed to update background: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error updating background image:', error);
+      showToast('Failed to update background image', 'error');
+    }
+  };
+
+  const handleCloseAIBackgroundGenerator = () => {
+    setShowAIBackgroundGenerator(false);
+    setSelectedMemberForBackground(null);
   };
 
 
@@ -397,6 +441,8 @@ export default function DreamTeamLayout() {
               <TeamMemberCard
                 key={member.id}
                 member={member}
+                currentUserId={currentUser?.id}
+                onGenerateBackground={handleOpenAIBackgroundGenerator}
               />
             ))}
           </div>
@@ -485,6 +531,14 @@ export default function DreamTeamLayout() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* AI Background Generator Modal */}
+      {showAIBackgroundGenerator && (
+        <AIImageGenerator
+          onSelectImage={handleSelectAIBackground}
+          onClose={handleCloseAIBackgroundGenerator}
+        />
       )}
     </div>
   );

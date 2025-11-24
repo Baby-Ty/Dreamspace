@@ -83,6 +83,7 @@ module.exports = async function (context, req) {
       email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
       office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
       avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
+      cardBackgroundImage: profileData.cardBackgroundImage !== undefined ? profileData.cardBackgroundImage : existingDocument?.cardBackgroundImage,
       // Additional profile fields
       title: profileData.title || existingDocument?.title || '',
       department: profileData.department || existingDocument?.department || '',

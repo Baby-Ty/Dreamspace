@@ -33,6 +33,7 @@ export function GraphService(authedFetch, getToken = null) {
     /**
      * Get current user's profile photo
      * Returns a blob URL for the photo, or null if not available
+     * NOTE: This returns a temporary blob URL. Use uploadMyPhotoToStorage() for permanent storage.
      */
     async getMyPhoto() {
       if (!getToken) {
@@ -63,6 +64,78 @@ export function GraphService(authedFetch, getToken = null) {
       } catch (error) {
         console.log('Error fetching photo, using fallback:', error.message);
         return ok(null);
+      }
+    },
+
+    /**
+     * Upload current user's profile photo to Azure Blob Storage
+     * Fetches photo from Microsoft Graph, uploads to blob storage, returns permanent URL
+     * @param {string} userId - User ID for the upload endpoint
+     * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+     */
+    async uploadMyPhotoToStorage(userId) {
+      if (!getToken) {
+        return fail(ErrorCodes.INVALID_CONFIG, 'getToken function is required for photo fetch');
+      }
+
+      if (!userId) {
+        return fail(ErrorCodes.INVALID_INPUT, 'User ID is required');
+      }
+
+      try {
+        // Step 1: Fetch photo from Microsoft Graph
+        const token = await getToken();
+        if (!token) {
+          return fail(ErrorCodes.AUTH_ERROR, 'No authentication token available');
+        }
+
+        const response = await fetch(`${GRAPH_API_BASE}/me/photo/$value`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          // Photo not available - not an error, just return null
+          console.log('No profile photo available from Microsoft Graph');
+          return ok(null);
+        }
+
+        // Step 2: Convert blob to ArrayBuffer for upload
+        const photoBlob = await response.blob();
+        const arrayBuffer = await photoBlob.arrayBuffer();
+        const imageBuffer = new Uint8Array(arrayBuffer);
+
+        // Step 3: Upload to Azure Blob Storage via Azure Function
+        const { config } = await import('../utils/env.js');
+        const uploadUrl = `${config.api.baseUrl}/uploadProfilePicture/${encodeURIComponent(userId)}`;
+        
+        console.log('📤 Uploading profile picture to blob storage...');
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream'
+          },
+          body: imageBuffer
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          const errorMessage = errorData.error || `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`;
+          console.error('❌ Failed to upload profile picture:', errorMessage);
+          return fail(ErrorCodes.NETWORK, errorMessage);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        if (uploadResult.success && uploadResult.url) {
+          console.log('✅ Profile picture uploaded successfully:', uploadResult.url);
+          return ok(uploadResult.url);
+        } else {
+          return fail(ErrorCodes.NETWORK, uploadResult.error || 'Upload succeeded but no URL returned');
+        }
+      } catch (error) {
+        console.error('❌ Error uploading profile picture:', error);
+        return fail(ErrorCodes.NETWORK, error.message || 'Failed to upload profile picture');
       }
     },
 

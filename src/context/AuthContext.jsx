@@ -65,17 +65,27 @@ export const AuthProvider = ({ children }) => {
       if (profileResult.success) {
         const profileData = profileResult.data;
         
-        // Try to get user photo from Microsoft Graph
+        // Try to get user photo from Microsoft Graph and upload to blob storage
         let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
         const userId = profileData.userPrincipalName || profileData.mail || account.username;
         
-        console.log('📸 Attempting to fetch profile picture from Microsoft Graph...');
-        const photoResult = await graph.getMyPhoto();
-        if (photoResult.success && photoResult.data) {
-          avatarUrl = photoResult.data;
-          console.log('✅ Profile picture fetched from Microsoft Graph:', avatarUrl);
+        console.log('📸 Attempting to fetch and upload profile picture from Microsoft Graph...');
+        const uploadResult = await graph.uploadMyPhotoToStorage(userId);
+        if (uploadResult.success && uploadResult.data) {
+          // Successfully uploaded to blob storage - use permanent URL
+          avatarUrl = uploadResult.data;
+          console.log('✅ Profile picture uploaded to blob storage:', avatarUrl);
         } else {
-          console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
+          // Try fallback to temporary blob URL (for development/testing)
+          console.log('ℹ️ Blob storage upload failed or no photo available, trying temporary blob URL...');
+          const photoResult = await graph.getMyPhoto();
+          if (photoResult.success && photoResult.data) {
+            avatarUrl = photoResult.data;
+            console.log('⚠️ Using temporary blob URL (will expire after session):', avatarUrl);
+            console.log('💡 Consider checking blob storage configuration for permanent URLs');
+          } else {
+            console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
+          }
         }
 
         // Create fresh profile for authenticated users
@@ -109,13 +119,36 @@ export const AuthProvider = ({ children }) => {
             const existingUser = existingData.data.currentUser || existingData.data;
             console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
             console.log('📊 Data structure version:', existingUser.dataStructureVersion || 1);
+            
+            // Check if existing avatar is a permanent URL (not a blob URL)
+            const existingAvatar = existingUser.avatar;
+            if (existingAvatar && 
+                typeof existingAvatar === 'string' && 
+                !existingAvatar.startsWith('blob:') && 
+                !existingAvatar.includes('ui-avatars.com')) {
+              // Use existing permanent avatar URL
+              console.log('✅ Using existing permanent avatar URL from database');
+              avatarUrl = existingAvatar;
+            } else if (existingAvatar && existingAvatar.startsWith('blob:')) {
+              // Existing avatar is a blob URL - try to upload to get permanent URL
+              console.log('⚠️ Existing avatar is a blob URL, attempting to upload to blob storage...');
+              const uploadResult = await graph.uploadMyPhotoToStorage(userData.id);
+              if (uploadResult.success && uploadResult.data) {
+                avatarUrl = uploadResult.data;
+                console.log('✅ Successfully uploaded existing blob URL to permanent storage');
+              } else {
+                console.log('ℹ️ Could not upload blob URL, keeping new avatar from Graph');
+              }
+            }
+            // Otherwise, use the avatarUrl we fetched/uploaded above
+            
             userData = {
               ...existingUser,
               // Update only basic profile info, keep everything else
               name: userData.name,
               email: userData.email,
               office: userData.office,
-              avatar: userData.avatar
+              avatar: avatarUrl // Use the final avatar URL (permanent if available)
             };
             console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
           } else {
