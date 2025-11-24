@@ -196,6 +196,10 @@ module.exports = async function (context, req) {
       const updatedProfile = {
         ...existingProfile, // Keep existing data
         ...profileData, // Merge updates
+        // Explicitly preserve cardBackgroundImage from existing profile if not in profileData
+        cardBackgroundImage: profileData.cardBackgroundImage !== undefined 
+          ? profileData.cardBackgroundImage 
+          : (existingProfile?.cardBackgroundImage || undefined),
         id: userId,
         userId: userId,
         dataStructureVersion: 3, // Use version 3 for 6-container architecture
@@ -208,7 +212,10 @@ module.exports = async function (context, req) {
         partitionKey: userId,
         id: updatedProfile.id,
         operation: 'upsert',
-        dataStructureVersion: 3
+        dataStructureVersion: 3,
+        cardBackgroundImage: updatedProfile.cardBackgroundImage ? updatedProfile.cardBackgroundImage.substring(0, 80) : 'undefined',
+        hadInExisting: !!existingProfile?.cardBackgroundImage,
+        hadInProfileData: profileData.cardBackgroundImage !== undefined
       });
       
       await usersContainer.items.upsert(updatedProfile);
@@ -236,6 +243,10 @@ module.exports = async function (context, req) {
       profile.userId = userId;
       profile.dataStructureVersion = 3; // Set to v3 for 6-container architecture
       profile.currentYear = new Date().getFullYear();
+      // Preserve cardBackgroundImage from existing profile if not in extracted profile
+      if (existingProfile?.cardBackgroundImage && !profile.cardBackgroundImage) {
+        profile.cardBackgroundImage = existingProfile.cardBackgroundImage;
+      }
       
       // Save profile to users container
       context.log('💾 WRITE:', {
