@@ -300,7 +300,7 @@ export const AppProvider = ({ children, initialUser }) => {
         if (result.success && Array.isArray(result.data)) {
           console.log(`✅ Loaded ${result.data.length} connects from API`);
           // Update connects in state with fresh data from API
-          // Use functional update to ensure we have the latest state
+          // Reducer will preserve dreams automatically
           dispatch({
             type: actionTypes.SET_USER_DATA,
             payload: {

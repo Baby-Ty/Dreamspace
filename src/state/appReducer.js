@@ -33,15 +33,43 @@ export const actionTypes = {
 export const appReducer = (state, action) => {
   switch (action.type) {
     case actionTypes.LOAD_PERSISTED_DATA:
+      // ✅ FIX: Preserve dreams if payload has empty dreams but state already has dreams
+      // This prevents dreams from disappearing during data loading race conditions
+      const loadedDreams = action.payload.currentUser?.dreamBook || action.payload.dreamBook || [];
+      const currentDreams = state.currentUser?.dreamBook || [];
+      const preservedDreams = (loadedDreams.length > 0 || currentDreams.length === 0) 
+        ? loadedDreams 
+        : currentDreams;
+      
+      // Merge payload with preserved dreams
+      const mergedPayload = {
+        ...action.payload,
+        currentUser: action.payload.currentUser ? {
+          ...action.payload.currentUser,
+          dreamBook: preservedDreams
+        } : action.payload.currentUser
+      };
+      
       return {
         ...state,
-        ...action.payload
+        ...mergedPayload
       };
 
     case actionTypes.SET_USER_DATA:
+      // ✅ FIX: Preserve dreams if payload has empty/undefined dreams but state has dreams
+      // This prevents dreams from disappearing when updating other user data (e.g., connects)
+      const payloadDreams = action.payload.dreamBook || action.payload.dreams || [];
+      const existingDreams = state.currentUser?.dreamBook || [];
+      const dreamsToUse = (payloadDreams.length > 0 || existingDreams.length === 0) 
+        ? payloadDreams 
+        : existingDreams;
+      
       return {
         ...state,
-        currentUser: action.payload
+        currentUser: {
+          ...action.payload,
+          dreamBook: dreamsToUse
+        }
       };
 
     case actionTypes.UPDATE_DREAM:
