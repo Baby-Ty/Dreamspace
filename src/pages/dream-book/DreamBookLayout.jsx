@@ -7,6 +7,8 @@ import { useDreamBook } from '../../hooks/useDreamBook';
 import DreamGrid from './DreamGrid';
 import DreamForm from './DreamForm';
 import InspirationModal from './InspirationModal';
+import DreamRadarChart from './DreamRadarChart';
+import YearVisionCard from './YearVisionCard';
 import DreamTrackerModal from '../../components/DreamTrackerModal';
 import StockPhotoSearch from '../../components/StockPhotoSearch';
 import AIImageGenerator from '../../components/AIImageGenerator';
@@ -24,6 +26,7 @@ export default function DreamBookLayout() {
     maxDreams,
     currentUser,
     dreamCategories,
+    yearVision,
     loading,
     
     // Form state
@@ -79,6 +82,9 @@ export default function DreamBookLayout() {
     // Inspiration handlers
     handleOpenInspiration,
     handleCloseInspiration,
+    
+    // Vision handler
+    handleSaveVision,
     
     // Drag & drop handlers
     handleDragStart,
@@ -213,8 +219,10 @@ export default function DreamBookLayout() {
         </div>
       </div>
 
-      {/* Dreams Grid */}
+      {/* Dreams Grid with Radar Chart and Vision Card */}
       <DreamGrid
+        radarChart={<DreamRadarChart dreams={dreams} />}
+        visionCard={<YearVisionCard vision={yearVision} dreams={dreams} onSaveVision={handleSaveVision} />}
         dreams={dreams}
         maxDreams={maxDreams}
         editingDream={editingDream}

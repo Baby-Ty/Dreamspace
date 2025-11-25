@@ -252,6 +252,53 @@ class ItemService {
   }
 
   /**
+   * Save year vision statement for a user
+   * @param {string} userId - User ID
+   * @param {string} vision - Vision statement text
+   * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+   */
+  async saveYearVision(userId, vision) {
+    try {
+      console.log('💭 Saving year vision:', { userId, visionLength: vision?.length });
+
+      const response = await fetch(`${this.apiBase}/saveYearVision`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          yearVision: vision
+        })
+      });
+
+      const responseText = await response.text();
+      
+      if (response.ok) {
+        try {
+          const result = responseText ? JSON.parse(responseText) : { success: true };
+          console.log('✅ Year vision saved');
+          return ok(result);
+        } catch (parseError) {
+          // Empty or non-JSON response is fine for a simple save
+          return ok({ success: true });
+        }
+      } else {
+        try {
+          const error = responseText ? JSON.parse(responseText) : { error: 'Unknown error' };
+          console.error('❌ Error saving year vision:', error);
+          return fail(ErrorCodes.SAVE_ERROR, error.error || 'Failed to save year vision');
+        } catch (parseError) {
+          return fail(ErrorCodes.SAVE_ERROR, responseText || 'Failed to save year vision');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error saving year vision:', error);
+      return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save year vision');
+    }
+  }
+
+  /**
    * Upload a dream picture to blob storage
    * @param {string} userId - User ID
    * @param {string} dreamId - Dream ID

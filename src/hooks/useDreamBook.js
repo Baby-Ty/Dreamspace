@@ -36,6 +36,9 @@ export function useDreamBook() {
 
   const maxDreams = 10;
   const dreams = currentUser?.dreamBook || [];
+  // Ensure yearVision is always a string (API might return error object)
+  const rawYearVision = currentUser?.yearVision;
+  const yearVision = typeof rawYearVision === 'string' ? rawYearVision : '';
 
   // Drag and drop handlers
   const handleDragStart = useCallback((e, index) => {
@@ -550,6 +553,25 @@ export function useDreamBook() {
     setShowInspiration(false);
   }, []);
 
+  // Vision save handler
+  const handleSaveVision = useCallback(async (visionText) => {
+    if (!currentUser?.id) return;
+    
+    try {
+      // Save vision to dreams container alongside dreamBook
+      const result = await itemService.saveYearVision(currentUser.id, visionText);
+      if (result.success) {
+        console.log('✅ Year vision saved successfully');
+        // Dispatch event to update other components
+        window.dispatchEvent(new CustomEvent('vision-updated', { detail: { vision: visionText } }));
+      } else {
+        console.error('❌ Failed to save vision:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error saving vision:', error);
+    }
+  }, [currentUser?.id]);
+
   // Loading state
   const loading = !currentUser || !dreamCategories;
 
@@ -559,6 +581,7 @@ export function useDreamBook() {
     maxDreams,
     currentUser,
     dreamCategories,
+    yearVision,
     loading,
     
     // Form state
@@ -615,6 +638,9 @@ export function useDreamBook() {
     // Inspiration handlers
     handleOpenInspiration,
     handleCloseInspiration,
+    
+    // Vision handler
+    handleSaveVision,
     
     // Drag & drop handlers
     handleDragStart,

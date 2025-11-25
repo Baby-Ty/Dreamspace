@@ -35,13 +35,29 @@ function DreamGrid({
   onDelete,
   onView,
   onCreate,
-  onReorder
+  onReorder,
+  radarChart,
+  visionCard
 }) {
   return (
     <div 
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
       data-testid="dream-grid"
     >
+      {/* Radar Chart - spans 2 columns */}
+      {radarChart && (
+        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[400px] flex items-center justify-center">
+          {radarChart}
+        </div>
+      )}
+
+      {/* Year Vision Card - spans 2 columns */}
+      {visionCard && (
+        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[400px] hover:shadow-xl transition-shadow duration-300">
+          {visionCard}
+        </div>
+      )}
+
       {/* Existing Dreams */}
       {dreams.map((dream, index) => (
         <div
@@ -203,6 +219,10 @@ DreamGrid.propTypes = {
   onCreate: PropTypes.func.isRequired,
   /** Reorder handler */
   onReorder: PropTypes.func.isRequired,
+  /** Optional radar chart component to display as first grid item */
+  radarChart: PropTypes.node,
+  /** Optional year vision card component to display next to radar chart */
+  visionCard: PropTypes.node,
 };
 
 // Memoize to prevent unnecessary re-renders

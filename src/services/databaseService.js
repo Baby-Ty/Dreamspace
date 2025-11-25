@@ -217,6 +217,13 @@ class DatabaseService {
         // Try to parse the response as JSON
         try {
           const userData = JSON.parse(responseText);
+          
+          // Sanitize yearVision to ensure it's always a string (might be error object from failed save)
+          if (userData.yearVision && typeof userData.yearVision !== 'string') {
+            console.warn('⚠️ yearVision is not a string, sanitizing:', typeof userData.yearVision);
+            userData.yearVision = '';
+          }
+          
           console.log('✅ Data loaded from Cosmos DB for user:', userId);
           console.log('📊 Dreams count:', userData.dreamBook?.length || 0);
           console.log('📋 Weekly goals count:', userData.weeklyGoals?.length || 0);

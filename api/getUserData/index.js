@@ -482,13 +482,17 @@ module.exports = async function (context, req) {
       
       let dreamBook = [];
       let templates = [];
+      let yearVision = '';
       
       if (dreamsDoc) {
         // New format - extract from aggregated document
         // Support both 'dreams' (new) and 'dreamBook' (legacy) field names
         dreamBook = dreamsDoc.dreams || dreamsDoc.dreamBook || [];
         templates = dreamsDoc.weeklyGoalTemplates || [];
-        context.log(`Using aggregated format: ${dreamBook.length} dreams, ${templates.length} templates`);
+        // Ensure yearVision is always a string (might be error object from failed save)
+        const rawVision = dreamsDoc.yearVision;
+        yearVision = typeof rawVision === 'string' ? rawVision : '';
+        context.log(`Using aggregated format: ${dreamBook.length} dreams, ${templates.length} templates, vision: ${yearVision ? 'yes' : 'no'}`);
       } else if (needsMigration && oldDreamsResult.status === 'fulfilled') {
         // Old format - migrate to new structure
         const oldItems = oldDreamsResult.value.resources || [];
@@ -588,6 +592,7 @@ module.exports = async function (context, req) {
         dataStructureVersion: profile.dataStructureVersion, // ✅ Keep this so frontend knows structure
         score: totalScore, // Override with score from scoring container
         dreamBook,
+        yearVision,
         weeklyGoals,
         connects,
         scoringHistory,
