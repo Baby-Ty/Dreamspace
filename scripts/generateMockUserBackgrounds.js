@@ -117,10 +117,12 @@ const OPENAI_API_BASE = 'https://api.openai.com/v1';
 
 /**
  * Build DreamSpace-style prompt from user search term
- * Optimized for user card backgrounds - vibrant, adventurous, and exciting
+ * Optimized for user card backgrounds - fun, adventurous, easy on the eyes
+ * Focuses on wide scenic environments (no strong single subject)
  */
 function buildDreamSpacePrompt(userSearchTerm) {
-  const baseStyle = 'vibrant and adventurous scene, exciting and dynamic atmosphere, perfect for user card background, wide landscape orientation, bold colors, energetic composition, inspiring and action-packed, cinematic quality, dramatic lighting, compelling visual storytelling';
+  const baseStyle =
+    'bright, uplifting adventure landscape in soft daylight, wide scenic view with no close-up subject, tiny or silhouetted people at most, gentle gradients in turquoise water, warm sand, soft greens and Netsurit reds/corals/oranges, calm and spacious composition, minimal visual noise, easy on the eyes, high-quality digital illustration with soft lighting and subtle detail, designed as an enjoyable card background';
   return `A ${userSearchTerm}, ${baseStyle}`;
 }
 
@@ -181,65 +183,56 @@ async function generateImage(userSearchTerm, options = {}) {
 
 /**
  * Generate a meaningful search term for a user based on their profile
- * Focused on adventure, excitement, and dynamic experiences
+ * Focused on fun, travel and outdoor adventure – but as scenic backdrops
  */
 function generateSearchTerm(user) {
-  // Generate adventurous and exciting search terms based on role, office, or name
+  // Generate playful, adventure-oriented search terms (landscapes, no close-ups)
   const searchTerms = [];
   
   if (user.role === 'admin') {
     searchTerms.push(
-      'mountain peak summit adventure',
-      'helicopter flying over dramatic landscape',
-      'rock climbing on cliff face',
-      'paragliding over mountains',
-      'sailing yacht on open ocean',
-      'hot air balloon over scenic valley'
+      'wide mountain landscape with hikers in the distance under a warm sunrise',
+      'panoramic coastal path with tiny runners and soft turquoise water',
+      'open valley with hot air balloons in the sky, viewed from afar',
+      'gentle hills with a winding trail and small group of people walking',
+      'sunny safari plain with distant animals and jeep, big sky above'
     );
   } else if (user.role === 'coach') {
     searchTerms.push(
-      'surfing massive wave',
-      'mountain biking down trail',
-      'kayaking through rapids',
-      'rock climbing adventure',
-      'skiing down mountain slope',
-      'hiking through misty forest'
+      'forest trail with tiny figures hiking under dappled sunlight',
+      'cliffside coastal walk with people in the distance and calm ocean',
+      'sunny viewpoint over a bay with silhouettes of friends at the edge',
+      'soft sunset beach with small group around a distant bonfire',
+      'wide meadow with path, trees and small cyclists in the distance'
     );
   } else {
-    // Regular users - use office location for adventure themes
+    // Regular users - use office location for fun, scenic themes
     if (user.office === 'Cape Town') {
       searchTerms.push(
-        'surfing at sunset',
-        'hiking Table Mountain',
-        'paragliding over coastline',
-        'kayaking in ocean',
-        'rock climbing on cliffs',
-        'mountain biking trail',
-        'beach volleyball at sunset',
-        'sailing yacht adventure'
+        'Table Mountain from the beach with surfers far out in the water',
+        'Chapmans Peak style coastal road with tiny cars and bright ocean',
+        'soft golden hour view over Cape Town with ocean and mountains',
+        'long beach with distant walkers and pastel sky',
+        'hiking trail above the city with tiny silhouettes on the ridge'
       );
     } else if (user.office === 'Johannesburg') {
       searchTerms.push(
-        'urban exploration adventure',
-        'city skyline at golden hour',
-        'street art and graffiti',
-        'rooftop cityscape view',
-        'urban cycling adventure',
-        'city lights at night',
-        'modern architecture exploration',
-        'vibrant street market'
+        'city park with trees and skyline in the distance at golden hour',
+        'warm rooftop view of Johannesburg skyline with big open sky',
+        'wide urban plaza with small figures walking through soft light',
+        'tree-lined trail on the edge of the city with sunset sky',
+        'balloon or drone view over city and surrounding landscape'
       );
     } else {
-      // Default adventurous themes
+      // Default adventure themes – scuba, safari, hiking, travel – as wide scenes
       searchTerms.push(
-        'travel adventure destination',
-        'exploring ancient ruins',
-        'tropical beach paradise',
-        'desert safari adventure',
-        'jungle exploration',
-        'snowy mountain expedition',
-        'island hopping adventure',
-        'road trip through landscape'
+        'tropical bay with tiny scuba divers and bright coral water seen from above',
+        'safari landscape with distant elephants and jeep under warm sky',
+        'alpine hiking trail with tiny silhouettes on a ridge at sunrise',
+        'island coastline with kayaks and paddleboards far from camera',
+        'curving road through mountains with distant car and soft clouds',
+        'wide sandy beach with kitesurfers small against the sky',
+        'lake surrounded by forests and mountains with kayaks in the distance'
       );
     }
   }

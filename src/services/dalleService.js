@@ -21,11 +21,12 @@ export function DalleService(apiKey) {
 
   /**
    * Build DreamSpace-style prompt from user search term
-   * Optimized for user card backgrounds - vibrant, adventurous, and exciting
-   * Combines user input with dynamic, action-packed aesthetic
+   * Optimized for user card backgrounds - fun, adventurous, easy on the eyes
+   * Focuses on wide scenic environments (no strong single subject) with soft, uplifting colors
    */
   const buildDreamSpacePrompt = (userSearchTerm) => {
-    const baseStyle = 'vibrant and adventurous scene, exciting and dynamic atmosphere, perfect for user card background, wide landscape orientation, bold colors, energetic composition, inspiring and action-packed, cinematic quality, dramatic lighting, compelling visual storytelling';
+    const baseStyle =
+      'bright, uplifting adventure landscape in soft daylight, wide scenic view with no close-up subject, tiny or silhouetted people at most, gentle gradients in turquoise water, warm sand, soft greens and Netsurit reds/corals/oranges, calm and spacious composition, minimal visual noise, easy on the eyes, high-quality digital illustration with soft lighting and subtle detail, designed as an enjoyable card background';
     return `A ${userSearchTerm}, ${baseStyle}`;
   };
 
