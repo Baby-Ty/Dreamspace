@@ -227,6 +227,7 @@ class DatabaseService {
           console.log('✅ Data loaded from Cosmos DB for user:', userId);
           console.log('📊 Dreams count:', userData.dreamBook?.length || 0);
           console.log('📋 Weekly goals count:', userData.weeklyGoals?.length || 0);
+          console.log('💭 Year Vision:', userData.yearVision ? `"${userData.yearVision.substring(0, 50)}${userData.yearVision.length > 50 ? '...' : ''}"` : '(empty)');
           console.log('📋 Weekly goals breakdown:', {
             total: userData.weeklyGoals?.length || 0,
             templates: userData.weeklyGoals?.filter(g => g.type === 'weekly_goal_template').length || 0,

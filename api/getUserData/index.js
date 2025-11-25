@@ -604,6 +604,7 @@ module.exports = async function (context, req) {
       context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`, {
         cardBackgroundImageInResponse: !!userData.cardBackgroundImage,
         cardBackgroundImage: userData.cardBackgroundImage ? userData.cardBackgroundImage.substring(0, 80) : 'undefined',
+        yearVision: userData.yearVision ? `"${userData.yearVision.substring(0, 50)}${userData.yearVision.length > 50 ? '...' : ''}"` : '(empty)',
         responseKeys: Object.keys(userData).filter(k => !k.startsWith('_')).join(', ')
       });
       

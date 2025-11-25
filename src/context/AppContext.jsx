@@ -76,6 +76,7 @@ export const AppProvider = ({ children, initialUser }) => {
   console.log('🚀 AppContext initializing with data from API:');
   console.log('   👤 User:', userToUse?.email || 'none');
   console.log('   📚 Dreams:', userToUse?.dreamBook?.length || 0);
+  console.log('   💭 Year Vision:', userToUse?.yearVision ? `"${userToUse.yearVision.substring(0, 50)}${userToUse.yearVision.length > 50 ? '...' : ''}"` : '(empty)');
   console.log('   🔗 Connects from API:', userToUse?.connects?.length || 0);
   if (userToUse?.connects && userToUse.connects.length > 0) {
     console.log('   🔗 Connect IDs:', userToUse.connects.map(c => c.id));
@@ -158,6 +159,8 @@ export const AppProvider = ({ children, initialUser }) => {
             dreamCategories: dreamCategories
           };
           
+          console.log('💭 Year Vision in migratedUser (first path):', migratedUser.yearVision ? `"${migratedUser.yearVision.substring(0, 50)}${migratedUser.yearVision.length > 50 ? '...' : ''}"` : '(empty)');
+          
           dispatch({
             type: actionTypes.LOAD_PERSISTED_DATA,
             payload: {
@@ -217,12 +220,14 @@ export const AppProvider = ({ children, initialUser }) => {
         };
         
         console.log('📚 Dreams after migration:', migratedUser.dreamBook?.length || 0);
+        console.log('💭 Year Vision after migration:', migratedUser.yearVision ? `"${migratedUser.yearVision.substring(0, 50)}${migratedUser.yearVision.length > 50 ? '...' : ''}"` : '(empty)');
         
         const finalWeeklyGoals = Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
                                 (Array.isArray(initialUser?.weeklyGoals) ? initialUser.weeklyGoals : []);
         
         console.log('📦 Loading persisted data into state:');
         console.log('   📚 Dreams:', migratedUser.dreamBook?.length || 0);
+        console.log('   💭 Year Vision:', migratedUser.yearVision ? `"${migratedUser.yearVision.substring(0, 50)}${migratedUser.yearVision.length > 50 ? '...' : ''}"` : '(empty)');
         console.log('   📋 Weekly goals total:', finalWeeklyGoals.length);
         console.log('   📋 Templates:', finalWeeklyGoals.filter(g => g.type === 'weekly_goal_template').length);
         console.log('   📋 Instances:', finalWeeklyGoals.filter(g => g.type !== 'weekly_goal_template').length);
