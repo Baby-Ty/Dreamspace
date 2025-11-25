@@ -294,100 +294,139 @@ export default function DreamTeamLayout() {
 
       {/* Row 2: Team Name + Mission Statement | Next Meeting */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Team Name + Mission Statement Card */}
-        <div className="bg-gradient-to-br from-white to-professional-gray-50 rounded-lg shadow-md p-6 border border-professional-gray-200 flex flex-col h-full relative group">
-          {/* Edit Button (Coach Only) */}
-          {isCoach && !isEditingMission && !isEditingTeamName && (
-            <button
-              className="absolute top-4 right-4 p-2 text-professional-gray-400 hover:text-netsurit-red hover:bg-netsurit-red/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-              aria-label="Edit team information"
-              onClick={handleEditTeamInfo}
-            >
-              <Edit3 className="w-5 h-5" />
-            </button>
-          )}
+        {/* Team Name + Mission Statement Card - Sticky Note Style */}
+        <div className="relative h-full group">
+          <div 
+            className="absolute inset-0 rounded-sm shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02] group-hover:rotate-0"
+            style={{
+              background: 'linear-gradient(to bottom right, #fef9c3 0%, #fef08a 100%)',
+              transform: 'rotate(-1deg)',
+            }}
+          >
+            {/* Lined Paper Effect */}
+            <div 
+              className="absolute inset-0 pointer-events-none overflow-hidden rounded-sm"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  transparent,
+                  transparent 27px,
+                  rgba(180, 160, 120, 0.25) 27px,
+                  rgba(180, 160, 120, 0.25) 28px
+                )`,
+                backgroundPosition: '0 32px',
+              }}
+            />
 
-          {/* Team Name */}
-          <div className="mb-4 pb-4 border-b border-professional-gray-200">
-            {isEditingTeamName ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editedTeamName}
-                    onChange={(e) => setEditedTeamName(e.target.value)}
+            {/* Top fold/tape effect */}
+            <div 
+              className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-6 opacity-50"
+              style={{
+                background: 'rgba(255, 255, 255, 0.4)',
+                transform: 'rotate(-1deg)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                backdropFilter: 'blur(1px)',
+              }}
+            />
+          </div>
+
+          {/* Content Container */}
+          <div className="relative z-10 h-full flex flex-col p-6 group-hover:scale-[1.02] group-hover:rotate-0 transition-all duration-300" style={{ transform: 'rotate(-1deg)' }}>
+            {/* Edit Button (Coach Only) */}
+            {isCoach && !isEditingMission && !isEditingTeamName && (
+              <button
+                className="absolute top-4 right-4 p-2 text-[#8a7a50] hover:text-[#5c5030] hover:bg-[#5c5030]/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                aria-label="Edit team information"
+                onClick={handleEditTeamInfo}
+              >
+                <Edit3 className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Team Name */}
+            <div className="mb-4 pb-4 border-b border-[#8a7a50]/20">
+              {isEditingTeamName ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editedTeamName}
+                      onChange={(e) => setEditedTeamName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSaveTeamInfo();
+                        } else if (e.key === 'Escape') {
+                          handleCancelEdit();
+                        }
+                      }}
+                      className="flex-1 text-2xl font-bold font-hand text-[#4a3b22] px-3 py-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8a7a50]"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleGenerateRandomTeamName}
+                      className="p-2 text-[#8a7a50] hover:text-[#5c5030] hover:bg-[#5c5030]/10 rounded-lg transition-colors"
+                      aria-label="Generate random team name"
+                      title="Generate random team name"
+                    >
+                      <Sparkles className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-[#5c5030] uppercase tracking-wide font-medium font-hand">
+                    {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-2xl font-bold text-[#4a3b22] mb-1 font-hand tracking-wide">
+                    {teamData.teamName || 'Dream Team'}
+                  </h2>
+                  <p className="text-xs text-[#5c5030] uppercase tracking-wide font-medium font-hand">
+                    {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Mission Statement / Message from Coach */}
+            <div className="flex-1 flex flex-col">
+              {isEditingMission ? (
+                <div className="flex-1 flex flex-col">
+                  <textarea
+                    value={editedMission}
+                    onChange={(e) => setEditedMission(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSaveTeamInfo();
-                      } else if (e.key === 'Escape') {
+                      if (e.key === 'Escape') {
                         handleCancelEdit();
                       }
                     }}
-                    className="flex-1 text-2xl font-bold text-professional-gray-900 px-3 py-2 border-2 border-netsurit-red rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
-                    autoFocus
+                    className="flex-1 text-[#1f180b] font-hand text-lg leading-relaxed border-2 border-[#8a7a50] bg-white/50 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#8a7a50] focus:border-transparent resize-none"
+                    rows={4}
+                    placeholder="Enter your team mission or message..."
                   />
-                  <button
-                    onClick={handleGenerateRandomTeamName}
-                    className="p-2 text-netsurit-coral hover:text-netsurit-red hover:bg-netsurit-coral/10 rounded-lg transition-colors"
-                    aria-label="Generate random team name"
-                    title="Generate random team name"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                  </button>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={handleSaveTeamInfo}
+                      className="px-4 py-2 bg-[#4a3b22] text-[#fef9c3] rounded-lg hover:bg-[#5c5030] transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm font-hand"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 border-2 border-[#8a7a50] text-[#4a3b22] rounded-lg hover:bg-[#8a7a50]/10 transition-all duration-200 font-medium text-sm font-hand"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-professional-gray-500 uppercase tracking-wide font-medium">
-                  {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
+              ) : (
+                <p 
+                  className="text-[#1f180b] leading-relaxed text-lg font-hand"
+                  style={{ lineHeight: '28px' }}
+                >
+                  "{teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.'}"
                 </p>
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-2xl font-bold text-professional-gray-900 mb-1">
-                  {teamData.teamName || 'Dream Team'}
-                </h2>
-                <p className="text-xs text-professional-gray-500 uppercase tracking-wide font-medium">
-                  {teamMembers.length} Team Member{teamMembers.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Mission Statement / Message from Coach */}
-          <div className="flex-1 flex flex-col">
-            {isEditingMission ? (
-              <div className="flex-1 flex flex-col">
-                <textarea
-                  value={editedMission}
-                  onChange={(e) => setEditedMission(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      handleCancelEdit();
-                    }
-                  }}
-                  className="flex-1 text-professional-gray-700 leading-relaxed border-2 border-netsurit-red/30 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-transparent resize-none"
-                  rows={4}
-                  placeholder="Enter your team mission or message..."
-                />
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={handleSaveTeamInfo}
-                    className="px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    className="px-4 py-2 border-2 border-professional-gray-300 text-professional-gray-700 rounded-lg hover:bg-professional-gray-50 transition-all duration-200 font-medium text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <blockquote className="text-professional-gray-700 leading-relaxed italic">
-                "{teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.'}"
-              </blockquote>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
