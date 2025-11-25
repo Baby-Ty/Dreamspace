@@ -37,27 +37,41 @@ module.exports = async function (context, req) {
   }
 
   // Check if OpenAI API key is configured
-  // Try multiple possible environment variable names
-  const rawApiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+  // Try multiple possible environment variable names and also check Azure-specific locations
+  let rawApiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+  
+  // Debug: Log all environment variables that might contain the key
+  const allEnvKeys = Object.keys(process.env);
+  const openaiRelatedKeys = allEnvKeys.filter(k => 
+    k.toUpperCase().includes('OPENAI') || 
+    k.toUpperCase().includes('API') && k.toUpperCase().includes('KEY')
+  );
+  
+  context.log('Environment variable check:', {
+    totalEnvVars: allEnvKeys.length,
+    openaiRelatedKeys: openaiRelatedKeys,
+    OPENAI_API_KEY_exists: !!process.env.OPENAI_API_KEY,
+    VITE_OPENAI_API_KEY_exists: !!process.env.VITE_OPENAI_API_KEY,
+    OPENAI_API_KEY_length: process.env.OPENAI_API_KEY?.length || 0,
+    VITE_OPENAI_API_KEY_length: process.env.VITE_OPENAI_API_KEY?.length || 0
+  });
+  
+  // If still not found, try to get from Azure App Settings (sometimes accessible via different methods)
+  if (!rawApiKey) {
+    // Check if it's in a different format or location
+    rawApiKey = process.env['OPENAI_API_KEY'] || process.env['VITE_OPENAI_API_KEY'];
+  }
+  
   const apiKey = rawApiKey ? rawApiKey.trim() : null;
   
   if (!apiKey || apiKey.length === 0) {
-    context.log.error('OPENAI_API_KEY not found or empty in environment variables');
-    const relevantEnvVars = Object.keys(process.env).filter(k => 
-      k.includes('OPENAI') || k.includes('API') || k.includes('KEY')
-    );
-    context.log('Available env vars with OPENAI/API/KEY:', relevantEnvVars);
-    context.log('OPENAI_API_KEY exists?', !!process.env.OPENAI_API_KEY);
-    context.log('VITE_OPENAI_API_KEY exists?', !!process.env.VITE_OPENAI_API_KEY);
-    if (process.env.OPENAI_API_KEY) {
-      context.log('OPENAI_API_KEY length:', process.env.OPENAI_API_KEY.length);
-      context.log('OPENAI_API_KEY starts with:', process.env.OPENAI_API_KEY.substring(0, 10));
-    }
+    context.log.error('OPENAI_API_KEY not found or empty after all checks');
+    context.log('First 50 env var keys:', allEnvKeys.slice(0, 50));
     context.res = {
       status: 500,
       body: JSON.stringify({ 
         error: 'OpenAI API not configured',
-        details: 'OPENAI_API_KEY environment variable is required but not found. Please verify it is set in Azure Function App Settings → Configuration → Application settings and restart the function app.'
+        details: `OPENAI_API_KEY environment variable is required but not found. Found ${openaiRelatedKeys.length} related keys: ${openaiRelatedKeys.join(', ')}. Please verify it is set in Azure Function App Settings → Configuration → Application settings (not Connection strings) and restart the function app.`
       }),
       headers
     };

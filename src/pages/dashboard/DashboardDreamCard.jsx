@@ -3,7 +3,7 @@
 
 import { memo } from 'react';
 import PropTypes from 'prop-types';
-import { Sparkles, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 
 /**
  * Compact presentation component for displaying a dream card on the dashboard
@@ -55,29 +55,18 @@ function DashboardDreamCard({ dream, onClick }) {
         )}
         
         {/* Gradient Overlays for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" aria-hidden="true"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true"></div>
       </div>
-
-      {/* Category Badge - Top Left */}
-      <div className="relative z-10 p-3">
-          <span 
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-professional-gray-800 shadow-lg border border-white/50 transition-all duration-300 group-hover:bg-white group-hover:shadow-xl"
-            data-testid="dream-category"
-          >
-          <Sparkles className="w-3 h-3 text-netsurit-coral" aria-hidden="true" />
-            {dream.category}
-          </span>
-        </div>
 
       {/* Spacer to push content down */}
       <div className="flex-grow"></div>
 
       {/* Content Overlay - Bottom */}
-      <div className="relative z-10 p-4 pt-8">
+      <div className="relative z-10 p-5 pt-12 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         {/* Title */}
         <h3 
-          className="text-lg font-bold text-white mb-1.5 line-clamp-2 leading-tight drop-shadow-lg"
+          className="text-xl font-bold text-white mb-2 line-clamp-2 leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
           data-testid="dream-title"
         >
           {dream.title}
@@ -85,7 +74,7 @@ function DashboardDreamCard({ dream, onClick }) {
 
         {/* Description - subtle */}
         {dream.description && (
-          <p className="text-sm text-white/70 line-clamp-1 mb-3 drop-shadow-md">
+          <p className="text-sm text-white/90 line-clamp-1 mb-4 drop-shadow-md font-medium">
             {dream.description}
           </p>
         )}
@@ -95,7 +84,7 @@ function DashboardDreamCard({ dream, onClick }) {
           {/* Progress Bar with percentage */}
           <div className="flex items-center gap-3">
             <div 
-              className="flex-grow h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm"
+              className="flex-grow h-2.5 bg-black/40 rounded-full overflow-hidden backdrop-blur-sm ring-1 ring-white/20"
               role="progressbar"
               aria-valuenow={dream.progress}
               aria-valuemin="0"

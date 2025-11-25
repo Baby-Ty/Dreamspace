@@ -3,7 +3,7 @@
 
 import { memo } from 'react';
 import PropTypes from 'prop-types';
-import { Pencil, Trash, Sparkles, ChevronRight } from 'lucide-react';
+import { Pencil, Trash, ChevronRight } from 'lucide-react';
 
 /**
  * Presentation component for displaying a single dream card
@@ -55,21 +55,12 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
         )}
         
         {/* Gradient Overlays for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" aria-hidden="true"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true"></div>
       </div>
 
       {/* Top Controls Section */}
-      <div className="relative z-10 flex justify-between items-start p-4">
-        {/* Category Badge */}
-        <span 
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-professional-gray-800 shadow-lg border border-white/50 transition-all duration-300 group-hover:bg-white group-hover:shadow-xl"
-          data-testid="dream-category"
-        >
-          <Sparkles className="w-3 h-3 text-netsurit-coral" aria-hidden="true" />
-          {dream.category}
-        </span>
-
+      <div className="relative z-10 flex justify-end items-start p-4">
         {/* Edit/Delete Buttons */}
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
@@ -77,7 +68,7 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
             title="Edit dream"
             aria-label={`Edit ${dream.title}`}
             data-testid="edit-dream-button"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md hover:bg-white text-white hover:text-professional-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md hover:bg-white text-white hover:text-professional-gray-800 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200"
           >
             <Pencil className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -86,7 +77,7 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
             title="Delete dream"
             aria-label={`Delete ${dream.title}`}
             data-testid="delete-dream-button"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md hover:bg-red-500 text-white hover:text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md hover:bg-red-500 text-white hover:text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
           >
             <Trash className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -97,22 +88,22 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
       <div className="flex-grow"></div>
 
       {/* Content Overlay - Bottom */}
-      <div className="relative z-10 p-5 pt-2">
+      <div className="relative z-10 p-6 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
         {/* Title */}
-        <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 leading-tight drop-shadow-lg text-center group-hover:scale-105 transition-transform duration-300">
+        <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-center group-hover:scale-105 transition-transform duration-300">
           {dream.title}
         </h3>
         
         {/* Description */}
-        <p className="text-base text-white/90 line-clamp-2 leading-relaxed mb-5 text-center drop-shadow-md font-medium">
+        <p className="text-base text-white/90 line-clamp-2 leading-relaxed mb-6 text-center drop-shadow-md font-medium">
           {dream.description}
         </p>
 
         {/* Progress Section */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center gap-3">
             <div 
-              className="flex-grow h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm"
+              className="flex-grow h-3 bg-black/40 rounded-full overflow-hidden backdrop-blur-sm ring-1 ring-white/20"
               role="progressbar"
               aria-valuenow={dream.progress}
               aria-valuemin="0"

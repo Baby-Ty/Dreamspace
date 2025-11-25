@@ -42,9 +42,12 @@ export const gptService = {
 
       let data;
       try {
-        data = await response.json();
+        const responseText = await response.text();
+        console.log('generateVision API response:', response.status, responseText.substring(0, 200));
+        data = JSON.parse(responseText);
       } catch (jsonError) {
         // Response is not valid JSON
+        console.error('Failed to parse generateVision response:', jsonError);
         return fail(ErrorCodes.NETWORK, `Server error (${response.status}): ${response.statusText || 'Invalid response'}`);
       }
 
@@ -52,9 +55,10 @@ export const gptService = {
         return ok({ text: data.text });
       } else {
         // Extract error message - could be string or object
+        console.error('generateVision API error:', data);
         const errorMessage = typeof data.error === 'string' 
           ? data.error 
-          : (data.error?.message || data.error || 'Failed to generate vision');
+          : (data.error?.message || data.details || data.error || 'Failed to generate vision');
         return fail(ErrorCodes.NETWORK, errorMessage);
       }
     } catch (error) {
@@ -90,9 +94,12 @@ export const gptService = {
 
       let data;
       try {
-        data = await response.json();
+        const responseText = await response.text();
+        console.log('polishVision API response:', response.status, responseText.substring(0, 200));
+        data = JSON.parse(responseText);
       } catch (jsonError) {
         // Response is not valid JSON
+        console.error('Failed to parse polishVision response:', jsonError);
         return fail(ErrorCodes.NETWORK, `Server error (${response.status}): ${response.statusText || 'Invalid response'}`);
       }
 
@@ -100,9 +107,10 @@ export const gptService = {
         return ok({ text: data.text });
       } else {
         // Extract error message - could be string or object
+        console.error('polishVision API error:', data);
         const errorMessage = typeof data.error === 'string' 
           ? data.error 
-          : (data.error?.message || data.error || 'Failed to polish vision');
+          : (data.error?.message || data.details || data.error || 'Failed to polish vision');
         return fail(ErrorCodes.NETWORK, errorMessage);
       }
     } catch (error) {
