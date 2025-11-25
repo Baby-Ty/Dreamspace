@@ -585,14 +585,15 @@ module.exports = async function (context, req) {
       }
       
       // Combine into legacy format for backward compatibility
-      const { _rid, _self, _etag, _attachments, _ts, lastUpdated, ...cleanProfile } = profile;
+      // Exclude yearVision from profile - it belongs in dreams container, not users container
+      const { _rid, _self, _etag, _attachments, _ts, lastUpdated, yearVision: _, ...cleanProfile } = profile;
       
       const userData = {
         ...cleanProfile,
         dataStructureVersion: profile.dataStructureVersion, // ✅ Keep this so frontend knows structure
         score: totalScore, // Override with score from scoring container
         dreamBook,
-        yearVision,
+        yearVision, // From dreams container (source of truth)
         weeklyGoals,
         connects,
         scoringHistory,

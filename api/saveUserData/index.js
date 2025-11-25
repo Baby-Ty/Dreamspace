@@ -30,10 +30,12 @@ function extractProfile(userData) {
   // If data is wrapped in currentUser, unwrap it
   const userProfile = userData.currentUser || userData;
   
-  // Remove all array fields and career-related fields (6-container architecture)
+  // Remove all array fields, career-related fields, and yearVision (6-container architecture)
+  // yearVision belongs in dreams container, not users container
   const {
     dreamBook, weeklyGoals, scoringHistory, connects,
     careerGoals, developmentPlan, careerProfile, // Career fields removed
+    yearVision, // Remove - belongs in dreams container
     isAuthenticated, // Remove this from profile
     ...profile
   } = userProfile;
@@ -185,21 +187,26 @@ module.exports = async function (context, req) {
       context.log('User on v2+ architecture, updating profile only (items managed separately)');
       
       // Extract profile data without arrays (6-container architecture - no career fields)
+      // yearVision belongs in dreams container, not users container
       const userProfile = userData.currentUser || userData;
       const {
         dreamBook, weeklyGoals, scoringHistory, connects,
+        yearVision, // Remove - belongs in dreams container
         isAuthenticated, // Remove this from profile
         _rid, _self, _etag, _attachments, _ts, // Remove Cosmos metadata
         ...profileData
       } = userProfile;
       
+      // Remove yearVision from existing profile if it exists (should be in dreams container, not users)
+      const { yearVision: _, ...existingProfileClean } = existingProfile || {};
+      
       const updatedProfile = {
-        ...existingProfile, // Keep existing data
+        ...existingProfileClean, // Keep existing data (without yearVision)
         ...profileData, // Merge updates
         // Explicitly preserve cardBackgroundImage from existing profile if not in profileData
         cardBackgroundImage: profileData.cardBackgroundImage !== undefined 
           ? profileData.cardBackgroundImage 
-          : (existingProfile?.cardBackgroundImage || undefined),
+          : (existingProfileClean?.cardBackgroundImage || undefined),
         id: userId,
         userId: userId,
         dataStructureVersion: 3, // Use version 3 for 6-container architecture
