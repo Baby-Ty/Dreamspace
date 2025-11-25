@@ -100,6 +100,41 @@ export const AppProvider = ({ children, initialUser }) => {
 
   const [state, dispatch] = useReducer(appReducer, initialStateWithUser);
   
+  // Sync initialUser prop changes to state, but preserve yearVision if it exists in state
+  useEffect(() => {
+    if (initialUser && state.currentUser?.id === initialUser.id) {
+      // Only update if yearVision exists in state but not in initialUser, preserve it
+      const existingYearVision = state.currentUser?.yearVision;
+      const newYearVision = initialUser.yearVision;
+      
+      // If state has yearVision but initialUser doesn't, preserve it
+      if (existingYearVision && !newYearVision) {
+        dispatch({
+          type: actionTypes.SET_USER_DATA,
+          payload: {
+            ...initialUser,
+            yearVision: existingYearVision, // Preserve existing yearVision
+            dreamBook: initialUser.dreamBook || state.currentUser.dreamBook || [],
+            connects: initialUser.connects || state.currentUser.connects || []
+          }
+        });
+        return;
+      }
+      
+      // Otherwise, use initialUser as-is (it has yearVision or we don't have one)
+      if (JSON.stringify(initialUser) !== JSON.stringify(state.currentUser)) {
+        dispatch({
+          type: actionTypes.SET_USER_DATA,
+          payload: {
+            ...initialUser,
+            dreamBook: initialUser.dreamBook || state.currentUser.dreamBook || [],
+            connects: initialUser.connects || state.currentUser.connects || []
+          }
+        });
+      }
+    }
+  }, [initialUser]);
+  
   // Debounced save function to avoid too many localStorage writes
   const saveTimeoutRef = useRef(null);
 
