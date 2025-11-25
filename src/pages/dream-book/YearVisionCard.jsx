@@ -5,6 +5,7 @@ import { memo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Sparkles, Wand2, X, Save, Edit3, Loader2 } from 'lucide-react';
 import { gptService } from '../../services/gptService';
+import { toErrorMessage } from '../../utils/errorHandling';
 
 /**
  * Year Vision card - displays and allows editing of user's year vision statement
@@ -56,7 +57,8 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
       if (result.success) {
         setEditedVision(result.data.text);
       } else {
-        setError(result.error || 'Failed to generate vision');
+        // Extract message from error object (result.error is { code, message })
+        setError(toErrorMessage(result.error) || 'Failed to generate vision');
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');
@@ -81,7 +83,8 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
       if (result.success) {
         setEditedVision(result.data.text);
       } else {
-        setError(result.error || 'Failed to polish vision');
+        // Extract message from error object (result.error is { code, message })
+        setError(toErrorMessage(result.error) || 'Failed to polish vision');
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');

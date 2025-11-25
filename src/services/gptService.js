@@ -40,12 +40,22 @@ export const gptService = {
         })
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // Response is not valid JSON
+        return fail(ErrorCodes.NETWORK, `Server error (${response.status}): ${response.statusText || 'Invalid response'}`);
+      }
 
       if (response.ok && data.success) {
         return ok({ text: data.text });
       } else {
-        return fail(ErrorCodes.NETWORK, data.error || 'Failed to generate vision');
+        // Extract error message - could be string or object
+        const errorMessage = typeof data.error === 'string' 
+          ? data.error 
+          : (data.error?.message || data.error || 'Failed to generate vision');
+        return fail(ErrorCodes.NETWORK, errorMessage);
       }
     } catch (error) {
       console.error('Error generating vision:', error);
@@ -78,12 +88,22 @@ export const gptService = {
         })
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // Response is not valid JSON
+        return fail(ErrorCodes.NETWORK, `Server error (${response.status}): ${response.statusText || 'Invalid response'}`);
+      }
 
       if (response.ok && data.success) {
         return ok({ text: data.text });
       } else {
-        return fail(ErrorCodes.NETWORK, data.error || 'Failed to polish vision');
+        // Extract error message - could be string or object
+        const errorMessage = typeof data.error === 'string' 
+          ? data.error 
+          : (data.error?.message || data.error || 'Failed to polish vision');
+        return fail(ErrorCodes.NETWORK, errorMessage);
       }
     } catch (error) {
       console.error('Error polishing vision:', error);
