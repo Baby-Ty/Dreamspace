@@ -740,6 +740,47 @@ export function useDashboardData() {
   }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals, updateDream]);
 
   /**
+   * Update goal background image
+   * @param {string} goalId - Goal ID to update
+   * @param {string} backgroundImageUrl - URL of the background image
+   */
+  const handleUpdateGoalBackground = useCallback(async (goalId, backgroundImageUrl) => {
+    if (!currentUser?.id) return { success: false, error: 'No user' };
+    
+    const currentWeekIso = getCurrentIsoWeek();
+    
+    // Optimistic update
+    const optimisticGoals = currentWeekGoals.map(g => 
+      g.id === goalId 
+        ? { ...g, cardBackgroundImage: backgroundImageUrl }
+        : g
+    );
+    setCurrentWeekGoals(optimisticGoals);
+    
+    try {
+      const result = await currentWeekService.updateGoalBackground(
+        currentUser.id,
+        currentWeekIso,
+        goalId,
+        backgroundImageUrl,
+        currentWeekGoals
+      );
+      
+      if (result.success) {
+        console.log('✅ Goal background updated:', goalId);
+        return { success: true };
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('❌ Failed to update goal background, reverting:', error);
+      // Revert on error
+      setCurrentWeekGoals(currentWeekGoals);
+      return { success: false, error: error.message };
+    }
+  }, [currentWeekGoals, currentUser?.id]);
+
+  /**
    * Listen for goals-updated events to refresh dashboard
    */
   useEffect(() => {
@@ -881,6 +922,7 @@ export function useDashboardData() {
     handleDecrementGoal,
     handleAddGoal,
     handleSkipGoal,
+    handleUpdateGoalBackground,
     loadCurrentWeekGoals,
 
     // Helpers

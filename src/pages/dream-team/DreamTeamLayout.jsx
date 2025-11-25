@@ -19,6 +19,7 @@ import {
 import TeamMemberCard from './TeamMemberCard';
 import MeetingScheduleCard from './MeetingScheduleCard';
 import AIImageGenerator from '../../components/AIImageGenerator';
+import { DreamTrackerLayout } from '../dream-tracker/DreamTrackerLayout';
 import { useDreamTeam } from '../../hooks/useDreamTeam';
 import { useApp } from '../../context/AppContext';
 import HelpTooltip from '../../components/HelpTooltip';
@@ -54,6 +55,10 @@ export default function DreamTeamLayout() {
   // AI Background Generator state
   const [showAIBackgroundGenerator, setShowAIBackgroundGenerator] = useState(false);
   const [selectedMemberForBackground, setSelectedMemberForBackground] = useState(null);
+
+  // Dream Tracker Coach View state
+  const [selectedDreamForCoachView, setSelectedDreamForCoachView] = useState(null);
+  const [selectedMemberForCoachView, setSelectedMemberForCoachView] = useState(null);
 
   const handleEditTeamInfo = () => {
     setEditedMission(teamData.mission || 'Empowering each team member to achieve their dreams through collaboration, support, and shared growth.');
@@ -156,6 +161,22 @@ export default function DreamTeamLayout() {
   const handleCloseAIBackgroundGenerator = () => {
     setShowAIBackgroundGenerator(false);
     setSelectedMemberForBackground(null);
+  };
+
+  // Dream Tracker Coach View handlers
+  const handleViewDreamInCoachMode = (dream, member) => {
+    setSelectedDreamForCoachView(dream);
+    setSelectedMemberForCoachView(member);
+  };
+
+  const handleCloseDreamTrackerCoachView = () => {
+    setSelectedDreamForCoachView(null);
+    setSelectedMemberForCoachView(null);
+  };
+
+  const handleUpdateDreamInCoachView = async (updatedDream) => {
+    // Refresh team data after dream update
+    refreshData();
   };
 
 
@@ -493,7 +514,9 @@ export default function DreamTeamLayout() {
                 key={member.id}
                 member={member}
                 currentUserId={currentUser?.id}
+                isCoach={isCoach}
                 onGenerateBackground={handleOpenAIBackgroundGenerator}
+                onViewDreamInCoachMode={handleViewDreamInCoachMode}
               />
             ))}
           </div>
@@ -590,6 +613,29 @@ export default function DreamTeamLayout() {
           onSelectImage={handleSelectAIBackground}
           onClose={handleCloseAIBackgroundGenerator}
         />
+      )}
+
+      {/* Dream Tracker Modal (Coach View) */}
+      {selectedDreamForCoachView && selectedMemberForCoachView && isCoach && (
+        <div 
+          className="fixed inset-0 z-[100]" 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseDreamTrackerCoachView();
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dream-tracker-coach-view-title"
+        >
+          <DreamTrackerLayout
+            dream={selectedDreamForCoachView}
+            onClose={handleCloseDreamTrackerCoachView}
+            onUpdate={handleUpdateDreamInCoachView}
+            isCoachViewing={true}
+            teamMember={selectedMemberForCoachView}
+          />
+        </div>
       )}
     </div>
   );

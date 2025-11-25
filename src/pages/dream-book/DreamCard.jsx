@@ -3,11 +3,12 @@
 
 import { memo } from 'react';
 import PropTypes from 'prop-types';
-import { Pencil, Trash, Image } from 'lucide-react';
+import { Pencil, Trash, Sparkles, ChevronRight } from 'lucide-react';
 
 /**
  * Presentation component for displaying a single dream card
  * Displays dream image, title, description, category, and progress
+ * Refactored to match DashboardDreamCard full-card style
  */
 function DreamCard({ dream, onEdit, onDelete, onView }) {
   const handleCardKey = (e) => {
@@ -17,9 +18,17 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
     }
   };
 
+  // Determine progress color based on completion
+  const getProgressColor = (progress) => {
+    if (progress >= 100) return 'from-netsurit-orange to-netsurit-warm-orange';
+    if (progress >= 75) return 'from-netsurit-coral to-netsurit-orange';
+    if (progress >= 50) return 'from-netsurit-red to-netsurit-coral';
+    return 'from-netsurit-red to-netsurit-coral';
+  };
+
   return (
     <div
-      className="group relative flex flex-col h-full cursor-pointer select-none overflow-hidden rounded-2xl bg-white border border-professional-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-netsurit-red/20"
+      className="group relative flex flex-col h-full min-h-[360px] cursor-pointer select-none overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]"
       onClick={onView}
       role="button"
       tabIndex={0}
@@ -27,85 +36,83 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
       data-testid="dream-card"
       aria-label={`View ${dream.title} dream`}
     >
-      {/* Top-right icon buttons */}
-      <div className="absolute top-3 right-3 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <button
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          title="Edit dream"
-          aria-label={`Edit ${dream.title}`}
-          data-testid="edit-dream-button"
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200"
-        >
-          <Pencil className="w-4 h-4 text-professional-gray-700" aria-hidden="true" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          title="Delete dream"
-          aria-label={`Delete ${dream.title}`}
-          data-testid="delete-dream-button"
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-        >
-          <Trash className="w-4 h-4 text-red-600" aria-hidden="true" />
-        </button>
-      </div>
-
-      {/* Image */}
-      <div className="relative flex-shrink-0 overflow-hidden">
+      {/* Full-bleed Background Image */}
+      <div className="absolute inset-0">
         {dream.image ? (
           <img 
             src={dream.image} 
             alt={dream.title} 
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             draggable={false} 
           />
         ) : (
-          <div className="w-full h-48 bg-gradient-to-br from-professional-gray-100 to-professional-gray-200 flex items-center justify-center">
-            <Image className="w-12 h-12 text-professional-gray-400" aria-hidden="true" />
+          <div className="w-full h-full bg-gradient-to-br from-professional-gray-700 via-professional-gray-800 to-professional-gray-900">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-netsurit-red/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-netsurit-coral/20 rounded-full blur-3xl"></div>
+            </div>
           </div>
         )}
         
-        {/* Category Badge */}
-        <div className="absolute top-3 left-3">
-          <span 
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-professional-gray-800 shadow-md border border-white/20"
-            data-testid="dream-category"
-          >
-            {dream.category}
-          </span>
-        </div>
-
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></div>
+        {/* Gradient Overlays for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true"></div>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col h-full p-5">
-        <div className="flex-1">
-          <h3 className="font-bold text-lg text-professional-gray-900 mb-3 line-clamp-2 group-hover:text-netsurit-red transition-colors duration-200 text-center">
-            {dream.title}
-          </h3>
-          <p className="text-sm text-professional-gray-600 line-clamp-3 leading-relaxed mb-4 text-center">
-            {dream.description}
-          </p>
+      {/* Top Controls Section */}
+      <div className="relative z-10 flex justify-between items-start p-4">
+        {/* Category Badge */}
+        <span 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-professional-gray-800 shadow-lg border border-white/50 transition-all duration-300 group-hover:bg-white group-hover:shadow-xl"
+          data-testid="dream-category"
+        >
+          <Sparkles className="w-3 h-3 text-netsurit-coral" aria-hidden="true" />
+          {dream.category}
+        </span>
+
+        {/* Edit/Delete Buttons */}
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            title="Edit dream"
+            aria-label={`Edit ${dream.title}`}
+            data-testid="edit-dream-button"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md hover:bg-white text-white hover:text-professional-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200"
+          >
+            <Pencil className="w-4 h-4" aria-hidden="true" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            title="Delete dream"
+            aria-label={`Delete ${dream.title}`}
+            data-testid="delete-dream-button"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md hover:bg-red-500 text-white hover:text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+          >
+            <Trash className="w-4 h-4" aria-hidden="true" />
+          </button>
         </div>
+      </div>
+
+      {/* Spacer to push content down */}
+      <div className="flex-grow"></div>
+
+      {/* Content Overlay - Bottom */}
+      <div className="relative z-10 p-5 pt-2">
+        {/* Title */}
+        <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 leading-tight drop-shadow-lg text-center group-hover:scale-105 transition-transform duration-300">
+          {dream.title}
+        </h3>
+        
+        {/* Description */}
+        <p className="text-base text-white/90 line-clamp-2 leading-relaxed mb-5 text-center drop-shadow-md font-medium">
+          {dream.description}
+        </p>
 
         {/* Progress Section */}
-        <div className="space-y-3">
-          {/* Progress Percentage - Centered above bar */}
-          <div className="flex justify-center">
-            <span 
-              className="text-sm font-bold text-netsurit-red"
-              data-testid="dream-progress"
-              aria-label={`${dream.progress}% complete`}
-            >
-              {dream.progress}%
-            </span>
-          </div>
-          
-          {/* Enhanced Progress Bar */}
-          <div className="relative">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
             <div 
-              className="w-full bg-professional-gray-200 rounded-full h-2 overflow-hidden"
+              className="flex-grow h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm"
               role="progressbar"
               aria-valuenow={dream.progress}
               aria-valuemin="0"
@@ -113,42 +120,45 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
               aria-label={`Dream progress: ${dream.progress}%`}
             >
               <div
-                className="bg-gradient-to-r from-netsurit-red via-netsurit-coral to-netsurit-orange h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                className={`h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r ${getProgressColor(dream.progress)} relative overflow-hidden`}
                 style={{ width: `${dream.progress}%` }}
               >
                 {/* Shimmer effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-shimmer" aria-hidden="true"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shimmer" aria-hidden="true"></div>
               </div>
             </div>
-            
-            {/* Progress milestone indicators */}
-            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-between px-1" aria-hidden="true">
-              {[25, 50, 75].map((milestone) => (
+            <span 
+              className="text-sm font-bold text-white tabular-nums min-w-[3ch] drop-shadow-md"
+              data-testid="dream-progress"
+            >
+              {dream.progress}%
+            </span>
+          </div>
+          
+          {/* Progress Milestones */}
+          <div className="flex justify-between px-1">
+             {[25, 50, 75].map((milestone) => (
                 <div
                   key={milestone}
-                  className={`w-1 h-4 rounded-full transition-colors duration-300 ${
+                  className={`w-1 h-1 rounded-full transition-colors duration-300 ${
                     dream.progress >= milestone 
-                      ? 'bg-white shadow-sm' 
-                      : 'bg-professional-gray-300'
+                      ? 'bg-white shadow-sm scale-125' 
+                      : 'bg-white/20'
                   }`}
                 />
-              ))}
-            </div>
+             ))}
+          </div>
+
+          {/* Click for more indicator */}
+          <div className="text-[10px] font-medium uppercase tracking-widest flex items-center justify-center gap-1.5 opacity-60 group-hover:opacity-100 text-white mt-4 pt-2 border-t border-white/20 transition-opacity duration-300">
+            <ChevronRight className="w-3 h-3" aria-hidden="true" />
+            Click for more
           </div>
         </div>
-
-        {/* Action Button */}
-        <div className="mt-5">
-          <button
-            onClick={(e) => { e.stopPropagation(); onView(); }}
-            aria-label={`View details for ${dream.title}`}
-            data-testid="view-dream-button"
-            className="w-full py-3 bg-netsurit-red text-white rounded-xl font-semibold text-sm hover:bg-netsurit-red focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            View Details
-          </button>
-        </div>
       </div>
+      
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 rounded-2xl ring-2 ring-white/0 group-hover:ring-white/30 transition-all duration-500 pointer-events-none" aria-hidden="true"></div>
     </div>
   );
 }
@@ -173,5 +183,3 @@ DreamCard.propTypes = {
 
 // Memoize to prevent unnecessary re-renders
 export default memo(DreamCard);
-
-

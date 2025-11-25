@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { MapPin, Award, Heart, Sparkles, RotateCw, X } from 'lucide-react';
+import { MapPin, Award, Heart, Sparkles, RotateCw, X, Eye } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
  * Team Member Card Component
  * Displays a team member's info in a vertical, centered card layout with flip interaction
  */
-export default function TeamMemberCard({ member, currentUserId, onGenerateBackground }) {
+export default function TeamMemberCard({ member, currentUserId, isCoach, onGenerateBackground, onViewDreamInCoachMode }) {
   const navigate = useNavigate();
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -208,9 +208,23 @@ export default function TeamMemberCard({ member, currentUserId, onGenerateBackgr
           {publicDreams.length > 0 ? (
                 <ul className="space-y-2">
               {publicDreams.slice(0, 3).map((dream, idx) => (
-                    <li key={dream.id || idx} className="flex items-start text-xs text-professional-gray-700 bg-professional-gray-50 p-2 rounded-lg">
-                      <span className="text-netsurit-coral mr-2">•</span>
-                      <span className="line-clamp-2">{dream.title}</span>
+                    <li key={dream.id || idx} className="flex items-start gap-2 text-xs text-professional-gray-700 bg-professional-gray-50 p-2 rounded-lg">
+                      <span className="text-netsurit-coral mr-0.5 flex-shrink-0">•</span>
+                      <span className="line-clamp-2 flex-1">{dream.title}</span>
+                      {isCoach && onViewDreamInCoachMode && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewDreamInCoachMode(dream, member);
+                          }}
+                          className="flex-shrink-0 p-1 text-professional-gray-400 hover:text-netsurit-red hover:bg-professional-gray-100 rounded transition-colors"
+                          aria-label={`View ${dream.title} in coach mode`}
+                          title="View dream in coach mode"
+                          data-testid={`coach-view-dream-${dream.id || idx}`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                 </li>
               ))}
               {publicDreams.length > 3 && (
@@ -269,5 +283,7 @@ TeamMemberCard.propTypes = {
     }))
   }).isRequired,
   currentUserId: PropTypes.string,
-  onGenerateBackground: PropTypes.func
+  isCoach: PropTypes.bool,
+  onGenerateBackground: PropTypes.func,
+  onViewDreamInCoachMode: PropTypes.func
 };

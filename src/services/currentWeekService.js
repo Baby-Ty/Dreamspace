@@ -344,6 +344,29 @@ export async function decrementWeeklyGoal(userId, weekId, goalId, currentGoals) 
   return await saveCurrentWeek(userId, weekId, updatedGoals);
 }
 
+/**
+ * Update background image for a goal
+ * @param {string} userId - User ID
+ * @param {string} weekId - ISO week ID
+ * @param {string} goalId - Goal ID to update
+ * @param {string} backgroundImageUrl - URL of the background image
+ * @param {Array} currentGoals - Current goals array
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function updateGoalBackground(userId, weekId, goalId, backgroundImageUrl, currentGoals) {
+  const updatedGoals = currentGoals.map(g => {
+    if (g.id === goalId) {
+      return {
+        ...g,
+        cardBackgroundImage: backgroundImageUrl
+      };
+    }
+    return g;
+  });
+
+  return await saveCurrentWeek(userId, weekId, updatedGoals);
+}
+
 export default {
   getCurrentWeek,
   saveCurrentWeek,
@@ -353,6 +376,7 @@ export default {
   incrementMonthlyGoal,
   incrementWeeklyGoal,
   decrementMonthlyGoal,
-  decrementWeeklyGoal
+  decrementWeeklyGoal,
+  updateGoalBackground
 };
 
