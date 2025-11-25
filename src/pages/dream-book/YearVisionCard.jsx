@@ -100,9 +100,9 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
 
   return (
     <>
-      {/* Vision Card Display */}
+      {/* Vision Card Display - Sticky Note Style */}
       <div 
-        className="h-full flex flex-col cursor-pointer group"
+        className="h-full flex flex-col cursor-pointer group relative"
         onClick={handleOpenEdit}
         role="button"
         tabIndex={0}
@@ -110,55 +110,89 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
         aria-label={hasVision ? 'Edit your year vision' : 'Add your year vision'}
         data-testid="year-vision-card"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-netsurit-coral" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-professional-gray-800">
-              My Year Vision
+        {/* Sticky Note Paper */}
+        <div 
+          className="relative h-full rounded-sm transition-transform duration-300 group-hover:rotate-0 group-hover:scale-[1.05] shadow-md hover:shadow-xl"
+          style={{
+            background: 'linear-gradient(to bottom right, #fef9c3 0%, #fef08a 100%)',
+            transform: 'rotate(-2deg)',
+          }}
+        >
+          {/* Lined Paper Effect */}
+          <div 
+            className="absolute inset-0 pointer-events-none overflow-hidden rounded-sm"
+            style={{
+              backgroundImage: `repeating-linear-gradient(
+                transparent,
+                transparent 27px,
+                rgba(180, 160, 120, 0.25) 27px,
+                rgba(180, 160, 120, 0.25) 28px
+              )`,
+              backgroundPosition: '0 32px',
+            }}
+          />
+          
+          {/* Top fold/tape effect */}
+          <div 
+            className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-6 opacity-50"
+            style={{
+              background: 'rgba(255, 255, 255, 0.4)',
+              transform: 'rotate(-1deg)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              backdropFilter: 'blur(1px)',
+            }}
+          />
+
+          {/* Content Container */}
+          <div className="relative z-10 h-full flex flex-col p-5 pt-6">
+            
+            {/* Handwritten Title */}
+            <h2 
+              className="text-center text-2xl font-bold mb-2 font-hand tracking-wide"
+              style={{ 
+                color: '#4a3b22',
+                transform: 'rotate(-1deg)',
+              }}
+            >
+              My 2025 Vision
             </h2>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleOpenEdit(); }}
-            className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-professional-gray-100 transition-all"
-            aria-label="Edit vision"
-          >
-            <Edit3 className="w-4 h-4 text-professional-gray-500" />
-          </button>
-        </div>
 
-        {/* Content */}
-        <div className="flex-1 px-5 pb-5 flex items-center justify-center">
-          {hasVision ? (
-            <blockquote className="text-center">
-              <p className="text-professional-gray-700 italic leading-relaxed text-sm">
-                "{safeVision}"
-              </p>
-            </blockquote>
-          ) : (
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-netsurit-red/10 to-netsurit-coral/10 flex items-center justify-center">
-                <Wand2 className="w-6 h-6 text-netsurit-coral" aria-hidden="true" />
+            {/* Content */}
+            <div className="flex-1 flex items-start justify-center overflow-hidden pt-1">
+              {hasVision ? (
+                <p 
+                  className="text-center leading-relaxed text-lg font-hand"
+                  style={{ 
+                    color: '#1f180b',
+                    lineHeight: '28px',
+                    textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+                  }}
+                >
+                  {safeVision}
+                </p>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full opacity-60">
+                  <p 
+                    className="text-center text-xl font-hand mb-2"
+                    style={{ color: '#5c5030' }}
+                  >
+                    What's your vision for this year?
+                  </p>
+                  <p className="text-sm text-[#5c5030] italic font-hand">
+                    (Tap to write it down...)
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Subtle AI hint */}
+            {gptConfigured && (
+              <div className="mt-auto pt-2 flex justify-end opacity-40 group-hover:opacity-100 transition-opacity">
+                 <Sparkles className="w-4 h-4 text-[#8a7a50]" />
               </div>
-              <p className="text-professional-gray-600 text-sm font-medium mb-1">
-                Define your year
-              </p>
-              <p className="text-professional-gray-400 text-xs">
-                Click to add your vision statement
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* AI badge */}
-        {gptConfigured && (
-          <div className="px-5 pb-4">
-            <div className="flex items-center justify-center gap-1 text-xs text-professional-gray-400">
-              <Wand2 className="w-3 h-3" />
-              <span>AI-powered</span>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Edit Modal */}

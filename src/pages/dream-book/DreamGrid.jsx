@@ -46,14 +46,14 @@ function DreamGrid({
     >
       {/* Radar Chart - spans 2 columns */}
       {radarChart && (
-        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[400px] flex items-center justify-center">
+        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[320px] flex items-center justify-center">
           {radarChart}
         </div>
       )}
 
-      {/* Year Vision Card - spans 2 columns */}
+      {/* Year Vision Card - spans 1 col on LG (3-grid), 2 cols on XL (4-grid) to fill row */}
       {visionCard && (
-        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[400px] hover:shadow-xl transition-shadow duration-300">
+        <div className="col-span-1 xl:col-span-2 h-full">
           {visionCard}
         </div>
       )}

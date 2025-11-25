@@ -22,9 +22,9 @@ function DreamRadarChart({ dreams = [] }) {
   const totalDreams = dreams.length;
 
   // SVG configuration
-  const size = 280;
+  const size = 240;
   const center = size / 2;
-  const maxRadius = 100;
+  const maxRadius = 85;
   const levels = 3; // Concentric rings
   const numPoints = 6;
 
@@ -80,7 +80,7 @@ function DreamRadarChart({ dreams = [] }) {
 
   return (
     <div 
-      className="relative flex flex-col items-center justify-center py-6 px-4"
+      className="relative flex flex-col items-center justify-center py-4 px-4"
       data-testid="dream-radar-chart"
       role="figure"
       aria-label="Dream category distribution radar chart"
