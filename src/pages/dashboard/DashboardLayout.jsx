@@ -16,6 +16,8 @@ import DreamTrackerModal from '../../components/DreamTrackerModal';
 import GuideModal from '../../components/GuideModal';
 import PastWeeksModal from '../../components/PastWeeksModal';
 import UserMigrationButton from '../../components/UserMigrationButton';
+import AIImageGenerator from '../../components/AIImageGenerator';
+import { showToast } from '../../utils/toast';
 
 /**
  * Dashboard Layout Component
@@ -40,6 +42,7 @@ export default function DashboardLayout() {
     handleDecrementGoal,
     handleSkipGoal,
     handleAddGoal,
+    handleUpdateGoalBackground,
     loadCurrentWeekGoals,
     getCurrentWeekRange,
   } = useDashboardData();
@@ -52,6 +55,10 @@ export default function DashboardLayout() {
   const [showGuide, setShowGuide] = useState(false);
   const [showPastWeeks, setShowPastWeeks] = useState(false);
   const [isRollingOver, setIsRollingOver] = useState(false);
+  
+  // AI Background Generator state
+  const [showAIBackgroundGenerator, setShowAIBackgroundGenerator] = useState(false);
+  const [selectedGoalForBackground, setSelectedGoalForBackground] = useState(null);
   
   // Refresh past weeks when modal opens
   const handleShowPastWeeks = useCallback(() => {
@@ -157,6 +164,40 @@ export default function DashboardLayout() {
     loadCurrentWeekGoals();
   }, [loadCurrentWeekGoals]);
 
+  // AI Background Generator handlers
+  const handleOpenAIBackgroundGenerator = useCallback((goal) => {
+    setSelectedGoalForBackground(goal);
+    setShowAIBackgroundGenerator(true);
+  }, []);
+
+  const handleSelectAIBackground = useCallback(async (imageUrl) => {
+    if (!selectedGoalForBackground) return;
+
+    try {
+      const result = await handleUpdateGoalBackground(
+        selectedGoalForBackground.id,
+        imageUrl
+      );
+
+      if (result.success) {
+        console.log('✅ Goal background updated successfully');
+        showToast('Background image updated successfully', 'success');
+        setShowAIBackgroundGenerator(false);
+        setSelectedGoalForBackground(null);
+      } else {
+        showToast(`Failed to update background: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error updating goal background:', error);
+      showToast('Failed to update background image', 'error');
+    }
+  }, [selectedGoalForBackground, handleUpdateGoalBackground]);
+
+  const handleCloseAIBackgroundGenerator = useCallback(() => {
+    setShowAIBackgroundGenerator(false);
+    setSelectedGoalForBackground(null);
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5" data-testid="dashboard-layout">
       {/* Header Section */}
@@ -196,10 +237,13 @@ export default function DashboardLayout() {
 
         {/* Right Column - Dreams Overview */}
         <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 bg-gradient-to-r from-professional-gray-50 to-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 bg-gradient-to-r from-professional-gray-50/80 to-white">
             <div>
-              <h2 className="text-xl font-bold text-professional-gray-900">My Dreams</h2>
-              <p className="text-xs text-professional-gray-600 mt-0.5">Your personal and professional aspirations</p>
+              <h2 className="text-xl font-bold text-professional-gray-900 inline-block">
+                My Dreams
+                <span className="block h-0.5 mt-1 bg-gradient-to-r from-netsurit-coral to-netsurit-orange rounded-full"></span>
+              </h2>
+              <p className="text-xs text-professional-gray-600 mt-1">Your personal and professional aspirations</p>
             </div>
             <Link 
               to="/dream-book"
@@ -289,6 +333,14 @@ export default function DashboardLayout() {
         weeks={pastWeeks || []}
         isLoading={isLoadingPastWeeks}
       />
+
+      {/* AI Background Generator Modal */}
+      {showAIBackgroundGenerator && (
+        <AIImageGenerator
+          onSelectImage={handleSelectAIBackground}
+          onClose={handleCloseAIBackgroundGenerator}
+        />
+      )}
     </div>
   );
 }

@@ -84,8 +84,8 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
         </div>
       </div>
 
-      {/* Vision Builder Demo CTA - Disabled */}
-      <div className="bg-netsurit-red rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20 opacity-60">
+      {/* Vision Builder Demo CTA - Hidden for now */}
+      {/* <div className="bg-netsurit-red rounded-xl p-4 shadow-lg mb-4 border border-netsurit-red/20 opacity-60">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
           <div className="text-white">
             <div className="flex items-center space-x-2 mb-1">
@@ -106,7 +106,7 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
             <Sparkles className="h-4 w-4" />
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

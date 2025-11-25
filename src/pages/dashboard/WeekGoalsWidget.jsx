@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, Repeat, SkipForward, History, FastForward, ChevronLeft } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, FastForward, ChevronLeft, Repeat } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -80,10 +80,13 @@ function WeekGoalsWidget({
   return (
     <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden" data-testid="week-goals-widget">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 flex-shrink-0 bg-gradient-to-r from-professional-gray-50 to-white">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 flex-shrink-0 bg-gradient-to-r from-professional-gray-50/80 to-white">
         <div>
-          <h2 className="text-xl font-bold text-professional-gray-900">This Week's Goals</h2>
-          <p className="text-xs text-professional-gray-600 mt-0.5">Your active goals for the current week</p>
+          <h2 className="text-xl font-bold text-professional-gray-900 inline-block">
+            This Week's Goals
+            <span className="block h-0.5 mt-1 bg-gradient-to-r from-netsurit-red to-netsurit-coral rounded-full"></span>
+          </h2>
+          <p className="text-xs text-professional-gray-600 mt-1">Your active goals for the current week</p>
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -368,163 +371,141 @@ function WeekGoalsWidget({
                 const frequency = goal.frequency || 1;
                 const completionCount = goal.completionCount || 0;
                 
+                // Determine accent color based on urgency
+                const getAccentColor = () => {
+                  if (goal.completed) return 'bg-professional-gray-400';
+                  if (goal.weeksRemaining === 0) return 'bg-netsurit-orange';
+                  if (goal.weeksRemaining <= 2) return 'bg-netsurit-coral';
+                  return 'bg-netsurit-red';
+                };
+                
                 return (
                   <div 
                     key={goal.id} 
-                    className={`rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden ${
-                      goal.completed ? 'opacity-75' : ''
-                    }`} 
+                    className={`group relative overflow-hidden rounded-xl border shadow-sm transition-all duration-200 hover:shadow-lg ${
+                      goal.completed 
+                        ? 'bg-gradient-to-r from-professional-gray-100 to-white border-professional-gray-300' 
+                        : 'bg-gradient-to-r from-professional-gray-50/50 to-white border-professional-gray-200 hover:border-netsurit-red/40'
+                    }`}
                     data-testid={`goal-${goal.id}`}
                   >
-                    {/* Title Tab at Top Center */}
-                    <div className="flex justify-center pb-1.5">
-                      <h3 className={`inline-block px-4 py-1.5 rounded-b-lg text-center text-base md:text-lg font-semibold leading-tight whitespace-nowrap ${
-                        goal.completed 
-                          ? 'line-through text-professional-gray-500 bg-professional-gray-100' 
-                          : 'text-professional-gray-700 bg-professional-gray-100'
-                      }`}>
-                        {goal.title}
-                      </h3>
-                    </div>
-
-                    {/* Card Content */}
-                    <div className="px-5 pt-1 pb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
-                      {/* Left: Checkbox Column with frequency label */}
-                      <div className="flex flex-col items-center gap-1 justify-self-start self-center">
-                        {/* Checkbox with counter inside */}
+                    {/* Left accent stripe */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${getAccentColor()}`} />
+                    
+                    <div className="flex items-center gap-4 p-4 pl-5">
+                      {/* Checkbox */}
                         <button
                           ref={(el) => (buttonRefs.current[goal.id] = el)}
                           onClick={() => handleToggleWithCelebration(goal.id)}
-                          className="relative flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-105"
+                        className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 rounded-full transition-all duration-200 hover:scale-110"
                           aria-label={goal.completed ? 'Mark as incomplete' : 'Mark as complete'}
                           data-testid={`toggle-goal-${goal.id}`}
                           disabled={(goal.recurrence === 'monthly' || goal.recurrence === 'weekly') && goal.frequency && goal.completionCount >= goal.frequency}
                         >
                           {goal.completed ? (
-                            <CheckCircle2 className="w-12 h-12 text-netsurit-red" />
+                          <CheckCircle2 className="w-8 h-8 text-netsurit-red" />
                           ) : isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') ? (
-                            // Circle with counter inside for recurring goals
-                            <div className="relative">
-                              <Circle className="w-12 h-12 text-slate-300" />
-                              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-700">
+                          <div className="relative w-8 h-8">
+                            <Circle className="w-8 h-8 text-professional-gray-300 group-hover:text-netsurit-red/40 transition-colors" />
+                            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-professional-gray-600">
                                 {completionCount}/{frequency}
                               </span>
                             </div>
                           ) : (
-                            <Circle className="w-12 h-12 text-slate-300" />
+                          <Circle className="w-8 h-8 text-professional-gray-300 group-hover:text-netsurit-red/40 transition-colors" />
                           )}
                         </button>
                         
-                        {/* Frequency label */}
-                        {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                          <span className="text-xs text-slate-500 font-medium">
-                            {goal.recurrence === 'weekly' ? 'weekly' : 'monthly'}
+                      {/* Content */}
+                      <div className="flex-grow min-w-0">
+                        <h3 className={`font-semibold text-base leading-tight ${
+                          goal.completed ? 'line-through text-professional-gray-400' : 'text-professional-gray-900'
+                        }`}>
+                          {goal.title}
+                        </h3>
+                        
+                        {/* Meta line */}
+                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-sm">
+                          {goal.dreamTitle && (
+                            <span className="text-professional-gray-500">
+                              from <span className="text-netsurit-red font-medium">{goal.dreamTitle}</span>
+                            </span>
+                          )}
+                          {isDeadline && goal.targetDate && (
+                            <span className="text-professional-gray-400 flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5" />
+                              {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </span>
                         )}
                       </div>
 
-                      {/* Middle: Content Column - centered */}
-                      <div className="grid grid-rows-[1fr_auto_1fr] items-center text-center h-full min-h-[60px]">
-                      
-                      {/* Top spacer */}
-                      <div></div>
-                      
-                      {/* From: Dream Name - centered */}
-                      {goal.dreamTitle && (
-                        <p className="text-sm leading-tight">
-                          <span className="text-slate-400">From: </span>
-                          <span className="text-netsurit-red font-medium">{goal.dreamTitle}</span>
-                        </p>
-                      )}
-                      
-                      {/* Bottom spacer with progress tracker */}
-                      <div className="flex items-end justify-center">
-                        {/* Progress tracker - at bottom */}
-                        {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && (
-                          <div className="flex items-center justify-center gap-1.5">
-                          {/* Undo button */}
-                          {onDecrementGoal && (
+                        {/* Progress dots for recurring goals */}
+                        {isWeeklyRecurring && (goal.recurrence === 'weekly' || goal.recurrence === 'monthly') && frequency > 1 && (
+                          <div className="flex items-center gap-2 mt-2">
+                            {onDecrementGoal && completionCount > 0 && (
                             <button
-                              onClick={() => completionCount > 0 && onDecrementGoal(goal.id)}
-                              disabled={completionCount === 0}
-                              className={`flex-shrink-0 p-1 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red ${
-                                completionCount > 0
-                                  ? 'hover:bg-slate-100 cursor-pointer'
-                                  : 'cursor-not-allowed pointer-events-none opacity-30'
-                              }`}
+                                onClick={() => onDecrementGoal(goal.id)}
+                                className="p-1 rounded-full hover:bg-professional-gray-100 transition-colors"
                               aria-label="Undo last completion"
                               data-testid={`undo-goal-${goal.id}`}
                             >
-                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red" />
+                                <ChevronLeft className="w-4 h-4 text-professional-gray-400" />
                             </button>
                           )}
-                          
-                          {/* Progress dots */}
-                          <div className="flex gap-1">
+                            <div className="flex gap-1.5">
                             {Array.from({ length: frequency }).map((_, i) => (
                               <div
                                 key={i}
-                                className={`w-2 h-2 rounded-full transition-all ${
-                                  i < completionCount
-                                    ? 'bg-netsurit-red' 
-                                    : 'bg-slate-300'
+                                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                                    i < completionCount ? 'bg-netsurit-red shadow-sm' : 'bg-professional-gray-200'
                                 }`}
-                                aria-label={`Completion ${i + 1} of ${frequency}`}
                               />
                             ))}
                           </div>
-                          
-                          {/* Add/increment button */}
                           {!goal.completed && completionCount < frequency && (
                             <button
                               onClick={() => handleToggleWithCelebration(goal.id)}
-                              className="flex-shrink-0 p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-netsurit-red"
+                                className="p-1 rounded-full hover:bg-professional-gray-100 transition-colors"
                               aria-label="Add completion"
                               data-testid={`add-completion-${goal.id}`}
                             >
-                              <ChevronLeft className="w-4 h-4 text-slate-400 hover:text-netsurit-red rotate-180" />
+                                <ChevronLeft className="w-4 h-4 text-professional-gray-400 rotate-180" />
                             </button>
                           )}
+                            <span className="text-xs text-professional-gray-400 px-2 py-0.5 bg-professional-gray-100 rounded-full">
+                              {goal.recurrence}
+                            </span>
                           </div>
                         )}
-                        
-                        {/* Deadline: Due date - at bottom */}
-                        {isDeadline && goal.targetDate && (
-                          <p className="text-xs text-slate-500 font-medium">
-                            Due date: {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </p>
-                        )}
-                      </div>
                     </div>
 
-                    {/* Right: Meta Column (auto width) */}
-                    <div className="flex flex-col items-end gap-1 text-right justify-self-end self-center">
-                      {/* Weeks Left - for both recurring and deadline goals */}
+                      {/* Right side - weeks remaining & skip */}
+                      <div className="flex-shrink-0 text-right">
                       {(isWeeklyRecurring || isDeadline) && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
-                        <span className={`text-sm md:text-base font-semibold whitespace-nowrap ${
-                          goal.weeksRemaining === 0 
-                            ? 'text-netsurit-orange' 
-                            : goal.weeksRemaining === 1
-                              ? 'text-netsurit-coral'
-                              : 'text-slate-700'
+                          <div className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${
+                            goal.completed
+                              ? 'bg-professional-gray-200 text-professional-gray-600'
+                            : goal.weeksRemaining === 0 
+                                ? 'bg-netsurit-orange/10 text-netsurit-orange' 
+                                : goal.weeksRemaining <= 2
+                                  ? 'bg-netsurit-coral/10 text-netsurit-coral'
+                                  : 'bg-professional-gray-100 text-professional-gray-600'
                         }`}>
-                          {goal.weeksRemaining === 0 
+                            {goal.completed 
+                              ? 'Complete'
+                              : goal.weeksRemaining === 0 
                             ? 'Final week!' 
-                            : goal.weeksRemaining === 1
-                              ? '1 week left' 
-                              : `${goal.weeksRemaining} weeks left`}
-                        </span>
+                                : `${goal.weeksRemaining}w left`}
+                          </div>
                       )}
-                      
-                      {/* Skip this week */}
                       {!goal.completed && goal.templateId && onSkipGoal && (
                         <button
                           onClick={() => onSkipGoal(goal.id)}
-                          className="text-xs text-slate-400 underline hover:text-slate-600 transition-colors"
+                            className="block text-xs text-professional-gray-400 hover:text-netsurit-red mt-1.5 transition-colors"
                           aria-label="Skip this week"
                           data-testid={`skip-goal-${goal.id}`}
                         >
-                          Skip this week
+                            skip this week
                         </button>
                       )}
                     </div>
