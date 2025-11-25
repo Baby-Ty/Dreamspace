@@ -61,6 +61,7 @@ export const AppProvider = ({ children, initialUser }) => {
     ...initialUser,
     // Ensure arrays exist
     dreamBook: initialUser.dreamBook || [],
+    yearVision: initialUser.yearVision || '', // Preserve yearVision from API
     score: initialUser.score || 0,
     connects: initialUser.connects || [],
     // Use global dreamCategories instead of per-user categories
@@ -152,6 +153,7 @@ export const AppProvider = ({ children, initialUser }) => {
             ...initialUser, // Preserve dreams from initialUser
             ...userData,
             dreamBook: initialUser.dreamBook, // ✅ CRITICAL: Use dreams from initialUser
+            yearVision: initialUser.yearVision || userData.yearVision || '', // Preserve yearVision from API
             connects: initialUser.connects || userData.connects || [],
             dreamCategories: dreamCategories
           };
@@ -207,6 +209,7 @@ export const AppProvider = ({ children, initialUser }) => {
           ...userData,
           // Ensure arrays exist
           dreamBook: userData.dreamBook || [],
+          yearVision: initialUser.yearVision || userData.yearVision || '', // Preserve yearVision from API
           connects: userData.connects || [],
           // Use global dreamCategories, not per-user
           dreamCategories: dreamCategories
@@ -322,6 +325,27 @@ export const AppProvider = ({ children, initialUser }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.currentUser?.id]);
+
+  // Listen for vision-updated events to sync context state
+  useEffect(() => {
+    const handleVisionUpdated = (event) => {
+      const newVision = event.detail?.vision || '';
+      if (state.currentUser && state.currentUser.yearVision !== newVision) {
+        dispatch({
+          type: actionTypes.SET_USER_DATA,
+          payload: {
+            ...state.currentUser,
+            yearVision: newVision
+          }
+        });
+      }
+    };
+
+    window.addEventListener('vision-updated', handleVisionUpdated);
+    return () => {
+      window.removeEventListener('vision-updated', handleVisionUpdated);
+    };
+  }, [state.currentUser]);
 
   // DEPRECATED: Bulk instantiation removed - currentWeek + pastWeeks model creates goals on-demand
   // Templates are no longer pre-instantiated into weeks{year} containers

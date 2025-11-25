@@ -37,8 +37,22 @@ export function useDreamBook() {
   const maxDreams = 10;
   const dreams = currentUser?.dreamBook || [];
   // Ensure yearVision is always a string (API might return error object)
-  const rawYearVision = currentUser?.yearVision;
-  const yearVision = typeof rawYearVision === 'string' ? rawYearVision : '';
+  // Use local state to allow optimistic updates when saving
+  const [localYearVision, setLocalYearVision] = useState(() => {
+    const rawYearVision = currentUser?.yearVision;
+    return typeof rawYearVision === 'string' ? rawYearVision : '';
+  });
+  
+  // Sync local state with currentUser when it changes
+  useEffect(() => {
+    const rawYearVision = currentUser?.yearVision;
+    const syncedVision = typeof rawYearVision === 'string' ? rawYearVision : '';
+    if (syncedVision !== localYearVision) {
+      setLocalYearVision(syncedVision);
+    }
+  }, [currentUser?.yearVision]);
+  
+  const yearVision = localYearVision;
 
   // Drag and drop handlers
   const handleDragStart = useCallback((e, index) => {
@@ -557,20 +571,31 @@ export function useDreamBook() {
   const handleSaveVision = useCallback(async (visionText) => {
     if (!currentUser?.id) return;
     
+    // Optimistic update - update UI immediately
+    setLocalYearVision(visionText);
+    
     try {
       // Save vision to dreams container alongside dreamBook
       const result = await itemService.saveYearVision(currentUser.id, visionText);
       if (result.success) {
         console.log('✅ Year vision saved successfully');
-        // Dispatch event to update other components
-        window.dispatchEvent(new CustomEvent('vision-updated', { detail: { vision: visionText } }));
+        // Update context state so it persists across component remounts
+        if (window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('vision-updated', { detail: { vision: visionText } }));
+        }
       } else {
         console.error('❌ Failed to save vision:', result.error);
+        // Revert optimistic update on error
+        const rawYearVision = currentUser?.yearVision;
+        setLocalYearVision(typeof rawYearVision === 'string' ? rawYearVision : '');
       }
     } catch (error) {
       console.error('❌ Error saving vision:', error);
+      // Revert optimistic update on error
+      const rawYearVision = currentUser?.yearVision;
+      setLocalYearVision(typeof rawYearVision === 'string' ? rawYearVision : '');
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.yearVision]);
 
   // Loading state
   const loading = !currentUser || !dreamCategories;
