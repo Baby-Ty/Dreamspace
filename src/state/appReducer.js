@@ -64,11 +64,20 @@ export const appReducer = (state, action) => {
         ? payloadDreams 
         : existingDreams;
       
+      // ✅ FIX: Preserve yearVision if payload has empty/undefined yearVision but state has yearVision
+      // This prevents yearVision from disappearing when updating other user data
+      const payloadYearVision = action.payload.yearVision || '';
+      const existingYearVision = state.currentUser?.yearVision || '';
+      const yearVisionToUse = (payloadYearVision.trim().length > 0 || existingYearVision.trim().length === 0)
+        ? payloadYearVision
+        : existingYearVision;
+      
       return {
         ...state,
         currentUser: {
           ...action.payload,
-          dreamBook: dreamsToUse
+          dreamBook: dreamsToUse,
+          yearVision: yearVisionToUse
         }
       };
 

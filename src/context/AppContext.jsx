@@ -121,12 +121,13 @@ export const AppProvider = ({ children, initialUser }) => {
         return;
       }
       
-      // Otherwise, use initialUser as-is (it has yearVision or we don't have one)
+      // Otherwise, use initialUser as-is, but preserve yearVision from state if initialUser doesn't have it
       if (JSON.stringify(initialUser) !== JSON.stringify(state.currentUser)) {
         dispatch({
           type: actionTypes.SET_USER_DATA,
           payload: {
             ...initialUser,
+            yearVision: initialUser.yearVision || state.currentUser?.yearVision || '', // Preserve yearVision from state if initialUser doesn't have it
             dreamBook: initialUser.dreamBook || state.currentUser.dreamBook || [],
             connects: initialUser.connects || state.currentUser.connects || []
           }
