@@ -28,7 +28,7 @@ function DreamCard({ dream, onEdit, onDelete, onView }) {
 
   return (
     <div
-      className="group relative flex flex-col h-full min-h-[360px] cursor-pointer select-none overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]"
+      className="group relative flex flex-col h-full min-h-[450px] cursor-pointer select-none overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]"
       onClick={onView}
       role="button"
       tabIndex={0}

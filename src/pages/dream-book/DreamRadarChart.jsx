@@ -23,9 +23,9 @@ function DreamRadarChart({ dreams = [] }) {
   const totalDreams = dreams.length;
 
   // SVG configuration
-  const size = 280; // Slightly larger canvas for bubbles
+  const size = 240; // Slightly larger canvas for bubbles
   const center = size / 2;
-  const orbitRadius = 85; // Where the bubbles center
+  const orbitRadius = 70; // Where the bubbles center
   const numPoints = 6;
 
   // Calculate position for each category bubble
@@ -41,7 +41,7 @@ function DreamRadarChart({ dreams = [] }) {
   // Dynamic bubble sizing
   const getBubbleSize = (value, count) => {
     const minSize = 12; // Empty state dot
-    const maxSize = 45; // Full blooming dream
+    const maxSize = 40; // Full blooming dream
     
     if (count === 0) return minSize;
     // Logarithmic scale to handle large disparities gracefully

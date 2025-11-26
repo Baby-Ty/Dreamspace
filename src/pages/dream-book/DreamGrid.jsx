@@ -46,7 +46,7 @@ function DreamGrid({
     >
       {/* Radar Chart - spans 2 columns */}
       {radarChart && (
-        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[320px] flex items-center justify-center">
+        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[280px] flex items-center justify-center">
           {radarChart}
         </div>
       )}
@@ -130,7 +130,7 @@ function DreamGrid({
           onClick={onCreate}
           aria-label="Add new dream"
           data-testid="quick-add-dream-button"
-          className="group bg-white rounded-2xl border-2 border-dashed border-netsurit-red/30 hover:border-netsurit-red/60 hover:bg-gradient-to-br hover:from-netsurit-red/5 hover:to-netsurit-coral/5 shadow-lg hover:shadow-2xl p-8 flex items-center justify-center h-full transition-all duration-300 hover:scale-[1.02] min-h-[360px]"
+          className="group bg-white rounded-2xl border-2 border-dashed border-netsurit-red/30 hover:border-netsurit-red/60 hover:bg-gradient-to-br hover:from-netsurit-red/5 hover:to-netsurit-coral/5 shadow-lg hover:shadow-2xl p-8 flex items-center justify-center h-full transition-all duration-300 hover:scale-[1.02] min-h-[450px]"
         >
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-netsurit-red/10 group-hover:bg-netsurit-red/20 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
@@ -146,7 +146,7 @@ function DreamGrid({
       {Array.from({ length: Math.max(0, maxDreams - dreams.length - (dreams.length < maxDreams ? 1 : 0)) }).map((_, index) => (
         <div
           key={`empty-${index}`}
-          className="bg-gradient-to-br from-professional-gray-50 to-professional-gray-100 rounded-2xl border-2 border-dashed border-professional-gray-300 flex items-center justify-center min-h-[360px] hover:border-professional-gray-400 hover:from-professional-gray-100 hover:to-professional-gray-150 transition-all duration-300"
+          className="bg-gradient-to-br from-professional-gray-50 to-professional-gray-100 rounded-2xl border-2 border-dashed border-professional-gray-300 flex items-center justify-center min-h-[450px] hover:border-professional-gray-400 hover:from-professional-gray-100 hover:to-professional-gray-150 transition-all duration-300"
           aria-label={`Empty dream slot ${dreams.length + index + 2}`}
           data-testid={`empty-slot-${index}`}
         >
