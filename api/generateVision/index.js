@@ -37,52 +37,21 @@ module.exports = async function (context, req) {
   }
 
   // Check if OpenAI API key is configured
-  // Try multiple possible environment variable names and also check Azure-specific locations
-  let rawApiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
-  
-  // Debug: Log all environment variables that might contain the key
-  const allEnvKeys = Object.keys(process.env);
-  const openaiRelatedKeys = allEnvKeys.filter(k => 
-    k.toUpperCase().includes('OPENAI') || 
-    k.toUpperCase().includes('API') && k.toUpperCase().includes('KEY')
-  );
-  
-  context.log('Environment variable check:', {
-    totalEnvVars: allEnvKeys.length,
-    openaiRelatedKeys: openaiRelatedKeys,
-    OPENAI_API_KEY_exists: !!process.env.OPENAI_API_KEY,
-    VITE_OPENAI_API_KEY_exists: !!process.env.VITE_OPENAI_API_KEY,
-    OPENAI_API_KEY_length: process.env.OPENAI_API_KEY?.length || 0,
-    VITE_OPENAI_API_KEY_length: process.env.VITE_OPENAI_API_KEY?.length || 0
-  });
-  
-  // If still not found, try to get from Azure App Settings (sometimes accessible via different methods)
-  if (!rawApiKey) {
-    // Check if it's in a different format or location
-    rawApiKey = process.env['OPENAI_API_KEY'] || process.env['VITE_OPENAI_API_KEY'];
-  }
-  
-  const apiKey = rawApiKey ? rawApiKey.trim() : null;
-  
-  if (!apiKey || apiKey.length === 0) {
-    context.log.error('OPENAI_API_KEY not found or empty after all checks');
-    context.log('First 50 env var keys:', allEnvKeys.slice(0, 50));
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
     context.res = {
       status: 500,
       body: JSON.stringify({ 
         error: 'OpenAI API not configured',
-        details: `OPENAI_API_KEY environment variable is required but not found. Found ${openaiRelatedKeys.length} related keys: ${openaiRelatedKeys.join(', ')}. Please verify it is set in Azure Function App Settings → Configuration → Application settings (not Connection strings) and restart the function app.`
+        details: 'OPENAI_API_KEY environment variable is required'
       }),
       headers
     };
     return;
   }
-  
-  // Log that API key is present (but don't log the actual key)
-  context.log('OpenAI API key found, length:', apiKey.length, 'starts with:', apiKey.substring(0, 7));
 
   try {
-    const maxWords = 50;
+    const maxWords = 100;
     
     // Build context from dreams
     const dreamContext = Array.isArray(dreams) && dreams.length > 0
@@ -93,10 +62,10 @@ module.exports = async function (context, req) {
 
     if (action === 'polish') {
       // Polish existing vision
-      systemPrompt = `You are a skilled editor helping refine personal vision statements.
-Keep the same meaning and personal voice, but make it more powerful and inspiring.
-Write in first person. Be concise - around 40-60 words. 
-Don't add new ideas, just polish what's there.`;
+      systemPrompt = `You are an editor refining a personal vision statement.
+Keep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.
+Write in first person. Around ${maxWords} words.
+Do not add new concepts — just polish what’s already there.`;
 
       userPrompt = `Please polish this vision statement while keeping my voice:
 "${userInput.trim()}"
@@ -106,10 +75,11 @@ ${dreamContext}
 Make it sound more visionary and confident, but still authentically me.`;
     } else {
       // Generate new vision
-      systemPrompt = `You are a visionary life coach helping someone craft an inspiring, personal vision statement. 
-Write in first person, present tense. Be warm, authentic, and aspirational - not corporate or generic.
+      systemPrompt = `You are a visionary life coach helping someone craft an inspiring personal vision statement. 
+Write in first person, present tense. Warm, authentic, aspirational — never corporate.
+
 The tone should feel like a confident dreamer speaking from the heart.
-Keep it to ${maxWords} words maximum. Make every word count.`;
+Keep it to around ${maxWords} words. Make every word count.`;
 
       userPrompt = `Here's what I shared about my mindset, goals, and hopes:
 "${userInput.trim()}"
