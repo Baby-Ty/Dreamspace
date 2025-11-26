@@ -1,18 +1,31 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState } from 'react';
-import { Sparkles, X, Loader2, Image, RefreshCw, Check } from 'lucide-react';
-import { DalleService } from '../services/dalleService';
+import { Sparkles, X, Loader2, Image, RefreshCw, Check, ChevronDown } from 'lucide-react';
+import { DalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
 import { ErrorCodes } from '../constants/errors';
 
-const AIImageGenerator = ({ onSelectImage, onClose }) => {
+/**
+ * AI Image Generator Modal
+ * @param {function} onSelectImage - Callback when image is selected
+ * @param {function} onClose - Callback to close modal
+ * @param {string} imageType - Type of image: 'dream' or 'background_card' (default: 'dream')
+ */
+const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREAM }) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [generatedImage, setGeneratedImage] = useState(null);
-  const [revisedPrompt, setRevisedPrompt] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState('');
+  const [customStyle, setCustomStyle] = useState('');
   
   // Initialize DALL-E service
   const dalle = DalleService(import.meta.env.VITE_OPENAI_API_KEY);
+  
+  // Get style options for dropdown
+  const styleOptions = Object.values(STYLE_MODIFIERS);
+  
+  // Check if custom style is selected
+  const isCustomStyle = selectedStyle === 'custom';
 
   const handleGenerate = async (e) => {
     e?.preventDefault();
@@ -21,14 +34,16 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
     setLoading(true);
     setError('');
     setGeneratedImage(null);
-    setRevisedPrompt('');
 
     try {
-      const result = await dalle.generate(query.trim());
+      const result = await dalle.generate(query.trim(), {
+        imageType: imageType,
+        styleModifierId: isCustomStyle ? null : (selectedStyle || null),
+        customStyle: isCustomStyle ? customStyle.trim() : null
+      });
       
       if (result.success) {
         setGeneratedImage(result.data.url);
-        setRevisedPrompt(result.data.revisedPrompt || '');
       } else {
         // Check if it's a config error (missing API key)
         if (result.error.code === ErrorCodes.INVALID_CONFIG) {
@@ -54,7 +69,6 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
 
   const handleGenerateAgain = () => {
     setGeneratedImage(null);
-    setRevisedPrompt('');
     handleGenerate();
   };
 
@@ -78,9 +92,15 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
                 id="ai-image-generator-title"
                 className="text-xl font-bold text-gray-900"
               >
-                Generate AI Image
+                {imageType === IMAGE_TYPES.BACKGROUND_CARD 
+                  ? 'Generate Background Image' 
+                  : 'Generate Dream Image'}
               </h2>
-              <p className="text-sm text-gray-600">Create a custom image for your dream</p>
+              <p className="text-sm text-gray-600">
+                {imageType === IMAGE_TYPES.BACKGROUND_CARD 
+                  ? 'Create a custom background for your profile card' 
+                  : 'Create a custom image for your dream'}
+              </p>
             </div>
           </div>
           <button
@@ -95,20 +115,83 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
 
         {/* Search/Generate Bar */}
         <div className="p-6 border-b border-gray-200">
-          <form onSubmit={handleGenerate} className="space-y-3">
+          <form onSubmit={handleGenerate} className="space-y-4">
+            {/* Description Input */}
             <div className="flex-1 relative">
               <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" aria-hidden="true" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Describe your dream image (e.g., running marathon, learning guitar, mountain peak)..."
+                placeholder={imageType === IMAGE_TYPES.BACKGROUND_CARD 
+                  ? "Describe your background theme (e.g., mountain sunset, city lights, ocean waves)..."
+                  : "Describe your dream image (e.g., running marathon, learning guitar, mountain peak)..."}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-transparent"
-                aria-label="Dream image description"
+                aria-label={imageType === IMAGE_TYPES.BACKGROUND_CARD ? "Background theme description" : "Dream image description"}
                 data-testid="ai-image-query-input"
                 disabled={loading}
               />
             </div>
+            
+            {/* Style Modifier Dropdown */}
+            <div className="relative">
+              <label 
+                htmlFor="style-modifier" 
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Art Style (optional)
+              </label>
+              <div className="relative">
+                <select
+                  id="style-modifier"
+                  value={selectedStyle}
+                  onChange={(e) => setSelectedStyle(e.target.value)}
+                  disabled={loading}
+                  className="w-full appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-netsurit-red focus:border-transparent text-gray-700 cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  aria-label="Select art style"
+                  data-testid="style-modifier-select"
+                >
+                  <option value="">No style preference</option>
+                  {styleOptions.map((style) => (
+                    <option key={style.id} value={style.id}>
+                      {style.label}
+                    </option>
+                  ))}
+                  <option value="custom">✨ Custom Style...</option>
+                </select>
+                <ChevronDown 
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" 
+                  aria-hidden="true" 
+                />
+              </div>
+              
+              {/* Custom Style Input */}
+              {isCustomStyle ? (
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={customStyle}
+                    onChange={(e) => setCustomStyle(e.target.value)}
+                    placeholder="e.g., watercolor painting, neon cyberpunk, vintage oil painting..."
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-transparent text-gray-700"
+                    aria-label="Enter custom art style"
+                    data-testid="custom-style-input"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Describe your preferred art style, medium, or visual aesthetic
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedStyle 
+                    ? styleOptions.find(s => s.id === selectedStyle)?.modifier || ''
+                    : 'Choose a style to influence the visual aesthetic'}
+                </p>
+              )}
+            </div>
+            
+            {/* Generate Button */}
             <button
               type="submit"
               disabled={loading || !query.trim()}
@@ -167,9 +250,17 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
           {!loading && !error && !generatedImage && !query && (
             <div className="text-center py-12 text-gray-500">
               <Sparkles className="w-12 h-12 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <p className="font-medium">Describe your dream image</p>
+              <p className="font-medium">
+                {imageType === IMAGE_TYPES.BACKGROUND_CARD 
+                  ? 'Describe your background theme' 
+                  : 'Describe your dream image'}
+              </p>
               <p className="text-sm mt-2">Enter a description above and click "Generate Image" to create a custom image</p>
-              <p className="text-xs mt-3 text-gray-400">Examples: "running marathon", "learning guitar", "mountain peak adventure"</p>
+              <p className="text-xs mt-3 text-gray-400">
+                {imageType === IMAGE_TYPES.BACKGROUND_CARD 
+                  ? 'Examples: "mountain sunset", "city lights at night", "peaceful ocean waves"'
+                  : 'Examples: "running marathon", "learning guitar", "mountain peak adventure"'}
+              </p>
             </div>
           )}
 
@@ -190,14 +281,6 @@ const AIImageGenerator = ({ onSelectImage, onClose }) => {
                   data-testid="generated-ai-image"
                 />
               </div>
-              
-              {revisedPrompt && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-600">
-                    <span className="font-medium">AI-enhanced prompt:</span> {revisedPrompt}
-                  </p>
-                </div>
-              )}
 
               <div className="flex space-x-3">
                 <button
