@@ -49,6 +49,24 @@ export default function TeamMemberCard({ member, currentUserId, isCoach, onGener
     return 'bg-netsurit-red';
   };
 
+  // Helper to get valid avatar URL - blob URLs don't work across page loads, so use fallback
+  const getAvatarUrl = (avatar) => {
+    if (!avatar || typeof avatar !== 'string') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
+    }
+    const trimmed = avatar.trim();
+    // Blob URLs are temporary and cause security errors - use fallback instead
+    if (trimmed.startsWith('blob:')) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
+    }
+    // Only use http/https URLs
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    // Fallback for invalid URLs
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
+  };
+
   // Check if this is the current user's card
   const isCurrentUser = member.id === currentUserId;
   const hasBackground = !!member.cardBackgroundImage;
@@ -107,18 +125,19 @@ export default function TeamMemberCard({ member, currentUserId, isCoach, onGener
             {/* Profile Picture - Large & Centered */}
             <div className="flex flex-col items-center justify-center flex-1">
               <div className={`relative rounded-full p-1 ${getAccentColorClass().replace('ring-', 'bg-')}`}>
-          <img
-            src={member.avatar && !member.avatar.startsWith('blob:') 
-              ? member.avatar 
-                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`}
-            alt={`${member.name}'s profile`}
+                <img
+                  src={getAvatarUrl(member.avatar)}
+                  alt={`${member.name}'s profile`}
                   className="w-32 h-32 rounded-full border-4 border-white shadow-2xl object-cover"
-            onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
-            }}
+                  onError={(e) => {
+                    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=128`;
+                    if (e.target.src !== fallbackUrl) {
+                      e.target.src = fallbackUrl;
+                    }
+                  }}
                 />
               </div>
-        </div>
+            </div>
 
             {/* Bottom Info */}
             <div className="w-full text-center mt-auto pb-2">
@@ -149,9 +168,15 @@ export default function TeamMemberCard({ member, currentUserId, isCoach, onGener
           <div className="p-4 border-b border-professional-gray-100 flex justify-between items-center bg-professional-gray-50/50">
             <div className="flex items-center gap-2">
               <img
-                src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`}
-                alt=""
-                className="w-8 h-8 rounded-full border border-professional-gray-200"
+                src={getAvatarUrl(member.avatar)}
+                alt={`${member.name}'s profile`}
+                className="w-8 h-8 rounded-full border border-professional-gray-200 object-cover"
+                onError={(e) => {
+                  const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=80`;
+                  if (e.target.src !== fallbackUrl) {
+                    e.target.src = fallbackUrl;
+                  }
+                }}
               />
               <span className="font-semibold text-sm text-professional-gray-900 truncate max-w-[140px]">
                 {member.name}
