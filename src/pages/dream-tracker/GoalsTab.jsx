@@ -208,16 +208,46 @@ export function GoalsTab({
                   type="number"
                   min="1"
                   max={newGoalData.recurrence === 'monthly' ? 24 : 52}
-                  value={newGoalData.recurrence === 'monthly' ? newGoalData.targetMonths || 6 : newGoalData.targetWeeks || 12}
+                  value={newGoalData.recurrence === 'monthly' 
+                    ? (newGoalData.targetMonths === '' ? '' : (newGoalData.targetMonths || 6))
+                    : (newGoalData.targetWeeks === '' ? '' : (newGoalData.targetWeeks || 12))}
                   onChange={(e) => {
-                    const value = parseInt(e.target.value) || (newGoalData.recurrence === 'monthly' ? 6 : 12);
-                    setNewGoalData(prev => ({
-                      ...prev,
-                      ...(prev.recurrence === 'monthly' 
-                        ? { targetMonths: value }
-                        : { targetWeeks: value }
-                      )
-                    }));
+                    const inputValue = e.target.value;
+                    // Allow empty string for free typing
+                    if (inputValue === '') {
+                      setNewGoalData(prev => ({
+                        ...prev,
+                        ...(prev.recurrence === 'monthly' 
+                          ? { targetMonths: '' }
+                          : { targetWeeks: '' }
+                        )
+                      }));
+                      return;
+                    }
+                    const numValue = parseInt(inputValue, 10);
+                    if (!isNaN(numValue)) {
+                      setNewGoalData(prev => ({
+                        ...prev,
+                        ...(prev.recurrence === 'monthly' 
+                          ? { targetMonths: numValue }
+                          : { targetWeeks: numValue }
+                        )
+                      }));
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Apply default if empty on blur
+                    const inputValue = e.target.value;
+                    if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                      const defaultValue = newGoalData.recurrence === 'monthly' ? 6 : 12;
+                      setNewGoalData(prev => ({
+                        ...prev,
+                        ...(prev.recurrence === 'monthly' 
+                          ? { targetMonths: defaultValue }
+                          : { targetWeeks: defaultValue }
+                        )
+                      }));
+                    }
                   }}
                   className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
                   aria-label={`Target ${newGoalData.recurrence === 'monthly' ? 'months' : 'weeks'}`}
@@ -235,10 +265,25 @@ export function GoalsTab({
                   </label>
                   <input
                     type="number"
-                    value={newGoalData.frequency || 1}
+                    value={newGoalData.frequency === '' ? '' : (newGoalData.frequency || 1)}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(7, value)) }));
+                      const inputValue = e.target.value;
+                      // Allow empty string for free typing
+                      if (inputValue === '') {
+                        setNewGoalData(prev => ({ ...prev, frequency: '' }));
+                        return;
+                      }
+                      const numValue = parseInt(inputValue, 10);
+                      if (!isNaN(numValue)) {
+                        setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(7, numValue)) }));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Apply default if empty on blur
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                        setNewGoalData(prev => ({ ...prev, frequency: 1 }));
+                      }
                     }}
                     min="1"
                     max="7"
@@ -259,10 +304,25 @@ export function GoalsTab({
                   </label>
                   <input
                     type="number"
-                    value={newGoalData.frequency || 2}
+                    value={newGoalData.frequency === '' ? '' : (newGoalData.frequency || 2)}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(31, value)) }));
+                      const inputValue = e.target.value;
+                      // Allow empty string for free typing
+                      if (inputValue === '') {
+                        setNewGoalData(prev => ({ ...prev, frequency: '' }));
+                        return;
+                      }
+                      const numValue = parseInt(inputValue, 10);
+                      if (!isNaN(numValue)) {
+                        setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(31, numValue)) }));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Apply default if empty on blur
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                        setNewGoalData(prev => ({ ...prev, frequency: 2 }));
+                      }
                     }}
                     min="1"
                     max="31"

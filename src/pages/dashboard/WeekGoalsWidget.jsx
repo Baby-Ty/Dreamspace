@@ -309,15 +309,43 @@ function WeekGoalsWidget({
                       type="number"
                       min="1"
                       max={newGoal.consistency === 'monthly' ? 24 : 52}
-                      value={newGoal.consistency === 'monthly' ? newGoal.targetMonths : newGoal.targetWeeks}
+                      value={newGoal.consistency === 'monthly' 
+                        ? (newGoal.targetMonths === '' ? '' : (newGoal.targetMonths || 6))
+                        : (newGoal.targetWeeks === '' ? '' : (newGoal.targetWeeks || 12))}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value) || (newGoal.consistency === 'monthly' ? 6 : 12);
-                        onNewGoalChange({
-                          ...newGoal, 
-                          ...(newGoal.consistency === 'monthly' 
-                            ? { targetMonths: value }
-                            : { targetWeeks: value })
-                        });
+                        const inputValue = e.target.value;
+                        // Allow empty string for free typing
+                        if (inputValue === '') {
+                          onNewGoalChange({
+                            ...newGoal, 
+                            ...(newGoal.consistency === 'monthly' 
+                              ? { targetMonths: '' }
+                              : { targetWeeks: '' })
+                          });
+                          return;
+                        }
+                        const numValue = parseInt(inputValue, 10);
+                        if (!isNaN(numValue)) {
+                          onNewGoalChange({
+                            ...newGoal, 
+                            ...(newGoal.consistency === 'monthly' 
+                              ? { targetMonths: numValue }
+                              : { targetWeeks: numValue })
+                          });
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Apply default if empty on blur
+                        const inputValue = e.target.value;
+                        if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                          const defaultValue = newGoal.consistency === 'monthly' ? 6 : 12;
+                          onNewGoalChange({
+                            ...newGoal, 
+                            ...(newGoal.consistency === 'monthly' 
+                              ? { targetMonths: defaultValue }
+                              : { targetWeeks: defaultValue })
+                          });
+                        }
                       }}
                       className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
                       aria-label={`Target ${newGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
@@ -339,13 +367,34 @@ function WeekGoalsWidget({
                       type="number"
                       min="1"
                       max="31"
-                      value={newGoal.frequency || 2}
+                      value={newGoal.frequency === '' ? '' : (newGoal.frequency || 2)}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        onNewGoalChange({
-                          ...newGoal,
-                          frequency: Math.max(1, Math.min(31, value))
-                        });
+                        const inputValue = e.target.value;
+                        // Allow empty string for free typing
+                        if (inputValue === '') {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: ''
+                          });
+                          return;
+                        }
+                        const numValue = parseInt(inputValue, 10);
+                        if (!isNaN(numValue)) {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: Math.max(1, Math.min(31, numValue))
+                          });
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Apply default if empty on blur
+                        const inputValue = e.target.value;
+                        if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: 2
+                          });
+                        }
                       }}
                       className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
                       aria-label="Completions per month"
@@ -368,13 +417,34 @@ function WeekGoalsWidget({
                       type="number"
                       min="1"
                       max="7"
-                      value={newGoal.frequency || 1}
+                      value={newGoal.frequency === '' ? '' : (newGoal.frequency || 1)}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        onNewGoalChange({
-                          ...newGoal,
-                          frequency: Math.max(1, Math.min(7, value))
-                        });
+                        const inputValue = e.target.value;
+                        // Allow empty string for free typing
+                        if (inputValue === '') {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: ''
+                          });
+                          return;
+                        }
+                        const numValue = parseInt(inputValue, 10);
+                        if (!isNaN(numValue)) {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: Math.max(1, Math.min(7, numValue))
+                          });
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Apply default if empty on blur
+                        const inputValue = e.target.value;
+                        if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                          onNewGoalChange({
+                            ...newGoal,
+                            frequency: 1
+                          });
+                        }
                       }}
                       className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
                       aria-label="Completions per week"

@@ -315,19 +315,51 @@ function DreamForm({
                     min="1"
                     max={formData.firstGoal.consistency === 'monthly' ? 24 : 52}
                     value={formData.firstGoal.consistency === 'monthly' 
-                      ? formData.firstGoal.targetMonths 
-                      : formData.firstGoal.targetWeeks}
+                      ? (formData.firstGoal.targetMonths === '' ? '' : (formData.firstGoal.targetMonths || 6))
+                      : (formData.firstGoal.targetWeeks === '' ? '' : (formData.firstGoal.targetWeeks || 12))}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || (formData.firstGoal.consistency === 'monthly' ? 6 : 12);
-                      setFormData({ 
-                        ...formData, 
-                        firstGoal: { 
-                          ...formData.firstGoal, 
-                          ...(formData.firstGoal.consistency === 'monthly' 
-                            ? { targetMonths: value }
-                            : { targetWeeks: value })
-                        }
-                      });
+                      const inputValue = e.target.value;
+                      // Allow empty string for free typing
+                      if (inputValue === '') {
+                        setFormData({ 
+                          ...formData, 
+                          firstGoal: { 
+                            ...formData.firstGoal, 
+                            ...(formData.firstGoal.consistency === 'monthly' 
+                              ? { targetMonths: '' }
+                              : { targetWeeks: '' })
+                          }
+                        });
+                        return;
+                      }
+                      const numValue = parseInt(inputValue, 10);
+                      if (!isNaN(numValue)) {
+                        setFormData({ 
+                          ...formData, 
+                          firstGoal: { 
+                            ...formData.firstGoal, 
+                            ...(formData.firstGoal.consistency === 'monthly' 
+                              ? { targetMonths: numValue }
+                              : { targetWeeks: numValue })
+                          }
+                        });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Apply default if empty on blur
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                        const defaultValue = formData.firstGoal.consistency === 'monthly' ? 6 : 12;
+                        setFormData({ 
+                          ...formData, 
+                          firstGoal: { 
+                            ...formData.firstGoal, 
+                            ...(formData.firstGoal.consistency === 'monthly' 
+                              ? { targetMonths: defaultValue }
+                              : { targetWeeks: defaultValue })
+                          }
+                        });
+                      }
                     }}
                     className="input-field text-sm w-24"
                     aria-label={`Target ${formData.firstGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
@@ -349,16 +381,43 @@ function DreamForm({
                         type="number"
                         min="1"
                         max="7"
-                        value={formData.firstGoal.frequency || 1}
+                        value={formData.firstGoal.frequency === '' ? '' : (formData.firstGoal.frequency || 1)}
                         onChange={(e) => {
-                          const value = parseInt(e.target.value) || 1;
-                          setFormData({ 
-                            ...formData, 
-                            firstGoal: { 
-                              ...formData.firstGoal, 
-                              frequency: Math.max(1, Math.min(7, value))
-                            }
-                          });
+                          const inputValue = e.target.value;
+                          // Allow empty string for free typing
+                          if (inputValue === '') {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: ''
+                              }
+                            });
+                            return;
+                          }
+                          const numValue = parseInt(inputValue, 10);
+                          if (!isNaN(numValue)) {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: Math.max(1, Math.min(7, numValue))
+                              }
+                            });
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Apply default if empty on blur
+                          const inputValue = e.target.value;
+                          if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: 1
+                              }
+                            });
+                          }
                         }}
                         className="input-field text-sm w-24"
                         aria-label="Completions per week"
@@ -381,16 +440,43 @@ function DreamForm({
                         type="number"
                         min="1"
                         max="31"
-                        value={formData.firstGoal.frequency || 2}
+                        value={formData.firstGoal.frequency === '' ? '' : (formData.firstGoal.frequency || 2)}
                         onChange={(e) => {
-                          const value = parseInt(e.target.value) || 1;
-                          setFormData({ 
-                            ...formData, 
-                            firstGoal: { 
-                              ...formData.firstGoal, 
-                              frequency: Math.max(1, Math.min(31, value))
-                            }
-                          });
+                          const inputValue = e.target.value;
+                          // Allow empty string for free typing
+                          if (inputValue === '') {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: ''
+                              }
+                            });
+                            return;
+                          }
+                          const numValue = parseInt(inputValue, 10);
+                          if (!isNaN(numValue)) {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: Math.max(1, Math.min(31, numValue))
+                              }
+                            });
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Apply default if empty on blur
+                          const inputValue = e.target.value;
+                          if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                            setFormData({ 
+                              ...formData, 
+                              firstGoal: { 
+                                ...formData.firstGoal, 
+                                frequency: 2
+                              }
+                            });
+                          }
                         }}
                         className="input-field text-sm w-24"
                         aria-label="Completions per month"

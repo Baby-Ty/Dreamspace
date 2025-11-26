@@ -159,8 +159,26 @@ function GoalAccordion({
                 </label>
                 <input
                   type="number"
-                  value={editData.targetWeeks || 12}
-                  onChange={(e) => setEditData({ ...editData, targetWeeks: parseInt(e.target.value) || 12 })}
+                  value={editData.targetWeeks === '' ? '' : (editData.targetWeeks || 12)}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    // Allow empty string for free typing
+                    if (inputValue === '') {
+                      setEditData({ ...editData, targetWeeks: '' });
+                      return;
+                    }
+                    const numValue = parseInt(inputValue, 10);
+                    if (!isNaN(numValue)) {
+                      setEditData({ ...editData, targetWeeks: numValue });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Apply default if empty on blur
+                    const inputValue = e.target.value;
+                    if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                      setEditData({ ...editData, targetWeeks: 12 });
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red"
                   min="1"
                   max="52"
@@ -175,10 +193,25 @@ function GoalAccordion({
                   </label>
                   <input
                     type="number"
-                    value={editData.frequency || 1}
+                    value={editData.frequency === '' ? '' : (editData.frequency || 1)}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setEditData({ ...editData, frequency: Math.max(1, Math.min(7, value)) });
+                      const inputValue = e.target.value;
+                      // Allow empty string for free typing
+                      if (inputValue === '') {
+                        setEditData({ ...editData, frequency: '' });
+                        return;
+                      }
+                      const numValue = parseInt(inputValue, 10);
+                      if (!isNaN(numValue)) {
+                        setEditData({ ...editData, frequency: Math.max(1, Math.min(7, numValue)) });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Apply default if empty on blur
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                        setEditData({ ...editData, frequency: 1 });
+                      }
                     }}
                     min="1"
                     max="7"
@@ -199,10 +232,25 @@ function GoalAccordion({
                   </label>
                   <input
                     type="number"
-                    value={editData.frequency || 2}
+                    value={editData.frequency === '' ? '' : (editData.frequency || 2)}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 1;
-                      setEditData({ ...editData, frequency: Math.max(1, Math.min(31, value)) });
+                      const inputValue = e.target.value;
+                      // Allow empty string for free typing
+                      if (inputValue === '') {
+                        setEditData({ ...editData, frequency: '' });
+                        return;
+                      }
+                      const numValue = parseInt(inputValue, 10);
+                      if (!isNaN(numValue)) {
+                        setEditData({ ...editData, frequency: Math.max(1, Math.min(31, numValue)) });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Apply default if empty on blur
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
+                        setEditData({ ...editData, frequency: 2 });
+                      }
                     }}
                     min="1"
                     max="31"
