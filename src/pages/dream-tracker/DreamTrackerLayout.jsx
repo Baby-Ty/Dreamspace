@@ -149,7 +149,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
       {/* Image Lightbox Modal */}
       {isImageExpanded && localDream.image && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[60] animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[150] animate-in fade-in duration-200"
           onClick={() => setIsImageExpanded(false)}
           role="dialog"
           aria-modal="true"
