@@ -164,10 +164,10 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
             <div className="flex-1 flex items-start justify-center overflow-hidden pt-1">
               {hasVision ? (
                 <p 
-                  className="text-center leading-relaxed text-lg font-hand"
+                  className="text-center leading-relaxed text-xl font-hand"
                   style={{ 
                     color: '#1f180b',
-                    lineHeight: '28px',
+                    lineHeight: '32px',
                     textShadow: '0 1px 0 rgba(255,255,255,0.4)',
                   }}
                 >
