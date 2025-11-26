@@ -208,6 +208,13 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     
     console.log('📝 Adding goal to dream:', goal);
     
+    // OPTIMISTIC UPDATE: Update local state immediately for instant UI feedback
+    const updatedLocalDream = {
+      ...localDream,
+      goals: [...(localDream.goals || []), goal]
+    };
+    setLocalDream(updatedLocalDream);
+    
     // Add goal to dream.goals[] array - this is the single source of truth
     // Dashboard auto-instantiation will read from dream.goals[] to create weekly instances
     await addGoal(localDream.id, goal);
@@ -219,10 +226,17 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     // Dashboard auto-instantiation (useDashboardData.js) reads from dream.goals[]
     // and automatically creates instances for the current week.
     
-      // Trigger dashboard refresh
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('goals-updated'));
-      }, 100);
+    // Trigger dashboard refresh - dispatch both events to ensure dashboard updates
+    // Delay slightly longer to allow React state to update in AppContext
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('goals-updated'));
+      window.dispatchEvent(new CustomEvent('dreams-updated'));
+    }, 300);
+    } catch (error) {
+      console.error('❌ Error adding goal:', error);
+      // Revert optimistic update on error
+      setLocalDream(localDream);
+      alert(`Failed to add goal: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSavingGoal(false);
     }

@@ -92,6 +92,7 @@ module.exports = async function (context, req) {
 
     // Prepare the document - simplified structure with goals instead of milestones
     // IMPORTANT: Always use 'dreams' field, never 'dreamBook' to avoid duplicates
+    // IMPORTANT: Preserve yearVision from existing document to prevent it from being overwritten
     const document = {
       id: documentId,
       userId: userId,
@@ -150,6 +151,8 @@ module.exports = async function (context, req) {
         startDate: template.startDate,
         createdAt: template.createdAt || new Date().toISOString()
       })),
+      // ✅ CRITICAL: Preserve yearVision from existing document
+      yearVision: existingDoc?.yearVision || '',
       createdAt: existingDoc?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

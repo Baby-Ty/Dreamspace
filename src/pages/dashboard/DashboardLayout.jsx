@@ -24,7 +24,7 @@ import { showToast } from '../../utils/toast';
  * Orchestrates the dashboard page with header, week goals, and dream overview
  */
 export default function DashboardLayout() {
-  const { currentUser } = useApp();
+  const { currentUser, updateDream } = useApp();
   
   // Week rollover check (fallback - primary is server-side timer)
   useWeekRollover();
@@ -157,12 +157,24 @@ export default function DashboardLayout() {
     setSelectedDream(dream);
   }, []);
 
-  const handleDreamUpdate = useCallback(() => {
+  const handleDreamUpdate = useCallback(async (updatedDream) => {
     // Refresh dashboard data when dream is updated
     console.log('🔄 Dream updated, refreshing dashboard...');
+    
+    // Update dream in AppContext if provided
+    if (updatedDream) {
+      await updateDream(updatedDream);
+    }
+    
     // Force refresh of current week goals
-    loadCurrentWeekGoals();
-  }, [loadCurrentWeekGoals]);
+    await loadCurrentWeekGoals();
+    
+    // Dispatch events to ensure all components refresh
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('dreams-updated'));
+      window.dispatchEvent(new CustomEvent('goals-updated'));
+    }, 300);
+  }, [loadCurrentWeekGoals, updateDream]);
 
   // AI Background Generator handlers
   const handleOpenAIBackgroundGenerator = useCallback((goal) => {

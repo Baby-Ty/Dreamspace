@@ -18,6 +18,10 @@ export function useDreamActions(state, dispatch) {
   const updateDream = useCallback(async (dream) => {
     if (!state.currentUser?.id) return;
     
+    // Check if title changed (for syncing to templates and currentWeek goals)
+    const oldDream = state.currentUser.dreamBook.find(d => d.id === dream.id);
+    const titleChanged = oldDream && oldDream.title !== dream.title;
+    
     // Update local state first
     dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
     
@@ -26,15 +30,58 @@ export function useDreamActions(state, dispatch) {
       d.id === dream.id ? dream : d
     );
     
-    // Preserve all existing weekly goal templates
-    const templates = state.weeklyGoals?.filter(g => 
+    // Update dreamTitle in templates if title changed
+    const templates = (state.weeklyGoals?.filter(g => 
       g.type === 'weekly_goal_template'
-    ) || [];
+    ) || []).map(template => {
+      if (titleChanged && template.dreamId === dream.id) {
+        return { ...template, dreamTitle: dream.title };
+      }
+      return template;
+    });
     
     const result = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
     if (!result.success) {
       console.error('Failed to save dreams document:', result.error);
+      return;
     }
+    
+    // Update dreamTitle in currentWeek goals if title changed
+    if (titleChanged) {
+      try {
+        const currentWeekIso = getCurrentIsoWeek();
+        const currentWeekResult = await currentWeekService.getCurrentWeek(state.currentUser.id);
+        
+        if (currentWeekResult.success && currentWeekResult.data?.goals) {
+          const existingGoals = currentWeekResult.data.goals;
+          const updatedGoals = existingGoals.map(goal => {
+            if (goal.dreamId === dream.id) {
+              return { ...goal, dreamTitle: dream.title };
+            }
+            return goal;
+          });
+          
+          // Only save if we actually updated any goals
+          const hasChanges = updatedGoals.some((goal, index) => 
+            goal.dreamTitle !== existingGoals[index]?.dreamTitle
+          );
+          
+          if (hasChanges) {
+            await currentWeekService.saveCurrentWeek(state.currentUser.id, currentWeekIso, updatedGoals);
+            console.log('✅ Updated dreamTitle in currentWeek goals');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error updating dreamTitle in currentWeek:', error);
+        // Don't fail the whole operation if this fails
+      }
+    }
+    
+    // Dispatch events to notify dashboard and other components
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('dreams-updated'));
+      window.dispatchEvent(new CustomEvent('goals-updated'));
+    }, 300);
   }, [state.currentUser?.id, state.currentUser?.dreamBook, state.weeklyGoals, dispatch]);
 
   /**

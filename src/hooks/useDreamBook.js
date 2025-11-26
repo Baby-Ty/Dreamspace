@@ -284,7 +284,7 @@ export function useDreamBook() {
     } else {
       const updatedDream = dreams.find(d => d.id === editingDream);
       if (updatedDream) {
-        updateDream({ 
+        await updateDream({ 
           ...updatedDream, 
           title: formData.title,
           category: formData.category,
