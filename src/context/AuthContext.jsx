@@ -120,13 +120,19 @@ export const AuthProvider = ({ children }) => {
             console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
             console.log('📊 Data structure version:', existingUser.dataStructureVersion || 1);
             
-            // Check if existing avatar is a permanent URL (not a blob URL)
+            // Check if existing avatar is a valid permanent blob storage URL
             const existingAvatar = existingUser.avatar;
-            if (existingAvatar && 
+            const isValidPermanentAvatar = existingAvatar && 
                 typeof existingAvatar === 'string' && 
+                existingAvatar.startsWith('https://') &&
+                existingAvatar.includes('.blob.core.windows.net') &&
                 !existingAvatar.startsWith('blob:') && 
-                !existingAvatar.includes('ui-avatars.com')) {
-              // Use existing permanent avatar URL
+                !existingAvatar.includes('ui-avatars.com');
+            
+            let shouldSaveAvatar = false;
+            
+            if (isValidPermanentAvatar) {
+              // Use existing permanent avatar URL (valid blob storage URL)
               console.log('✅ Using existing permanent avatar URL from database');
               avatarUrl = existingAvatar;
             } else if (existingAvatar && existingAvatar.startsWith('blob:')) {
@@ -135,12 +141,25 @@ export const AuthProvider = ({ children }) => {
               const uploadResult = await graph.uploadMyPhotoToStorage(userData.id);
               if (uploadResult.success && uploadResult.data) {
                 avatarUrl = uploadResult.data;
+                shouldSaveAvatar = true; // Save the new permanent URL
                 console.log('✅ Successfully uploaded existing blob URL to permanent storage');
               } else {
                 console.log('ℹ️ Could not upload blob URL, keeping new avatar from Graph');
+                // If we have a new avatarUrl from Graph (fetched above), use it and save it
+                if (avatarUrl && avatarUrl !== `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`) {
+                  shouldSaveAvatar = true;
+                }
+              }
+            } else {
+              // Existing avatar is old/unreadable format or missing
+              // Use the avatarUrl we fetched/uploaded above (from Graph)
+              console.log('⚠️ Existing avatar is not a valid permanent URL, using newly fetched avatar');
+              if (avatarUrl && avatarUrl.startsWith('https://') && avatarUrl.includes('.blob.core.windows.net')) {
+                // We have a valid permanent blob URL from Graph upload
+                shouldSaveAvatar = true;
+                console.log('✅ New permanent avatar URL will be saved to database');
               }
             }
-            // Otherwise, use the avatarUrl we fetched/uploaded above
             
             userData = {
               ...existingUser,
@@ -151,6 +170,31 @@ export const AuthProvider = ({ children }) => {
               avatar: avatarUrl // Use the final avatar URL (permanent if available)
             };
             console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
+            
+            // Save updated avatar to database if we have a new permanent URL
+            if (shouldSaveAvatar && avatarUrl && avatarUrl.startsWith('https://') && avatarUrl.includes('.blob.core.windows.net')) {
+              try {
+                console.log('💾 Saving updated avatar to database for existing user...');
+                const profileUpdate = {
+                  id: userData.id,
+                  userId: userData.id,
+                  name: userData.name,
+                  email: userData.email,
+                  office: userData.office,
+                  avatar: avatarUrl,
+                  lastUpdated: new Date().toISOString()
+                };
+                const saveResult = await databaseService.saveUserData(userData.id, profileUpdate);
+                if (saveResult.success) {
+                  console.log('✅ Avatar updated successfully in database');
+                } else {
+                  console.log('⚠️ Failed to save avatar update:', saveResult.error);
+                }
+              } catch (saveError) {
+                console.error('❌ Error saving avatar update:', saveError);
+                // Continue anyway - avatar is still in memory/state
+              }
+            }
           } else {
             // No existing data, save new user profile (6-container architecture)
             console.log('🆕 No existing data found, saving new user profile with 6-container structure');
