@@ -13,7 +13,6 @@ import { aggregateDreamsByRadarCategory } from '../../utils/categoryMapping';
  */
 function DreamRadarChart({ dreams = [] }) {
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   // Aggregate dreams into radar categories
   const radarData = useMemo(() => aggregateDreamsByRadarCategory(dreams), [dreams]);
@@ -45,8 +44,6 @@ function DreamRadarChart({ dreams = [] }) {
     
     if (count === 0) return minSize;
     // Logarithmic scale to handle large disparities gracefully
-    // value is 0-1 based on max, but let's rely on count a bit more naturally
-    // Cap at a reasonable visual max
     return Math.min(minSize + (count * 4), maxSize);
   };
 
@@ -57,13 +54,35 @@ function DreamRadarChart({ dreams = [] }) {
   });
 
   // Interaction handlers
-  const handleHover = (category, event) => {
+  const handleHover = (category) => {
     setHoveredCategory(category);
-    const rect = event.currentTarget.getBoundingClientRect();
-    setTooltipPos({ 
-      x: rect.left + rect.width / 2, 
-      y: rect.top - 10 
-    });
+  };
+
+  // Get currently hovered bubble for robust positioning
+  const activeBubble = hoveredCategory ? bubbles.find(b => b.id === hoveredCategory.id) : null;
+
+  // Helper to format dreams list
+  const getDreamsList = (dreamsList) => {
+    if (!dreamsList || dreamsList.length === 0) return null;
+    const maxToShow = 3;
+    const showDreams = dreamsList.slice(0, maxToShow);
+    const remaining = dreamsList.length - maxToShow;
+    
+    return (
+      <ul className="mt-2 space-y-0.5 text-[11px] text-professional-gray-200 border-t border-professional-gray-700 pt-2">
+        {showDreams.map((title, idx) => (
+          <li key={idx} className="truncate max-w-[180px] flex items-center gap-1.5">
+            <span className="w-1 h-1 rounded-full bg-netsurit-coral flex-shrink-0" />
+            {title}
+          </li>
+        ))}
+        {remaining > 0 && (
+          <li className="text-professional-gray-400 pl-2.5 italic">
+            + {remaining} more
+          </li>
+        )}
+      </ul>
+    );
   };
 
   return (
@@ -81,6 +100,7 @@ function DreamRadarChart({ dreams = [] }) {
         </h2>
       </div>
 
+      {/* Chart Container */}
       <div className="relative" style={{ width: size, height: size }}>
         {/* Main SVG */}
         <svg 
@@ -154,28 +174,26 @@ function DreamRadarChart({ dreams = [] }) {
           {bubbles.map((bubble) => {
             const isHovered = hoveredCategory?.id === bubble.id;
             const isActive = bubble.count > 0;
+            const currentR = isHovered ? bubble.r * 1.1 : bubble.r;
             
             return (
               <g 
                 key={bubble.id}
                 className="transition-all duration-500 ease-out"
-                style={{ transformOrigin: `${bubble.x}px ${bubble.y}px` }}
               >
                 {/* The Bubble */}
                 <circle
                   cx={bubble.x}
                   cy={bubble.y}
-                  r={bubble.r}
+                  r={currentR}
                   fill={isActive ? (isHovered ? "url(#bubbleGradientHover)" : "url(#bubbleGradient)") : "#F9FAFB"}
                   stroke={isActive ? (isHovered ? "#FF5722" : "#FF8A65") : "#E5E7EB"}
                   strokeWidth={isActive ? 2 : 1}
                   filter={isActive ? "url(#dropShadow)" : "none"}
-                  className={`cursor-pointer transition-all duration-300 ${
-                    isHovered ? 'scale-110' : 'scale-100'
-                  }`}
-                  onMouseEnter={(e) => handleHover(bubble, e)}
+                  className="cursor-pointer transition-all duration-300"
+                  onMouseEnter={() => handleHover(bubble)}
                   onMouseLeave={() => setHoveredCategory(null)}
-                  onFocus={(e) => handleHover(bubble, e)}
+                  onFocus={() => handleHover(bubble)}
                   onBlur={() => setHoveredCategory(null)}
                   tabIndex={0}
                   role="button"
@@ -234,27 +252,40 @@ function DreamRadarChart({ dreams = [] }) {
             </div>
           );
         })}
-      </div>
 
-      {/* Tooltip */}
-      {hoveredCategory && (
-        <div 
-          className="fixed z-50 bg-professional-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-full"
-          style={{ left: tooltipPos.x, top: tooltipPos.y }}
-          role="tooltip"
-        >
-          <div className="font-semibold mb-1">{hoveredCategory.label}</div>
-          <div className="text-professional-gray-300">
-            {hoveredCategory.count} {hoveredCategory.count === 1 ? 'dream' : 'dreams'}
+        {/* Tooltip - Rendered INSIDE the relative container for stable positioning */}
+        {activeBubble && (
+          <div 
+            className="absolute z-50 bg-professional-gray-900 text-white text-xs rounded-lg px-3 py-3 shadow-lg pointer-events-none min-w-[200px]"
+            style={{ 
+              left: activeBubble.x, 
+              top: activeBubble.y - 12, // Gap above center
+              transform: 'translate(-50%, -100%)' // Centered horizontally, anchored to bottom
+            }}
+            role="tooltip"
+          >
+            <div className="font-semibold text-sm mb-1">{activeBubble.label}</div>
+            
+            {/* Category Description */}
+            <div className="text-professional-gray-400 text-[11px] italic leading-tight mb-2 border-b border-professional-gray-700 pb-2">
+              {activeBubble.description}
+            </div>
+            
+            {/* Count */}
+            <div className="text-professional-gray-300 mb-1">
+              <span className="font-bold text-white">{activeBubble.count}</span> {activeBubble.count === 1 ? 'dream' : 'dreams'} planted
+            </div>
+            
+            {/* Dream List */}
+            {getDreamsList(activeBubble.dreams)}
+            
+            {/* Pointer */}
+            <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full">
+              <div className="border-4 border-transparent border-t-professional-gray-900" />
+            </div>
           </div>
-          <div className="text-professional-gray-400 text-[10px] mt-1 max-w-[150px] leading-tight">
-            {hoveredCategory.sourceCategories.join(', ')}
-          </div>
-          <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full">
-            <div className="border-4 border-transparent border-t-professional-gray-900" />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Footer Summary */}
       {hasDreams ? (

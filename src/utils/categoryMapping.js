@@ -11,37 +11,43 @@ export const RADAR_CATEGORIES = [
     id: 'growth',
     label: 'Growth',
     sourceCategories: ['Growth & Learning', 'Skills & Hobbies'],
-    color: '#E53935' // netsurit-red
+    color: '#E53935', // netsurit-red
+    description: 'Personal development, learning new skills, and expanding your horizons.'
   },
   {
     id: 'relationships',
     label: 'Relationships',
     sourceCategories: ['Family & Friends', 'Love & Relationships'],
-    color: '#FF6B5B' // netsurit-coral
+    color: '#FF6B5B', // netsurit-coral
+    description: 'Building stronger bonds with family, friends, and loved ones.'
   },
   {
     id: 'wellness',
     label: 'Wellness',
     sourceCategories: ['Wellness & Fitness', 'Spirituality & Mind'],
-    color: '#FF8A65' // netsurit-orange
+    color: '#FF8A65', // netsurit-orange
+    description: 'Nurturing your physical health, mental peace, and spiritual well-being.'
   },
   {
     id: 'wealth',
     label: 'Wealth',
     sourceCategories: ['Money & Wealth'],
-    color: '#E53935'
+    color: '#E53935',
+    description: 'Financial freedom, career goals, and material abundance.'
   },
   {
     id: 'adventure',
     label: 'Adventure',
     sourceCategories: ['Adventure & Fun'],
-    color: '#FF6B5B'
+    color: '#FF6B5B',
+    description: 'Exploring the world, having fun, and seeking new experiences.'
   },
   {
     id: 'community',
     label: 'Community',
     sourceCategories: ['Contribution & Giving Back'],
-    color: '#FF8A65'
+    color: '#FF8A65',
+    description: 'Giving back, volunteering, and making a positive impact on others.'
   }
 ];
 
@@ -52,15 +58,16 @@ export const RADAR_CATEGORIES = [
  */
 export function aggregateDreamsByRadarCategory(dreams = []) {
   return RADAR_CATEGORIES.map(radarCat => {
-    const count = dreams.filter(dream => 
+    const matchingDreams = dreams.filter(dream => 
       radarCat.sourceCategories.includes(dream.category)
-    ).length;
+    );
     
     return {
       ...radarCat,
-      count,
+      count: matchingDreams.length,
       // Normalize to 0-1 scale (max 3 dreams per category for full scale)
-      value: Math.min(count / 3, 1)
+      value: Math.min(matchingDreams.length / 3, 1),
+      dreams: matchingDreams.map(d => d.title)
     };
   });
 }
@@ -75,4 +82,3 @@ export function getRadarCategoryForDream(dreamCategory) {
     radarCat.sourceCategories.includes(dreamCategory)
   ) || null;
 }
-
