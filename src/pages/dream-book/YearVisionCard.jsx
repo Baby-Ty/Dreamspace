@@ -233,13 +233,13 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
                   htmlFor="vision-input"
                   className="block text-sm font-medium text-professional-gray-700 mb-2"
                 >
-                  Describe your mindset, goals, and hopes for the year ahead
+                  Share what you want this year to look and feel like
                 </label>
                 <textarea
                   id="vision-input"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="What do you want to achieve? How do you want to feel? What matters most to you this year?..."
+                  placeholder="Your dreams are already added. Just describe the kind of year you want."
                   className="w-full px-4 py-3 border-2 border-professional-gray-200 rounded-xl focus:border-netsurit-coral focus:outline-none resize-none transition-colors"
                   rows={4}
                   data-testid="vision-user-input"
@@ -299,11 +299,11 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
                   onChange={(e) => setEditedVision(e.target.value)}
                   placeholder="Your inspiring vision statement will appear here..."
                   className="w-full px-4 py-3 border-2 border-professional-gray-200 rounded-xl focus:border-netsurit-coral focus:outline-none resize-none transition-colors bg-professional-gray-50"
-                  rows={3}
+                  rows={6}
                   data-testid="vision-output"
                 />
                 <p className="mt-1 text-xs text-professional-gray-400">
-                  {editedVision.length > 0 ? `${editedVision.split(/\s+/).filter(Boolean).length} words` : 'Aim for 30-60 words'}
+                  {editedVision.length > 0 ? `${editedVision.split(/\s+/).filter(Boolean).length} words` : 'Aim for up to 100 words'}
                 </p>
               </div>
 
