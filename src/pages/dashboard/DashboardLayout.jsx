@@ -150,7 +150,7 @@ export default function DashboardLayout() {
 
   const handleCancelAddGoal = useCallback(() => {
     setShowAddGoal(false);
-    setNewGoal({ title: '', description: '', dreamId: '' });
+    setNewGoal({ title: '', description: '', dreamId: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, targetDate: '' });
   }, [setShowAddGoal, setNewGoal]);
 
   const handleOpenDream = useCallback((dream) => {

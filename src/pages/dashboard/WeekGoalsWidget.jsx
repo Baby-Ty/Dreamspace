@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, FastForward, ChevronLeft, Repeat } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, FastForward, ChevronLeft, Repeat, Target } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -227,7 +227,7 @@ function WeekGoalsWidget({
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-professional-gray-600">How often?</label>
                   <div 
-                    className="grid grid-cols-2 gap-2"
+                    className="grid grid-cols-3 gap-2"
                     role="group"
                     aria-label="Goal frequency"
                   >
@@ -238,7 +238,7 @@ function WeekGoalsWidget({
                       data-testid="weekly-consistency-button"
                       className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
                         newGoal.consistency === 'weekly'
-                          ? 'bg-professional-gray-800 text-white shadow-md ring-2 ring-professional-gray-700 ring-offset-1'
+                          ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
                           : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
                       }`}
                     >
@@ -252,40 +252,82 @@ function WeekGoalsWidget({
                       data-testid="monthly-consistency-button"
                       className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
                         newGoal.consistency === 'monthly'
-                          ? 'bg-professional-gray-800 text-white shadow-md ring-2 ring-professional-gray-700 ring-offset-1'
+                          ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
                           : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
                       }`}
                     >
                       <Calendar className="w-4 h-4 mb-1" aria-hidden="true" />
                       <span>Monthly</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => onNewGoalChange({ ...newGoal, consistency: 'deadline' })}
+                      aria-pressed={newGoal.consistency === 'deadline'}
+                      data-testid="deadline-consistency-button"
+                      className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        newGoal.consistency === 'deadline'
+                          ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
+                          : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
+                      }`}
+                    >
+                      <Target className="w-4 h-4 mb-1" aria-hidden="true" />
+                      <span>Deadline</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Target Duration */}
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-professional-gray-600">
-                    Track for how many {newGoal.consistency === 'monthly' ? 'months' : 'weeks'}?
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={newGoal.consistency === 'monthly' ? 24 : 52}
-                    value={newGoal.consistency === 'monthly' ? newGoal.targetMonths : newGoal.targetWeeks}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || (newGoal.consistency === 'monthly' ? 6 : 12);
-                      onNewGoalChange({
-                        ...newGoal, 
-                        ...(newGoal.consistency === 'monthly' 
-                          ? { targetMonths: value }
-                          : { targetWeeks: value })
-                      });
-                    }}
-                    className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
-                    aria-label={`Target ${newGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
-                    data-testid="goal-duration-input"
-                  />
-                </div>
+                {/* Target Duration or Date */}
+                {newGoal.consistency === 'deadline' ? (
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-professional-gray-600">
+                      Target Date <span className="text-netsurit-red">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={newGoal.targetDate || ''}
+                      onChange={(e) => {
+                        onNewGoalChange({
+                          ...newGoal,
+                          targetDate: e.target.value
+                        });
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
+                      aria-label="Target date"
+                      data-testid="goal-deadline-input"
+                    />
+                    <p className="text-xs text-professional-gray-500">
+                      Complete this goal by a specific date
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-professional-gray-600">
+                      Track for how many {newGoal.consistency === 'monthly' ? 'months' : 'weeks'}?
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={newGoal.consistency === 'monthly' ? 24 : 52}
+                      value={newGoal.consistency === 'monthly' ? newGoal.targetMonths : newGoal.targetWeeks}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || (newGoal.consistency === 'monthly' ? 6 : 12);
+                        onNewGoalChange({
+                          ...newGoal, 
+                          ...(newGoal.consistency === 'monthly' 
+                            ? { targetMonths: value }
+                            : { targetWeeks: value })
+                        });
+                      }}
+                      className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
+                      aria-label={`Target ${newGoal.consistency === 'monthly' ? 'months' : 'weeks'}`}
+                      data-testid="goal-duration-input"
+                    />
+                    <p className="text-xs text-professional-gray-500">
+                      Default: {newGoal.consistency === 'monthly' ? '6 months' : '12 weeks'}
+                    </p>
+                  </div>
+                )}
 
                 {/* Monthly frequency input */}
                 {newGoal.consistency === 'monthly' && (
@@ -348,7 +390,8 @@ function WeekGoalsWidget({
                 <div className="flex space-x-2 pt-1">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg"
+                    disabled={!newGoal.title.trim() || (newGoal.consistency === 'deadline' && !newGoal.targetDate)}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add Goal
                   </button>

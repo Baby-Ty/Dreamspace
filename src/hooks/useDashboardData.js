@@ -31,7 +31,8 @@ export function useDashboardData() {
     consistency: 'weekly',
     targetWeeks: 12,
     targetMonths: 6,
-    frequency: 1 // Default to 1 for weekly (will be 2 for monthly)
+    frequency: 1, // Default to 1 for weekly (will be 2 for monthly)
+    targetDate: '' // For deadline goals
   });
 
   /**
@@ -623,6 +624,7 @@ export function useDashboardData() {
   const handleAddGoal = useCallback(async (e) => {
     e.preventDefault();
     if (!newGoal.title.trim()) return;
+    if (newGoal.consistency === 'deadline' && !newGoal.targetDate) return;
     
     const dreamId = newGoal.dreamId || null;
     const selectedDream = currentUser?.dreamBook?.find(dream => dream.id === dreamId);
@@ -637,21 +639,36 @@ export function useDashboardData() {
     });
     
     try {
+      // Calculate targetWeeks and weeksRemaining for deadline goals
+      let targetWeeks, weeksRemaining;
+      if (newGoal.consistency === 'deadline' && newGoal.targetDate) {
+        // For deadline goals: convert targetDate to targetWeeks
+        targetWeeks = dateToWeeks(newGoal.targetDate, currentWeekIso);
+        weeksRemaining = targetWeeks; // Initialize with targetWeeks
+      } else if (newGoal.consistency === 'monthly') {
+        // Convert months to weeks for unified tracking
+        targetWeeks = monthsToWeeks(newGoal.targetMonths);
+        weeksRemaining = targetWeeks;
+      } else {
+        // Weekly consistency goal
+        targetWeeks = newGoal.targetWeeks;
+        weeksRemaining = newGoal.targetWeeks;
+      }
+
       // Create new goal instance for current week
       const newGoalInstance = {
         id: goalId,
         templateId: goalId, // Self-reference for now (will be proper template ID later)
-        type: 'weekly_goal',
+        type: newGoal.consistency === 'deadline' ? 'deadline' : 'weekly_goal',
         title: newGoal.title,
         description: newGoal.description || '',
         dreamId: dreamId,
         dreamTitle: selectedDream?.title || '',
         dreamCategory: selectedDream?.category || '',
-        recurrence: newGoal.consistency, // 'weekly' or 'monthly'
-        targetWeeks: newGoal.consistency === 'weekly' 
-          ? newGoal.targetWeeks 
-          : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : null),
+        recurrence: newGoal.consistency === 'deadline' ? undefined : newGoal.consistency, // 'weekly' or 'monthly' (undefined for deadline)
+        targetWeeks: targetWeeks,
         targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : null,
+        targetDate: newGoal.consistency === 'deadline' ? newGoal.targetDate : null, // For deadline goals
         frequency: newGoal.consistency === 'monthly' 
           ? (newGoal.frequency || 2) 
           : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : null), // Monthly: default 2x/month, Weekly: default 1x/week
@@ -660,9 +677,7 @@ export function useDashboardData() {
         completed: false,
         completedAt: null,
         skipped: false,
-        weeksRemaining: newGoal.consistency === 'weekly' 
-          ? newGoal.targetWeeks 
-          : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : null),
+        weeksRemaining: weeksRemaining,
         weekId: currentWeekIso,
         createdAt: new Date().toISOString()
       };
@@ -688,21 +703,31 @@ export function useDashboardData() {
       
       // Also add goal to dream's goals array (so it shows in Dream view)
       if (dreamId && selectedDream) {
+        // Calculate targetWeeks for dream goal
+        let dreamTargetWeeks, dreamWeeksRemaining;
+        if (newGoal.consistency === 'deadline' && newGoal.targetDate) {
+          dreamTargetWeeks = dateToWeeks(newGoal.targetDate, currentWeekIso);
+          dreamWeeksRemaining = dreamTargetWeeks;
+        } else if (newGoal.consistency === 'monthly') {
+          dreamTargetWeeks = monthsToWeeks(newGoal.targetMonths);
+          dreamWeeksRemaining = dreamTargetWeeks;
+        } else {
+          dreamTargetWeeks = newGoal.targetWeeks;
+          dreamWeeksRemaining = newGoal.targetWeeks;
+        }
+
         const dreamGoal = {
           id: goalId,
           title: newGoal.title,
-          type: 'consistency',
-          recurrence: newGoal.consistency,
-          targetWeeks: newGoal.consistency === 'weekly' 
-            ? newGoal.targetWeeks 
-            : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : undefined),
+          type: newGoal.consistency === 'deadline' ? 'deadline' : 'consistency',
+          recurrence: newGoal.consistency === 'deadline' ? undefined : newGoal.consistency,
+          targetWeeks: dreamTargetWeeks,
           targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : undefined,
+          targetDate: newGoal.consistency === 'deadline' ? newGoal.targetDate : undefined,
           frequency: newGoal.consistency === 'monthly' 
             ? (newGoal.frequency || 2) 
             : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : undefined),
-          weeksRemaining: newGoal.consistency === 'weekly' 
-            ? newGoal.targetWeeks 
-            : (newGoal.consistency === 'monthly' ? monthsToWeeks(newGoal.targetMonths) : undefined),
+          weeksRemaining: dreamWeeksRemaining,
           startDate: new Date().toISOString(),
           active: true,
           completed: false,
@@ -730,7 +755,8 @@ export function useDashboardData() {
         consistency: 'weekly',
         targetWeeks: 12,
         targetMonths: 6,
-        frequency: 1 // Default to 1 for weekly, will be 2 for monthly
+        frequency: 1, // Default to 1 for weekly, will be 2 for monthly
+        targetDate: '' // Reset deadline date
       });
       setShowAddGoal(false);
     } catch (error) {

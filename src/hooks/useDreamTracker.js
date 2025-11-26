@@ -109,7 +109,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
   // Goal add state
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
-  const [newGoalData, setNewGoalData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
+  const [newGoalData, setNewGoalData] = useState({ title: '', description: '', type: 'consistency', recurrence: 'weekly', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
 
   // Goal edit state
   const [editingGoal, setEditingGoal] = useState(null);
@@ -212,7 +212,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     // Dashboard auto-instantiation will read from dream.goals[] to create weekly instances
     await addGoal(localDream.id, goal);
     
-    setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
+    setNewGoalData({ title: '', description: '', type: 'consistency', recurrence: 'weekly', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, startDate: '', targetDate: '' });
     setIsAddingGoal(false);
     
     // NOTE: No need to manually create weekly entries or add to currentWeek.
