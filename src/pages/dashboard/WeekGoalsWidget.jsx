@@ -4,7 +4,7 @@
 import { memo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, FastForward, ChevronLeft, Repeat, Target } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, ChevronLeft, Repeat, Target } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
 
@@ -28,8 +28,6 @@ function WeekGoalsWidget({
   onAddGoal,
   onNewGoalChange,
   onShowPastWeeks,
-  onTestRollover,
-  isRollingOver = false,
 }) {
   const completedCount = currentWeekGoals.filter(g => g.completed).length;
   const totalCount = currentWeekGoals.length;
@@ -98,27 +96,6 @@ function WeekGoalsWidget({
             <History className="w-4 h-4" aria-hidden="true" />
             <span>Past Weeks</span>
           </button>
-          {onTestRollover && (
-            <button
-              onClick={onTestRollover}
-              disabled={isRollingOver}
-              className="inline-flex items-center space-x-1.5 text-sm bg-professional-gray-200 text-professional-gray-700 px-4 py-2 rounded-lg hover:bg-professional-gray-300 font-semibold focus:outline-none focus:ring-2 focus:ring-professional-gray-400 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="test-rollover-button"
-              aria-label="Test week rollover"
-            >
-              {isRollingOver ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-professional-gray-600"></div>
-                  <span>Rolling...</span>
-                </>
-              ) : (
-                <>
-                  <FastForward className="w-4 h-4" aria-hidden="true" />
-                  <span>Test Rollover</span>
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
       
@@ -689,10 +666,6 @@ WeekGoalsWidget.propTypes = {
   onNewGoalChange: PropTypes.func.isRequired,
   /** Callback to show past weeks modal */
   onShowPastWeeks: PropTypes.func.isRequired,
-  /** Callback to test week rollover (optional, dev only) */
-  onTestRollover: PropTypes.func,
-  /** Whether rollover is in progress */
-  isRollingOver: PropTypes.bool,
 };
 
 WeekGoalsWidget.defaultProps = {

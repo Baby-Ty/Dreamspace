@@ -243,8 +243,6 @@ export default function DashboardLayout() {
           onAddGoal={handleAddGoal}
           onNewGoalChange={setNewGoal}
           onShowPastWeeks={handleShowPastWeeks}
-          onTestRollover={currentUser?.id ? handleTestRollover : undefined}
-          isRollingOver={isRollingOver}
         />
 
         {/* Right Column - Dreams Overview */}
