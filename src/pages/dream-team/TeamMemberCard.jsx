@@ -113,7 +113,11 @@ export default function TeamMemberCard({ member, currentUserId, isCoach, onGener
                     e.preventDefault();
                     onGenerateBackground(member);
                   }}
-                  className="p-2 text-white hover:text-netsurit-coral hover:bg-white/20 rounded-lg transition-all duration-200 backdrop-blur-sm shadow-sm border border-white/30"
+                  className={`p-2 rounded-lg transition-all duration-200 shadow-sm opacity-0 group-hover:opacity-50 hover:!opacity-100 ${
+                    hasBackground 
+                      ? 'text-white/80 hover:text-netsurit-coral hover:bg-white/20 backdrop-blur-sm border border-white/30' 
+                      : 'text-professional-gray-400 hover:text-netsurit-coral hover:bg-professional-gray-100 border border-professional-gray-200'
+                  }`}
                   aria-label="Generate background image"
                   title="Generate AI Background"
                 >

@@ -79,20 +79,10 @@ The final result should feel personal, aesthetic, and modern.`
    * @param {string} styleModifier - Optional style modifier
    */
   const buildDreamPrompt = (userInput, styleModifier = '') => {
-    // Check if user input or style suggests dark/night themes
-    const lowerInput = userInput.toLowerCase();
-    const lowerStyle = (styleModifier || '').toLowerCase();
-    const isDarkTheme = /night|dark|noir|moody|shadow|gothic|midnight|dusk|twilight|dramatic/.test(lowerInput + ' ' + lowerStyle);
-    
     let prompt = `Create an inspiring, symbolic image that represents the dream: ${userInput}
 
 Make the image visually strong, motivating, and emotionally uplifting.  
 Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`;
-    
-    // Add lighting guidance unless dark theme is specified
-    if (!isDarkTheme) {
-      prompt += `\nUse bright, even lighting with soft shadows. Avoid heavy shadows or dark, dramatic lighting unless the theme specifically calls for it.`;
-    }
     
     if (styleModifier) {
       prompt += `\n\nStyle: ${styleModifier}`;
@@ -107,20 +97,10 @@ Use scenery, objects, environments, silhouettes, distant figures, or hands-only 
    * @param {string} styleModifier - Optional style modifier
    */
   const buildBackgroundCardPrompt = (userInput, styleModifier = '') => {
-    // Check if user input or style suggests dark/night themes
-    const lowerInput = userInput.toLowerCase();
-    const lowerStyle = (styleModifier || '').toLowerCase();
-    const isDarkTheme = /night|dark|noir|moody|shadow|gothic|midnight|dusk|twilight|dramatic/.test(lowerInput + ' ' + lowerStyle);
-    
     let prompt = `Create a clean, visually appealing background image based on the theme: "${userInput}".
 
 Make the image expressive but not distracting, with a subtle composition that works behind UI text.  
 Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces.`;
-    
-    // Add lighting guidance unless dark theme is specified
-    if (!isDarkTheme) {
-      prompt += `\nUse bright, even lighting with minimal shadows. Avoid heavy shadows or dark areas that could make text hard to read.`;
-    }
     
     if (styleModifier) {
       prompt += `\n\nStyle: ${styleModifier}`;

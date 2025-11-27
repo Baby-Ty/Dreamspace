@@ -23,7 +23,7 @@ export function useDreamConnections() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const USERS_PER_PAGE = 6;
+  const USERS_PER_PAGE = 8; // 2 rows of 4 columns
 
   // Load users and generate suggestions
   useEffect(() => {
