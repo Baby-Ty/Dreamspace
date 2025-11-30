@@ -1,7 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState } from 'react';
 import { Sparkles, X, Loader2, Image, RefreshCw, Check, ChevronDown } from 'lucide-react';
-import { DalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
+import { dalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
 import { ErrorCodes } from '../constants/errors';
 
 /**
@@ -18,9 +18,6 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
   const [selectedStyle, setSelectedStyle] = useState('');
   const [customStyle, setCustomStyle] = useState('');
   
-  // Initialize DALL-E service
-  const dalle = DalleService(import.meta.env.VITE_OPENAI_API_KEY);
-  
   // Get style options for dropdown
   const styleOptions = Object.values(STYLE_MODIFIERS);
   
@@ -36,7 +33,7 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
     setGeneratedImage(null);
 
     try {
-      const result = await dalle.generate(query.trim(), {
+      const result = await dalleService.generate(query.trim(), {
         imageType: imageType,
         styleModifierId: isCustomStyle ? null : (selectedStyle || null),
         customStyle: isCustomStyle ? customStyle.trim() : null
@@ -45,12 +42,7 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
       if (result.success) {
         setGeneratedImage(result.data.url);
       } else {
-        // Check if it's a config error (missing API key)
-        if (result.error.code === ErrorCodes.INVALID_CONFIG) {
-          setError('OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
-        } else {
-          setError(result.error.message || 'Failed to generate image. Please try again.');
-        }
+        setError(result.error.message || 'Failed to generate image. Please try again.');
       }
     } catch (err) {
       setError('Failed to generate image. Please try again.');

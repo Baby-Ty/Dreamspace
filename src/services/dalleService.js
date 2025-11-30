@@ -1,16 +1,14 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { z } from 'zod';
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 
-// Zod schema for DALL-E image generation response
-const DalleImageResponseSchema = z.object({
-  data: z.array(z.object({
-    url: z.string().url(),
-    revised_prompt: z.string().optional()
-  })).min(1),
-  created: z.number().optional()
-});
+/**
+ * Get API base URL for backend calls
+ */
+function getApiBase() {
+  const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+  return isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+}
 
 /**
  * Style modifiers for image generation
@@ -48,166 +46,83 @@ export const IMAGE_TYPES = {
 };
 
 /**
- * Factory function that creates a DALL-E service
- * @param {string} apiKey - OpenAI API key
+ * DALL-E Service - calls backend API to generate images
+ * Uses backend proxy to keep API key server-side and avoid CORS issues
  */
-export function DalleService(apiKey) {
-  const OPENAI_API_BASE = 'https://api.openai.com/v1';
-
+export const dalleService = {
   /**
-   * System prompts for different image types
+   * Generate an image using DALL-E 3 via backend API
+   * @param {string} userSearchTerm - User's search term/description
+   * @param {object} options - Generation options
+   * @param {string} options.size - Image size (default: "1024x1024")
+   * @param {string} options.quality - Image quality (default: "hd")
+   * @param {string} options.model - Model to use (default: "dall-e-3")
+   * @param {string} options.imageType - Type of image: 'dream' or 'background_card' (default: 'dream')
+   * @param {string} options.styleModifierId - Style modifier ID from STYLE_MODIFIERS (optional)
+   * @param {string} options.customStyle - Custom style text entered by user (optional)
+   * @returns {Promise<{success: boolean, data?: {url: string, revisedPrompt?: string}, error?: string}>}
    */
-  const SYSTEM_PROMPTS = {
-    [IMAGE_TYPES.DREAM]: `You generate visually engaging, symbolic images that represent a user's dream or goal. 
-The image must NOT contain identifiable people, faces, skin tone details, or personal identity cues.
-Use creative symbolism, scenery, environments, objects, silhouettes, distant figures, or hands-only shots to convey the idea. 
-Lean into cinematic, inspiring, and emotionally uplifting composition — rich colors, strong mood, and clear focus.
-The result should feel motivating, aspirational, and connected to the dream's theme, without depicting a specific real person.`,
-    
-    [IMAGE_TYPES.BACKGROUND_CARD]: `You generate clean, expressive background images for profile cards. 
-Images should reflect the user's personality or interests, but remain subtle and not distract from overlaid text.
-Do NOT include identifiable people or faces. 
-Use scenery, objects, textures, abstracts, soft landscapes, cityscapes, bokeh, or symbolic imagery. 
-Keep the image visually appealing, balanced, and easy for UI text to sit on top of.
-Avoid clutter, heavy noise, harsh contrast, or busy compositions.
-The final result should feel personal, aesthetic, and modern.`
-  };
-
-  /**
-   * Build prompt for dream images
-   * @param {string} userInput - User's dream description
-   * @param {string} styleModifier - Optional style modifier
-   */
-  const buildDreamPrompt = (userInput, styleModifier = '') => {
-    let prompt = `Create an inspiring, symbolic image that represents the dream: ${userInput}
-
-Make the image visually strong, motivating, and emotionally uplifting.  
-Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`;
-    
-    if (styleModifier) {
-      prompt += `\n\nStyle: ${styleModifier}`;
+  async generate(userSearchTerm, options = {}) {
+    if (!userSearchTerm || userSearchTerm.trim() === '') {
+      return fail(ErrorCodes.INVALID_INPUT, 'Search term is required');
     }
-    
-    return prompt;
-  };
 
-  /**
-   * Build prompt for background card images
-   * @param {string} userInput - User's theme description
-   * @param {string} styleModifier - Optional style modifier
-   */
-  const buildBackgroundCardPrompt = (userInput, styleModifier = '') => {
-    let prompt = `Create a clean, visually appealing background image based on the theme: "${userInput}".
+    try {
+      const apiBase = getApiBase();
+      const response = await fetch(`${apiBase}/generateImage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userSearchTerm: userSearchTerm.trim(),
+          options: {
+            size: options.size || '1024x1024',
+            quality: options.quality || 'hd',
+            model: options.model || 'dall-e-3',
+            imageType: options.imageType || IMAGE_TYPES.DREAM,
+            styleModifierId: options.styleModifierId || null,
+            customStyle: options.customStyle || null
+          }
+        })
+      });
 
-Make the image expressive but not distracting, with a subtle composition that works behind UI text.  
-Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces.`;
-    
-    if (styleModifier) {
-      prompt += `\n\nStyle: ${styleModifier}`;
-    }
-    
-    return prompt;
-  };
-
-  /**
-   * Build DreamSpace-style prompt from user search term (legacy - kept for backward compatibility)
-   * @deprecated Use buildDreamPrompt or buildBackgroundCardPrompt instead
-   */
-  const buildDreamSpacePrompt = (userSearchTerm, styleModifier = '') => {
-    // Default to dream image type for backward compatibility
-    return buildDreamPrompt(userSearchTerm, styleModifier);
-  };
-
-  return {
-    /**
-     * Generate an image using DALL-E 3
-     * @param {string} userSearchTerm - User's search term/description
-     * @param {object} options - Generation options
-     * @param {string} options.size - Image size (default: "1024x1024")
-     * @param {string} options.quality - Image quality (default: "hd")
-     * @param {string} options.model - Model to use (default: "dall-e-3")
-     * @param {string} options.imageType - Type of image: 'dream' or 'background_card' (default: 'dream')
-     * @param {string} options.styleModifierId - Style modifier ID from STYLE_MODIFIERS (optional)
-     * @param {string} options.customStyle - Custom style text entered by user (optional)
-     */
-    async generate(userSearchTerm, options = {}) {
-      if (!userSearchTerm || userSearchTerm.trim() === '') {
-        return fail(ErrorCodes.INVALID_INPUT, 'Search term is required');
-      }
-
-      if (!apiKey || apiKey.trim() === '') {
-        return fail(ErrorCodes.INVALID_CONFIG, 'Valid OpenAI API key is required');
-      }
-
-      const {
-        size = '1024x1024',
-        quality = 'hd',
-        model = 'dall-e-3',
-        imageType = IMAGE_TYPES.DREAM,
-        styleModifierId = null,
-        customStyle = null
-      } = options;
-
-      // Get style modifier text - prefer custom style if provided
-      let styleModifier = '';
-      if (customStyle && customStyle.trim()) {
-        styleModifier = customStyle.trim();
-      } else if (styleModifierId) {
-        styleModifier = Object.values(STYLE_MODIFIERS).find(s => s.id === styleModifierId)?.modifier || '';
-      }
-
-      // Build the prompt based on image type
-      let prompt;
-      if (imageType === IMAGE_TYPES.BACKGROUND_CARD) {
-        prompt = buildBackgroundCardPrompt(userSearchTerm.trim(), styleModifier);
-      } else {
-        prompt = buildDreamPrompt(userSearchTerm.trim(), styleModifier);
-      }
-
+      let data;
       try {
-        const url = `${OPENAI_API_BASE}/images/generations`;
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model,
-            prompt,
-            n: 1, // DALL-E 3 only supports n=1
-            size,
-            quality
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error?.message || `OpenAI API error: ${response.status} ${response.statusText}`;
-          return fail(
-            `HTTP_${response.status}`,
-            errorMessage
-          );
-        }
-
-        const data = await response.json();
-
-        // Validate response with Zod
-        try {
-          const validated = DalleImageResponseSchema.parse(data);
-          // Return the image URL (DALL-E 3 returns 1 image)
-          return ok({
-            url: validated.data[0].url,
-            revisedPrompt: validated.data[0].revised_prompt || prompt
-          });
-        } catch (validationError) {
-          return fail(ErrorCodes.VALIDATION, 'Invalid OpenAI API response structure', validationError.errors);
-        }
-      } catch (error) {
-        return fail(ErrorCodes.NETWORK, error.message || 'Failed to generate image');
+        const responseText = await response.text();
+        console.log('generateImage API response:', response.status, responseText.substring(0, 200));
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        // Response is not valid JSON
+        console.error('Failed to parse generateImage response:', jsonError);
+        return fail(ErrorCodes.NETWORK, `Server error (${response.status}): ${response.statusText || 'Invalid response'}`);
       }
+
+      if (response.ok && data.success) {
+        return ok({
+          url: data.url,
+          revisedPrompt: data.revisedPrompt
+        });
+      } else {
+        // Extract error message - could be string or object
+        console.error('generateImage API error:', data);
+        const errorMessage = typeof data.error === 'string' 
+          ? data.error 
+          : (data.error?.message || data.details || data.error || 'Failed to generate image');
+        return fail(ErrorCodes.NETWORK, errorMessage);
+      }
+    } catch (error) {
+      console.error('Error generating image:', error);
+      return fail(ErrorCodes.NETWORK, error.message || 'Failed to generate image');
     }
-  };
+  }
+};
+
+/**
+ * Factory function for backward compatibility
+ * @deprecated Use dalleService directly instead
+ */
+export function DalleService() {
+  return dalleService;
 }
 
