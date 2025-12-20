@@ -863,8 +863,10 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       description: description
     };
     setLocalDream(updatedDream);
-    setHasChanges(true);
-  }, [localDream, canEdit]);
+    // Immediately persist changes
+    onUpdate(updatedDream);
+    setHasChanges(false); // Changes are saved immediately, so no pending changes
+  }, [localDream, canEdit, onUpdate]);
 
   const handleUpdateMotivation = useCallback((motivation) => {
     if (!canEdit) return;
@@ -873,8 +875,10 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       motivation: motivation
     };
     setLocalDream(updatedDream);
-    setHasChanges(true);
-  }, [localDream, canEdit]);
+    // Immediately persist changes
+    onUpdate(updatedDream);
+    setHasChanges(false); // Changes are saved immediately, so no pending changes
+  }, [localDream, canEdit, onUpdate]);
 
   const handleUpdateApproach = useCallback((approach) => {
     if (!canEdit) return;
@@ -883,8 +887,10 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
       approach: approach
     };
     setLocalDream(updatedDream);
-    setHasChanges(true);
-  }, [localDream, canEdit]);
+    // Immediately persist changes
+    onUpdate(updatedDream);
+    setHasChanges(false); // Changes are saved immediately, so no pending changes
+  }, [localDream, canEdit, onUpdate]);
 
   const handleUpdateTitle = useCallback((title) => {
     if (!canEdit) return;

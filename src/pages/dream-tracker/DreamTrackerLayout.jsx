@@ -447,6 +447,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
                 handleUpdateDescription={handleUpdateDescription}
                 handleUpdateMotivation={handleUpdateMotivation}
                 handleUpdateApproach={handleUpdateApproach}
+                handleSave={handleSave}
                 canEdit={canEdit}
               />
             )}

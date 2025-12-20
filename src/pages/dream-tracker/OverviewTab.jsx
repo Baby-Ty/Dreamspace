@@ -1,7 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; 
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { 
   TrendingUp, 
@@ -10,6 +10,103 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+
+/**
+ * EditableField - Component for editing What/Why/How fields
+ * Moved outside OverviewTab to prevent recreation on each render
+ */
+const EditableField = React.memo(({ 
+  field, 
+  label, 
+  color, 
+  value, 
+  placeholder, 
+  editingField,
+  editValue,
+  textareaRef,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onKeyDown,
+  onEditValueChange,
+  canEdit
+}) => {
+  const isEditing = editingField === field;
+  const displayValue = value || '';
+  const showPlaceholder = !value && !isEditing;
+
+  // Ref callback - only set ref when this field is editing
+  const fieldTextareaRef = useCallback((element) => {
+    if (isEditing && element) {
+      textareaRef.current = element;
+    }
+  }, [isEditing, textareaRef]);
+
+  return (
+    <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
+      <div className="p-3">
+        <div className="flex items-center space-x-2 mb-2">
+          <div className={`w-2 h-2 ${color} rounded-full`}></div>
+          <h4 className="font-bold text-professional-gray-900 text-sm">{label}</h4>
+          {field === 'what' && (
+            <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
+          )}
+          {field !== 'what' && showPlaceholder && (
+            <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
+          )}
+        </div>
+        {isEditing ? (
+          <div className="space-y-2">
+            <textarea
+              ref={fieldTextareaRef}
+              value={editValue}
+              onChange={(e) => {
+                onEditValueChange(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${e.target.scrollHeight}px`;
+              }}
+              onKeyDown={(e) => onKeyDown(e, field)}
+              className="w-full text-sm text-professional-gray-700 leading-relaxed border border-professional-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-netsurit-red resize-none"
+              placeholder={placeholder}
+              rows={3}
+              data-testid={`edit-${field}-textarea`}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => onSaveEdit(field)}
+                className="px-3 py-1 bg-netsurit-red text-white text-xs rounded-lg hover:bg-netsurit-coral transition-colors"
+                data-testid={`save-${field}-button`}
+              >
+                Save
+              </button>
+              <button
+                onClick={onCancelEdit}
+                className="px-3 py-1 bg-professional-gray-200 text-professional-gray-700 text-xs rounded-lg hover:bg-professional-gray-300 transition-colors"
+                data-testid={`cancel-${field}-button`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => canEdit && onStartEdit(field, displayValue)}
+            className={`text-professional-gray-700 leading-relaxed text-sm min-h-[1.5rem] ${
+              canEdit ? 'cursor-text hover:bg-professional-gray-50 rounded p-1 -m-1 transition-colors' : ''
+            }`}
+            data-testid={`${field}-display`}
+          >
+            {displayValue || (
+              <span className="text-professional-gray-400 italic">{placeholder}</span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+EditableField.displayName = 'EditableField';
 
 /**
  * Overview Tab - Displays dream overview with What/Why/How and progress stats
@@ -25,6 +122,7 @@ export function OverviewTab({
   handleUpdateDescription,
   handleUpdateMotivation,
   handleUpdateApproach,
+  handleSave,
   canEdit = true 
 }) {
   const [editingField, setEditingField] = useState(null);
@@ -33,23 +131,31 @@ export function OverviewTab({
 
   useEffect(() => {
     if (editingField && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      // Focus when editing field changes
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          const length = textareaRef.current.value.length;
+          textareaRef.current.setSelectionRange(length, length);
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+      }, 0);
     }
   }, [editingField]);
 
-  const handleStartEdit = (field, currentValue) => {
+  const handleStartEdit = useCallback((field, currentValue) => {
     if (!canEdit) return;
     setEditingField(field);
     setEditValue(currentValue || '');
-  };
+  }, [canEdit]);
 
-  const handleSaveEdit = (field) => {
+  const handleSaveEdit = useCallback((field) => {
     if (!canEdit) return;
     
     const trimmedValue = editValue.trim();
     
+    // Update the field value (handlers now save immediately)
     if (field === 'what') {
       handleUpdateDescription(trimmedValue);
     } else if (field === 'why') {
@@ -60,90 +166,25 @@ export function OverviewTab({
     
     setEditingField(null);
     setEditValue('');
-  };
+  }, [canEdit, editValue, handleUpdateDescription, handleUpdateMotivation, handleUpdateApproach]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingField(null);
     setEditValue('');
-  };
+  }, []);
 
-  const handleKeyDown = (e, field) => {
+  const handleKeyDown = useCallback((e, field) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit(field);
     } else if (e.key === 'Escape') {
       handleCancelEdit();
     }
-  };
+  }, [handleSaveEdit, handleCancelEdit]);
 
-  const EditableField = ({ field, label, color, value, placeholder, onUpdate }) => {
-    const isEditing = editingField === field;
-    const displayValue = value || '';
-    const showPlaceholder = !value && !isEditing;
-
-    return (
-      <div className="bg-white rounded-xl border border-professional-gray-200 shadow-md">
-        <div className="p-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className={`w-2 h-2 ${color} rounded-full`}></div>
-            <h4 className="font-bold text-professional-gray-900 text-sm">{label}</h4>
-            {field === 'what' && (
-              <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
-            )}
-            {field !== 'what' && showPlaceholder && (
-              <span className="text-xs text-professional-gray-400 italic ml-2">{placeholder}</span>
-            )}
-          </div>
-          {isEditing ? (
-            <div className="space-y-2">
-              <textarea
-                ref={textareaRef}
-                value={editValue}
-                onChange={(e) => {
-                  setEditValue(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
-                }}
-                onKeyDown={(e) => handleKeyDown(e, field)}
-                className="w-full text-sm text-professional-gray-700 leading-relaxed border border-professional-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-netsurit-red resize-none"
-                placeholder={placeholder}
-                rows={3}
-                data-testid={`edit-${field}-textarea`}
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleSaveEdit(field)}
-                  className="px-3 py-1 bg-netsurit-red text-white text-xs rounded-lg hover:bg-netsurit-coral transition-colors"
-                  data-testid={`save-${field}-button`}
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancelEdit}
-                  className="px-3 py-1 bg-professional-gray-200 text-professional-gray-700 text-xs rounded-lg hover:bg-professional-gray-300 transition-colors"
-                  data-testid={`cancel-${field}-button`}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div
-              onClick={() => canEdit && handleStartEdit(field, displayValue)}
-              className={`text-professional-gray-700 leading-relaxed text-sm min-h-[1.5rem] ${
-                canEdit ? 'cursor-text hover:bg-professional-gray-50 rounded p-1 -m-1 transition-colors' : ''
-              }`}
-              data-testid={`${field}-display`}
-            >
-              {displayValue || (
-                <span className="text-professional-gray-400 italic">{placeholder}</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const handleEditValueChange = useCallback((newValue) => {
+    setEditValue(newValue);
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
@@ -155,7 +196,15 @@ export function OverviewTab({
           color="bg-netsurit-red"
           value={localDream.description}
           placeholder="What is your dream? Describe what you want to achieve..."
-          onUpdate={handleUpdateDescription}
+          editingField={editingField}
+          editValue={editValue}
+          textareaRef={textareaRef}
+          onStartEdit={handleStartEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
+          onKeyDown={handleKeyDown}
+          onEditValueChange={handleEditValueChange}
+          canEdit={canEdit}
         />
 
         <EditableField
@@ -164,7 +213,15 @@ export function OverviewTab({
           color="bg-netsurit-coral"
           value={localDream.motivation}
           placeholder="Why is this important to you? What will it mean when you achieve this..."
-          onUpdate={handleUpdateMotivation}
+          editingField={editingField}
+          editValue={editValue}
+          textareaRef={textareaRef}
+          onStartEdit={handleStartEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
+          onKeyDown={handleKeyDown}
+          onEditValueChange={handleEditValueChange}
+          canEdit={canEdit}
         />
 
         <EditableField
@@ -173,7 +230,15 @@ export function OverviewTab({
           color="bg-netsurit-orange"
           value={localDream.approach}
           placeholder="How will you achieve this? What's your approach or strategy..."
-          onUpdate={handleUpdateApproach}
+          editingField={editingField}
+          editValue={editValue}
+          textareaRef={textareaRef}
+          onStartEdit={handleStartEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
+          onKeyDown={handleKeyDown}
+          onEditValueChange={handleEditValueChange}
+          canEdit={canEdit}
         />
       </div>
 
@@ -329,6 +394,7 @@ OverviewTab.propTypes = {
   handleUpdateDescription: PropTypes.func.isRequired,
   handleUpdateMotivation: PropTypes.func.isRequired,
   handleUpdateApproach: PropTypes.func.isRequired,
+  handleSave: PropTypes.func.isRequired,
   canEdit: PropTypes.bool
 };
 
