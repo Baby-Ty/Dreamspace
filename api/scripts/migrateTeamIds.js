@@ -134,3 +134,4 @@ async function migrateTeamIds() {
 
 // Run migration
 migrateTeamIds();
+

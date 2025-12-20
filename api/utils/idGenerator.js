@@ -37,3 +37,4 @@ module.exports = {
   generateTeamId,
   generateMeetingId
 };
+

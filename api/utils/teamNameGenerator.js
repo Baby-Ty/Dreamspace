@@ -38,3 +38,4 @@ function generateRandomTeamName() {
 module.exports = {
   generateRandomTeamName
 };
+
