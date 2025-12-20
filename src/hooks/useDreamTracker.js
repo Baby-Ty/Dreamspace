@@ -856,40 +856,55 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
   }, [localDream, canEdit]);
 
   // What/Why/How handlers
-  const handleUpdateDescription = useCallback((description) => {
+  const handleUpdateDescription = useCallback(async (description) => {
     if (!canEdit) return;
     const updatedDream = {
       ...localDream,
       description: description
     };
     setLocalDream(updatedDream);
-    // Immediately persist changes
-    onUpdate(updatedDream);
-    setHasChanges(false); // Changes are saved immediately, so no pending changes
+    // Immediately persist changes - await to ensure it completes
+    try {
+      await onUpdate(updatedDream);
+      setHasChanges(false); // Changes are saved immediately, so no pending changes
+    } catch (error) {
+      console.error('Failed to save description:', error);
+      setHasChanges(true); // Keep changes flag if save fails
+    }
   }, [localDream, canEdit, onUpdate]);
 
-  const handleUpdateMotivation = useCallback((motivation) => {
+  const handleUpdateMotivation = useCallback(async (motivation) => {
     if (!canEdit) return;
     const updatedDream = {
       ...localDream,
       motivation: motivation
     };
     setLocalDream(updatedDream);
-    // Immediately persist changes
-    onUpdate(updatedDream);
-    setHasChanges(false); // Changes are saved immediately, so no pending changes
+    // Immediately persist changes - await to ensure it completes
+    try {
+      await onUpdate(updatedDream);
+      setHasChanges(false); // Changes are saved immediately, so no pending changes
+    } catch (error) {
+      console.error('Failed to save motivation:', error);
+      setHasChanges(true); // Keep changes flag if save fails
+    }
   }, [localDream, canEdit, onUpdate]);
 
-  const handleUpdateApproach = useCallback((approach) => {
+  const handleUpdateApproach = useCallback(async (approach) => {
     if (!canEdit) return;
     const updatedDream = {
       ...localDream,
       approach: approach
     };
     setLocalDream(updatedDream);
-    // Immediately persist changes
-    onUpdate(updatedDream);
-    setHasChanges(false); // Changes are saved immediately, so no pending changes
+    // Immediately persist changes - await to ensure it completes
+    try {
+      await onUpdate(updatedDream);
+      setHasChanges(false); // Changes are saved immediately, so no pending changes
+    } catch (error) {
+      console.error('Failed to save approach:', error);
+      setHasChanges(true); // Keep changes flag if save fails
+    }
   }, [localDream, canEdit, onUpdate]);
 
   const handleUpdateTitle = useCallback((title) => {

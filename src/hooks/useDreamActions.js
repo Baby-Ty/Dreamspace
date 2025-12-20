@@ -25,7 +25,8 @@ export function useDreamActions(state, dispatch) {
     // Update local state first
     dispatch({ type: actionTypes.UPDATE_DREAM, payload: dream });
     
-    // Get updated dreamBook from state (after dispatch)
+    // Build updated dreamBook array using the dream parameter directly
+    // (don't read from state as it may be stale due to async dispatch)
     const updatedDreams = state.currentUser.dreamBook.map(d => 
       d.id === dream.id ? dream : d
     );

@@ -100,6 +100,8 @@ module.exports = async function (context, req) {
         id: dream.id,
         title: dream.title,
         description: dream.description || '',
+        motivation: dream.motivation || '',
+        approach: dream.approach || '',
         category: dream.category,
         goals: (dream.goals || []).map(goal => ({
           id: goal.id,
