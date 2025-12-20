@@ -3,6 +3,8 @@
  * Proxies requests to OpenAI API to avoid CORS issues
  */
 
+const { getCosmosProvider } = require('../utils/cosmosProvider');
+
 module.exports = async function (context, req) {
   // Set CORS headers
   const headers = {
@@ -58,38 +60,86 @@ module.exports = async function (context, req) {
       ? `Their dreams include: ${dreams.map(d => `"${d.title}" (${d.category || 'General'})`).join(', ')}.`
       : '';
 
-    let systemPrompt, userPrompt;
+    // Load prompts from Cosmos DB (always fetch fresh, no caching)
+    let prompts;
+    let promptsSource = 'defaults';
+    try {
+      const cosmosProvider = getCosmosProvider();
+      if (cosmosProvider) {
+        // Always fetch fresh prompts from Cosmos DB
+        prompts = await cosmosProvider.getPrompts();
+        // If prompts don't exist, create defaults
+        if (!prompts) {
+          context.log('📝 Prompts not found in Cosmos DB, creating defaults');
+          const defaultPrompts = cosmosProvider.getDefaultPrompts();
+          prompts = await cosmosProvider.upsertPrompts(defaultPrompts, 'system');
+          promptsSource = 'cosmos-db (newly created)';
+        } else {
+          promptsSource = 'cosmos-db';
+          context.log('✅ Loaded prompts from Cosmos DB');
+        }
+      }
+    } catch (promptError) {
+      context.log.warn('Failed to load prompts from Cosmos DB, using defaults:', promptError.message);
+    }
 
-    if (action === 'polish') {
-      // Polish existing vision
-      systemPrompt = `You are an editor refining a personal vision statement.
-Keep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.
-Write in first person. Around ${maxWords} words.
-Do not add new concepts — just polish what’s already there.`;
-
-      userPrompt = `Please polish this vision statement while keeping my voice:
-"${userInput.trim()}"
-
-${dreamContext}
-
-Make it sound more visionary and confident, but still authentically me.`;
-    } else {
-      // Generate new vision
-      systemPrompt = `You are a visionary life coach helping someone craft an inspiring personal vision statement. 
+    // Fallback to default prompts if Cosmos DB load failed
+    if (!prompts || !prompts.visionGeneration) {
+      const cosmosProvider = getCosmosProvider();
+      if (cosmosProvider) {
+        prompts = { visionGeneration: cosmosProvider.getDefaultPrompts().visionGeneration };
+      } else {
+        // Ultimate fallback to hardcoded defaults
+        prompts = {
+          visionGeneration: {
+            generateSystemPrompt: `You are a visionary life coach helping someone craft an inspiring personal vision statement. 
 Write in first person, present tense. Warm, authentic, aspirational — never corporate.
 
 The tone should feel like a confident dreamer speaking from the heart.
-Keep it to around ${maxWords} words. Make every word count.`;
+Keep it to around {maxWords} words. Make every word count.`,
+            generateUserPrompt: `Here's what I shared about my mindset, goals, and hopes:
+"{userInput}"
 
-      userPrompt = `Here's what I shared about my mindset, goals, and hopes:
-"${userInput.trim()}"
-
-${dreamContext}
+{dreamContext}
 
 Transform this into a powerful, personal vision statement that captures my aspirations. 
-Make it sound like ME - confident, inspired, and ready to make it happen.`;
+Make it sound like ME - confident, inspired, and ready to make it happen.`,
+            polishSystemPrompt: `You are an editor refining a personal vision statement.
+Keep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.
+Write in first person. Around {maxWords} words.
+Do not add new concepts — just polish what's already there.`,
+            polishUserPrompt: `Please polish this vision statement while keeping my voice:
+"{userInput}"
+
+{dreamContext}
+
+Make it sound more visionary and confident, but still authentically me.`
+          }
+        };
+      }
     }
 
+    let systemPromptTemplate, userPromptTemplate;
+
+    if (action === 'polish') {
+      // Polish existing vision
+      systemPromptTemplate = prompts.visionGeneration.polishSystemPrompt;
+      userPromptTemplate = prompts.visionGeneration.polishUserPrompt;
+    } else {
+      // Generate new vision
+      systemPromptTemplate = prompts.visionGeneration.generateSystemPrompt;
+      userPromptTemplate = prompts.visionGeneration.generateUserPrompt;
+    }
+
+    // Replace template variables
+    const systemPrompt = systemPromptTemplate
+      .replace(/{maxWords}/g, maxWords.toString());
+    
+    const userPrompt = userPromptTemplate
+      .replace(/{userInput}/g, userInput.trim())
+      .replace(/{dreamContext}/g, dreamContext);
+
+    context.log(`Using prompts from: ${promptsSource}`);
     context.log('Calling OpenAI API...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -161,4 +211,3 @@ Make it sound like ME - confident, inspired, and ready to make it happen.`;
     };
   }
 };
-

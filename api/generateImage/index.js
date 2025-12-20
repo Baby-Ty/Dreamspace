@@ -3,6 +3,8 @@
  * Proxies requests to OpenAI DALL-E API to keep API key server-side
  */
 
+const { getCosmosProvider } = require('../utils/cosmosProvider');
+
 module.exports = async function (context, req) {
   // Set CORS headers
   const headers = {
@@ -61,42 +63,83 @@ module.exports = async function (context, req) {
       customStyle = null
     } = options;
 
-    // Style modifiers mapping (same as frontend)
-    const STYLE_MODIFIERS = {
-      stylized_digital: 'stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style',
-      vibrant_coastal: 'vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements',
-      semi_realistic: 'semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic',
-      photorealistic_cinematic: 'photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights'
-    };
+    // Load prompts from Cosmos DB (always fetch fresh, no caching)
+    let prompts;
+    let promptsSource = 'defaults';
+    try {
+      const cosmosProvider = getCosmosProvider();
+      if (cosmosProvider) {
+        // Always fetch fresh prompts from Cosmos DB
+        prompts = await cosmosProvider.getPrompts();
+        // If prompts don't exist, create defaults
+        if (!prompts) {
+          context.log('📝 Prompts not found in Cosmos DB, creating defaults');
+          const defaultPrompts = cosmosProvider.getDefaultPrompts();
+          prompts = await cosmosProvider.upsertPrompts(defaultPrompts, 'system');
+          promptsSource = 'cosmos-db (newly created)';
+        } else {
+          promptsSource = 'cosmos-db';
+          context.log('✅ Loaded prompts from Cosmos DB');
+        }
+      }
+    } catch (promptError) {
+      context.log.warn('Failed to load prompts from Cosmos DB, using defaults:', promptError.message);
+    }
+
+    // Fallback to default prompts if Cosmos DB load failed
+    if (!prompts || !prompts.imageGeneration || !prompts.styleModifiers) {
+      const cosmosProvider = getCosmosProvider();
+      if (cosmosProvider) {
+        prompts = { imageGeneration: cosmosProvider.getDefaultPrompts().imageGeneration, styleModifiers: cosmosProvider.getDefaultPrompts().styleModifiers };
+      } else {
+        // Ultimate fallback to hardcoded defaults
+        prompts = {
+          imageGeneration: {
+            dreamPrompt: `Create an inspiring, symbolic image that represents the dream: {userSearchTerm}
+
+Make the image visually strong, motivating, and emotionally uplifting.  
+Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`,
+            backgroundCardPrompt: `Create a clean, visually appealing background image based on the theme: "{userSearchTerm}".
+
+Make the image expressive but not distracting, with a subtle composition that works behind UI text.  
+Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces.`
+          },
+          styleModifiers: {
+            stylized_digital: { modifier: 'stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style' },
+            vibrant_coastal: { modifier: 'vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements' },
+            semi_realistic: { modifier: 'semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic' },
+            photorealistic_cinematic: { modifier: 'photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights' }
+          }
+        };
+      }
+    }
 
     // Get style modifier text - prefer custom style if provided
     let styleModifier = '';
     if (customStyle && customStyle.trim()) {
       styleModifier = customStyle.trim();
-    } else if (styleModifierId && STYLE_MODIFIERS[styleModifierId]) {
-      styleModifier = STYLE_MODIFIERS[styleModifierId];
+    } else if (styleModifierId && prompts.styleModifiers[styleModifierId]) {
+      styleModifier = prompts.styleModifiers[styleModifierId].modifier || prompts.styleModifiers[styleModifierId];
     }
 
     // Build prompt based on image type
-    let prompt;
+    let promptTemplate;
     if (imageType === 'background_card') {
-      prompt = `Create a clean, visually appealing background image based on the theme: "${userSearchTerm.trim()}".
-
-Make the image expressive but not distracting, with a subtle composition that works behind UI text.  
-Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces.`;
+      promptTemplate = prompts.imageGeneration.backgroundCardPrompt;
     } else {
       // Default to dream image type
-      prompt = `Create an inspiring, symbolic image that represents the dream: ${userSearchTerm.trim()}
-
-Make the image visually strong, motivating, and emotionally uplifting.  
-Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`;
+      promptTemplate = prompts.imageGeneration.dreamPrompt;
     }
+
+    // Replace template variables
+    let prompt = promptTemplate.replace(/{userSearchTerm}/g, userSearchTerm.trim());
 
     // Add style modifier if provided
     if (styleModifier) {
       prompt += `\n\nStyle: ${styleModifier}`;
     }
 
+    context.log(`Using prompts from: ${promptsSource}`);
     context.log('Calling OpenAI DALL-E API...');
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {

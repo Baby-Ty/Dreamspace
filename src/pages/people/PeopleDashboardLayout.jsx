@@ -11,12 +11,14 @@ import {
   X,
   MapPin,
   Edit3,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import FlagIcon from '../../components/FlagIcon';
 import CoachList from './CoachList';
 import TeamMetrics from './TeamMetrics';
+import PromptEditorSection from './PromptEditorSection';
 import { usePeopleData } from '../../hooks/usePeopleData';
 import peopleService from '../../services/peopleService';
 import HelpTooltip from '../../components/HelpTooltip';
@@ -54,6 +56,9 @@ export default function PeopleDashboardLayout() {
     setUserSearchTerm,
     refreshData
   } = usePeopleData();
+
+  // View state
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' or 'prompts'
 
   // Modal state
   const [showReportBuilder, setShowReportBuilder] = useState(false);
@@ -335,22 +340,41 @@ export default function PeopleDashboardLayout() {
             </div>
           </div>
 
-          {/* Report Builder Button */}
-          <div className="flex items-center">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
             <button 
-              onClick={() => setShowReportBuilder(true)}
-              className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
-              aria-label="Open report builder"
+              onClick={() => setCurrentView(currentView === 'dashboard' ? 'prompts' : 'dashboard')}
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center ${
+                currentView === 'prompts'
+                  ? 'bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white'
+                  : 'bg-white border border-professional-gray-300 text-professional-gray-700 hover:bg-professional-gray-50'
+              }`}
+              aria-label={currentView === 'dashboard' ? 'Switch to AI Prompts' : 'Switch to Dashboard'}
             >
-              <BarChart3 className="w-4 h-4 mr-2" aria-hidden="true" />
-              <span>Report Builder</span>
+              <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
+              <span>{currentView === 'dashboard' ? 'AI Prompts' : 'Dashboard'}</span>
             </button>
+            {currentView === 'dashboard' && (
+              <button 
+                onClick={() => setShowReportBuilder(true)}
+                className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
+                aria-label="Open report builder"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" aria-hidden="true" />
+                <span>Report Builder</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Two-Panel Layout */}
-      <div className="pb-4">
+      {/* Conditional Rendering: Dashboard or Prompts Editor */}
+      {currentView === 'prompts' ? (
+        <PromptEditorSection />
+      ) : (
+        <>
+          {/* Two-Panel Layout */}
+          <div className="pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel: Coaches/Teams */}
           <div className="space-y-4">
@@ -537,6 +561,8 @@ export default function PeopleDashboardLayout() {
           </div>
         </div>
       </div>
+        </>
+      )}
 
       {/* Modals */}
       {/* Lazy-loaded Modals with Suspense */}
