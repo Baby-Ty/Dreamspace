@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { generateTeamId } = require('../utils/idGenerator');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, usersContainer, teamsContainer;
@@ -208,16 +209,24 @@ module.exports = async function (context, req) {
       teamToDelete = existingNewTeam; // We'll delete the new coach's old team
     }
 
-    // Create the new team structure
+    // Preserve stable teamId - if old team doesn't have one (legacy), generate one
+    // This ensures meeting attendance and other team-linked data persists across coach changes
+    const stableTeamId = oldTeam.teamId || generateTeamId(); // e.g., "team_a1b2c3"
+    
+    // Create the new team structure - PRESERVE teamId and teamName
     const updatedTeam = {
       ...oldTeam,
-      managerId: newCoachId,
-      teamName: teamName || `${newCoach.name || 'New Coach'}'s Team`,
+      id: stableTeamId,           // Document ID = teamId
+      teamId: stableTeamId,       // Stable team identifier - NEVER changes
+      managerId: newCoachId,      // New coach's ID - this is what changes
+      // Preserve existing teamName unless explicitly provided in request
+      teamName: teamName || oldTeam.teamName || `${newCoach.name || 'New Coach'}'s Team`,
       teamMembers: mergedTeamMembers,
       lastModified: new Date().toISOString(),
       coachReplaced: {
         oldCoachId: oldCoachId,
         newCoachId: newCoachId,
+        previousTeamName: oldTeam.teamName,
         replacedAt: new Date().toISOString(),
         replacedBy: 'system'
       }
@@ -356,6 +365,7 @@ module.exports = async function (context, req) {
         message: 'Coach successfully replaced',
         oldCoachId: oldCoachId,
         newCoachId: newCoachId,
+        teamId: updatedTeam.teamId,  // Stable team ID preserved across coach changes
         teamName: updatedTeam.teamName,
         teamSize: updatedTeam.teamMembers.length,
         replacedAt: updatedTeam.coachReplaced.replacedAt,

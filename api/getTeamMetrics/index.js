@@ -159,6 +159,11 @@ module.exports = async function (context, req) {
       mission: team.mission || null,
       nextMeeting: team.nextMeeting || null,
       managerId: team.managerId,
+      // Include stable teamId for meeting attendance and other team-linked features
+      // Falls back to managerId for backwards compatibility with older team documents
+      teamId: team.teamId || team.managerId,
+      teamInterests: team.teamInterests || null,
+      teamRegions: team.teamRegions || null,
       lastUpdated: new Date().toISOString()
     };
 

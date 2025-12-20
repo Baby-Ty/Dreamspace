@@ -1,4 +1,6 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { generateTeamId } = require('../utils/idGenerator');
+const { generateRandomTeamName } = require('../utils/teamNameGenerator');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, usersContainer, teamsContainer;
@@ -27,16 +29,19 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { userId, teamName } = req.body;
+  const { userId, teamName: providedTeamName } = req.body;
 
-  if (!userId || !teamName) {
+  if (!userId) {
     context.res = {
       status: 400,
-      body: JSON.stringify({ error: 'User ID and team name are required' }),
+      body: JSON.stringify({ error: 'User ID is required' }),
       headers
     };
     return;
   }
+  
+  // Generate team name if not provided
+  const teamName = providedTeamName || generateRandomTeamName();
 
   // Check if Cosmos DB is configured
   if (!usersContainer || !teamsContainer) {
@@ -94,19 +99,22 @@ module.exports = async function (context, req) {
       throw new Error(`Failed to update user document: ${replaceError.message}`);
     }
 
-    // Create new team relationship
-    const teamId = `team_${userId}_${Date.now()}`;
+    // Create new team relationship with STABLE teamId
+    // The teamId is a short unique ID that NEVER changes, even when coaches are replaced
+    // This ensures meeting attendance and other team-linked data persists across coach changes
+    const teamId = generateTeamId(); // e.g., "team_a1b2c3"
     const teamRelationship = {
-      id: teamId,
+      id: teamId,           // Document ID = teamId for simplicity
+      teamId: teamId,       // Stable team identifier - NEVER changes
       type: 'team_relationship',
-      managerId: userId, // Keep as string to match user ID format
+      managerId: userId,    // Current coach - CAN change via replaceTeamCoach
       teamMembers: [],
       teamName: teamName,
       managerRole: 'Dream Coach',
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString(),
       isActive: true,
-      createdBy: 'system', // Could be replaced with actual admin user ID
+      createdBy: 'system',
     };
 
     context.log(`Creating team document with managerId=${userId}`);

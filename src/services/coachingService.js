@@ -237,6 +237,42 @@ class CoachingService {
   }
 
   /**
+   * Update team info (interests, regions, etc.)
+   * @param {string} managerId - Manager/Coach ID
+   * @param {object} teamInfo - Team info data { teamInterests, teamRegions }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateTeamInfo(managerId, teamInfo) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/updateTeamInfo/${managerId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(teamInfo)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+          return fail(ErrorCodes.NETWORK, errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Team info updated successfully');
+        return ok(result.data);
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Team info would be saved to localStorage');
+        return ok({ ...teamInfo, managerId, lastModified: new Date().toISOString() });
+      }
+    } catch (error) {
+      console.error('❌ Error updating team info:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update team info');
+    }
+  }
+
+  /**
    * Update team name
    * @param {string} managerId - Manager/Coach ID
    * @param {string} teamName - New team name
@@ -314,6 +350,96 @@ class CoachingService {
     } catch (error) {
       console.error('❌ Error updating team meeting:', error);
       return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update team meeting');
+    }
+  }
+
+  /**
+   * Save meeting attendance
+   * @param {string} teamId - Stable Team ID (persists across coach changes, NOT managerId)
+   * @param {object} meetingData - Meeting data { title, date, attendees: [{id, name, present}], completedBy }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async saveMeetingAttendance(teamId, meetingData) {
+    try {
+      if (!teamId || typeof teamId !== 'string' || !teamId.trim()) {
+        return fail(ErrorCodes.VALIDATION, 'Invalid team ID provided');
+      }
+      
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/saveMeetingAttendance/${teamId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(meetingData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ 
+            error: `HTTP ${response.status}: ${response.statusText}`,
+            details: 'Failed to save meeting attendance'
+          }));
+          const errorMessage = errorData.details 
+            ? `${errorData.error}: ${errorData.details}`
+            : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, errorMessage);
+        }
+
+        const result = await response.json();
+        console.log('✅ Meeting attendance saved successfully');
+        return ok(result.data);
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Meeting attendance would be saved to localStorage');
+        return ok({ ...meetingData, teamId, completedAt: new Date().toISOString() });
+      }
+    } catch (error) {
+      console.error('❌ Error saving meeting attendance:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to save meeting attendance');
+    }
+  }
+
+  /**
+   * Get meeting attendance history for a team
+   * @param {string} teamId - Stable Team ID (persists across coach changes, NOT managerId)
+   * @returns {Promise<{success: boolean, data?: array, error?: string}>}
+   */
+  async getMeetingAttendanceHistory(teamId) {
+    try {
+      if (!teamId || typeof teamId !== 'string' || !teamId.trim()) {
+        return fail(ErrorCodes.VALIDATION, 'Invalid team ID provided');
+      }
+      
+      if (this.useCosmosDB) {
+        const response = await fetch(`${this.apiBase}/getMeetingAttendance/${teamId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ 
+            error: `HTTP ${response.status}: ${response.statusText}`,
+            details: 'Failed to retrieve meeting attendance'
+          }));
+          const errorMessage = errorData.details 
+            ? `${errorData.error}: ${errorData.details}`
+            : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+          return fail(ErrorCodes.NETWORK, errorMessage);
+        }
+
+        const result = await response.json();
+        console.log('✅ Retrieved meeting attendance history:', result.meetings?.length || 0);
+        return ok(result.meetings || []);
+      } else {
+        // Fallback to localStorage for development
+        console.log('📱 Development mode: Meeting attendance history would be retrieved from localStorage');
+        return ok([]);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching meeting attendance history:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch meeting attendance history');
     }
   }
 }
