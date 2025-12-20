@@ -26,7 +26,7 @@ const Login = () => {
                 e.target.nextSibling.style.display = 'flex';
               }}
             />
-            <div className="w-12 h-12 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-xl items-center justify-center shadow-lg hidden">
+            <div className="w-12 h-12 bg-netsurit-red rounded-xl items-center justify-center shadow-lg hidden">
               <Star className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-black">
@@ -96,7 +96,7 @@ const Login = () => {
           <button
             onClick={() => login(false)}
             disabled={isLoading}
-            className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-light-coral focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold text-lg disabled:opacity-50"
+            className="w-full flex items-center justify-center px-6 py-4 bg-netsurit-red text-white rounded-xl hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 font-semibold text-lg disabled:opacity-50 shadow-lg"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -124,7 +124,7 @@ const Login = () => {
           )}
           
           <p className="text-center text-sm text-professional-gray-500">
-            Use your company Microsoft account to access DreamSpace
+            Use your Netsurit Microsoft account to access DreamSpace
           </p>
         </div>
 
