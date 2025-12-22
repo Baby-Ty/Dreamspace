@@ -4,6 +4,18 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Ensure custom animation classes are never purged
+    'animate-bird-fly',
+    'animate-bird-fly-rtl',
+    'animate-bird-soar',
+    'animate-wing-l',
+    'animate-wing-r',
+    'animate-tree-sway',
+    'animate-cloud-slow',
+    'animate-cloud-medium',
+    'animate-hill-sway',
+  ],
   theme: {
     extend: {
       colors: {
