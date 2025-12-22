@@ -1,6 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Calendar, Check, CheckCircle2, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
 import { useApp } from '../../context/AppContext';
@@ -11,14 +11,26 @@ import { showToast } from '../../utils/toast';
  * Allows coaches to track meeting attendance with yellow lined paper styling
  * @param {boolean} embedded - When true, renders without background (for use inside parent card)
  */
-export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, onComplete, embedded = false }) {
+export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, onComplete, embedded = false, managerId, teamData }) {
   const { currentUser } = useApp();
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [meetingData, setMeetingData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0], // Default to today
   });
   const [attendance, setAttendance] = useState({});
+  const saveTimeoutRef = useRef(null);
+
+  // Load meeting draft from teamData on mount
+  useEffect(() => {
+    if (teamData?.meetingDraft && isCoach) {
+      setMeetingData({
+        title: teamData.meetingDraft.title || '',
+        date: teamData.meetingDraft.date || new Date().toISOString().split('T')[0]
+      });
+    }
+  }, [teamData, isCoach]);
 
   // Initialize attendance state with all team members (excluding coach)
   useEffect(() => {
@@ -33,6 +45,43 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     });
     setAttendance(initialAttendance);
   }, [teamMembers]);
+
+  // Auto-save meeting draft when title or date changes (debounced)
+  useEffect(() => {
+    if (!isCoach || !managerId) return;
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set new timeout to save after 1 second of no changes
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (meetingData.title || meetingData.date) {
+        setIsSavingDraft(true);
+        try {
+          await coachingService.updateTeamInfo(managerId, {
+            meetingDraft: {
+              title: meetingData.title,
+              date: meetingData.date
+            }
+          });
+        } catch (error) {
+          console.error('Failed to save meeting draft:', error);
+          // Don't show error toast for draft saves - silent failure is OK
+        } finally {
+          setIsSavingDraft(false);
+        }
+      }
+    }, 1000);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [meetingData.title, meetingData.date, isCoach, managerId]);
 
   const handleToggleAttendance = (memberId) => {
     if (!isCoach) return;
@@ -127,21 +176,28 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
           <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
             Meeting Title
           </p>
-          <input
-            id="meeting-title"
-            type="text"
-            value={meetingData.title}
-            onChange={(e) => setMeetingData({ ...meetingData, title: e.target.value })}
-            placeholder="e.g., Weekly Team Sync"
-            disabled={!isCoach}
-            className={`w-full px-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg text-[#4a3b22] font-hand text-base ${
-              isCoach 
-                ? 'focus:outline-none focus:ring-2 focus:ring-[#8a7a50] cursor-text' 
-                : 'opacity-60 cursor-not-allowed'
-            }`}
-            style={{ height: '28px', lineHeight: '28px' }}
-            data-testid="meeting-title-input"
-          />
+          <div className="relative">
+            <input
+              id="meeting-title"
+              type="text"
+              value={meetingData.title}
+              onChange={(e) => setMeetingData({ ...meetingData, title: e.target.value })}
+              placeholder="e.g., Weekly Team Sync"
+              disabled={!isCoach}
+              className={`w-full px-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg text-[#4a3b22] font-hand text-base ${
+                isCoach 
+                  ? 'focus:outline-none focus:ring-2 focus:ring-[#8a7a50] cursor-text' 
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
+              style={{ height: '28px', lineHeight: '28px' }}
+              data-testid="meeting-title-input"
+            />
+            {isSavingDraft && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <Loader2 className="h-3 w-3 animate-spin text-[#8a7a50]" />
+              </div>
+            )}
+          </div>
         </div>
         <div>
           <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
@@ -324,7 +380,9 @@ MeetingAttendanceCard.propTypes = {
   })),
   isCoach: PropTypes.bool,
   onComplete: PropTypes.func,
-  embedded: PropTypes.bool
+  embedded: PropTypes.bool,
+  managerId: PropTypes.string,
+  teamData: PropTypes.object
 };
 
 MeetingAttendanceCard.defaultProps = {
@@ -332,6 +390,8 @@ MeetingAttendanceCard.defaultProps = {
   teamMembers: [],
   isCoach: false,
   onComplete: null,
-  embedded: false
+  embedded: false,
+  managerId: null,
+  teamData: null
 };
 

@@ -517,6 +517,8 @@ export default function DreamTeamLayout() {
                   teamId={teamId}
                   teamMembers={teamMembers}
                   isCoach={isCoach}
+                  managerId={teamData?.managerId}
+                  teamData={teamData}
                   onComplete={(data) => {
                     console.log('Meeting attendance completed:', data);
                     refreshData();

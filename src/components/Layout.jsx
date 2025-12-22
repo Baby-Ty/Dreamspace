@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import SaveStatus from './SaveStatus';
 import QuoteDisplay from './QuoteDisplay';
+import AnimatedBackground from './AnimatedBackground';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,7 +48,8 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen overflow-hidden relative">
+      <AnimatedBackground />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -244,7 +246,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-y-auto overscroll-contain scrollbar-clean">
+        <main className="flex-1 overflow-y-auto overscroll-contain scrollbar-clean relative z-0">
           {children}
         </main>
       </div>

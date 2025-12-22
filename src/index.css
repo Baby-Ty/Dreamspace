@@ -198,6 +198,116 @@ html, body, #root {
       transform: translateX(200%) skewX(-12deg);
     }
   }
+
+  /* Cloud movement animations */
+  @keyframes cloud-slow {
+    0% { transform: translateX(-10vw); }
+    100% { transform: translateX(110vw); }
+  }
+
+  @keyframes cloud-medium {
+    0% { transform: translateX(-20vw); }
+    100% { transform: translateX(120vw); }
+  }
+
+  .animate-cloud-slow {
+    animation: cloud-slow 160s linear infinite;
+  }
+
+  .animate-cloud-medium {
+    animation: cloud-medium 100s linear infinite;
+  }
+
+  /* Gentle hill sway */
+  @keyframes hill-sway {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(2px) scale(1.01); }
+  }
+
+  .animate-hill-sway {
+    animation: hill-sway 20s ease-in-out infinite;
+  }
+
+  /* Floating orbs/stars animation */
+  @keyframes float-slow {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(10px, -15px); }
+    66% { transform: translate(-5px, 10px); }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 15s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 8s ease-in-out infinite;
+  }
+
+  /* Refined bird animations */
+  @keyframes wing-l {
+    0%, 100% { transform: rotate(15deg); }
+    50% { transform: rotate(-25deg); }
+  }
+
+  @keyframes wing-r {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(25deg); }
+  }
+
+  @keyframes bird-fly {
+    0% { transform: translate(-15vw, 0) rotate(2deg); }
+    33% { transform: translate(25vw, -6vh) rotate(-2deg); }
+    66% { transform: translate(75vw, 3vh) rotate(3deg); }
+    100% { transform: translate(115vw, -2vh) rotate(0deg); }
+  }
+
+  @keyframes bird-fly-rtl {
+    0% { transform: translate(115vw, 5vh) scaleX(-1) rotate(-3deg); }
+    33% { transform: translate(80vw, 8vh) scaleX(-1) rotate(2deg); }
+    66% { transform: translate(25vw, 2vh) scaleX(-1) rotate(-1deg); }
+    100% { transform: translate(-15vw, 6vh) scaleX(-1) rotate(0deg); }
+  }
+
+  @keyframes bird-soar {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(1deg); }
+  }
+
+  .animate-wing-l {
+    animation: wing-l 4s ease-in-out infinite;
+    transform-origin: 12px 6px;
+  }
+
+  .animate-wing-r {
+    animation: wing-r 4s ease-in-out infinite;
+    transform-origin: 12px 6px;
+  }
+
+  .animate-bird-soar {
+    animation: bird-soar 6s ease-in-out infinite;
+  }
+
+  .animate-bird-fly {
+    animation: bird-fly 35s linear infinite;
+  }
+
+  .animate-bird-fly-rtl {
+    animation: bird-fly-rtl 40s linear infinite;
+  }
+  @keyframes tree-sway {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
+  }
+
+  .animate-tree-sway {
+    transform-origin: bottom center;
+    animation: tree-sway 6s ease-in-out infinite;
+  }
 }
 
 @layer utilities {

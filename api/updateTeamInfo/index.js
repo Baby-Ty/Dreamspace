@@ -37,7 +37,7 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { teamInterests, teamRegions } = req.body || {};
+  const { teamInterests, teamRegions, meetingDraft } = req.body || {};
 
   // Check if Cosmos DB is configured
   if (!teamsContainer) {
@@ -78,11 +78,12 @@ module.exports = async function (context, req) {
 
     const team = teams[0];
 
-    // Update team with interests and regions
+    // Update team with interests, regions, and meeting draft
     const updatedTeam = {
       ...team,
       teamInterests: teamInterests !== undefined ? teamInterests : team.teamInterests,
       teamRegions: teamRegions !== undefined ? teamRegions : team.teamRegions,
+      meetingDraft: meetingDraft !== undefined ? meetingDraft : team.meetingDraft,
       lastModified: new Date().toISOString()
     };
 
@@ -98,6 +99,7 @@ module.exports = async function (context, req) {
           managerId: managerId,
           teamInterests: updatedTeam.teamInterests,
           teamRegions: updatedTeam.teamRegions,
+          meetingDraft: updatedTeam.meetingDraft,
           teamName: updatedTeam.teamName,
           lastModified: updatedTeam.lastModified
         }
