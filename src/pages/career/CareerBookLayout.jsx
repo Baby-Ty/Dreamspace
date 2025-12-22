@@ -49,7 +49,7 @@ export default function CareerBookLayout() {
   // Early return for loading state
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[400px]">
+      <div className="max-w-[1600px] mx-auto flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-netsurit-red mx-auto mb-4"></div>
           <p className="text-professional-gray-600">Loading Career Book...</p>
@@ -60,7 +60,7 @@ export default function CareerBookLayout() {
 
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-3 sm:space-y-3">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-2 space-y-3 sm:space-y-3">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">

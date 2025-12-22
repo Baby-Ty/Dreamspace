@@ -268,7 +268,7 @@ export default function PeopleDashboardLayout() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6 space-y-6">
       {/* Header with Inline KPIs */}
       <div className="pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

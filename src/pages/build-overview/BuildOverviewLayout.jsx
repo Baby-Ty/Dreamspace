@@ -15,7 +15,7 @@ export default function BuildOverviewLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" data-testid="build-overview-loading">
+      <div className="flex items-center justify-center min-h-[400px]" data-testid="build-overview-loading">
         <LoadingSpinner />
       </div>
     );
@@ -25,7 +25,7 @@ export default function BuildOverviewLayout() {
     return (
       <div
         role="alert"
-        className="min-h-screen flex items-center justify-center px-4"
+        className="flex items-center justify-center px-4 min-h-[400px]"
         data-testid="build-overview-error"
       >
         <div className="max-w-md text-center bg-white shadow-lg border border-professional-gray-200 rounded-xl p-6">
@@ -54,12 +54,12 @@ export default function BuildOverviewLayout() {
   } = overview;
 
   return (
-    <main
-      className="bg-professional-gray-50 min-h-screen pb-12"
+    <div
+      className="pb-12"
       data-testid="build-overview-page"
       aria-labelledby="build-overview-title"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 py-10">
+      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 space-y-10 py-10">
         <HeroPanel hero={hero} />
         <StakeholderSection data={stakeholderSnapshot} />
         <BusinessOutcomesSection data={businessOutcomes} />
@@ -74,7 +74,7 @@ export default function BuildOverviewLayout() {
         <FutureRoadmapSection data={futureRoadmap} />
         <ResourcesSection data={resources} />
       </div>
-    </main>
+    </div>
   );
 }
 

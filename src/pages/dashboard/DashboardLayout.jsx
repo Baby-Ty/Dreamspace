@@ -139,7 +139,7 @@ export default function DashboardLayout() {
   // Early return for loading
   if (!currentUser) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-center min-h-[400px]">
+      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-3 sm:py-4 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-netsurit-red mx-auto mb-4"></div>
           <p className="text-professional-gray-600">Loading Dashboard...</p>
@@ -211,7 +211,7 @@ export default function DashboardLayout() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5" data-testid="dashboard-layout">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-3 sm:py-4 space-y-4 sm:space-y-5" data-testid="dashboard-layout">
       {/* Header Section */}
       <DashboardHeader
         userName={currentUser.name.split(' ')[0]}

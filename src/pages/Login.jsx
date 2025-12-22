@@ -4,6 +4,7 @@
 import React from 'react';
 import { Star, Users, Target, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import AnimatedBackground from '../components/AnimatedBackground';
 
 const Login = () => {
   const { login, isLoading, loginError, clearLoginError } = useAuth();
@@ -11,8 +12,9 @@ const Login = () => {
   console.log('Login component state:', { isLoading, hasError: !!loginError });
   
   return (
-    <div className="min-h-screen bg-professional-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <AnimatedBackground />
+      <div className="max-w-md w-full space-y-8 relative z-10">
         {/* Logo and Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">

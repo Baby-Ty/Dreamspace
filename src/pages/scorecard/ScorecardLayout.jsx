@@ -33,7 +33,7 @@ function ScorecardLayout() {
   // Early return for loading state
   if (!currentUser) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6">
         <div className="text-center py-12">
           <p className="text-professional-gray-500">Loading scorecard...</p>
         </div>
@@ -42,7 +42,7 @@ function ScorecardLayout() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" data-testid="scorecard-layout">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6" data-testid="scorecard-layout">
       {/* Header */}
       <div className="mb-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">

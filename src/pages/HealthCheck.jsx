@@ -48,7 +48,7 @@ function HealthCheck() {
 
   if (loading && !healthData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-netsurit-red mx-auto mb-4"></div>
           <p className="text-professional-gray-600">Checking system health...</p>
@@ -59,7 +59,7 @@ function HealthCheck() {
 
   if (error && !healthData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 min-h-[400px]">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
           <div className="text-center">
             <div className="text-red-500 text-5xl mb-4">✗</div>
@@ -82,7 +82,7 @@ function HealthCheck() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">

@@ -91,7 +91,7 @@ const AdminDashboard = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-4 sm:py-6">
         <div className="text-center py-20">
           <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Admin Dashboard</h2>
@@ -104,7 +104,7 @@ const AdminDashboard = () => {
   // Show error state
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-4 sm:py-6">
         <div className="text-center py-20">
           <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Failed to Load Admin Data</h2>
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Enhanced Header */}
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">

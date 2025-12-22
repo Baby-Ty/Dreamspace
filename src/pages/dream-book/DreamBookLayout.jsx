@@ -157,7 +157,7 @@ export default function DreamBookLayout() {
   if (loading) {
     return (
       <div 
-        className="max-w-6xl mx-auto flex items-center justify-center min-h-[400px]"
+        className="max-w-[1600px] mx-auto flex items-center justify-center min-h-[400px]"
         role="status"
         aria-live="polite"
         data-testid="dream-book-loading"
@@ -172,7 +172,7 @@ export default function DreamBookLayout() {
 
   return (
     <div 
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-4 sm:space-y-4"
+      className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6 space-y-4 sm:space-y-4"
       data-testid="dream-book-layout"
     >
       {/* Enhanced Header */}

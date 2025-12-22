@@ -165,7 +165,7 @@ export default function DreamConnectLayout() {
   // Early return for loading
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-3 sm:py-4">
         <div className="text-center py-20">
           <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">
@@ -182,7 +182,7 @@ export default function DreamConnectLayout() {
   // Early return for error
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-3 sm:py-4">
         <div className="text-center py-20">
           <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">
@@ -204,7 +204,7 @@ export default function DreamConnectLayout() {
   // Early return for no user
   if (!currentUser) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-3 sm:py-4">
         <div className="text-center py-20">
           <AlertCircle className="h-12 w-12 text-professional-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">
@@ -227,7 +227,7 @@ export default function DreamConnectLayout() {
     : 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4">
+    <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-3 sm:py-4 space-y-3 sm:space-y-4">
       {/* Header with KPIs */}
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">

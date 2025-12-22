@@ -1,9 +1,11 @@
 import React from 'react';
+import AnimatedBackground from './AnimatedBackground';
 
 const LoadingSpinner = () => {
   return (
-    <div className="min-h-screen bg-professional-gray-50 flex items-center justify-center">
-      <div role="status" aria-live="polite">
+    <div className="min-h-screen flex items-center justify-center relative">
+      <AnimatedBackground />
+      <div role="status" aria-live="polite" className="relative z-10">
         <span className="sr-only">Loading</span>
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
