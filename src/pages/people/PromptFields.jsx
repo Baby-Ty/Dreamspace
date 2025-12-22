@@ -8,6 +8,7 @@ import {
   History
 } from 'lucide-react';
 import { HistoryButton, FieldHistoryPanel, useFieldHistory } from './PromptFieldHistory';
+import { ImageTestPanel, VisionTestPanel } from './PromptTestPanel';
 
 /**
  * Image Generation Section Component
@@ -62,6 +63,11 @@ export function ImageGenerationSection({
             onCloseHistory={onCloseHistory}
             onRestore={(value) => onRestoreField('imageGeneration', 'dreamPrompt', value)}
           />
+          <ImageTestPanel 
+            promptType="dream" 
+            prompts={prompts}
+            styleModifiers={prompts.styleModifiers}
+          />
           
           <PromptField
             label="Background Card Prompt"
@@ -77,6 +83,11 @@ export function ImageGenerationSection({
             loadingHistory={loadingHistory}
             onCloseHistory={onCloseHistory}
             onRestore={(value) => onRestoreField('imageGeneration', 'backgroundCardPrompt', value)}
+          />
+          <ImageTestPanel 
+            promptType="background_card" 
+            prompts={prompts}
+            styleModifiers={prompts.styleModifiers}
           />
         </div>
       )}
@@ -147,6 +158,12 @@ export function VisionGenerationSection({
               onRestore={(value) => onRestoreField('visionGeneration', field.key, value)}
             />
           ))}
+          
+          {/* Test panels for generate and polish */}
+          <div className="pt-2 border-t border-professional-gray-200 space-y-4">
+            <VisionTestPanel promptType="generate" prompts={prompts} />
+            <VisionTestPanel promptType="polish" prompts={prompts} />
+          </div>
         </div>
       )}
     </div>

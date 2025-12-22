@@ -204,6 +204,100 @@ export const promptService = {
       console.error('Error restoring prompts:', error);
       return fail(ErrorCodes.NETWORK, error.message || 'Failed to restore prompts');
     }
+  },
+
+  /**
+   * Test image generation with current prompts
+   * @param {string} userSearchTerm - Test search term
+   * @param {string} imageType - 'dream' or 'background_card'
+   * @param {string} styleModifierId - Optional style modifier ID
+   * @returns {Promise<{success: boolean, data?: {url: string, revisedPrompt: string}, error?: string}>}
+   */
+  async testImageGeneration(userSearchTerm, imageType = 'dream', styleModifierId = null) {
+    try {
+      const apiBase = getApiBase();
+      const response = await fetch(`${apiBase}/generateImage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userSearchTerm: userSearchTerm.trim(),
+          options: {
+            imageType: imageType,
+            styleModifierId: styleModifierId || null,
+            size: '1024x1024',
+            quality: 'hd',
+            model: 'dall-e-3'
+          }
+        })
+      });
+
+      let data;
+      try {
+        const responseText = await response.text();
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        return fail(ErrorCodes.NETWORK, `Server error (${response.status}): Invalid response`);
+      }
+
+      if (response.ok && data.success) {
+        return ok({
+          url: data.url,
+          revisedPrompt: data.revisedPrompt || ''
+        });
+      } else {
+        const errorMessage = typeof data.error === 'string' 
+          ? data.error 
+          : (data.error?.message || data.details || 'Failed to generate image');
+        return fail(ErrorCodes.NETWORK, errorMessage);
+      }
+    } catch (error) {
+      return fail(ErrorCodes.NETWORK, error.message || 'Failed to generate image');
+    }
+  },
+
+  /**
+   * Test vision generation with current prompts
+   * @param {string} userInput - Test user input
+   * @param {string} action - 'generate' or 'polish'
+   * @param {Array} dreams - Optional test dreams array
+   * @returns {Promise<{success: boolean, data?: {text: string}, error?: string}>}
+   */
+  async testVisionGeneration(userInput, action = 'generate', dreams = []) {
+    try {
+      const apiBase = getApiBase();
+      const response = await fetch(`${apiBase}/generateVision`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userInput: userInput.trim(),
+          dreams: dreams.map(d => ({ title: d.title || d, category: d.category || 'general' })),
+          action: action
+        })
+      });
+
+      let data;
+      try {
+        const responseText = await response.text();
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        return fail(ErrorCodes.NETWORK, `Server error (${response.status}): Invalid response`);
+      }
+
+      if (response.ok && data.success) {
+        return ok({ text: data.text });
+      } else {
+        const errorMessage = typeof data.error === 'string' 
+          ? data.error 
+          : (data.error?.message || data.details || 'Failed to generate vision');
+        return fail(ErrorCodes.NETWORK, errorMessage);
+      }
+    } catch (error) {
+      return fail(ErrorCodes.NETWORK, error.message || 'Failed to generate vision');
+    }
   }
 };
 
