@@ -17,23 +17,20 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 relative z-10">
         {/* Logo and Header */}
         <div className="text-center">
-          <div className="flex items-center justify-center space-x-3 mb-6">
+          <div className="flex items-center justify-center mb-6">
             <img 
               src="/logo.png" 
               alt="DreamSpace Logo" 
-              className="w-12 h-12 object-contain"
+              className="w-20 h-20 object-contain rounded-2xl"
               style={{ backgroundColor: 'transparent' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
               }}
             />
-            <div className="w-12 h-12 bg-netsurit-red rounded-xl items-center justify-center shadow-lg hidden">
-              <Star className="w-7 h-7 text-white" />
+            <div className="w-20 h-20 bg-netsurit-red rounded-xl items-center justify-center shadow-lg hidden">
+              <Star className="w-12 h-12 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-black">
-              Netsurit
-            </h1>
           </div>
           <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">
             Welcome to the Dreams Program
@@ -124,15 +121,6 @@ const Login = () => {
               Try Again
             </button>
           )}
-          
-          <p className="text-center text-sm text-professional-gray-500">
-            Use your Netsurit Microsoft account to access DreamSpace
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center text-xs text-professional-gray-400">
-          <p>© 2025 Dreams Program</p>
         </div>
       </div>
     </div>
