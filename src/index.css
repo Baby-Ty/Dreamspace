@@ -260,17 +260,17 @@ html, body, #root {
   }
 
   @keyframes bird-fly {
-    0% { transform: translate(-15vw, 0) rotate(2deg); }
-    33% { transform: translate(25vw, -6vh) rotate(-2deg); }
-    66% { transform: translate(75vw, 3vh) rotate(3deg); }
+    0% { transform: translate(-45vw, 0) rotate(2deg); }
+    33% { transform: translate(8vw, -6vh) rotate(-2deg); }
+    66% { transform: translate(62vw, 3vh) rotate(3deg); }
     100% { transform: translate(115vw, -2vh) rotate(0deg); }
   }
 
   @keyframes bird-fly-rtl {
-    0% { transform: translate(115vw, 5vh) scaleX(-1) rotate(-3deg); }
-    33% { transform: translate(80vw, 8vh) scaleX(-1) rotate(2deg); }
+    0% { transform: translate(125vw, 5vh) scaleX(-1) rotate(-3deg); }
+    33% { transform: translate(75vw, 8vh) scaleX(-1) rotate(2deg); }
     66% { transform: translate(25vw, 2vh) scaleX(-1) rotate(-1deg); }
-    100% { transform: translate(-15vw, 6vh) scaleX(-1) rotate(0deg); }
+    100% { transform: translate(-25vw, 6vh) scaleX(-1) rotate(0deg); }
   }
 
   @keyframes bird-soar {

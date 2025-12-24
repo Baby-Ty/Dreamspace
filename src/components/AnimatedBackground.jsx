@@ -44,7 +44,7 @@ const AnimatedBackground = () => {
       <div className="absolute top-[-10%] right-[10%] w-[40vw] h-[40vw] bg-orange-100/15 blur-[100px] rounded-full" />
       
       {/* Flock 1 - High and slow (Left to Right) */}
-      <div className="absolute top-[10%] left-0 w-full animate-bird-fly" style={{ animationDelay: '-2s', animationDuration: '48s' }}>
+      <div className="absolute top-[10%] left-0 w-full animate-bird-fly" style={{ animationDelay: '-2s', animationDuration: '59s' }}>
         <div className="flex space-x-8 items-end ml-[10%]">
           <Bird size={16} delay="0s" speed="5.5s" />
           <Bird size={12} delay="0.6s" speed="5.8s" className="mb-8" />
@@ -53,7 +53,7 @@ const AnimatedBackground = () => {
       </div>
       
       {/* Flock 2 - Mid-High (Right to Left) */}
-      <div className="absolute top-[18%] left-0 w-full animate-bird-fly-rtl" style={{ animationDelay: '-15s', animationDuration: '42s' }}>
+      <div className="absolute top-[18%] left-0 w-full animate-bird-fly-rtl" style={{ animationDelay: '-15s', animationDuration: '48s' }}>
         <div className="flex space-x-12 items-start mr-[15%]">
           <Bird size={20} delay="0.4s" speed="4s" className="mt-6" />
           <Bird size={16} delay="0.1s" speed="4.2s" />
@@ -61,7 +61,7 @@ const AnimatedBackground = () => {
       </div>
 
       {/* Flock 3 - Mid-Low (Left to Right) */}
-      <div className="absolute top-[28%] left-0 w-full animate-bird-fly" style={{ animationDelay: '-25s', animationDuration: '35s' }}>
+      <div className="absolute top-[28%] left-0 w-full animate-bird-fly" style={{ animationDelay: '-25s', animationDuration: '43s' }}>
         <div className="flex space-x-10 items-center ml-[35%]">
           <Bird size={18} delay="0.8s" speed="3.8s" />
           <Bird size={14} delay="0.2s" speed="4.1s" className="-mt-10" />
@@ -70,7 +70,7 @@ const AnimatedBackground = () => {
       </div>
 
       {/* Flock 4 - Lower (Right to Left) */}
-      <div className="absolute top-[38%] left-0 w-full animate-bird-fly-rtl" style={{ animationDelay: '-8s', animationDuration: '30s' }}>
+      <div className="absolute top-[38%] left-0 w-full animate-bird-fly-rtl" style={{ animationDelay: '-8s', animationDuration: '35s' }}>
         <div className="flex space-x-14 items-center mr-[25%]">
           <Bird size={14} delay="0.5s" speed="4.5s" />
           <Bird size={12} delay="0.2s" speed="4.8s" className="mt-8" />
