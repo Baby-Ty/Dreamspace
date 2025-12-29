@@ -52,6 +52,8 @@ module.exports = async function (context, req) {
     
     // Transform teams to match the expected format
     const formattedTeams = teams.map(team => ({
+      id: team.id, // Document ID (stable teamId)
+      teamId: team.teamId || team.id, // Stable team identifier for meeting attendance
       managerId: team.managerId,
       teamMembers: team.teamMembers || [],
       teamName: team.teamName,

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   X, 
   Calendar, 
@@ -9,8 +9,14 @@ import {
   Download,
   FileText,
   BarChart3,
-  Filter
+  Filter,
+  Eye,
+  Grid
 } from 'lucide-react';
+import { coachingService } from '../services/coachingService';
+import { getPastWeeks } from '../services/weekHistoryService';
+import databaseService from '../services/databaseService';
+
 const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships = [] }) => {
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
@@ -18,103 +24,249 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
   });
   
   const [selectedMetrics, setSelectedMetrics] = useState({
-    meetings: true,
+    meetingAttendance: true,
     dreamsCreated: true,
     dreamsCompleted: true,
-    tasksCreated: true,
-    tasksCompleted: true,
-    userEngagement: true,
-    teamPerformance: true
+    publicDreamTitles: true,
+    dreamCategories: true,
+    goalsCreated: true,
+    goalsCompleted: true,
+    userEngagement: true
   });
 
-  const [selectedOffices, setSelectedOffices] = useState(['all']);
   const [selectedTeams, setSelectedTeams] = useState(['all']);
   const [exportFormat, setExportFormat] = useState('csv');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [reportData, setReportData] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  const offices = [...new Set(allUsers.map(user => user.office))];
-  const teams = teamRelationships.map(team => ({ id: team.managerId, name: team.teamName }));
-
-  // Generate mock engagement data for the past month
-  const generateEngagementData = () => {
-    const startDate = new Date(dateRange.startDate);
-    const endDate = new Date(dateRange.endDate);
-    const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-
-    return allUsers.map(user => {
-      // Filter by office and team if selected
-      const userTeam = teamRelationships.find(team => 
-        team.teamMembers.includes(user.id)
-      );
-      
-      if (selectedOffices[0] !== 'all' && !selectedOffices.includes(user.office)) {
-        return null;
-      }
-      
-      if (selectedTeams[0] !== 'all' && userTeam && !selectedTeams.includes(userTeam.managerId)) {
-        return null;
-      }
-
-      // Generate random but realistic engagement data
-      const baseEngagement = Math.max(0, user.score / 10); // Use existing score as base
-      
+  // Teams with coach names
+  const teams = useMemo(() => {
+    return teamRelationships.map(team => {
+      const coach = allUsers.find(u => u.id === team.managerId);
       return {
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        office: user.office,
-        team: userTeam?.teamName || 'No Team',
-        coach: userTeam ? allUsers.find(u => u.id === userTeam.managerId)?.name : 'No Coach',
-        
-        // Meetings data
-        meetingsAttended: Math.floor(Math.random() * 8) + Math.floor(baseEngagement / 2),
-        meetingsScheduled: Math.floor(Math.random() * 5) + Math.floor(baseEngagement / 3),
-        
-        // Dreams data  
-        dreamsCreated: Math.floor(Math.random() * 3) + (user.dreamBook?.length > 5 ? 1 : 0),
-        dreamsCompleted: Math.floor(Math.random() * 2) + Math.floor(baseEngagement / 8),
-        dreamsInProgress: user.dreamBook?.length || Math.floor(Math.random() * 5),
-        
-        // Tasks data
-        tasksCreated: Math.floor(Math.random() * 15) + Math.floor(baseEngagement),
-        tasksCompleted: Math.floor(Math.random() * 12) + Math.floor(baseEngagement * 0.8),
-        
-        // Engagement metrics
-        loginDays: Math.min(daysDiff, Math.floor(Math.random() * daysDiff) + Math.floor(baseEngagement / 2)),
-        averageSessionMinutes: Math.floor(Math.random() * 45) + 15,
-        connectsInitiated: user.connects?.length || Math.floor(Math.random() * 3),
-        scorecardPoints: user.score,
-        
-        // Performance indicators
-        engagementScore: Math.min(100, Math.floor(baseEngagement * 8) + Math.floor(Math.random() * 20)),
-        lastActivity: new Date(Date.now() - Math.random() * daysDiff * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        id: team.managerId,
+        name: team.teamName,
+        coachName: coach?.name || 'Unknown Coach',
+        teamId: team.teamId || team.id // Use teamId if available, fallback to id
       };
-    }).filter(Boolean);
-  };
+    });
+  }, [teamRelationships, allUsers]);
 
-  const reportData = useMemo(() => generateEngagementData(), [dateRange, selectedOffices, selectedTeams]);
+  // Helper: Get meeting attendance count for a user's team within date range
+  const getMeetingAttendanceCount = useCallback(async (userId, teamId) => {
+    if (!teamId) {
+      console.log(`⚠️ No teamId for user ${userId}, skipping meeting attendance`);
+      return 0;
+    }
+    
+    try {
+      console.log(`📅 Fetching meeting attendance for user ${userId}, team ${teamId}`);
+      const response = await coachingService.getMeetingAttendanceHistory(teamId);
+      
+      if (!response.success) {
+        console.warn(`⚠️ Failed to fetch meeting attendance for team ${teamId}:`, response.error);
+        return 0;
+      }
+      
+      const meetings = response.data || [];
+      console.log(`📅 Found ${meetings.length} meetings for team ${teamId}`);
+      
+      const startDate = new Date(dateRange.startDate);
+      const endDate = new Date(dateRange.endDate);
+      
+      // Filter meetings within date range and count user's attendance
+      const filteredMeetings = meetings.filter(meeting => {
+        const meetingDate = new Date(meeting.date);
+        return meetingDate >= startDate && meetingDate <= endDate;
+      });
+      
+      console.log(`📅 ${filteredMeetings.length} meetings in date range ${dateRange.startDate} to ${dateRange.endDate}`);
+      
+      const attendanceCount = filteredMeetings.reduce((count, meeting) => {
+        const attendee = meeting.attendees?.find(a => a.id === userId);
+        if (attendee?.present) {
+          console.log(`✅ User ${userId} attended meeting on ${meeting.date}`);
+          return count + 1;
+        }
+        return count;
+      }, 0);
+      
+      console.log(`📅 User ${userId} attended ${attendanceCount} meetings`);
+      return attendanceCount;
+    } catch (error) {
+      console.error(`❌ Error fetching meeting attendance for user ${userId}, team ${teamId}:`, error);
+      return 0;
+    }
+  }, [dateRange]);
+
+  // Helper: Get active weeks count (weeks with score > 0%)
+  const getActiveWeeksCount = useCallback(async (userId) => {
+    try {
+      console.log(`📊 Fetching past weeks for user ${userId}`);
+      const response = await getPastWeeks(userId);
+      
+      if (!response.success) {
+        console.warn(`⚠️ Failed to fetch past weeks for user ${userId}:`, response.error);
+        return 0;
+      }
+      
+      const weekHistory = response.data?.weekHistory || {};
+      const weekCount = Object.keys(weekHistory).length;
+      console.log(`📊 Found ${weekCount} weeks in history for user ${userId}`);
+      
+      // Count weeks with score > 0
+      const activeWeeks = Object.values(weekHistory).filter(week => week.score > 0);
+      console.log(`📊 User ${userId} has ${activeWeeks.length} active weeks (score > 0)`);
+      
+      return activeWeeks.length;
+    } catch (error) {
+      console.error(`❌ Error fetching past weeks for user ${userId}:`, error);
+      return 0;
+    }
+  }, []);
+
+  // Generate report data from real sources
+  const generateReportData = useCallback(async () => {
+    setIsLoadingData(true);
+    
+    try {
+      console.log(`🔍 Generating report data:`, {
+        totalUsers: allUsers.length,
+        selectedTeams: selectedTeams,
+        isAllSelected: selectedTeams[0] === 'all',
+        teamRelationshipsCount: teamRelationships.length
+      });
+      
+      const reportPromises = allUsers.map(async (user) => {
+        // Find user's team (normalize IDs for comparison)
+        const userIdStr = String(user.id);
+        const userTeam = teamRelationships.find(team => 
+          team.teamMembers && team.teamMembers.some(memberId => String(memberId) === userIdStr)
+        );
+        
+        // Apply team filter
+        // If "all" is not selected, only include users from selected teams
+        if (selectedTeams[0] !== 'all') {
+          // If user has no team, exclude them when filtering by specific teams
+          if (!userTeam) {
+            console.log(`🚫 Filtering out ${user.name} (${user.id}) - no team assigned`);
+            return null;
+          }
+          
+          // Normalize IDs for comparison (handle string/number mismatches)
+          const userTeamManagerId = String(userTeam.managerId);
+          const selectedTeamIds = selectedTeams.map(id => String(id));
+          
+          // If user's team managerId is not in selected teams, exclude them
+          if (!selectedTeamIds.includes(userTeamManagerId)) {
+            console.log(`🚫 Filtering out ${user.name} - team ${userTeam.teamName} (managerId: ${userTeamManagerId}, type: ${typeof userTeam.managerId}) not in selected teams [${selectedTeamIds.join(', ')}]`);
+            return null;
+          }
+        }
+        
+        console.log(`✅ Including ${user.name} - team: ${userTeam?.teamName || 'No Team'}`);
+
+        // Fetch dreams if not already in user object
+        let dreams = user.dreamBook || [];
+        
+        // If dreamBook is empty or missing, fetch from getUserData API
+        if (!dreams || dreams.length === 0) {
+          try {
+            console.log(`📊 Fetching dreams for user ${user.id} (${user.name})`);
+            const userDataResult = await databaseService.loadFromCosmosDB(user.id);
+            if (userDataResult.success && userDataResult.data) {
+              dreams = userDataResult.data.dreamBook || [];
+              console.log(`✅ Loaded ${dreams.length} dreams for ${user.name}`);
+            }
+          } catch (dreamError) {
+            console.warn(`⚠️ Could not load dreams for ${user.name}:`, dreamError);
+            dreams = [];
+          }
+        } else {
+          console.log(`✅ Using ${dreams.length} dreams from allUsers for ${user.name}`);
+        }
+
+        const publicDreams = dreams.filter(d => d.isPublic);
+        const completedDreams = dreams.filter(d => d.completed);
+        
+        // Count all goals across all dreams
+        const allGoals = dreams.flatMap(d => d.goals || []);
+        const completedGoals = allGoals.filter(g => g.completed);
+        
+        // Group dreams by category
+        const categoryBreakdown = dreams.reduce((acc, dream) => {
+          const category = dream.category || 'Uncategorized';
+          acc[category] = (acc[category] || 0) + 1;
+          return acc;
+        }, {});
+
+        // Get teamId for meeting attendance lookup
+        // teamId is the stable team identifier (not managerId)
+        const teamId = userTeam?.teamId || userTeam?.id;
+        
+        if (userTeam && !teamId) {
+          console.warn(`⚠️ Team ${userTeam.teamName} (manager: ${userTeam.managerId}) missing teamId - meeting attendance may not work`);
+        }
+        
+        // Fetch async data
+        const [meetingsAttended, engagementWeeksActive] = await Promise.all([
+          getMeetingAttendanceCount(user.id, teamId),
+          getActiveWeeksCount(user.id)
+        ]);
+
+        console.log(`📊 Report data for ${user.name}:`, {
+          dreamsCreated: dreams.length,
+          dreamsCompleted: completedDreams.length,
+          goalsCreated: allGoals.length,
+          goalsCompleted: completedGoals.length,
+          meetingsAttended,
+          engagementWeeksActive
+        });
+
+        return {
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          team: userTeam?.teamName || 'No Team',
+          coach: userTeam ? allUsers.find(u => u.id === userTeam.managerId)?.name : 'No Coach',
+          
+          // Real metrics
+          meetingsAttended,
+          dreamsCreated: dreams.length,
+          dreamsCompleted: completedDreams.length,
+          publicDreamTitles: publicDreams.map(d => d.title),
+          dreamCategories: categoryBreakdown,
+          goalsCreated: allGoals.length,
+          goalsCompleted: completedGoals.length,
+          engagementWeeksActive
+        };
+      });
+
+      const results = await Promise.all(reportPromises);
+      const filteredResults = results.filter(Boolean);
+      console.log(`✅ Generated report data for ${filteredResults.length} users`);
+      return filteredResults;
+    } catch (error) {
+      console.error('Error generating report data:', error);
+      return [];
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [allUsers, teamRelationships, selectedTeams, dateRange, getMeetingAttendanceCount, getActiveWeeksCount]);
+
+  // Load report data when filters change
+  useEffect(() => {
+    if (isOpen) {
+      generateReportData().then(setReportData);
+    }
+  }, [isOpen, dateRange, selectedTeams, generateReportData]);
 
   const handleMetricToggle = (metric) => {
     setSelectedMetrics(prev => ({
       ...prev,
       [metric]: !prev[metric]
     }));
-  };
-
-  const handleOfficeChange = (office) => {
-    if (office === 'all') {
-      setSelectedOffices(['all']);
-    } else {
-      setSelectedOffices(prev => {
-        const filtered = prev.filter(o => o !== 'all');
-        if (filtered.includes(office)) {
-          const newSelection = filtered.filter(o => o !== office);
-          return newSelection.length === 0 ? ['all'] : newSelection;
-        } else {
-          return [...filtered, office];
-        }
-      });
-    }
   };
 
   const handleTeamChange = (teamId) => {
@@ -138,54 +290,63 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
     const rows = [];
 
     // Build headers based on selected metrics
-    headers.push('Name', 'Email', 'Office', 'Team', 'Coach');
+    headers.push('Name', 'Email', 'Team', 'Coach');
     
-    if (selectedMetrics.meetings) {
-      headers.push('Meetings Attended', 'Meetings Scheduled');
+    if (selectedMetrics.meetingAttendance) {
+      headers.push('Meetings Attended');
     }
     if (selectedMetrics.dreamsCreated) {
-      headers.push('Dreams Created', 'Dreams In Progress');
+      headers.push('Dreams Created');
     }
     if (selectedMetrics.dreamsCompleted) {
       headers.push('Dreams Completed');
     }
-    if (selectedMetrics.tasksCreated) {
-      headers.push('Tasks Created');
+    if (selectedMetrics.publicDreamTitles) {
+      headers.push('Public Dream Titles');
     }
-    if (selectedMetrics.tasksCompleted) {
-      headers.push('Tasks Completed');
+    if (selectedMetrics.dreamCategories) {
+      headers.push('Dream Categories (breakdown)');
+    }
+    if (selectedMetrics.goalsCreated) {
+      headers.push('Goals Created');
+    }
+    if (selectedMetrics.goalsCompleted) {
+      headers.push('Goals Completed');
     }
     if (selectedMetrics.userEngagement) {
-      headers.push('Login Days', 'Avg Session (min)', 'Connects Initiated', 'Last Activity');
-    }
-    if (selectedMetrics.teamPerformance) {
-      headers.push('Scorecard Points', 'Engagement Score');
+      headers.push('Active Weeks (score > 0)');
     }
 
     // Build rows
     reportData.forEach(user => {
-      const row = [user.name, user.email, user.office, user.team, user.coach];
+      const row = [user.name, user.email, user.team, user.coach];
       
-      if (selectedMetrics.meetings) {
-        row.push(user.meetingsAttended, user.meetingsScheduled);
+      if (selectedMetrics.meetingAttendance) {
+        row.push(user.meetingsAttended);
       }
       if (selectedMetrics.dreamsCreated) {
-        row.push(user.dreamsCreated, user.dreamsInProgress);
+        row.push(user.dreamsCreated);
       }
       if (selectedMetrics.dreamsCompleted) {
         row.push(user.dreamsCompleted);
       }
-      if (selectedMetrics.tasksCreated) {
-        row.push(user.tasksCreated);
+      if (selectedMetrics.publicDreamTitles) {
+        row.push(user.publicDreamTitles.join('; ') || 'None');
       }
-      if (selectedMetrics.tasksCompleted) {
-        row.push(user.tasksCompleted);
+      if (selectedMetrics.dreamCategories) {
+        const categoryStr = Object.entries(user.dreamCategories)
+          .map(([cat, count]) => `${cat}: ${count}`)
+          .join('; ');
+        row.push(categoryStr || 'None');
+      }
+      if (selectedMetrics.goalsCreated) {
+        row.push(user.goalsCreated);
+      }
+      if (selectedMetrics.goalsCompleted) {
+        row.push(user.goalsCompleted);
       }
       if (selectedMetrics.userEngagement) {
-        row.push(user.loginDays, user.averageSessionMinutes, user.connectsInitiated, user.lastActivity);
-      }
-      if (selectedMetrics.teamPerformance) {
-        row.push(user.scorecardPoints, user.engagementScore);
+        row.push(user.engagementWeeksActive);
       }
       
       rows.push(row);
@@ -193,7 +354,7 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
 
     // Convert to CSV
     const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(','))
+      .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     return csvContent;
@@ -202,6 +363,8 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
   const generatePDF = async () => {
     // For now, we'll create a simple HTML structure that can be converted to PDF
     // In a real implementation, you'd use a library like jsPDF or Puppeteer
+    const csvHeaders = generateCSV().split('\n')[0].split(',').map(h => h.replace(/"/g, ''));
+    
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -233,16 +396,16 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
                 <p>${reportData.length}</p>
               </div>
               <div class="metric-card">
-                <h3>Avg Engagement Score</h3>
-                <p>${Math.round(reportData.reduce((sum, user) => sum + user.engagementScore, 0) / reportData.length)}%</p>
-              </div>
-              <div class="metric-card">
                 <h3>Total Dreams Created</h3>
-                <p>${reportData.reduce((sum, user) => sum + user.dreamsCreated, 0)}</p>
+                <p>${reportData.reduce((sum, user) => sum + (user.dreamsCreated || 0), 0)}</p>
               </div>
               <div class="metric-card">
-                <h3>Total Tasks Completed</h3>
-                <p>${reportData.reduce((sum, user) => sum + user.tasksCompleted, 0)}</p>
+                <h3>Total Goals Completed</h3>
+                <p>${reportData.reduce((sum, user) => sum + (user.goalsCompleted || 0), 0)}</p>
+              </div>
+              <div class="metric-card">
+                <h3>Avg Active Weeks</h3>
+                <p>${reportData.length > 0 ? Math.round(reportData.reduce((sum, user) => sum + (user.engagementWeeksActive || 0), 0) / reportData.length) : 0}</p>
               </div>
             </div>
           </div>
@@ -250,21 +413,27 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
           <table>
             <thead>
               <tr>
-                ${generateCSV().split('\n')[0].split(',').map(header => `<th>${header.replace(/"/g, '')}</th>`).join('')}
+                ${csvHeaders.map(header => `<th>${header}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
               ${reportData.map(user => {
-                const row = [user.name, user.email, user.office, user.team, user.coach];
-                if (selectedMetrics.meetings) row.push(user.meetingsAttended, user.meetingsScheduled);
-                if (selectedMetrics.dreamsCreated) row.push(user.dreamsCreated, user.dreamsInProgress);
+                const row = [user.name, user.email, user.team, user.coach];
+                if (selectedMetrics.meetingAttendance) row.push(user.meetingsAttended);
+                if (selectedMetrics.dreamsCreated) row.push(user.dreamsCreated);
                 if (selectedMetrics.dreamsCompleted) row.push(user.dreamsCompleted);
-                if (selectedMetrics.tasksCreated) row.push(user.tasksCreated);
-                if (selectedMetrics.tasksCompleted) row.push(user.tasksCompleted);
-                if (selectedMetrics.userEngagement) row.push(user.loginDays, user.averageSessionMinutes, user.connectsInitiated, user.lastActivity);
-                if (selectedMetrics.teamPerformance) row.push(user.scorecardPoints, user.engagementScore);
+                if (selectedMetrics.publicDreamTitles) row.push(user.publicDreamTitles.join('; ') || 'None');
+                if (selectedMetrics.dreamCategories) {
+                  const categoryStr = Object.entries(user.dreamCategories)
+                    .map(([cat, count]) => `${cat}: ${count}`)
+                    .join('; ');
+                  row.push(categoryStr || 'None');
+                }
+                if (selectedMetrics.goalsCreated) row.push(user.goalsCreated);
+                if (selectedMetrics.goalsCompleted) row.push(user.goalsCompleted);
+                if (selectedMetrics.userEngagement) row.push(user.engagementWeeksActive);
                 
-                return `<tr>${row.map(field => `<td>${field}</td>`).join('')}</tr>`;
+                return `<tr>${row.map(field => `<td>${String(field)}</td>`).join('')}</tr>`;
               }).join('')}
             </tbody>
           </table>
@@ -313,7 +482,7 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
   };
 
   const selectedMetricsCount = Object.values(selectedMetrics).filter(Boolean).length;
-  const previewData = reportData.slice(0, 3); // Show first 3 rows as preview
+  const previewData = useMemo(() => reportData.slice(0, 3), [reportData]); // Show first 3 rows as preview
 
   if (!isOpen) return null;
 
@@ -366,36 +535,52 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
 
             {/* Metrics Selection */}
             <div>
-              <h3 className="text-lg font-semibold text-professional-gray-900 mb-4 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-netsurit-coral" />
-                Metrics to Include ({selectedMetricsCount} selected)
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-professional-gray-900 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-netsurit-coral" />
+                  Metrics to Include ({selectedMetricsCount} selected)
+                </h3>
+                <button
+                  onClick={() => {
+                    const allSelected = selectedMetricsCount === 8;
+                    setSelectedMetrics({
+                      meetingAttendance: !allSelected,
+                      dreamsCreated: !allSelected,
+                      dreamsCompleted: !allSelected,
+                      publicDreamTitles: !allSelected,
+                      dreamCategories: !allSelected,
+                      goalsCreated: !allSelected,
+                      goalsCompleted: !allSelected,
+                      userEngagement: !allSelected
+                    });
+                  }}
+                  className="text-xs text-netsurit-red hover:text-netsurit-coral font-medium"
+                >
+                  {selectedMetricsCount === 8 ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 rounded-lg p-3">
                 {[
-                  { key: 'meetings', label: 'Meeting Attendance', icon: Users, desc: 'Meetings attended and scheduled' },
-                  { key: 'dreamsCreated', label: 'Dreams Created', icon: Target, desc: 'New dreams added to dream books' },
-                  { key: 'dreamsCompleted', label: 'Dreams Completed', icon: CheckCircle2, desc: 'Dreams marked as completed' },
-                  { key: 'tasksCreated', label: 'Tasks Created', icon: FileText, desc: 'New tasks and goals created' },
-                  { key: 'tasksCompleted', label: 'Tasks Completed', icon: CheckCircle2, desc: 'Tasks and goals completed' },
-                  { key: 'userEngagement', label: 'User Engagement', icon: TrendingUp, desc: 'Login frequency, session time, connects' },
-                  { key: 'teamPerformance', label: 'Team Performance', icon: BarChart3, desc: 'Scorecard points and engagement scores' }
-                ].map(({ key, label, icon: Icon, desc }) => (
-                  <div key={key} className="flex items-start space-x-3">
+                  { key: 'meetingAttendance', label: 'Meeting Attendance', icon: Users },
+                  { key: 'dreamsCreated', label: 'Dreams Created', icon: Target },
+                  { key: 'dreamsCompleted', label: 'Dreams Completed', icon: CheckCircle2 },
+                  { key: 'publicDreamTitles', label: 'Public Dream Titles', icon: Eye },
+                  { key: 'dreamCategories', label: 'Dream Categories', icon: Grid },
+                  { key: 'goalsCreated', label: 'Goals Created', icon: Target },
+                  { key: 'goalsCompleted', label: 'Goals Completed', icon: CheckCircle2 },
+                  { key: 'userEngagement', label: 'User Engagement', icon: TrendingUp }
+                ].map(({ key, label, icon: Icon }) => (
+                  <label key={key} htmlFor={key} className="flex items-center space-x-2 cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors">
                     <input
                       type="checkbox"
                       id={key}
-                      checked={selectedMetrics[key]}
+                      checked={selectedMetrics[key] || false}
                       onChange={() => handleMetricToggle(key)}
-                      className="mt-1 h-4 w-4 text-netsurit-red focus:ring-netsurit-red border-professional-gray-300 rounded"
+                      className="h-4 w-4 text-netsurit-red focus:ring-netsurit-red border-professional-gray-300 rounded"
                     />
-                    <div className="flex-1">
-                      <label htmlFor={key} className="flex items-center text-sm font-medium text-professional-gray-900 cursor-pointer">
-                        <Icon className="w-4 h-4 mr-2 text-professional-gray-600" />
-                        {label}
-                      </label>
-                      <p className="text-xs text-professional-gray-600 mt-1">{desc}</p>
-                    </div>
-                  </div>
+                    <Icon className="w-3.5 h-3.5 text-professional-gray-600 flex-shrink-0" />
+                    <span className="text-xs font-medium text-professional-gray-900">{label}</span>
+                  </label>
                 ))}
               </div>
             </div>
@@ -406,38 +591,11 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
                 <Filter className="w-5 h-5 mr-2 text-indigo-600" />
                 Filters
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Office Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Offices</label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedOffices.includes('all')}
-                        onChange={() => handleOfficeChange('all')}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-900">All Offices</span>
-                    </label>
-                    {offices.map(office => (
-                      <label key={office} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedOffices.includes(office)}
-                          onChange={() => handleOfficeChange(office)}
-                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <span className="ml-2 text-sm text-gray-900">{office}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
+              <div className="grid grid-cols-1 gap-6">
                 {/* Team Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Teams</label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
                     <label className="flex items-center">
                       <input
                         type="checkbox"
@@ -455,7 +613,9 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
                           onChange={() => handleTeamChange(team.id)}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                         />
-                        <span className="ml-2 text-sm text-gray-900">{team.name}</span>
+                        <span className="ml-2 text-sm text-gray-900">
+                          {team.name} <span className="text-gray-500">(Coach: {team.coachName})</span>
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -493,7 +653,11 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
             </div>
 
             {/* Preview */}
-            {previewData.length > 0 && (
+            {isLoadingData ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Loading report data...</p>
+              </div>
+            ) : previewData.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -505,20 +669,20 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
                       <thead>
                         <tr className="border-b border-gray-200">
                           <th className="text-left py-2 px-3 font-medium text-gray-900">Name</th>
-                          <th className="text-left py-2 px-3 font-medium text-gray-900">Office</th>
-                          {selectedMetrics.meetings && <th className="text-left py-2 px-3 font-medium text-gray-900">Meetings</th>}
+                          <th className="text-left py-2 px-3 font-medium text-gray-900">Team</th>
+                          {selectedMetrics.meetingAttendance && <th className="text-left py-2 px-3 font-medium text-gray-900">Meetings</th>}
                           {selectedMetrics.dreamsCreated && <th className="text-left py-2 px-3 font-medium text-gray-900">Dreams</th>}
-                          {selectedMetrics.userEngagement && <th className="text-left py-2 px-3 font-medium text-gray-900">Engagement</th>}
+                          {selectedMetrics.userEngagement && <th className="text-left py-2 px-3 font-medium text-gray-900">Active Weeks</th>}
                         </tr>
                       </thead>
                       <tbody>
                         {previewData.map((user, index) => (
                           <tr key={index} className="border-b border-gray-100">
                             <td className="py-2 px-3 text-gray-900">{user.name}</td>
-                            <td className="py-2 px-3 text-gray-600">{user.office}</td>
-                            {selectedMetrics.meetings && <td className="py-2 px-3 text-gray-600">{user.meetingsAttended}</td>}
+                            <td className="py-2 px-3 text-gray-600">{user.team}</td>
+                            {selectedMetrics.meetingAttendance && <td className="py-2 px-3 text-gray-600">{user.meetingsAttended}</td>}
                             {selectedMetrics.dreamsCreated && <td className="py-2 px-3 text-gray-600">{user.dreamsCreated}</td>}
-                            {selectedMetrics.userEngagement && <td className="py-2 px-3 text-gray-600">{user.engagementScore}%</td>}
+                            {selectedMetrics.userEngagement && <td className="py-2 px-3 text-gray-600">{user.engagementWeeksActive}</td>}
                           </tr>
                         ))}
                       </tbody>
@@ -547,11 +711,11 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
             </button>
             <button
               onClick={handleExport}
-              disabled={isGenerating || selectedMetricsCount === 0}
+              disabled={isGenerating || isLoadingData || selectedMetricsCount === 0 || reportData.length === 0}
               className="flex items-center space-x-2 px-6 py-2 bg-netsurit-red text-white rounded-lg hover:bg-netsurit-coral disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
             >
               <Download className="w-4 h-4" />
-              <span>{isGenerating ? 'Generating...' : 'Export Report'}</span>
+              <span>{isGenerating ? 'Generating...' : isLoadingData ? 'Loading Data...' : 'Export Report'}</span>
             </button>
           </div>
         </div>
