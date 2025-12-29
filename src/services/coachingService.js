@@ -411,27 +411,58 @@ class CoachingService {
       }
       
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getMeetingAttendance/${teamId}`, {
+        const url = `${this.apiBase}/getMeetingAttendance/${encodeURIComponent(teamId)}`;
+        console.log('📞 Fetching meeting attendance history from:', url);
+        
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           }
         });
 
+        console.log('📥 Response status:', response.status, response.statusText);
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ 
-            error: `HTTP ${response.status}: ${response.statusText}`,
-            details: 'Failed to retrieve meeting attendance'
-          }));
-          const errorMessage = errorData.details 
-            ? `${errorData.error}: ${errorData.details}`
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            const errorText = await response.text();
+            errorData = { 
+              error: `HTTP ${response.status}: ${response.statusText}`,
+              details: errorText || 'Failed to retrieve meeting attendance'
+            };
+          }
+          
+          console.error('❌ API error response:', errorData);
+          
+          // Parse error details if it's a JSON string
+          let errorDetails = errorData.details;
+          if (typeof errorDetails === 'string') {
+            try {
+              const parsed = JSON.parse(errorDetails);
+              if (parsed.Errors && Array.isArray(parsed.Errors)) {
+                errorDetails = parsed.Errors[0] || errorDetails;
+              }
+            } catch (e) {
+              // Keep original details if parsing fails
+            }
+          }
+          
+          const errorMessage = errorDetails 
+            ? `${errorData.error || 'Failed to retrieve meeting attendance'}: ${errorDetails}`
             : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
           return fail(ErrorCodes.NETWORK, errorMessage);
         }
 
         const result = await response.json();
-        console.log('✅ Retrieved meeting attendance history:', result.meetings?.length || 0);
-        return ok(result.meetings || []);
+        console.log('📥 API response:', result);
+        
+        // Handle both response formats: { success: true, meetings: [...] } or just { meetings: [...] }
+        const meetings = result.meetings || (result.success ? result.data : []) || [];
+        console.log('✅ Retrieved meeting attendance history:', meetings.length);
+        return ok(meetings);
       } else {
         // Fallback to localStorage for development
         console.log('📱 Development mode: Meeting attendance history would be retrieved from localStorage');
@@ -440,6 +471,62 @@ class CoachingService {
     } catch (error) {
       console.error('❌ Error fetching meeting attendance history:', error);
       return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch meeting attendance history');
+    }
+  }
+
+  /**
+   * Schedule meeting with Office 365 calendar invite
+   * @param {string} teamId - Stable Team ID
+   * @param {object} meetingData - Meeting data { title, date, time, teamMembers, accessToken }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async scheduleMeetingWithCalendar(teamId, meetingData) {
+    try {
+      if (!teamId || typeof teamId !== 'string' || !teamId.trim()) {
+        return fail(ErrorCodes.VALIDATION, 'Invalid team ID provided');
+      }
+
+      if (!meetingData.title || !meetingData.date || !meetingData.time) {
+        return fail(ErrorCodes.VALIDATION, 'Title, date, and time are required');
+      }
+
+      if (!meetingData.teamMembers || !Array.isArray(meetingData.teamMembers) || meetingData.teamMembers.length === 0) {
+        return fail(ErrorCodes.VALIDATION, 'Team members with email addresses are required');
+      }
+
+      if (!meetingData.accessToken) {
+        return fail(ErrorCodes.VALIDATION, 'Access token is required for calendar operations');
+      }
+
+      const response = await fetch(`${this.apiBase}/scheduleMeetingWithCalendar/${encodeURIComponent(teamId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(meetingData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ 
+          error: `HTTP ${response.status}: ${response.statusText}`,
+          details: 'Failed to schedule meeting'
+        }));
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}`
+          : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        return fail(ErrorCodes.NETWORK, errorMessage);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ Meeting scheduled successfully with calendar invite');
+        return ok(result.data);
+      } else {
+        return fail(ErrorCodes.NETWORK, result.error || 'Failed to schedule meeting');
+      }
+    } catch (error) {
+      console.error('❌ Error scheduling meeting:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to schedule meeting');
     }
   }
 }

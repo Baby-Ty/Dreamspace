@@ -1,10 +1,12 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { Calendar, Check, CheckCircle2, Loader2 } from 'lucide-react';
+import { Calendar, Check, CheckCircle2, Loader2, Clock, History } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../utils/toast';
+import MeetingHistoryModal from './MeetingHistoryModal';
 
 /**
  * Meeting Attendance Card Component
@@ -13,13 +15,19 @@ import { showToast } from '../../utils/toast';
  */
 export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, onComplete, embedded = false, managerId, teamData }) {
   const { currentUser } = useApp();
+  const { getToken } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [meetingData, setMeetingData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0], // Default to today
+    time: '', // HH:MM format
   });
   const [attendance, setAttendance] = useState({});
+  const [isScheduledViaCalendar, setIsScheduledViaCalendar] = useState(false);
+  const [calendarEventId, setCalendarEventId] = useState(null);
   const saveTimeoutRef = useRef(null);
 
   // Load meeting draft from teamData on mount
@@ -27,16 +35,17 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     if (teamData?.meetingDraft && isCoach) {
       setMeetingData({
         title: teamData.meetingDraft.title || '',
-        date: teamData.meetingDraft.date || new Date().toISOString().split('T')[0]
+        date: teamData.meetingDraft.date || new Date().toISOString().split('T')[0],
+        time: teamData.meetingDraft.time || ''
       });
     }
   }, [teamData, isCoach]);
 
-  // Initialize attendance state with all team members (excluding coach)
+  // Initialize attendance state with ALL team members INCLUDING coach
   useEffect(() => {
-    const members = (teamMembers || []).filter(member => !member.isCoach);
+    const allMembers = teamMembers || [];
     const initialAttendance = {};
-    members.forEach(member => {
+    allMembers.forEach(member => {
       initialAttendance[member.id] = {
         id: member.id,
         name: member.name,
@@ -46,7 +55,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     setAttendance(initialAttendance);
   }, [teamMembers]);
 
-  // Auto-save meeting draft when title or date changes (debounced)
+  // Auto-save meeting draft when title, date, or time changes (debounced)
   useEffect(() => {
     if (!isCoach || !managerId) return;
 
@@ -57,13 +66,14 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
 
     // Set new timeout to save after 1 second of no changes
     saveTimeoutRef.current = setTimeout(async () => {
-      if (meetingData.title || meetingData.date) {
+      if (meetingData.title || meetingData.date || meetingData.time) {
         setIsSavingDraft(true);
         try {
           await coachingService.updateTeamInfo(managerId, {
             meetingDraft: {
               title: meetingData.title,
-              date: meetingData.date
+              date: meetingData.date,
+              time: meetingData.time
             }
           });
         } catch (error) {
@@ -81,7 +91,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [meetingData.title, meetingData.date, isCoach, managerId]);
+  }, [meetingData.title, meetingData.date, meetingData.time, isCoach, managerId]);
 
   const handleToggleAttendance = (memberId) => {
     if (!isCoach) return;
@@ -93,6 +103,70 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         present: !prev[memberId]?.present
       }
     }));
+  };
+
+  const handleScheduleMeeting = async () => {
+    if (!teamId || !isCoach) {
+      console.error('❌ Cannot schedule meeting: Missing teamId or not a coach');
+      return;
+    }
+
+    if (!meetingData.title || !meetingData.title.trim()) {
+      showToast('Please enter a meeting title', 'error');
+      return;
+    }
+
+    if (!meetingData.date) {
+      showToast('Please select a meeting date', 'error');
+      return;
+    }
+
+    if (!meetingData.time) {
+      showToast('Please enter a meeting time', 'error');
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        showToast('Authentication required. Please sign in again.', 'error');
+        return;
+      }
+
+      // Get team members with email addresses
+      const teamMembersWithEmails = (teamMembers || []).map(member => ({
+        id: member.id,
+        name: member.name,
+        email: member.email || member.userPrincipalName || member.mail
+      })).filter(member => member.email); // Only include members with emails
+
+      if (teamMembersWithEmails.length === 0) {
+        showToast('No team members with email addresses found', 'error');
+        return;
+      }
+
+      const result = await coachingService.scheduleMeetingWithCalendar(teamId, {
+        title: meetingData.title.trim(),
+        date: meetingData.date,
+        time: meetingData.time,
+        teamMembers: teamMembersWithEmails,
+        accessToken: token
+      });
+
+      if (result.success) {
+        setIsScheduledViaCalendar(true);
+        setCalendarEventId(result.data?.calendarEventId || null);
+        showToast('Meeting scheduled! Calendar invites sent to all team members.', 'success');
+      } else {
+        showToast(result.error || 'Failed to schedule meeting', 'error');
+      }
+    } catch (error) {
+      console.error('❌ Error scheduling meeting:', error);
+      showToast('Error scheduling meeting', 'error');
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   const handleCompleteMeeting = async () => {
@@ -117,17 +191,20 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
       const result = await coachingService.saveMeetingAttendance(teamId, {
         title: meetingData.title.trim(),
         date: meetingData.date,
+        time: meetingData.time || undefined,
         attendees: attendees,
-        completedBy: currentUser?.id || currentUser?.userId
+        completedBy: currentUser?.id || currentUser?.userId,
+        isScheduledViaCalendar: isScheduledViaCalendar,
+        calendarEventId: calendarEventId || undefined
       });
 
       if (result.success) {
         showToast('Meeting attendance saved successfully!', 'success');
         
         // Reset form for next meeting
-        const members = (teamMembers || []).filter(member => !member.isCoach);
+        const allMembers = teamMembers || [];
         const resetAttendance = {};
-        members.forEach(member => {
+        allMembers.forEach(member => {
           resetAttendance[member.id] = {
             id: member.id,
             name: member.name,
@@ -137,8 +214,11 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         setAttendance(resetAttendance);
         setMeetingData({
           title: '',
-          date: new Date().toISOString().split('T')[0]
+          date: new Date().toISOString().split('T')[0],
+          time: ''
         });
+        setIsScheduledViaCalendar(false);
+        setCalendarEventId(null);
 
         if (onComplete) {
           onComplete(result.data);
@@ -154,7 +234,8 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     }
   };
 
-  const members = (teamMembers || []).filter(member => !member.isCoach);
+  // Include ALL members (coach + team members) for attendance tracking
+  const allMembers = teamMembers || [];
   const membersArray = Object.values(attendance);
   const presentCount = membersArray.filter(a => a.present).length;
   const totalCount = membersArray.length;
@@ -170,8 +251,8 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         </h3>
       </div>
 
-      {/* Meeting Title & Date - Side by side when embedded */}
-      <div className={embedded ? "grid grid-cols-2 gap-4" : "space-y-4"} style={{ marginBottom: '28px' }}>
+      {/* Meeting Title, Date & Time - Grid layout */}
+      <div className={embedded ? "grid grid-cols-1 sm:grid-cols-3 gap-4" : "grid grid-cols-1 sm:grid-cols-3 gap-4"} style={{ marginBottom: '28px' }}>
         <div>
           <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
             Meeting Title
@@ -218,18 +299,46 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
             data-testid="meeting-date-input"
           />
         </div>
+        <div>
+          <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
+            Time
+          </p>
+          <div className="relative">
+            <Clock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a7a50] pointer-events-none z-10" aria-hidden="true" />
+            <input
+              id="meeting-time"
+              type="time"
+              value={meetingData.time}
+              onChange={(e) => setMeetingData({ ...meetingData, time: e.target.value })}
+              disabled={!isCoach}
+              className={`w-full pl-8 pr-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg text-[#4a3b22] font-hand text-base relative z-0 ${
+                isCoach 
+                  ? 'focus:outline-none focus:ring-2 focus:ring-[#8a7a50] cursor-pointer' 
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
+              style={{ height: '28px', lineHeight: '28px' }}
+              data-testid="meeting-time-input"
+              onClick={(e) => {
+                if (isCoach && e.target === e.currentTarget) {
+                  e.target.showPicker?.();
+                }
+              }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Attendance Checklist */}
-      {members.length > 0 ? (
+      {/* Attendance Checklist - Includes Coach */}
+      {allMembers.length > 0 ? (
         <>
           <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px', marginBottom: '0' }}>
             Team Members ({presentCount}/{totalCount} present)
           </p>
-          <div className="grid grid-cols-3 gap-x-4" style={{ marginTop: '0', marginBottom: '28px', rowGap: '0' }}>
-            {members.map((member) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4" style={{ marginTop: '0', marginBottom: '28px', rowGap: '0' }}>
+            {allMembers.map((member) => {
               const memberAttendance = attendance[member.id];
               const isPresent = memberAttendance?.present || false;
+              const isCoachMember = member.isCoach || member.id === managerId;
               
               return (
                 <label
@@ -271,7 +380,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
                       display: 'block'
                     }}
                   >
-                    {member.name}
+                    {member.name}{isCoachMember ? ' (Coach)' : ''}
                   </span>
                 </label>
               );
@@ -286,13 +395,32 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         </div>
       )}
 
-      {/* Complete Meeting Button - Only show for coaches */}
+      {/* Action Buttons - Only show for coaches */}
       {isCoach && (
-        <div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleScheduleMeeting}
+            disabled={isScheduling || !meetingData.title || !meetingData.date || !meetingData.time || allMembers.length === 0}
+            className="flex-1 px-3 bg-[#8a7a50] text-[#fef9c3] rounded-lg hover:bg-[#9a8a60] transition-all duration-200 shadow-sm hover:shadow-md font-medium text-base font-hand disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{ height: '28px', lineHeight: '28px' }}
+            data-testid="schedule-meeting-button"
+          >
+            {isScheduling ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                Scheduling...
+              </>
+            ) : (
+              <>
+                <Calendar className="w-4 h-4" aria-hidden="true" />
+                Schedule Meeting
+              </>
+            )}
+          </button>
           <button
             onClick={handleCompleteMeeting}
-            disabled={isSaving || !meetingData.title || !meetingData.date || members.length === 0}
-            className="w-full px-3 bg-[#4a3b22] text-[#fef9c3] rounded-lg hover:bg-[#5c5030] transition-all duration-200 shadow-sm hover:shadow-md font-medium text-base font-hand disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            disabled={isSaving || !meetingData.title || !meetingData.date || allMembers.length === 0}
+            className="flex-1 px-3 bg-[#4a3b22] text-[#fef9c3] rounded-lg hover:bg-[#5c5030] transition-all duration-200 shadow-sm hover:shadow-md font-medium text-base font-hand disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ height: '28px', lineHeight: '28px' }}
             data-testid="complete-meeting-button"
           >
@@ -308,7 +436,25 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
               </>
             )}
           </button>
+          <button
+            onClick={() => setShowHistory(true)}
+            className="px-3 bg-[#8a7a50]/30 text-[#5c5030] rounded-lg hover:bg-[#8a7a50]/50 transition-all duration-200 shadow-sm hover:shadow-md font-medium text-base font-hand flex items-center justify-center"
+            style={{ height: '28px', lineHeight: '28px' }}
+            data-testid="history-button"
+            aria-label="View attendance history"
+          >
+            <History className="w-4 h-4" aria-hidden="true" />
+          </button>
         </div>
+      )}
+      
+      {/* History Modal */}
+      {showHistory && teamId && (
+        <MeetingHistoryModal
+          teamId={teamId}
+          onClose={() => setShowHistory(false)}
+          isCoach={isCoach}
+        />
       )}
       
       {/* Read-only message for non-coaches */}

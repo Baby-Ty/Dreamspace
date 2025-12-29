@@ -186,6 +186,62 @@ export function GraphService(authedFetch, getToken = null) {
       } catch (error) {
         return fail(ErrorCodes.VALIDATION, 'Invalid users data structure', error.errors);
       }
+    },
+
+    /**
+     * Create calendar event via backend API
+     * @param {string} teamId - Team ID
+     * @param {object} meetingData - Meeting data { title, date, time, teamMembers }
+     * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+     */
+    async createCalendarEvent(teamId, meetingData) {
+      if (!getToken) {
+        return fail(ErrorCodes.INVALID_CONFIG, 'getToken function is required for calendar operations');
+      }
+
+      if (!teamId || !meetingData) {
+        return fail(ErrorCodes.INVALID_INPUT, 'Team ID and meeting data are required');
+      }
+
+      try {
+        const token = await getToken();
+        if (!token) {
+          return fail(ErrorCodes.AUTH_ERROR, 'No authentication token available');
+        }
+
+        const { config } = await import('../utils/env.js');
+        const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+        const apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+        const scheduleUrl = `${apiBase}/scheduleMeetingWithCalendar/${encodeURIComponent(teamId)}`;
+
+        const response = await fetch(scheduleUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ...meetingData,
+            accessToken: token
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ 
+            error: `HTTP ${response.status}: ${response.statusText}` 
+          }));
+          return fail(ErrorCodes.NETWORK, errorData.error || errorData.details || 'Failed to create calendar event');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          return ok(result.data);
+        } else {
+          return fail(ErrorCodes.NETWORK, result.error || 'Failed to create calendar event');
+        }
+      } catch (error) {
+        console.error('❌ Error creating calendar event:', error);
+        return fail(ErrorCodes.NETWORK, error.message || 'Failed to create calendar event');
+      }
     }
   };
 }

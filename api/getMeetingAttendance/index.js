@@ -56,8 +56,9 @@ module.exports = async function (context, req) {
     const attendanceContainer = cosmosProvider.getContainer('meeting_attendance');
     
     // Query meetings for this team, ordered by date descending
+    // Note: Using single field ORDER BY to avoid composite index requirement
     const query = {
-      query: 'SELECT * FROM c WHERE c.teamId = @teamId ORDER BY c.date DESC, c.completedAt DESC',
+      query: 'SELECT * FROM c WHERE c.teamId = @teamId ORDER BY c.date DESC',
       parameters: [
         { name: '@teamId', value: teamId }
       ]

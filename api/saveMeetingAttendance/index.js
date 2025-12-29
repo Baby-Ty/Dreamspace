@@ -27,7 +27,7 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { title, date, attendees, completedBy } = req.body || {};
+  const { id, title, date, time, attendees, completedBy, isScheduledViaCalendar, calendarEventId } = req.body || {};
 
   if (!title || !date || !attendees || !Array.isArray(attendees)) {
     context.res = {
@@ -115,29 +115,49 @@ module.exports = async function (context, req) {
       return;
     }
     
-    // Create meeting attendance record
+    // Create or update meeting attendance record
     const trimmedTeamId = teamId.trim();
-    const meetingId = generateMeetingId(trimmedTeamId); // e.g., "mtg_a1b2c3d4"
+    
+    // Use provided ID for updates, or generate new one for creates
+    const meetingId = id || generateMeetingId(trimmedTeamId); // e.g., "mtg_a1b2c3d4"
+    const isUpdate = !!id;
+    
+    // For updates, fetch existing record to preserve metadata
+    let existingRecord = null;
+    if (isUpdate) {
+      try {
+        const existingItem = await attendanceContainer.item(meetingId, trimmedTeamId).read();
+        existingRecord = existingItem.resource;
+      } catch (e) {
+        context.log.warn(`⚠️ Could not find existing meeting ${meetingId} for update, will create new`);
+      }
+    }
+    
     const meetingRecord = {
       id: meetingId,
       teamId: trimmedTeamId, // Partition key - must match /teamId
       title: title.trim(),
       date: date,
+      time: time || undefined, // Optional time field (HH:MM format)
       attendees: attendees.map(attendee => ({
         id: attendee.id,
         name: attendee.name.trim(),
         present: attendee.present || false
       })),
-      completedAt: new Date().toISOString(),
-      completedBy: completedBy || trimmedTeamId
+      // Preserve completedAt for updates, set new timestamp for creates
+      completedAt: existingRecord?.completedAt || new Date().toISOString(),
+      completedBy: completedBy || existingRecord?.completedBy || trimmedTeamId,
+      isScheduledViaCalendar: isScheduledViaCalendar !== undefined ? isScheduledViaCalendar : (existingRecord?.isScheduledViaCalendar || false),
+      calendarEventId: calendarEventId || existingRecord?.calendarEventId || undefined
     };
 
-    context.log(`📝 Attempting to save meeting attendance:`, {
+    context.log(`📝 Attempting to ${isUpdate ? 'update' : 'save'} meeting attendance:`, {
       meetingId,
       teamId: trimmedTeamId,
       title: meetingRecord.title,
       date: meetingRecord.date,
       attendeeCount: meetingRecord.attendees.length,
+      isUpdate: isUpdate,
       containerName: 'meeting_attendance'
     });
 
@@ -146,10 +166,11 @@ module.exports = async function (context, req) {
     // since the container partition key is /teamId
     const { resource } = await attendanceContainer.items.upsert(meetingRecord);
 
-    context.log(`✅ Successfully saved meeting attendance for team ${trimmedTeamId}`, {
+    context.log(`✅ Successfully ${isUpdate ? 'updated' : 'saved'} meeting attendance for team ${trimmedTeamId}`, {
       documentId: resource.id,
       teamId: resource.teamId,
-      title: resource.title
+      title: resource.title,
+      isUpdate: isUpdate
     });
 
     context.res = {

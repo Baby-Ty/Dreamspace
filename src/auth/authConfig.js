@@ -73,7 +73,7 @@ export const msalConfig = {
 
 // Add scopes here for ID token to be used at Microsoft identity platform endpoints.
 export const loginRequest = {
-  scopes: ["User.Read", "profile", "openid", "email"],
+  scopes: ["User.Read", "profile", "openid", "email", "Calendars.ReadWrite"],
   redirectUri: getRedirectUri(), // Ensure consistent redirect URI
   prompt: "select_account" // Always show account picker for better UX
 };
