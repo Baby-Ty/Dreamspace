@@ -141,15 +141,7 @@ class PeopleService {
       return JSON.parse(stored);
     }
     
-    // Import mock data as fallback
-    try {
-      const { allUsers } = await import('../data/mockData.js');
-      localStorage.setItem('dreamspace_all_users', JSON.stringify(allUsers));
-      return allUsers;
-    } catch (error) {
-      console.error('Error loading mock user data:', error);
-      return [];
-    }
+   
   }
 
   /**
@@ -163,14 +155,7 @@ class PeopleService {
     }
     
     // Import mock data as fallback
-    try {
-      const { teamRelationships } = await import('../data/mockData.js');
-      localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teamRelationships));
-      return teamRelationships;
-    } catch (error) {
-      console.error('Error loading mock team data:', error);
-      return [];
-    }
+   
   }
 
   /**
@@ -210,21 +195,7 @@ class PeopleService {
   async initializeLocalStorage() {
     if (this.useCosmosDB) return; // Skip in production
     
-    try {
-      const { allUsers, teamRelationships } = await import('../data/mockData.js');
-      
-      if (!localStorage.getItem('dreamspace_all_users')) {
-        localStorage.setItem('dreamspace_all_users', JSON.stringify(allUsers));
-        console.log('📱 Initialized users in localStorage');
-      }
-      
-      if (!localStorage.getItem('dreamspace_team_relationships')) {
-        localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teamRelationships));
-        console.log('📱 Initialized team relationships in localStorage');
-      }
-    } catch (error) {
-      console.error('❌ Error initializing localStorage:', error);
-    }
+   
   }
 
   // === LEGACY METHODS (For backwards compatibility) ===

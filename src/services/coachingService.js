@@ -106,30 +106,12 @@ class CoachingService {
    * @param {string} managerId - Manager/Coach ID
    * @returns {Promise<array>}
    */
-  async getLocalStorageCoachingAlerts(managerId) {
-    try {
-      const { getCoachingAlerts } = await import('../data/mockData.js');
-      return getCoachingAlerts(managerId);
-    } catch (error) {
-      console.error('Error loading coaching alerts:', error);
-      return [];
-    }
-  }
 
   /**
    * Get team metrics from localStorage (development mode)
    * @param {string} managerId - Manager/Coach ID
    * @returns {Promise<object|null>}
    */
-  async getLocalStorageTeamMetrics(managerId) {
-    try {
-      const { getTeamMetrics } = await import('../data/mockData.js');
-      return getTeamMetrics(managerId);
-    } catch (error) {
-      console.error('Error loading team metrics:', error);
-      return null;
-    }
-  }
 
   /**
    * Add a coach message to a team member's dream

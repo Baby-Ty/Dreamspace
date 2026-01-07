@@ -187,15 +187,7 @@ class AdminService {
       return JSON.parse(stored);
     }
     
-    // Import mock data as fallback
-    try {
-      const { allUsers } = await import('../data/mockData.js');
-      localStorage.setItem('dreamspace_all_users', JSON.stringify(allUsers));
-      return allUsers;
-    } catch (error) {
-      console.error('Error loading mock user data:', error);
-      return [];
-    }
+    
   }
 }
 

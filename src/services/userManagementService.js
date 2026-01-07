@@ -198,14 +198,7 @@ class UserManagementService {
       return JSON.parse(stored);
     }
     
-    try {
-      const { teamRelationships } = await import('../data/mockData.js');
-      localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teamRelationships));
-      return teamRelationships;
-    } catch (error) {
-      console.error('Error loading mock team data:', error);
-      return [];
-    }
+   
   }
 
   /**

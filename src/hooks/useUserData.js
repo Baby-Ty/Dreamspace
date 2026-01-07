@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import connectService from '../services/connectService';
 import scoringService from '../services/scoringService';
 import { createEmptyUser, loadUserData } from '../utils/appDataHelpers';
-import { dreamCategories } from '../data/mockData';
 import { actionTypes } from '../state/appReducer';
 
 /**
@@ -50,7 +49,6 @@ export function useUserData(initialUser, dispatch, state) {
             dreamBook: initialUser.dreamBook,
             yearVision: initialUser.yearVision || userData.yearVision || '',
             connects: initialUser.connects || userData.connects || [],
-            dreamCategories: dreamCategories
           };
           
           dispatch({
@@ -94,7 +92,6 @@ export function useUserData(initialUser, dispatch, state) {
           dreamBook: userData.dreamBook || [],
           yearVision: initialUser.yearVision || userData.yearVision || '',
           connects: userData.connects || [],
-          dreamCategories: dreamCategories
         };
         
         const finalWeeklyGoals = Array.isArray(weeklyGoalsData) ? weeklyGoalsData : 
