@@ -1,7 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import databaseService from '../services/databaseService.js';
-import { dreamCategories } from '../data/mockData.js';
 
 /**
  * Create empty user template for real users
@@ -19,7 +18,6 @@ export const createEmptyUser = (userInfo = {}) => ({
   score: userInfo.score || 0,
   connects: userInfo.connects || [],
   // Use global dreamCategories - don't store per user
-  dreamCategories: dreamCategories,
   dreamsCount: userInfo.dreamsCount || 0,
   connectsCount: userInfo.connectsCount || 0
 });
