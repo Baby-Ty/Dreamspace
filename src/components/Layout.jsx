@@ -9,9 +9,7 @@ import {
   X,
   LogOut,
   Star,
-  Calendar,
   UserCog,
-  FileText,
   Eye,
   UserPlus
 } from 'lucide-react';

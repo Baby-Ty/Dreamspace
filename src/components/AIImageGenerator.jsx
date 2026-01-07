@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Loader2, Image, RefreshCw, Check, ChevronDown } from 'lucide-react';
 import { dalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
-import { ErrorCodes } from '../constants/errors';
+
 
 /**
  * AI Image Generator Modal

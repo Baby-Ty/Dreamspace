@@ -13,8 +13,6 @@ import {
   Mail,
   Calendar,
   CheckCircle2,
-  Circle,
-  ExternalLink,
   Eye,
   Edit3,
   Star

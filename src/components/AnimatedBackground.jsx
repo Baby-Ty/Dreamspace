@@ -1,4 +1,3 @@
-import React from 'react';
 
 /**
  * AnimatedBackground component that provides a subtle, immersive background

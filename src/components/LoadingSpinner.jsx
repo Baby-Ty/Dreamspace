@@ -1,4 +1,4 @@
-import React from 'react';
+
 import AnimatedBackground from './AnimatedBackground';
 
 const LoadingSpinner = () => {

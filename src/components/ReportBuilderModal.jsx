@@ -7,7 +7,6 @@ import {
   CheckCircle2, 
   TrendingUp,
   Download,
-  FileText,
   BarChart3,
   Filter,
   Eye,

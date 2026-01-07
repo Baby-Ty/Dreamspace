@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { X, UserMinus, AlertTriangle } from 'lucide-react';
 
 const UnassignUserModal = ({ user, coachId, coaches, onClose, onConfirm }) => {

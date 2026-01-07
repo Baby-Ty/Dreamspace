@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { 
   CheckCircle2, 
   Circle, 
-  Target,
   Trophy,
   Calendar,
   Edit2,

@@ -9,7 +9,6 @@ import {
   Crown,
   UserPlus,
   X,
-  MapPin,
   Edit3,
   ArrowRight,
   Sparkles
@@ -17,7 +16,6 @@ import {
 import LoadingSpinner from '../../components/LoadingSpinner';
 import FlagIcon from '../../components/FlagIcon';
 import CoachList from './CoachList';
-import TeamMetrics from './TeamMetrics';
 import PromptEditorSection from './PromptEditorSection';
 import { usePeopleData } from '../../hooks/usePeopleData';
 import peopleService from '../../services/peopleService';

@@ -1,3 +1,0 @@
-[33m403dc65[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m debug: Add console logging to track allUsers ReferenceError
-[33m29e8775[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: Add comprehensive error handling to prevent Admin page crashes
-[33m36a8f1a[m feat: Transform Admin dashboard to focus on user management
