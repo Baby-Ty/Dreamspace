@@ -1,7 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
-import { dreamCategories, scoringRules } from '../data/mockData';
 import { appReducer, actionTypes } from '../state/appReducer.js';
 import { createEmptyUser, saveUserData } from '../utils/appDataHelpers.js';
 import { useDreamActions } from '../hooks/useDreamActions';
@@ -10,7 +9,6 @@ import { useWeeklyGoalActions } from '../hooks/useWeeklyGoalActions';
 import { useConnectActions } from '../hooks/useConnectActions';
 import { useUserData } from '../hooks/useUserData';
 import itemService from '../services/itemService';
-import scoringService from '../services/scoringService';
 import { computeStreak } from '../utils/dateUtils';
 
 // Create the context
@@ -20,8 +18,6 @@ const AppContext = createContext();
 const initialState = {
   isAuthenticated: false,
   currentUser: null,
-  dreamCategories: dreamCategories,
-  scoringRules: scoringRules,
   weeklyGoals: [],
   scoringHistory: [],
   allYearsScoring: [],
@@ -37,7 +33,6 @@ export const AppProvider = ({ children, initialUser }) => {
     yearVision: initialUser.yearVision || '',
     score: initialUser.score || 0,
     connects: initialUser.connects || [],
-    dreamCategories: dreamCategories,
     dreamsCount: initialUser.dreamsCount || 0,
     connectsCount: initialUser.connectsCount || 0
   } : null;
