@@ -751,10 +751,10 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
       const updatedTemplates = templates.map(template => {
         const update = templateUpdates.get(template.id);
         if (update) {
-          // 🎯 Mark template as inactive when weeksRemaining reaches 0
+          // 🎯 Mark template as inactive when weeksRemaining goes negative (after final week)
           // This prevents new instances from being created in future weeks
           const newWeeksRemaining = update.weeksRemaining !== undefined ? update.weeksRemaining : template.weeksRemaining;
-          const shouldMarkInactive = newWeeksRemaining <= 0 && !template.completed;
+          const shouldMarkInactive = newWeeksRemaining < 0 && !template.completed;
           if (shouldMarkInactive) {
             log(`   🔒 Marking template "${template.title}" as inactive (weeksRemaining: ${newWeeksRemaining})`);
             return { 
@@ -802,9 +802,9 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
             const newWeeksRemaining = update.weeksRemaining;
             log(`   🔄 Updating goal "${goal.title}" (${goal.id}): weeksRemaining ${oldWeeksRemaining} → ${newWeeksRemaining}`);
             
-            // 🎯 Mark goal as inactive when weeksRemaining reaches 0
+            // 🎯 Mark goal as inactive when weeksRemaining goes negative (after final week)
             // This prevents the goal from appearing in future weeks
-            const shouldMarkInactive = newWeeksRemaining <= 0 && !goal.completed;
+            const shouldMarkInactive = newWeeksRemaining < 0 && !goal.completed;
             if (shouldMarkInactive) {
               log(`   🔒 Marking goal "${goal.title}" as inactive (weeksRemaining: ${newWeeksRemaining})`);
               return { 

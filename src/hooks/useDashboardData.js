@@ -165,8 +165,8 @@ export function useDashboardData() {
               ? goal.weeksRemaining 
               : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined));
             
-            if (weeksRemaining !== undefined && weeksRemaining <= 0) {
-              console.log(`   ⏭️ Skipping completed consistency goal: "${goal.title}" (weeksRemaining: ${weeksRemaining})`);
+            if (weeksRemaining !== undefined && weeksRemaining < 0) {
+              console.log(`   ⏭️ Skipping expired consistency goal: "${goal.title}" (weeksRemaining: ${weeksRemaining})`);
               return false;
             }
             
@@ -206,8 +206,8 @@ export function useDashboardData() {
           ? template.weeksRemaining 
           : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined));
         
-        if (templateWeeksRemaining !== undefined && templateWeeksRemaining <= 0) {
-          console.log(`⏭️ Skipping completed template: "${template.title}" (weeksRemaining: ${templateWeeksRemaining})`);
+        if (templateWeeksRemaining !== undefined && templateWeeksRemaining < 0) {
+          console.log(`⏭️ Skipping expired template: "${template.title}" (weeksRemaining: ${templateWeeksRemaining})`);
           continue;
         }
         
