@@ -14,6 +14,20 @@ import { computeStreak } from '../utils/dateUtils';
 // Create the context
 const AppContext = createContext();
 
+// Default dream categories (global, not per-user)
+const DEFAULT_DREAM_CATEGORIES = [
+  'Health',
+  'Career',
+  'Finance',
+  'Travel',
+  'Learning',
+  'Relationships',
+  'Creative',
+  'Community',
+  'Personal Growth',
+  'Other'
+];
+
 // Initial state
 const initialState = {
   isAuthenticated: false,
@@ -21,7 +35,8 @@ const initialState = {
   weeklyGoals: [],
   scoringHistory: [],
   allYearsScoring: [],
-  allTimeScore: 0
+  allTimeScore: 0,
+  dreamCategories: DEFAULT_DREAM_CATEGORIES
 };
 
 // App Context Provider

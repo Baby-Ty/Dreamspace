@@ -4,6 +4,7 @@ import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { logger } from '../utils/logger.js';
 import { safeParseHealthResponse } from '../schemas/health.js';
+import { apiClient } from './apiClient.js';
 
 /**
  * Health Service for DreamSpace
@@ -11,13 +12,7 @@ import { safeParseHealthResponse } from '../schemas/health.js';
  */
 class HealthService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
-    
-    logger.debug('health-service', 'Health Service initialized', {
-      apiBase: this.apiBase,
-      isLiveSite
-    });
+    logger.debug('health-service', 'Health Service initialized');
   }
 
   /**
@@ -28,7 +23,8 @@ class HealthService {
     try {
       logger.debug('health-service', 'Fetching health status');
       
-      const response = await fetch(`${this.apiBase}/health`, {
+      // Health endpoint is public - no auth required
+      const response = await apiClient.fetch('/health', {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
         cache: 'no-cache'

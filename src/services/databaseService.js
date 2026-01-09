@@ -5,6 +5,7 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import itemService from './itemService.js';
+import { apiClient } from './apiClient.js';
 
 class DatabaseService {
   constructor() {
@@ -15,12 +16,10 @@ class DatabaseService {
     // Set API base URL - use separate Function App
     this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     
-    // Debug logging
+    // Debug logging (no sensitive keys logged)
     console.log('🔍 Environment check:');
     console.log('Hostname:', window.location.hostname);
     console.log('Is live site:', isLiveSite);
-    console.log('VITE_COSMOS_ENDPOINT:', import.meta.env.VITE_COSMOS_ENDPOINT ? 'SET' : 'NOT SET');
-    console.log('VITE_COSMOS_KEY:', import.meta.env.VITE_COSMOS_KEY ? 'SET' : 'NOT SET');
     console.log('VITE_APP_ENV:', import.meta.env.VITE_APP_ENV);
     console.log('Production mode:', import.meta.env.VITE_APP_ENV === 'production');
     
@@ -147,16 +146,11 @@ class DatabaseService {
       // The saveUserData endpoint now handles splitting data automatically
       // It detects old format and splits into profile + items
       const encodedUserId = encodeURIComponent(userId);
-      const url = `${this.apiBase}/saveUserData/${encodedUserId}`;
-      console.log('📡 Saving to:', url);
+      const endpoint = `/saveUserData/${encodedUserId}`;
+      console.log('📡 Saving to:', apiClient.getBaseUrl() + endpoint);
       
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
+      // Use apiClient for authenticated requests
+      const response = await apiClient.post(endpoint, userData);
 
       // Get response text first to see what we're actually receiving
       const responseText = await response.text();
@@ -202,10 +196,11 @@ class DatabaseService {
       // The getUserData endpoint handles both old and new formats
       // It returns data in the old format (with arrays) regardless of storage format
       const encodedUserId = encodeURIComponent(userId);
-      const url = `${this.apiBase}/getUserData/${encodedUserId}`;
-      console.log('📡 Fetching from:', url);
+      const endpoint = `/getUserData/${encodedUserId}`;
+      console.log('📡 Fetching from:', apiClient.getBaseUrl() + endpoint);
       
-      const response = await fetch(url);
+      // Use apiClient for authenticated requests
+      const response = await apiClient.get(endpoint);
       
       // Get response text first to see what we're actually receiving
       const responseText = await response.text();

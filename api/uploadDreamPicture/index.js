@@ -1,6 +1,7 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
 const https = require('https');
 const http = require('http');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Blob Service Client
 let blobServiceClient;
@@ -12,11 +13,53 @@ if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
 
 const CONTAINER_NAME = 'dreams-pictures';
 
+// SSRF Protection: Allowlist of trusted domains for image URLs
+const ALLOWED_DOMAINS = [
+  'oaidalleapiprodscus.blob.core.windows.net',  // DALL-E generated images
+  'dalleprodsec.blob.core.windows.net',          // DALL-E generated images (alternate)
+  'images.unsplash.com',                          // Unsplash images
+  'plus.unsplash.com',                            // Unsplash plus images
+  'source.unsplash.com',                          // Unsplash source
+  'storage.googleapis.com',                       // Google Cloud Storage (if needed)
+  'blob.core.windows.net',                        // Azure Blob Storage (our own)
+];
+
+/**
+ * Validate URL against allowlist to prevent SSRF attacks
+ * @param {string} url - URL to validate
+ * @returns {boolean} - True if URL is allowed
+ */
+function isUrlAllowed(url) {
+  try {
+    const urlObj = new URL(url);
+    
+    // Only allow HTTPS
+    if (urlObj.protocol !== 'https:') {
+      return false;
+    }
+    
+    // Check if the hostname matches any allowed domain
+    const hostname = urlObj.hostname.toLowerCase();
+    return ALLOWED_DOMAINS.some(domain => 
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Fetch image from URL (server-side, no CORS issues)
+ * Only fetches from allowlisted domains to prevent SSRF
  */
 function fetchImageFromUrl(url) {
   return new Promise((resolve, reject) => {
+    // SSRF Protection: Validate URL before fetching
+    if (!isUrlAllowed(url)) {
+      reject(new Error('URL not allowed. Only images from trusted sources (DALL-E, Unsplash, Azure Blob) are permitted.'));
+      return;
+    }
+    
     const urlObj = new URL(url);
     const client = urlObj.protocol === 'https:' ? https : http;
     
@@ -38,12 +81,7 @@ function fetchImageFromUrl(url) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -63,6 +101,13 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: Users can only upload to their own dreams
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401 or 403 already sent
+    context.log(`User ${user.email} uploading dream picture for ${userId}`);
   }
 
   if (!dreamId) {

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { Plus, CheckCircle2, Circle, Calendar, X, Clock, History, ChevronLeft, Repeat, Target } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GoalListSkeleton } from '../../components/SkeletonLoader';
+import HelpTooltip from '../../components/HelpTooltip';
 
 /**
  * Week Goals Widget Component
@@ -79,12 +80,18 @@ function WeekGoalsWidget({
     <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden" data-testid="week-goals-widget">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-professional-gray-200 flex-shrink-0 bg-gradient-to-r from-professional-gray-50/80 to-white">
-        <div>
-          <h2 className="text-xl font-bold text-professional-gray-900 inline-block">
-            This Week's Goals
-            <span className="block h-0.5 mt-1 bg-gradient-to-r from-netsurit-red to-netsurit-coral rounded-full"></span>
-          </h2>
-          <p className="text-xs text-professional-gray-600 mt-1">Your active goals for the current week</p>
+        <div className="flex items-center gap-2">
+          <div>
+            <h2 className="text-xl font-bold text-professional-gray-900 inline-block">
+              This Week's Goals
+              <span className="block h-0.5 mt-1 bg-gradient-to-r from-netsurit-red to-netsurit-coral rounded-full"></span>
+            </h2>
+            <p className="text-xs text-professional-gray-600 mt-1">Your active goals for the current week</p>
+          </div>
+          <HelpTooltip 
+            title="Tracking Your Goals"
+            content="This section helps you track your weekly progress. You can set weekly recurring habits, monthly targets, or one-time deadlines. Completed goals contribute to your weekly progress score."
+          />
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -202,7 +209,13 @@ function WeekGoalsWidget({
 
                 {/* Consistency Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-professional-gray-600">How often?</label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-professional-gray-600">How often?</label>
+                    <HelpTooltip 
+                      title="Goal Types"
+                      content="Choose how you want to track this goal: Weekly for habits, Monthly for broader targets, or Deadline for one-time milestones."
+                    />
+                  </div>
                   <div 
                     className="grid grid-cols-3 gap-2"
                     role="group"
@@ -256,9 +269,15 @@ function WeekGoalsWidget({
                 {/* Target Duration or Date */}
                 {newGoal.consistency === 'deadline' ? (
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-professional-gray-600">
-                      Target Date <span className="text-netsurit-red">*</span>
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Target Date <span className="text-netsurit-red">*</span>
+                      </label>
+                      <HelpTooltip 
+                        title="Deadline Goal"
+                        content="Set a specific date to complete this goal. It will stay in your weekly list until the date passes or you mark it complete."
+                      />
+                    </div>
                     <input
                       type="date"
                       value={newGoal.targetDate || ''}
@@ -279,9 +298,15 @@ function WeekGoalsWidget({
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-professional-gray-600">
-                      Track for how many {newGoal.consistency === 'monthly' ? 'months' : 'weeks'}?
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Track for how many {newGoal.consistency === 'monthly' ? 'months' : 'weeks'}?
+                      </label>
+                      <HelpTooltip 
+                        title="Goal Duration"
+                        content={`This goal will automatically reappear in your list for the next ${newGoal.consistency === 'monthly' ? 'few months' : 'few weeks'}.`}
+                      />
+                    </div>
                     <input
                       type="number"
                       min="1"
@@ -337,9 +362,15 @@ function WeekGoalsWidget({
                 {/* Monthly frequency input */}
                 {newGoal.consistency === 'monthly' && (
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-professional-gray-600">
-                      Completions per month <span className="text-netsurit-red">*</span>
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Completions per month <span className="text-netsurit-red">*</span>
+                      </label>
+                      <HelpTooltip 
+                        title="Monthly Target"
+                        content="How many times total do you want to complete this activity across the entire month?"
+                      />
+                    </div>
                     <input
                       type="number"
                       min="1"
@@ -387,9 +418,15 @@ function WeekGoalsWidget({
                 {/* Weekly frequency input */}
                 {newGoal.consistency === 'weekly' && (
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-professional-gray-600">
-                      Completions per week <span className="text-netsurit-red">*</span>
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-professional-gray-600">
+                        Completions per week <span className="text-netsurit-red">*</span>
+                      </label>
+                      <HelpTooltip 
+                        title="Weekly Habit"
+                        content="How many times each week do you want to complete this activity? (e.g., 3x for gym, 5x for meditation)"
+                      />
+                    </div>
                     <input
                       type="number"
                       min="1"

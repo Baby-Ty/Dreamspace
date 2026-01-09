@@ -1,6 +1,7 @@
 const { CosmosClient } = require('@azure/cosmos');
 const { generateTeamId } = require('../utils/idGenerator');
 const { generateRandomTeamName } = require('../utils/teamNameGenerator');
+const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, usersContainer, teamsContainer;
@@ -16,17 +17,19 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Admin only - promoting users is an admin action
+  if (isAuthRequired()) {
+    const admin = await requireAdmin(context, req);
+    if (!admin) return; // 401 or 403 already sent
+    context.log(`Admin ${admin.email} promoting user to coach`);
   }
 
   const { userId, teamName: providedTeamName } = req.body;

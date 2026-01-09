@@ -87,7 +87,7 @@ function DreamRadarChart({ dreams = [] }) {
 
   return (
     <div 
-      className="relative flex flex-col items-center justify-center py-6 px-4"
+      className="relative flex flex-col items-center justify-center py-4 px-4"
       data-testid="dream-radar-chart"
       role="figure"
       aria-label="Dream balance visualization"
@@ -289,13 +289,13 @@ function DreamRadarChart({ dreams = [] }) {
 
       {/* Footer Summary */}
       {hasDreams ? (
-        <div className="mt-2 text-center">
+        <div className="mt-1 text-center">
           <p className="text-professional-gray-400 text-xs">
             {totalDreams} dreams planted
           </p>
         </div>
       ) : (
-        <div className="mt-4 text-center text-professional-gray-400 text-xs">
+        <div className="mt-2 text-center text-professional-gray-400 text-xs">
           Start adding dreams to grow your garden
         </div>
       )}

@@ -4,16 +4,15 @@
 // Admin service for DreamSpace - handles admin analytics and user management data
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 class AdminService {
   constructor() {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('🛡️ Admin Service initialized:', {
       useCosmosDB: this.useCosmosDB,
-      apiBase: this.apiBase,
       environment: import.meta.env.VITE_APP_ENV
     });
   }
@@ -22,12 +21,7 @@ class AdminService {
   async getAllUsersForAdmin() {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getAllUsers`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get('/getAllUsers');
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -153,13 +147,7 @@ class AdminService {
   async updateUserData(userId, userData) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/saveUserData/${userId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(userData)
-        });
+        const response = await apiClient.post(`/saveUserData/${userId}`, userData);
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);

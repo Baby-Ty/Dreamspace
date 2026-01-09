@@ -4,11 +4,10 @@
 // Item service for individual item CRUD operations in the 3-container architecture
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 class ItemService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     console.log('📦 Item Service initialized');
   }
 
@@ -23,16 +22,10 @@ class ItemService {
     try {
       console.log('💾 Saving item:', { userId, type, itemId: itemData.id });
 
-      const response = await fetch(`${this.apiBase}/saveItem`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          type,
-          itemData
-        })
+      const response = await apiClient.post('/saveItem', {
+        userId,
+        type,
+        itemData
       });
 
       // Get the response text first to check if it's empty
@@ -79,13 +72,13 @@ class ItemService {
   async getItems(userId, type = null) {
     try {
       const encodedUserId = encodeURIComponent(userId);
-      const url = type 
-        ? `${this.apiBase}/getItems/${encodedUserId}?type=${encodeURIComponent(type)}`
-        : `${this.apiBase}/getItems/${encodedUserId}`;
+      const endpoint = type 
+        ? `/getItems/${encodedUserId}?type=${encodeURIComponent(type)}`
+        : `/getItems/${encodedUserId}`;
 
       console.log('📂 Loading items:', { userId, type: type || 'all' });
 
-      const response = await fetch(url);
+      const response = await apiClient.get(endpoint);
 
       if (response.ok) {
         const items = await response.json();
@@ -115,9 +108,7 @@ class ItemService {
     try {
       console.log('🗑️ Deleting item:', { userId, itemId });
 
-      const response = await fetch(`${this.apiBase}/deleteItem/${encodeURIComponent(itemId)}?userId=${encodeURIComponent(userId)}`, {
-        method: 'DELETE'
-      });
+      const response = await apiClient.delete(`/deleteItem/${encodeURIComponent(itemId)}?userId=${encodeURIComponent(userId)}`);
 
       if (response.ok) {
         const result = await response.json();
@@ -147,15 +138,9 @@ class ItemService {
     try {
       console.log('💾 Batch saving items:', { userId, count: items.length });
 
-      const response = await fetch(`${this.apiBase}/batchSaveItems`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          items
-        })
+      const response = await apiClient.post('/batchSaveItems', {
+        userId,
+        items
       });
 
       // Get the response text first to check if it's empty
@@ -207,16 +192,10 @@ class ItemService {
     try {
       console.log('💾 Saving dreams document:', { userId, dreamsCount: dreams.length, templatesCount: weeklyGoalTemplates.length });
 
-      const response = await fetch(`${this.apiBase}/saveDreams`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          dreams,
-          weeklyGoalTemplates
-        })
+      const response = await apiClient.post('/saveDreams', {
+        userId,
+        dreams,
+        weeklyGoalTemplates
       });
 
       const responseText = await response.text();
@@ -261,15 +240,9 @@ class ItemService {
     try {
       console.log('💭 Saving year vision:', { userId, visionLength: vision?.length });
 
-      const response = await fetch(`${this.apiBase}/saveYearVision`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          yearVision: vision
-        })
+      const response = await apiClient.post('/saveYearVision', {
+        userId,
+        yearVision: vision
       });
 
       const responseText = await response.text();
@@ -312,13 +285,17 @@ class ItemService {
       // Read the file as array buffer
       const arrayBuffer = await imageFile.arrayBuffer();
       
-      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream'
-        },
-        body: arrayBuffer
-      });
+      // Use apiClient.fetch for custom headers (binary upload)
+      const response = await apiClient.fetch(
+        `/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream'
+          },
+          body: arrayBuffer
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -347,13 +324,10 @@ class ItemService {
     try {
       console.log('📸 Uploading dream picture from URL:', { userId, dreamId, imageUrl });
 
-      const response = await fetch(`${this.apiBase}/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ imageUrl })
-      });
+      const response = await apiClient.post(
+        `/uploadDreamPicture/${encodeURIComponent(userId)}/${encodeURIComponent(dreamId)}`,
+        { imageUrl }
+      );
 
       if (response.ok) {
         const result = await response.json();

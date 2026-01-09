@@ -5,6 +5,10 @@
  * Environment Variable Validation
  * Validates all required environment variables using Zod
  * Throws early in development if critical vars are missing
+ * 
+ * SECURITY NOTE: API keys (COSMOS_KEY, OPENAI_API_KEY) are intentionally
+ * NOT included in frontend config. All API calls go through the backend
+ * which has its own secure environment variables.
  */
 
 import { z } from 'zod';
@@ -21,6 +25,9 @@ export const Environment = {
 /**
  * Zod schema for environment variables
  * All VITE_* variables are accessible in the browser
+ * 
+ * SECURITY: Do NOT add sensitive API keys here - they would be bundled
+ * into the client-side JavaScript and exposed to anyone viewing the site.
  */
 const envSchema = z.object({
   // Environment mode
@@ -38,14 +45,12 @@ const envSchema = z.object({
     message: 'VITE_AZURE_TENANT_ID must be a valid UUID'
   }).optional(),
 
-  // Azure Cosmos DB (required in production)
+  // Azure Cosmos DB endpoint (key is kept server-side only)
   VITE_COSMOS_ENDPOINT: z.string().url({
     message: 'VITE_COSMOS_ENDPOINT must be a valid URL'
   }).optional(),
 
-  VITE_COSMOS_KEY: z.string().min(1, {
-    message: 'VITE_COSMOS_KEY must not be empty'
-  }).optional(),
+  // NOTE: VITE_COSMOS_KEY removed for security - all DB access via backend API
 
   VITE_COSMOS_DATABASE: z.string().min(1).default('dreamspace'),
   VITE_COSMOS_CONTAINER: z.string().min(1).default('users'),
@@ -56,8 +61,7 @@ const envSchema = z.object({
   // Unsplash API (optional - falls back to mock data)
   VITE_UNSPLASH_ACCESS_KEY: z.string().min(1).optional(),
 
-  // OpenAI API (optional - for DALL-E image generation)
-  VITE_OPENAI_API_KEY: z.string().min(1).optional(),
+  // NOTE: VITE_OPENAI_API_KEY removed for security - image generation via backend API
 
   // Microsoft Graph API
   VITE_GRAPH_API_BASE: z.string().url().default('https://graph.microsoft.com/v1.0'),
@@ -77,23 +81,18 @@ const envSchema = z.object({
 
 /**
  * Custom validation rules for production environment
+ * 
+ * NOTE: Cosmos DB key is NOT validated here - it's server-side only.
+ * Frontend only needs the endpoint (for display/logging purposes, not direct access).
  */
 const productionSchema = envSchema.refine(
   (data) => {
-    const isProduction = data.VITE_APP_ENV === 'production' || data.MODE === 'production';
-    
-    if (isProduction) {
-      // Cosmos DB is required in production
-      if (!data.VITE_COSMOS_ENDPOINT || !data.VITE_COSMOS_KEY) {
-        return false;
-      }
-    }
-    
+    // All API calls go through backend, so no frontend keys required
     return true;
   },
   {
-    message: 'VITE_COSMOS_ENDPOINT and VITE_COSMOS_KEY are required in production environment',
-    path: ['VITE_COSMOS_ENDPOINT']
+    message: 'Environment validation failed',
+    path: ['VITE_APP_ENV']
   }
 );
 
@@ -217,18 +216,19 @@ ${formatValidationErrors(validation.errors)}
 /**
  * Validated and typed environment variables
  * Safe to use throughout the app
+ * 
+ * SECURITY: Sensitive keys (COSMOS_KEY, OPENAI_API_KEY) are NOT included.
+ * All API calls that need these keys go through the backend.
  */
 export const env = validation.data || {
   // Fallback to safe defaults if validation failed in production
   MODE: import.meta.env.MODE || 'development',
   VITE_APP_ENV: import.meta.env.VITE_APP_ENV,
   VITE_COSMOS_ENDPOINT: import.meta.env.VITE_COSMOS_ENDPOINT,
-  VITE_COSMOS_KEY: import.meta.env.VITE_COSMOS_KEY,
   VITE_COSMOS_DATABASE: import.meta.env.VITE_COSMOS_DATABASE || 'dreamspace',
   VITE_COSMOS_CONTAINER: import.meta.env.VITE_COSMOS_CONTAINER || 'users',
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '/api',
   VITE_UNSPLASH_ACCESS_KEY: import.meta.env.VITE_UNSPLASH_ACCESS_KEY,
-  VITE_OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
   VITE_GRAPH_API_BASE: import.meta.env.VITE_GRAPH_API_BASE || 'https://graph.microsoft.com/v1.0',
   VITE_APPINSIGHTS_CONNECTION_STRING: import.meta.env.VITE_APPINSIGHTS_CONNECTION_STRING,
   VITE_APPINSIGHTS_INSTRUMENTATION_KEY: import.meta.env.VITE_APPINSIGHTS_INSTRUMENTATION_KEY,
@@ -246,13 +246,13 @@ export const config = {
   isProd: isProduction(),
   isTest: isTest(),
 
-  // Azure Cosmos DB
+  // Azure Cosmos DB (key is server-side only)
   cosmos: {
     endpoint: env.VITE_COSMOS_ENDPOINT,
-    key: env.VITE_COSMOS_KEY,
     database: env.VITE_COSMOS_DATABASE,
     container: env.VITE_COSMOS_CONTAINER,
-    isConfigured: !!(env.VITE_COSMOS_ENDPOINT && env.VITE_COSMOS_KEY),
+    // All Cosmos DB access goes through backend API, so no frontend key needed
+    isConfigured: !!env.VITE_COSMOS_ENDPOINT,
   },
 
   // Unsplash API
@@ -261,10 +261,11 @@ export const config = {
     isConfigured: !!env.VITE_UNSPLASH_ACCESS_KEY,
   },
 
-  // OpenAI API
+  // OpenAI API (key is server-side only)
+  // All image generation goes through backend API
   openai: {
-    apiKey: env.VITE_OPENAI_API_KEY,
-    isConfigured: !!env.VITE_OPENAI_API_KEY,
+    // Key intentionally not exposed to frontend
+    isConfigured: true,  // Backend handles this
   },
 
   // Microsoft Graph API

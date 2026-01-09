@@ -72,10 +72,18 @@ export function showToast(message, type = 'info', duration = 4000) {
     gap: 8px;
   `;
 
-  toast.innerHTML = `
-    <span style="font-size: 16px; font-weight: bold;">${icons[type] || icons.info}</span>
-    <span style="flex: 1;">${message}</span>
-  `;
+  // Create icon span
+  const iconSpan = document.createElement('span');
+  iconSpan.style.cssText = 'font-size: 16px; font-weight: bold;';
+  iconSpan.textContent = icons[type] || icons.info;
+  
+  // Create message span - use textContent to prevent XSS
+  const messageSpan = document.createElement('span');
+  messageSpan.style.cssText = 'flex: 1;';
+  messageSpan.textContent = message;  // Safe: textContent escapes HTML
+  
+  toast.appendChild(iconSpan);
+  toast.appendChild(messageSpan);
 
   // Add animation keyframes
   if (!document.getElementById('toast-animations')) {

@@ -3,6 +3,7 @@
 
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 /**
  * User Management Service for DreamSpace
@@ -11,12 +12,10 @@ import { ErrorCodes } from '../constants/errors.js';
 class UserManagementService {
   constructor() {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('👥🔧 User Management Service initialized:', {
-      useCosmosDB: this.useCosmosDB,
-      apiBase: this.apiBase
+      useCosmosDB: this.useCosmosDB
     });
   }
 
@@ -29,16 +28,10 @@ class UserManagementService {
   async promoteUserToCoach(userId, teamName) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/promoteUserToCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            teamName,
-            timestamp: new Date().toISOString()
-          })
+        const response = await apiClient.post('/promoteUserToCoach', {
+          userId,
+          teamName,
+          timestamp: new Date().toISOString()
         });
 
         if (!response.ok) {
@@ -69,16 +62,10 @@ class UserManagementService {
   async assignUserToCoach(userId, coachId) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/assignUserToCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            coachId,
-            timestamp: new Date().toISOString()
-          })
+        const response = await apiClient.post('/assignUserToCoach', {
+          userId,
+          coachId,
+          timestamp: new Date().toISOString()
         });
 
         if (!response.ok) {
@@ -109,16 +96,10 @@ class UserManagementService {
   async unassignUserFromTeam(userId, coachId) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/unassignUserFromTeam`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            coachId,
-            timestamp: new Date().toISOString()
-          })
+        const response = await apiClient.post('/unassignUserFromTeam', {
+          userId,
+          coachId,
+          timestamp: new Date().toISOString()
         });
 
         if (!response.ok) {
@@ -152,19 +133,13 @@ class UserManagementService {
   async replaceTeamCoach(oldCoachId, newCoachId, teamName = null, demoteOption = 'unassigned', assignToTeamId = null) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/replaceTeamCoach`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            oldCoachId,
-            newCoachId,
-            teamName,
-            demoteOption,
-            assignToTeamId,
-            timestamp: new Date().toISOString()
-          })
+        const response = await apiClient.post('/replaceTeamCoach', {
+          oldCoachId,
+          newCoachId,
+          teamName,
+          demoteOption,
+          assignToTeamId,
+          timestamp: new Date().toISOString()
         });
 
         if (!response.ok) {

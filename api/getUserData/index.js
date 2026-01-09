@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, usersContainer, dreamsContainer, connectsContainer, scoringContainer;
@@ -231,18 +232,30 @@ function groupItemsByType(items) {
 }
 
 module.exports = async function (context, req) {
+  const headers = getCorsHeaders();
+  
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    context.res = { status: 200, headers };
+    return;
+  }
+
   const userId = context.bindingData.userId;
 
   if (!userId) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'User ID is required' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
     return;
+  }
+
+  // AUTH CHECK: Users can only access their own data (admins/coaches can access others)
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401 or 403 already sent
+    context.log(`User ${user.email} accessing data for ${userId}`);
   }
 
   // Check if Cosmos DB is configured

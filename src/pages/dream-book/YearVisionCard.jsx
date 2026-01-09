@@ -147,7 +147,7 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
           />
 
           {/* Content Container */}
-          <div className="relative z-10 h-full flex flex-col p-5 pt-6">
+          <div className="relative z-10 h-full flex flex-col p-4 pt-5">
             
             {/* Handwritten Title */}
             <h2 
@@ -161,13 +161,13 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
             </h2>
 
             {/* Content */}
-            <div className="flex-1 flex items-start justify-center overflow-hidden pt-1">
+            <div className="flex-1 flex items-start justify-center overflow-hidden pt-1 px-1">
               {hasVision ? (
                 <p 
-                  className="text-center leading-relaxed text-xl font-hand"
+                  className="text-center text-xl font-hand"
                   style={{ 
                     color: '#1f180b',
-                    lineHeight: '32px',
+                    lineHeight: '1.5',
                     textShadow: '0 1px 0 rgba(255,255,255,0.4)',
                   }}
                 >
@@ -190,8 +190,8 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
 
             {/* Subtle AI hint */}
             {gptConfigured && (
-              <div className="mt-auto pt-2 flex justify-end opacity-40 group-hover:opacity-100 transition-opacity">
-                 <Sparkles className="w-4 h-4 text-[#8a7a50]" />
+              <div className="mt-auto pt-1 flex justify-end opacity-40 group-hover:opacity-100 transition-opacity">
+                 <Sparkles className="w-3.5 h-3.5 text-[#8a7a50]" />
               </div>
             )}
           </div>

@@ -46,7 +46,7 @@ function DreamGrid({
     >
       {/* Radar Chart - spans 2 columns */}
       {radarChart && (
-        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[280px] flex items-center justify-center">
+        <div className="col-span-1 sm:col-span-2 bg-white rounded-2xl border border-professional-gray-200 shadow-lg min-h-[240px] flex items-center justify-center">
           {radarChart}
         </div>
       )}

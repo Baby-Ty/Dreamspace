@@ -3,6 +3,7 @@
 
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 /**
  * People Service for DreamSpace
@@ -11,14 +12,12 @@ import { ERR, ErrorCodes } from '../constants/errors.js';
 class PeopleService {
   constructor() {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('👥 People Service initialized:', {
       useCosmosDB: this.useCosmosDB,
       isLiveSite,
       hostname: window.location.hostname,
-      apiBase: this.apiBase,
       environment: import.meta.env.VITE_APP_ENV
     });
   }
@@ -30,12 +29,7 @@ class PeopleService {
   async getAllUsers() {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getAllUsers`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get('/getAllUsers');
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -65,12 +59,7 @@ class PeopleService {
   async getTeamRelationships() {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getTeamRelationships`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get('/getTeamRelationships');
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -102,13 +91,7 @@ class PeopleService {
   async updateUserProfile(userId, profileData) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/updateUserProfile/${userId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(profileData)
-        });
+        const response = await apiClient.post(`/updateUserProfile/${userId}`, profileData);
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -267,13 +250,10 @@ class PeopleService {
     try {
       console.log('📸 Uploading user background image from URL:', { userId, imageUrl });
 
-      const response = await fetch(`${this.apiBase}/uploadUserBackgroundImage/${encodeURIComponent(userId)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ imageUrl })
-      });
+      const response = await apiClient.post(
+        `/uploadUserBackgroundImage/${encodeURIComponent(userId)}`,
+        { imageUrl }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -317,14 +297,8 @@ class PeopleService {
 
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/updateUserProfile/${userId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            cardBackgroundImage: imageUrl
-          })
+        const response = await apiClient.post(`/updateUserProfile/${userId}`, {
+          cardBackgroundImage: imageUrl
         });
 
         if (!response.ok) {

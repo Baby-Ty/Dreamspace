@@ -10,7 +10,9 @@ import {
   BarChart3,
   Filter,
   Eye,
-  Grid
+  Grid,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { coachingService } from '../services/coachingService';
 import { getPastWeeks } from '../services/weekHistoryService';
@@ -38,6 +40,7 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isMetricsCollapsed, setIsMetricsCollapsed] = useState(true); // Default collapsed
 
   // Teams with coach names
   const teams = useMemo(() => {
@@ -71,22 +74,48 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
       const meetings = response.data || [];
       console.log(`📅 Found ${meetings.length} meetings for team ${teamId}`);
       
-      const startDate = new Date(dateRange.startDate);
-      const endDate = new Date(dateRange.endDate);
+      // Normalize dates for comparison (use date strings to avoid timezone issues)
+      const startDateStr = dateRange.startDate; // Format: "YYYY-MM-DD"
+      const endDateStr = dateRange.endDate; // Format: "YYYY-MM-DD"
+      
+      console.log(`📅 Date range check:`, {
+        startDate: startDateStr,
+        endDate: endDateStr,
+        totalMeetings: meetings.length,
+        meetingDates: meetings.map(m => ({ id: m.id, date: m.date, teamId: m.teamId }))
+      });
+      
+      // Normalize userId for comparison (handle string/number mismatches)
+      const userIdStr = String(userId);
       
       // Filter meetings within date range and count user's attendance
       const filteredMeetings = meetings.filter(meeting => {
-        const meetingDate = new Date(meeting.date);
-        return meetingDate >= startDate && meetingDate <= endDate;
+        // Meeting date should be in format "YYYY-MM-DD" or ISO string
+        const meetingDateStr = meeting.date ? meeting.date.split('T')[0] : null;
+        if (!meetingDateStr) {
+          console.warn(`⚠️ Meeting ${meeting.id} has invalid date: ${meeting.date}`);
+          return false;
+        }
+        const isInRange = meetingDateStr >= startDateStr && meetingDateStr <= endDateStr;
+        console.log(`📅 Meeting ${meeting.id} on ${meetingDateStr}: ${isInRange ? '✅ IN RANGE' : '❌ OUT OF RANGE'} (${startDateStr} to ${endDateStr})`);
+        return isInRange;
       });
       
-      console.log(`📅 ${filteredMeetings.length} meetings in date range ${dateRange.startDate} to ${dateRange.endDate}`);
+      console.log(`📅 ${filteredMeetings.length} meetings in date range ${startDateStr} to ${endDateStr}`, {
+        filteredMeetingIds: filteredMeetings.map(m => m.id),
+        filteredMeetingDates: filteredMeetings.map(m => m.date)
+      });
       
       const attendanceCount = filteredMeetings.reduce((count, meeting) => {
-        const attendee = meeting.attendees?.find(a => a.id === userId);
+        // Normalize attendee IDs for comparison
+        const attendee = meeting.attendees?.find(a => String(a.id) === userIdStr);
         if (attendee?.present) {
-          console.log(`✅ User ${userId} attended meeting on ${meeting.date}`);
+          console.log(`✅ User ${userId} (${userIdStr}) attended meeting on ${meeting.date} - Attendee ID: ${attendee.id} (${typeof attendee.id})`);
           return count + 1;
+        } else if (attendee && !attendee.present) {
+          console.log(`❌ User ${userId} (${userIdStr}) was marked absent for meeting on ${meeting.date}`);
+        } else {
+          console.log(`⚠️ User ${userId} (${userIdStr}) not found in attendees list for meeting on ${meeting.date}. Attendee IDs: [${meeting.attendees?.map(a => `${a.id} (${typeof a.id})`).join(', ') || 'none'}]`);
         }
         return count;
       }, 0);
@@ -143,6 +172,19 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
         const userTeam = teamRelationships.find(team => 
           team.teamMembers && team.teamMembers.some(memberId => String(memberId) === userIdStr)
         );
+        
+        // Log team lookup for debugging
+        if (userTeam) {
+          console.log(`🔍 Found team for user ${user.name} (${user.id}):`, {
+            teamName: userTeam.teamName,
+            managerId: userTeam.managerId,
+            teamId: userTeam.teamId,
+            id: userTeam.id,
+            teamMembersCount: userTeam.teamMembers?.length
+          });
+        } else {
+          console.log(`🔍 User ${user.name} (${user.id}) has no team assigned`);
+        }
         
         // Apply team filter
         // If "all" is not selected, only include users from selected teams
@@ -203,6 +245,20 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
         // Get teamId for meeting attendance lookup
         // teamId is the stable team identifier (not managerId)
         const teamId = userTeam?.teamId || userTeam?.id;
+        
+        console.log(`🔍 User ${user.name} (${user.id}) team lookup:`, {
+          hasTeam: !!userTeam,
+          teamName: userTeam?.teamName,
+          managerId: userTeam?.managerId,
+          teamId: teamId,
+          teamIdSource: userTeam?.teamId ? 'teamId' : userTeam?.id ? 'id' : 'none',
+          teamRelationshipsSample: teamRelationships.slice(0, 2).map(t => ({
+            managerId: t.managerId,
+            teamId: t.teamId,
+            id: t.id,
+            teamMembers: t.teamMembers?.slice(0, 3)
+          }))
+        });
         
         if (userTeam && !teamId) {
           console.warn(`⚠️ Team ${userTeam.teamName} (manager: ${userTeam.managerId}) missing teamId - meeting attendance may not work`);
@@ -535,53 +591,65 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
             {/* Metrics Selection */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-professional-gray-900 flex items-center">
+                <button
+                  onClick={() => setIsMetricsCollapsed(!isMetricsCollapsed)}
+                  className="flex items-center text-lg font-semibold text-professional-gray-900 hover:text-netsurit-red transition-colors"
+                >
                   <TrendingUp className="w-5 h-5 mr-2 text-netsurit-coral" />
                   Metrics to Include ({selectedMetricsCount} selected)
-                </h3>
-                <button
-                  onClick={() => {
-                    const allSelected = selectedMetricsCount === 8;
-                    setSelectedMetrics({
-                      meetingAttendance: !allSelected,
-                      dreamsCreated: !allSelected,
-                      dreamsCompleted: !allSelected,
-                      publicDreamTitles: !allSelected,
-                      dreamCategories: !allSelected,
-                      goalsCreated: !allSelected,
-                      goalsCompleted: !allSelected,
-                      userEngagement: !allSelected
-                    });
-                  }}
-                  className="text-xs text-netsurit-red hover:text-netsurit-coral font-medium"
-                >
-                  {selectedMetricsCount === 8 ? 'Deselect All' : 'Select All'}
+                  {isMetricsCollapsed ? (
+                    <ChevronDown className="w-4 h-4 ml-2 text-professional-gray-500" />
+                  ) : (
+                    <ChevronUp className="w-4 h-4 ml-2 text-professional-gray-500" />
+                  )}
                 </button>
+                {!isMetricsCollapsed && (
+                  <button
+                    onClick={() => {
+                      const allSelected = selectedMetricsCount === 8;
+                      setSelectedMetrics({
+                        meetingAttendance: !allSelected,
+                        dreamsCreated: !allSelected,
+                        dreamsCompleted: !allSelected,
+                        publicDreamTitles: !allSelected,
+                        dreamCategories: !allSelected,
+                        goalsCreated: !allSelected,
+                        goalsCompleted: !allSelected,
+                        userEngagement: !allSelected
+                      });
+                    }}
+                    className="text-xs text-netsurit-red hover:text-netsurit-coral font-medium"
+                  >
+                    {selectedMetricsCount === 8 ? 'Deselect All' : 'Select All'}
+                  </button>
+                )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 rounded-lg p-3">
-                {[
-                  { key: 'meetingAttendance', label: 'Meeting Attendance', icon: Users },
-                  { key: 'dreamsCreated', label: 'Dreams Created', icon: Target },
-                  { key: 'dreamsCompleted', label: 'Dreams Completed', icon: CheckCircle2 },
-                  { key: 'publicDreamTitles', label: 'Public Dream Titles', icon: Eye },
-                  { key: 'dreamCategories', label: 'Dream Categories', icon: Grid },
-                  { key: 'goalsCreated', label: 'Goals Created', icon: Target },
-                  { key: 'goalsCompleted', label: 'Goals Completed', icon: CheckCircle2 },
-                  { key: 'userEngagement', label: 'User Engagement', icon: TrendingUp }
-                ].map(({ key, label, icon: Icon }) => (
-                  <label key={key} htmlFor={key} className="flex items-center space-x-2 cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors">
-                    <input
-                      type="checkbox"
-                      id={key}
-                      checked={selectedMetrics[key] || false}
-                      onChange={() => handleMetricToggle(key)}
-                      className="h-4 w-4 text-netsurit-red focus:ring-netsurit-red border-professional-gray-300 rounded"
-                    />
-                    <Icon className="w-3.5 h-3.5 text-professional-gray-600 flex-shrink-0" />
-                    <span className="text-xs font-medium text-professional-gray-900">{label}</span>
-                  </label>
-                ))}
-              </div>
+              {!isMetricsCollapsed && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 rounded-lg p-3">
+                  {[
+                    { key: 'meetingAttendance', label: 'Meeting Attendance', icon: Users },
+                    { key: 'dreamsCreated', label: 'Dreams Created', icon: Target },
+                    { key: 'dreamsCompleted', label: 'Dreams Completed', icon: CheckCircle2 },
+                    { key: 'publicDreamTitles', label: 'Public Dream Titles', icon: Eye },
+                    { key: 'dreamCategories', label: 'Dream Categories', icon: Grid },
+                    { key: 'goalsCreated', label: 'Goals Created', icon: Target },
+                    { key: 'goalsCompleted', label: 'Goals Completed', icon: CheckCircle2 },
+                    { key: 'userEngagement', label: 'User Engagement', icon: TrendingUp }
+                  ].map(({ key, label, icon: Icon }) => (
+                    <label key={key} htmlFor={key} className="flex items-center space-x-2 cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors">
+                      <input
+                        type="checkbox"
+                        id={key}
+                        checked={selectedMetrics[key] || false}
+                        onChange={() => handleMetricToggle(key)}
+                        className="h-4 w-4 text-netsurit-red focus:ring-netsurit-red border-professional-gray-300 rounded"
+                      />
+                      <Icon className="w-3.5 h-3.5 text-professional-gray-600 flex-shrink-0" />
+                      <span className="text-xs font-medium text-professional-gray-900">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Filters */}

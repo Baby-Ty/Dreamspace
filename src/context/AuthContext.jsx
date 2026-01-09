@@ -4,6 +4,7 @@ import { loginRequest } from '../auth/authConfig';
 import databaseService from '../services/databaseService';
 import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
 import { GraphService } from '../services/graphService';
+import { apiClient } from '../services/apiClient';
 
 const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loginError, setLoginError] = useState(null);
 
-  // Token getter function (memoized to prevent unnecessary re-renders)
+  // Token getter function for Microsoft Graph API (memoized to prevent unnecessary re-renders)
   const getToken = useCallback(async () => {
     if (accounts.length === 0) {
       return null;
@@ -31,6 +32,34 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   }, [accounts, instance]);
+
+  // API Token getter function for our backend API (returns ID token, not access token)
+  // The ID token has audience = our client ID, suitable for our own API validation
+  const getApiToken = useCallback(async () => {
+    if (accounts.length === 0) {
+      return null;
+    }
+    
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0]
+      });
+      // Return ID token for our API (not access token which is for Graph)
+      return response.idToken;
+    } catch (error) {
+      console.error('Failed to acquire API token:', error);
+      return null;
+    }
+  }, [accounts, instance]);
+
+  // Wire up apiClient with token getter when user is authenticated
+  useEffect(() => {
+    if (user && getApiToken) {
+      apiClient.setTokenGetter(getApiToken);
+      console.log('🔐 API Client wired with authentication token');
+    }
+  }, [user, getApiToken]);
 
   // Create authenticated fetch and graph service
   const authedFetch = useAuthenticatedFetch(getToken);
@@ -398,6 +427,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Clear API client token before logout
+      apiClient.clearTokenGetter();
+      
       // Microsoft logout
       await instance.logoutPopup({
         postLogoutRedirectUri: window.location.origin
@@ -470,7 +502,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     refreshUserRole,
     clearLoginError: () => setLoginError(null),
-    getToken,
+    getToken,       // For Microsoft Graph API (access token)
+    getApiToken,    // For our backend API (ID token)
     graph
   };
 

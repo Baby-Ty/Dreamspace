@@ -4,11 +4,10 @@
 // Scoring service for managing scoring in the 6-container architecture
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 class ScoringService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     console.log('🏆 Scoring Service initialized');
   }
 
@@ -21,11 +20,9 @@ class ScoringService {
   async getScoring(userId, year) {
     try {
       const encodedUserId = encodeURIComponent(userId);
-      const url = `${this.apiBase}/getScoring/${encodedUserId}?year=${year}`;
-
       console.log('📂 Loading scoring:', { userId, year });
 
-      const response = await fetch(url);
+      const response = await apiClient.get(`/getScoring/${encodedUserId}?year=${year}`);
 
       if (response.ok) {
         const scoringDoc = await response.json();
@@ -50,11 +47,9 @@ class ScoringService {
   async getAllYearsScoring(userId) {
     try {
       const encodedUserId = encodeURIComponent(userId);
-      const url = `${this.apiBase}/getAllYearsScoring/${encodedUserId}`;
-
       console.log('📂 Loading all-time scoring:', { userId });
 
-      const response = await fetch(url);
+      const response = await apiClient.get(`/getAllYearsScoring/${encodedUserId}`);
 
       if (response.ok) {
         const allYears = await response.json();
@@ -90,16 +85,10 @@ class ScoringService {
     try {
       console.log('💾 Adding scoring entry:', { userId, year, source: entry.source, points: entry.points });
 
-      const response = await fetch(`${this.apiBase}/saveScoring`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          year,
-          entry
-        })
+      const response = await apiClient.post('/saveScoring', {
+        userId,
+        year,
+        entry
       });
 
       const responseText = await response.text();

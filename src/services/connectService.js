@@ -4,11 +4,11 @@
 // Connect service for managing dream connects in the 6-container architecture
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 class ConnectService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+    console.log('🔗 Connect Service initialized');
   }
 
   /**
@@ -19,15 +19,9 @@ class ConnectService {
    */
   async saveConnect(userId, connectData) {
     try {
-      const response = await fetch(`${this.apiBase}/saveConnect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          connectData
-        })
+      const response = await apiClient.post('/saveConnect', {
+        userId,
+        connectData
       });
 
       const responseText = await response.text();
@@ -69,9 +63,7 @@ class ConnectService {
   async getConnects(userId) {
     try {
       const encodedUserId = encodeURIComponent(userId);
-      const url = `${this.apiBase}/getConnects/${encodedUserId}`;
-
-      const response = await fetch(url);
+      const response = await apiClient.get(`/getConnects/${encodedUserId}`);
 
       if (response.ok) {
         const connects = await response.json();
@@ -97,9 +89,8 @@ class ConnectService {
    */
   async deleteConnect(userId, connectId) {
     try {
-      const response = await fetch(
-        `${this.apiBase}/deleteConnect/${encodeURIComponent(connectId)}?userId=${encodeURIComponent(userId)}`,
-        { method: 'DELETE' }
+      const response = await apiClient.delete(
+        `/deleteConnect/${encodeURIComponent(connectId)}?userId=${encodeURIComponent(userId)}`
       );
 
       if (response.ok) {

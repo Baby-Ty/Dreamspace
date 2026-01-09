@@ -3,6 +3,7 @@
 
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
+import { apiClient } from './apiClient.js';
 
 /**
  * Coaching Service for DreamSpace
@@ -11,12 +12,10 @@ import { ErrorCodes } from '../constants/errors.js';
 class CoachingService {
   constructor() {
     const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
     this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     console.log('👥🎯 Coaching Service initialized:', {
-      useCosmosDB: this.useCosmosDB,
-      apiBase: this.apiBase
+      useCosmosDB: this.useCosmosDB
     });
   }
 
@@ -28,12 +27,7 @@ class CoachingService {
   async getCoachingAlerts(managerId) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getCoachingAlerts/${managerId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get(`/getCoachingAlerts/${managerId}`);
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -67,12 +61,7 @@ class CoachingService {
     
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/getTeamMetrics/${managerId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get(`/getTeamMetrics/${managerId}`);
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
@@ -125,17 +114,11 @@ class CoachingService {
     try {
       console.log('💬 Adding coach message:', { memberId, dreamId, coachId: coachId || 'user', messageLength: message.length });
 
-      const response = await fetch(`${this.apiBase}/saveCoachMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          memberId,
-          dreamId,
-          message,
-          coachId
-        })
+      const response = await apiClient.post('/saveCoachMessage', {
+        memberId,
+        dreamId,
+        message,
+        coachId
       });
 
       const responseText = await response.text();
@@ -191,13 +174,7 @@ class CoachingService {
   async updateTeamMission(managerId, mission) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/updateTeamMission/${managerId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ mission })
-        });
+        const response = await apiClient.post(`/updateTeamMission/${managerId}`, { mission });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
@@ -227,13 +204,7 @@ class CoachingService {
   async updateTeamInfo(managerId, teamInfo) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/updateTeamInfo/${managerId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(teamInfo)
-        });
+        const response = await apiClient.post(`/updateTeamInfo/${managerId}`, teamInfo);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
@@ -265,13 +236,7 @@ class CoachingService {
       if (this.useCosmosDB) {
         // Use updateTeamMission endpoint structure - we'll need to create a dedicated endpoint later
         // For now, we'll use a workaround by updating via team relationships
-        const response = await fetch(`${this.apiBase}/updateTeamName/${managerId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ teamName })
-        });
+        const response = await apiClient.post(`/updateTeamName/${managerId}`, { teamName });
 
         if (!response.ok) {
           // If endpoint doesn't exist, fall back to localStorage
@@ -308,13 +273,7 @@ class CoachingService {
   async updateTeamMeeting(managerId, meeting) {
     try {
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/updateTeamMeeting/${managerId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meeting })
-        });
+        const response = await apiClient.post(`/updateTeamMeeting/${managerId}`, { meeting });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
@@ -348,13 +307,7 @@ class CoachingService {
       }
       
       if (this.useCosmosDB) {
-        const response = await fetch(`${this.apiBase}/saveMeetingAttendance/${teamId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(meetingData)
-        });
+        const response = await apiClient.post(`/saveMeetingAttendance/${teamId}`, meetingData);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ 
@@ -393,15 +346,10 @@ class CoachingService {
       }
       
       if (this.useCosmosDB) {
-        const url = `${this.apiBase}/getMeetingAttendance/${encodeURIComponent(teamId)}`;
-        console.log('📞 Fetching meeting attendance history from:', url);
+        const endpoint = `/getMeetingAttendance/${encodeURIComponent(teamId)}`;
+        console.log('📞 Fetching meeting attendance history from:', apiClient.getBaseUrl() + endpoint);
         
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        const response = await apiClient.get(endpoint);
 
         console.log('📥 Response status:', response.status, response.statusText);
 
@@ -480,13 +428,7 @@ class CoachingService {
         return fail(ErrorCodes.VALIDATION, 'Access token is required for calendar operations');
       }
 
-      const response = await fetch(`${this.apiBase}/scheduleMeetingWithCalendar/${encodeURIComponent(teamId)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(meetingData)
-      });
+      const response = await apiClient.post(`/scheduleMeetingWithCalendar/${encodeURIComponent(teamId)}`, meetingData);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ 
