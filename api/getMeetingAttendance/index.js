@@ -55,10 +55,10 @@ module.exports = async function (context, req) {
   try {
     const attendanceContainer = cosmosProvider.getContainer('meeting_attendance');
     
-    // Query meetings for this team, ordered by date descending
-    // Note: Using single field ORDER BY to avoid composite index requirement
+    // Query meetings for this team without ORDER BY to avoid composite index requirement
+    // Sort in JavaScript instead (more reliable than SQL ORDER BY with Cosmos DB)
     const query = {
-      query: 'SELECT * FROM c WHERE c.teamId = @teamId ORDER BY c.date DESC',
+      query: 'SELECT * FROM c WHERE c.teamId = @teamId',
       parameters: [
         { name: '@teamId', value: teamId }
       ]
@@ -68,6 +68,13 @@ module.exports = async function (context, req) {
     
     // Clean metadata from results
     const meetings = resources.map(meeting => cosmosProvider.cleanMetadata(meeting));
+    
+    // Sort by date descending (most recent first)
+    meetings.sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateB - dateA; // Descending order
+    });
 
     context.log(`✅ Successfully retrieved ${meetings.length} meeting records for team ${teamId}`);
 
