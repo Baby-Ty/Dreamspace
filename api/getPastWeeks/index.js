@@ -7,15 +7,11 @@
  */
 
 const { getCosmosProvider } = require('../utils/cosmosProvider');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
   // CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -36,6 +32,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only access their own past weeks data
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   try {

@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireAuth, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, usersContainer, teamsContainer, alertsContainer;
@@ -17,17 +18,19 @@ module.exports = async function (context, req) {
   const managerId = context.bindingData.managerId;
 
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Authenticated users only
+  if (isAuthRequired()) {
+    const user = await requireAuth(context, req);
+    if (!user) return; // 401 already sent
+    context.log(`User ${user.email} accessing coaching alerts for ${managerId}`);
   }
 
   if (!managerId) {

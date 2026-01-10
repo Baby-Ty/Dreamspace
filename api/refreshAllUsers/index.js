@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireAuth, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, container;
@@ -13,17 +14,19 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Authenticated users only
+  if (isAuthRequired()) {
+    const user = await requireAuth(context, req);
+    if (!user) return; // 401 already sent
+    context.log(`User ${user.email} refreshing all users`);
   }
 
   // Check if Cosmos DB is configured

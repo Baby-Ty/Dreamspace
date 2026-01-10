@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, scoringContainer;
@@ -16,12 +17,7 @@ module.exports = async function (context, req) {
   const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -36,6 +32,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only access their own scoring data
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   // Check if Cosmos DB is configured

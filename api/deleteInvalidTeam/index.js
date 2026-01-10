@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, teamsContainer;
@@ -13,17 +14,18 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Only admins can delete invalid teams
+  if (isAuthRequired()) {
+    const user = await requireAdmin(context, req);
+    if (!user) return; // 401/403 already sent
   }
 
   const teamName = context.bindingData.teamName;

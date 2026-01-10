@@ -4,20 +4,23 @@
  */
 
 const { getCosmosProvider } = require('../utils/cosmosProvider');
+const { requireAuth, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Any authenticated user can generate visions (uses OpenAI credits)
+  if (isAuthRequired()) {
+    const user = await requireAuth(context, req);
+    if (!user) return; // 401 already sent
+    context.log(`User ${user.email} generating vision`);
   }
 
   const { userInput, dreams, action } = req.body || {};

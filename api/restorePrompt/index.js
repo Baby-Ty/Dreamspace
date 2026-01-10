@@ -4,20 +4,22 @@
  */
 
 const { getCosmosProvider } = require('../utils/cosmosProvider');
+const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Only admins can restore prompts
+  if (isAuthRequired()) {
+    const user = await requireAdmin(context, req);
+    if (!user) return; // 401/403 already sent
   }
 
   const { version, modifiedBy } = req.body || {};

@@ -1,16 +1,12 @@
 const { getCosmosProvider } = require('../utils/cosmosProvider');
 const { generateMeetingId } = require('../utils/idGenerator');
+const { requireCoach, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
   const teamId = context.bindingData.teamId;
 
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -25,6 +21,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: Only coaches can save meeting attendance
+  if (isAuthRequired()) {
+    const user = await requireCoach(context, req);
+    if (!user) return; // 401/403 already sent
   }
 
   const { id, title, date, time, attendees, completedBy, isScheduledViaCalendar, calendarEventId } = req.body || {};

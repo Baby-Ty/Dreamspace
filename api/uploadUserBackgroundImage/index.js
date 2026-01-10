@@ -1,6 +1,7 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
 const https = require('https');
 const http = require('http');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Blob Service Client
 let blobServiceClient;
@@ -12,10 +13,34 @@ if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
 
 const CONTAINER_NAME = 'user-backgrounds';
 
+// SSRF Protection: Allowlist of trusted image sources
+const ALLOWED_DOMAINS = [
+  'oaidalleapiprodscus.blob.core.windows.net', // DALL-E generated images
+  'images.unsplash.com',                        // Unsplash images
+  'stdreamspace.blob.core.windows.net'          // Our own blob storage
+];
+
+/**
+ * Check if URL is from an allowed domain (SSRF protection)
+ */
+function isUrlAllowed(url) {
+  try {
+    const urlObj = new URL(url);
+    return ALLOWED_DOMAINS.some(domain => urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Fetch image from URL (server-side, no CORS issues)
  */
 function fetchImageFromUrl(url) {
+  // SSRF Protection: Only allow fetching from trusted domains
+  if (!isUrlAllowed(url)) {
+    return Promise.reject(new Error(`URL not allowed. Only images from trusted sources (DALL-E, Unsplash, Azure Blob) are permitted.`));
+  }
+
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
     const client = urlObj.protocol === 'https:' ? https : http;
@@ -38,12 +63,7 @@ function fetchImageFromUrl(url) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -62,6 +82,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only upload their own background image
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   // Check if Blob Storage is configured

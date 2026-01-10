@@ -1,5 +1,6 @@
 const { CosmosClient } = require('@azure/cosmos');
 const { getCosmosClient } = require('../utils/cosmosProvider');
+const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 /**
  * Azure Function: Upgrade User to V3 6-Container Architecture
@@ -8,17 +9,18 @@ const { getCosmosClient } = require('../utils/cosmosProvider');
  * Manually upgrades a user from v1 monolithic to v3 6-container architecture
  */
 module.exports = async function (context, req) {
+  const headers = getCorsHeaders();
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    context.res = {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    };
+    context.res = { status: 200, headers };
     return;
+  }
+
+  // AUTH CHECK: Only admins can upgrade user data structures
+  if (isAuthRequired()) {
+    const user = await requireAdmin(context, req);
+    if (!user) return; // 401/403 already sent
   }
 
   const userId = context.bindingData.userId;
@@ -27,10 +29,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 400,
       body: JSON.stringify({ error: 'User ID is required' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
     return;
   }
@@ -48,10 +47,7 @@ module.exports = async function (context, req) {
       context.res = {
         status: 404,
         body: JSON.stringify({ error: 'User not found' }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers
       };
       return;
     }
@@ -68,10 +64,7 @@ module.exports = async function (context, req) {
           message: `User is already on v${currentVersion}`,
           version: currentVersion
         }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers
       };
       return;
     }
@@ -124,10 +117,7 @@ module.exports = async function (context, req) {
         migratedDreams: dreams.length,
         migratedTemplates: templates.length
       }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
   } catch (error) {
     context.log.error('Error upgrading user:', error);
@@ -137,10 +127,7 @@ module.exports = async function (context, req) {
         error: 'Failed to upgrade user',
         details: error.message
       }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers
     };
   }
 };

@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, dreamsContainer;
@@ -15,12 +16,7 @@ module.exports = async function (context, req) {
   const userId = context.bindingData.userId;
 
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -35,6 +31,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only access their own week templates
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   // Check if Cosmos DB is configured

@@ -1,15 +1,11 @@
 const { getCosmosProvider } = require('../utils/cosmosProvider');
+const { requireCoach, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
   const teamId = context.bindingData.teamId;
 
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -24,6 +20,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: Only coaches can schedule meetings
+  if (isAuthRequired()) {
+    const user = await requireCoach(context, req);
+    if (!user) return; // 401/403 already sent
   }
 
   const { title, date, time, accessToken, teamMembers } = req.body || {};

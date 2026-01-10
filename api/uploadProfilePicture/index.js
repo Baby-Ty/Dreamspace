@@ -1,4 +1,5 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Blob Service Client
 let blobServiceClient;
@@ -12,12 +13,7 @@ const CONTAINER_NAME = 'profile-pictures';
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -36,6 +32,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only upload their own profile picture
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   // Check if Blob Storage is configured

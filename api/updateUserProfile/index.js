@@ -1,4 +1,5 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 // Initialize Cosmos client only if environment variables are present
 let client, database, container;
@@ -13,12 +14,7 @@ if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
 
 module.exports = async function (context, req) {
   // Set CORS headers
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
+  const headers = getCorsHeaders();
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -30,11 +26,11 @@ module.exports = async function (context, req) {
   const profileData = req.body;
 
   context.log('Updating user profile for userId:', userId, 'Profile data:', JSON.stringify(profileData));
-  context.log('Office/Region field mappings - region:', profileData.region, 'officeLocation:', profileData.officeLocation, 'city:', profileData.city, 'office:', profileData.office);
+  context.log('Office/Region field mappings - region:', profileData?.region, 'officeLocation:', profileData?.officeLocation, 'city:', profileData?.city, 'office:', profileData?.office);
   context.log('Card background image in request:', {
-    hasCardBackgroundImage: 'cardBackgroundImage' in profileData,
-    cardBackgroundImage: profileData.cardBackgroundImage ? profileData.cardBackgroundImage.substring(0, 80) : profileData.cardBackgroundImage,
-    type: typeof profileData.cardBackgroundImage
+    hasCardBackgroundImage: profileData && 'cardBackgroundImage' in profileData,
+    cardBackgroundImage: profileData?.cardBackgroundImage ? profileData.cardBackgroundImage.substring(0, 80) : profileData?.cardBackgroundImage,
+    type: typeof profileData?.cardBackgroundImage
   });
 
   if (!userId) {
@@ -44,6 +40,12 @@ module.exports = async function (context, req) {
       headers
     };
     return;
+  }
+
+  // AUTH CHECK: User can only update their own profile
+  if (isAuthRequired()) {
+    const user = await requireUserAccess(context, req, userId);
+    if (!user) return; // 401/403 already sent
   }
 
   if (!profileData) {
