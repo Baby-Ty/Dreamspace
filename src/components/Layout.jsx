@@ -28,13 +28,13 @@ const Layout = ({ children }) => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
     { name: 'Dream Team', href: '/dream-team', icon: UserPlus },
-    { name: 'Dream Connect', href: '/dream-connect', icon: Users },
     { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
     // Week Ahead removed - current week goals now shown on Dashboard
   ];
 
   // Coming soon items (visible but disabled)
   const comingSoonNavigation = [
+    { name: 'Dream Connect', icon: Users, previewHref: '/dream-connect' },
     { name: 'Scorecard', icon: Trophy, previewHref: '/scorecard' },
   ];
 

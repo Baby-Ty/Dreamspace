@@ -1,6 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Calendar, Check, CheckCircle2, Loader2, Clock, History } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
 import { useApp } from '../../context/AppContext';
@@ -13,11 +13,10 @@ import MeetingHistoryModal from './MeetingHistoryModal';
  * Allows coaches to track meeting attendance with yellow lined paper styling
  * @param {boolean} embedded - When true, renders without background (for use inside parent card)
  */
-export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, onComplete, embedded = false, managerId, teamData }) {
+export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, onComplete, embedded = false, managerId }) {
   const { currentUser } = useApp();
   const { getToken } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [meetingData, setMeetingData] = useState({
@@ -28,21 +27,62 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
   const [attendance, setAttendance] = useState({});
   const [isScheduledViaCalendar, setIsScheduledViaCalendar] = useState(false);
   const [calendarEventId, setCalendarEventId] = useState(null);
-  const saveTimeoutRef = useRef(null);
+  const [currentMeetingId, setCurrentMeetingId] = useState(null); // ID of scheduled meeting being edited
+  const [isLoadingScheduled, setIsLoadingScheduled] = useState(false);
 
-  // Load meeting draft from teamData on mount
+  // Load most recent scheduled meeting on mount
   useEffect(() => {
-    if (teamData?.meetingDraft && isCoach) {
-      setMeetingData({
-        title: teamData.meetingDraft.title || '',
-        date: teamData.meetingDraft.date || new Date().toISOString().split('T')[0],
-        time: teamData.meetingDraft.time || ''
-      });
-    }
-  }, [teamData, isCoach]);
+    const loadScheduledMeeting = async () => {
+      if (!teamId || !isCoach) return;
+      
+      setIsLoadingScheduled(true);
+      try {
+        const result = await coachingService.getMeetingAttendanceHistory(teamId);
+        if (result.success && result.data && result.data.length > 0) {
+          // Find the most recent scheduled meeting
+          const scheduledMeeting = result.data.find(m => (m.status || 'completed') === 'scheduled');
+          
+          if (scheduledMeeting) {
+            console.log('📅 Loading scheduled meeting:', scheduledMeeting);
+            setMeetingData({
+              title: scheduledMeeting.title || '',
+              date: scheduledMeeting.date || new Date().toISOString().split('T')[0],
+              time: scheduledMeeting.time || ''
+            });
+            setCurrentMeetingId(scheduledMeeting.id);
+            setIsScheduledViaCalendar(scheduledMeeting.isScheduledViaCalendar || false);
+            setCalendarEventId(scheduledMeeting.calendarEventId || null);
+            
+            // Pre-populate attendance from scheduled meeting
+            if (scheduledMeeting.attendees && Array.isArray(scheduledMeeting.attendees)) {
+              const attendanceMap = {};
+              scheduledMeeting.attendees.forEach(attendee => {
+                attendanceMap[attendee.id] = {
+                  id: attendee.id,
+                  name: attendee.name,
+                  present: attendee.present || false
+                };
+              });
+              setAttendance(attendanceMap);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load scheduled meeting:', error);
+      } finally {
+        setIsLoadingScheduled(false);
+      }
+    };
+    
+    loadScheduledMeeting();
+  }, [teamId, isCoach]);
 
   // Initialize attendance state with ALL team members INCLUDING coach
+  // Only initialize if no scheduled meeting was loaded
   useEffect(() => {
+    // Skip if we already have attendance loaded from scheduled meeting
+    if (Object.keys(attendance).length > 0) return;
+    
     const allMembers = teamMembers || [];
     const initialAttendance = {};
     allMembers.forEach(member => {
@@ -53,45 +93,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
       };
     });
     setAttendance(initialAttendance);
-  }, [teamMembers]);
-
-  // Auto-save meeting draft when title, date, or time changes (debounced)
-  useEffect(() => {
-    if (!isCoach || !managerId) return;
-
-    // Clear existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    // Set new timeout to save after 1 second of no changes
-    saveTimeoutRef.current = setTimeout(async () => {
-      if (meetingData.title || meetingData.date || meetingData.time) {
-        setIsSavingDraft(true);
-        try {
-          await coachingService.updateTeamInfo(managerId, {
-            meetingDraft: {
-              title: meetingData.title,
-              date: meetingData.date,
-              time: meetingData.time
-            }
-          });
-        } catch (error) {
-          console.error('Failed to save meeting draft:', error);
-          // Don't show error toast for draft saves - silent failure is OK
-        } finally {
-          setIsSavingDraft(false);
-        }
-      }
-    }, 1000);
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [meetingData.title, meetingData.date, meetingData.time, isCoach, managerId]);
+  }, [teamMembers, attendance]);
 
   const handleToggleAttendance = (memberId) => {
     if (!isCoach) return;
@@ -157,7 +159,9 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
       if (result.success) {
         setIsScheduledViaCalendar(true);
         setCalendarEventId(result.data?.calendarEventId || null);
+        setCurrentMeetingId(result.data?.meetingId || null); // Store the meeting ID
         showToast('Meeting scheduled! Calendar invites sent to all team members.', 'success');
+        // Form stays populated with scheduled meeting details
       } else {
         showToast(result.error || 'Failed to schedule meeting', 'error');
       }
@@ -189,13 +193,15 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     try {
       const attendees = Object.values(attendance);
       const result = await coachingService.saveMeetingAttendance(teamId, {
+        id: currentMeetingId, // Include ID if updating a scheduled meeting
         title: meetingData.title.trim(),
         date: meetingData.date,
         time: meetingData.time || undefined,
         attendees: attendees,
         completedBy: currentUser?.id || currentUser?.userId,
         isScheduledViaCalendar: isScheduledViaCalendar,
-        calendarEventId: calendarEventId || undefined
+        calendarEventId: calendarEventId || undefined,
+        status: 'completed' // Mark as completed
       });
 
       if (result.success) {
@@ -219,10 +225,46 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
         });
         setIsScheduledViaCalendar(false);
         setCalendarEventId(null);
+        setCurrentMeetingId(null); // Clear the meeting ID
 
         if (onComplete) {
           onComplete(result.data);
         }
+        
+        // Reload any scheduled meetings after a delay
+        setTimeout(async () => {
+          try {
+            const historyResult = await coachingService.getMeetingAttendanceHistory(teamId);
+            if (historyResult.success && historyResult.data && historyResult.data.length > 0) {
+              const nextScheduled = historyResult.data.find(m => (m.status || 'completed') === 'scheduled');
+              if (nextScheduled) {
+                console.log('📅 Loading next scheduled meeting:', nextScheduled);
+                setMeetingData({
+                  title: nextScheduled.title || '',
+                  date: nextScheduled.date || new Date().toISOString().split('T')[0],
+                  time: nextScheduled.time || ''
+                });
+                setCurrentMeetingId(nextScheduled.id);
+                setIsScheduledViaCalendar(nextScheduled.isScheduledViaCalendar || false);
+                setCalendarEventId(nextScheduled.calendarEventId || null);
+                
+                if (nextScheduled.attendees && Array.isArray(nextScheduled.attendees)) {
+                  const attendanceMap = {};
+                  nextScheduled.attendees.forEach(attendee => {
+                    attendanceMap[attendee.id] = {
+                      id: attendee.id,
+                      name: attendee.name,
+                      present: attendee.present || false
+                    };
+                  });
+                  setAttendance(attendanceMap);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load next scheduled meeting:', error);
+          }
+        }, 500);
       } else {
         showToast(result.error || 'Failed to save meeting attendance', 'error');
       }
@@ -264,7 +306,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
               value={meetingData.title}
               onChange={(e) => setMeetingData({ ...meetingData, title: e.target.value })}
               placeholder="e.g., Weekly Team Sync"
-              disabled={!isCoach}
+              disabled={!isCoach || isLoadingScheduled}
               className={`w-full px-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg text-[#4a3b22] font-hand text-base ${
                 isCoach 
                   ? 'focus:outline-none focus:ring-2 focus:ring-[#8a7a50] cursor-text' 
@@ -273,7 +315,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
               style={{ height: '28px', lineHeight: '28px' }}
               data-testid="meeting-title-input"
             />
-            {isSavingDraft && (
+            {isLoadingScheduled && (
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 <Loader2 className="h-3 w-3 animate-spin text-[#8a7a50]" />
               </div>
@@ -527,8 +569,7 @@ MeetingAttendanceCard.propTypes = {
   isCoach: PropTypes.bool,
   onComplete: PropTypes.func,
   embedded: PropTypes.bool,
-  managerId: PropTypes.string,
-  teamData: PropTypes.object
+  managerId: PropTypes.string
 };
 
 MeetingAttendanceCard.defaultProps = {
@@ -537,7 +578,6 @@ MeetingAttendanceCard.defaultProps = {
   isCoach: false,
   onComplete: null,
   embedded: false,
-  managerId: null,
-  teamData: null
+  managerId: null
 };
 

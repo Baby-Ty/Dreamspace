@@ -390,8 +390,33 @@ class CoachingService {
         console.log('📥 API response:', result);
         
         // Handle both response formats: { success: true, meetings: [...] } or just { meetings: [...] }
-        const meetings = result.meetings || (result.success ? result.data : []) || [];
-        console.log('✅ Retrieved meeting attendance history:', meetings.length);
+        let meetings = result.meetings || (result.success ? result.data : []) || [];
+        
+        // Sort meetings: scheduled first (by date DESC), then completed (by completedAt DESC)
+        // Default status to 'completed' for backwards compatibility
+        meetings = meetings.sort((a, b) => {
+          const aStatus = a.status || 'completed';
+          const bStatus = b.status || 'completed';
+          
+          // Scheduled meetings come first
+          if (aStatus === 'scheduled' && bStatus === 'completed') return -1;
+          if (aStatus === 'completed' && bStatus === 'scheduled') return 1;
+          
+          // Within same status, sort by date (most recent first)
+          if (aStatus === 'scheduled' && bStatus === 'scheduled') {
+            return new Date(b.date) - new Date(a.date);
+          }
+          
+          // For completed meetings, sort by completedAt
+          const aDate = new Date(a.completedAt || a.date);
+          const bDate = new Date(b.completedAt || b.date);
+          return bDate - aDate;
+        });
+        
+        console.log('✅ Retrieved meeting attendance history:', meetings.length, {
+          scheduled: meetings.filter(m => (m.status || 'completed') === 'scheduled').length,
+          completed: meetings.filter(m => (m.status || 'completed') === 'completed').length
+        });
         return ok(meetings);
       } else {
         // Fallback to localStorage for development

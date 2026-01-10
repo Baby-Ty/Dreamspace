@@ -43,9 +43,9 @@ export default function PromptEditorSection() {
   
   // Collapsible section states
   const [expandedSections, setExpandedSections] = useState({
-    imageGeneration: true,
-    visionGeneration: true,
-    styleModifiers: true
+    imageGeneration: false,
+    visionGeneration: false,
+    styleModifiers: false
   });
 
   // Load prompts on mount

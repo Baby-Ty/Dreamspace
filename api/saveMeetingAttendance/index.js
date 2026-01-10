@@ -29,14 +29,42 @@ module.exports = async function (context, req) {
     if (!user) return; // 401/403 already sent
   }
 
-  const { id, title, date, time, attendees, completedBy, isScheduledViaCalendar, calendarEventId } = req.body || {};
+  const { id, title, date, time, attendees, completedBy, isScheduledViaCalendar, calendarEventId, status } = req.body || {};
 
-  if (!title || !date || !attendees || !Array.isArray(attendees)) {
+  if (!title || !date) {
     context.res = {
       status: 400,
       body: JSON.stringify({ 
         error: 'Invalid meeting data',
-        details: 'title, date, and attendees array are required'
+        details: 'title and date are required'
+      }),
+      headers
+    };
+    return;
+  }
+
+  // Validate status field if provided
+  const meetingStatus = status || 'completed'; // Default to 'completed' for backwards compatibility
+  if (!['scheduled', 'completed'].includes(meetingStatus)) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ 
+        error: 'Invalid status',
+        details: 'status must be either "scheduled" or "completed"'
+      }),
+      headers
+    };
+    return;
+  }
+
+  // For scheduled meetings, attendees are optional (will be filled in later)
+  // For completed meetings, attendees are required
+  if (meetingStatus === 'completed' && (!attendees || !Array.isArray(attendees))) {
+    context.res = {
+      status: 400,
+      body: JSON.stringify({ 
+        error: 'Invalid meeting data',
+        details: 'attendees array is required for completed meetings'
       }),
       headers
     };
@@ -90,31 +118,33 @@ module.exports = async function (context, req) {
       return;
     }
     
-    // Validate attendees array has valid structure
-    if (!Array.isArray(attendees) || attendees.length === 0) {
-      context.res = {
-        status: 400,
-        body: JSON.stringify({ 
-          error: 'Invalid attendees data',
-          details: 'attendees must be a non-empty array'
-        }),
-        headers
-      };
-      return;
-    }
-    
-    // Validate each attendee has required fields
-    const invalidAttendees = attendees.filter(a => !a.id || !a.name);
-    if (invalidAttendees.length > 0) {
-      context.res = {
-        status: 400,
-        body: JSON.stringify({ 
-          error: 'Invalid attendee data',
-          details: 'All attendees must have id and name fields'
-        }),
-        headers
-      };
-      return;
+    // Validate attendees array has valid structure (only for completed meetings)
+    if (meetingStatus === 'completed') {
+      if (!Array.isArray(attendees) || attendees.length === 0) {
+        context.res = {
+          status: 400,
+          body: JSON.stringify({ 
+            error: 'Invalid attendees data',
+            details: 'attendees must be a non-empty array for completed meetings'
+          }),
+          headers
+        };
+        return;
+      }
+      
+      // Validate each attendee has required fields
+      const invalidAttendees = attendees.filter(a => !a.id || !a.name);
+      if (invalidAttendees.length > 0) {
+        context.res = {
+          status: 400,
+          body: JSON.stringify({ 
+            error: 'Invalid attendee data',
+            details: 'All attendees must have id and name fields'
+          }),
+          headers
+        };
+        return;
+      }
     }
     
     // Create or update meeting attendance record
@@ -141,14 +171,23 @@ module.exports = async function (context, req) {
       title: title.trim(),
       date: date,
       time: time || undefined, // Optional time field (HH:MM format)
-      attendees: attendees.map(attendee => ({
+      status: meetingStatus, // 'scheduled' or 'completed'
+      attendees: attendees ? attendees.map(attendee => ({
         id: attendee.id,
         name: attendee.name.trim(),
         present: attendee.present || false
-      })),
-      // Preserve completedAt for updates, set new timestamp for creates
-      completedAt: existingRecord?.completedAt || new Date().toISOString(),
-      completedBy: completedBy || existingRecord?.completedBy || trimmedTeamId,
+      })) : (existingRecord?.attendees || []),
+      // Set scheduledAt when first creating a scheduled meeting
+      scheduledAt: (meetingStatus === 'scheduled' && !existingRecord) 
+        ? new Date().toISOString() 
+        : (existingRecord?.scheduledAt || undefined),
+      // Set completedAt when status is completed
+      completedAt: meetingStatus === 'completed' 
+        ? (existingRecord?.completedAt || new Date().toISOString())
+        : undefined,
+      completedBy: meetingStatus === 'completed'
+        ? (completedBy || existingRecord?.completedBy || trimmedTeamId)
+        : undefined,
       isScheduledViaCalendar: isScheduledViaCalendar !== undefined ? isScheduledViaCalendar : (existingRecord?.isScheduledViaCalendar || false),
       calendarEventId: calendarEventId || existingRecord?.calendarEventId || undefined
     };
@@ -158,6 +197,7 @@ module.exports = async function (context, req) {
       teamId: trimmedTeamId,
       title: meetingRecord.title,
       date: meetingRecord.date,
+      status: meetingRecord.status,
       attendeeCount: meetingRecord.attendees.length,
       isUpdate: isUpdate,
       containerName: 'meeting_attendance'
@@ -172,6 +212,7 @@ module.exports = async function (context, req) {
       documentId: resource.id,
       teamId: resource.teamId,
       title: resource.title,
+      status: resource.status,
       isUpdate: isUpdate
     });
 

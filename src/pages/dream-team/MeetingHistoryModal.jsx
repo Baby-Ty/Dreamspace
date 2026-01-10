@@ -158,7 +158,8 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
         attendees: attendees,
         completedBy: currentUser?.id || currentUser?.userId,
         isScheduledViaCalendar: meeting.isScheduledViaCalendar || false,
-        calendarEventId: meeting.calendarEventId || undefined
+        calendarEventId: meeting.calendarEventId || undefined,
+        status: meeting.status || 'completed' // Preserve existing status
       });
 
       if (result.success) {
@@ -254,6 +255,7 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
                 const attendeesToDisplay = isEditing ? Object.values(editedAttendees) : (meeting.attendees || []);
                 const presentCount = attendeesToDisplay.filter(a => a.present).length || 0;
                 const totalCount = attendeesToDisplay.length || 0;
+                const meetingStatus = meeting.status || 'completed'; // Default to completed for backwards compatibility
                 
                 return (
                   <div
@@ -261,7 +263,9 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
                     className={`bg-white/80 rounded-lg p-4 border-2 transition-shadow ${
                       isEditing 
                         ? 'border-[#4a3b22] shadow-md' 
-                        : 'border-[#8a7a50]/30 shadow-sm hover:shadow-md'
+                        : meetingStatus === 'scheduled'
+                          ? 'border-[#8a7a50] shadow-md' // Highlighted border for scheduled meetings
+                          : 'border-[#8a7a50]/30 shadow-sm hover:shadow-md'
                     }`}
                     data-testid={`meeting-history-item-${meeting.id}`}
                   >
@@ -281,6 +285,16 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
                               <Clock className="w-4 h-4" aria-hidden="true" />
                               <span>{formatTime(meeting.time)}</span>
                             </div>
+                          )}
+                          {/* Status Badge */}
+                          {meetingStatus === 'scheduled' ? (
+                            <span className="px-2 py-1 bg-[#8a7a50] text-[#fef9c3] rounded text-xs font-semibold">
+                              Scheduled
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 bg-[#4a3b22]/10 text-[#4a3b22] rounded text-xs font-semibold">
+                              Completed
+                            </span>
                           )}
                           {meeting.isScheduledViaCalendar && (
                             <span className="px-2 py-1 bg-[#4a3b22]/10 text-[#4a3b22] rounded text-xs font-semibold">

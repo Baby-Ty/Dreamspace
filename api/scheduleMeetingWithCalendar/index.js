@@ -1,4 +1,5 @@
 const { getCosmosProvider } = require('../utils/cosmosProvider');
+const { generateMeetingId } = require('../utils/idGenerator');
 const { requireCoach, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
 
 module.exports = async function (context, req) {
@@ -206,11 +207,52 @@ module.exports = async function (context, req) {
       title: title
     });
 
+    // Save scheduled meeting to database
+    const attendanceContainer = cosmosProvider.getContainer('meeting_attendance');
+    const trimmedTeamId = teamId.trim();
+    const meetingId = generateMeetingId(trimmedTeamId);
+
+    const meetingRecord = {
+      id: meetingId,
+      teamId: trimmedTeamId,
+      title: title.trim(),
+      date: date,
+      time: time,
+      status: 'scheduled',
+      attendees: teamMembers.map(member => ({
+        id: member.id,
+        name: member.name,
+        present: false // Will be updated when meeting is completed
+      })),
+      scheduledAt: new Date().toISOString(),
+      isScheduledViaCalendar: true,
+      calendarEventId: calendarEventId
+    };
+
+    context.log(`💾 Saving scheduled meeting to database:`, {
+      meetingId,
+      teamId: trimmedTeamId,
+      title: meetingRecord.title
+    });
+
+    try {
+      const { resource } = await attendanceContainer.items.upsert(meetingRecord);
+      context.log(`✅ Successfully saved scheduled meeting to database`, {
+        meetingId: resource.id,
+        teamId: resource.teamId
+      });
+    } catch (dbError) {
+      context.log.error('⚠️ Failed to save scheduled meeting to database (calendar event was created):', dbError);
+      // Don't fail the whole request - calendar event was created successfully
+      // The frontend can still work, but the scheduled meeting won't persist in the form
+    }
+
     context.res = {
       status: 200,
       body: JSON.stringify({
         success: true,
         data: {
+          meetingId: meetingId,
           calendarEventId: calendarEventId,
           eventWebLink: eventData.webLink,
           startDateTime: startDateTime,
