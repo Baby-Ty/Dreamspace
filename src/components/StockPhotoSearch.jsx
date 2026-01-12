@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Download, X, Loader2, Image } from 'lucide-react';
 import { UnsplashService } from '../services/unsplashService';
 import { ErrorCodes } from '../constants/errors';
+import { MOCK_API_DELAY } from '../constants/timing';
 
 const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
   const [photos, setPhotos] = useState([]);
@@ -29,7 +30,7 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
         if (result.error.code === ErrorCodes.INVALID_CONFIG) {
           console.log('Using demo mode - add real Unsplash API key to use live search');
           const mockPhotos = getMockPhotos(searchQuery);
-          await new Promise(resolve => setTimeout(resolve, 800));
+          await new Promise(resolve => setTimeout(resolve, MOCK_API_DELAY));
           setPhotos(mockPhotos);
           return;
         }

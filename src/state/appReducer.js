@@ -238,10 +238,6 @@ export const appReducer = (state, action) => {
         };
       }
 
-    // UPDATE_MILESTONE_STREAK is deprecated - goals track completion directly now
-    case actionTypes.UPDATE_MILESTONE_STREAK:
-      console.warn('UPDATE_MILESTONE_STREAK is deprecated - goals track completion directly');
-      return state;
 
     case actionTypes.SET_SCORING_HISTORY:
       // Handle both legacy format (array) and new format (object with allYearsScoring)

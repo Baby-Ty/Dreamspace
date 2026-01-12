@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Save } from 'lucide-react';
+import { SUCCESS_NOTIFICATION_DURATION } from '../constants/timing';
 
 const SaveStatus = () => {
   const [showSaved, setShowSaved] = useState(false);

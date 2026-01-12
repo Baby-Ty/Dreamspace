@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { X, Calendar, MapPin, Copy, CheckCircle } from 'lucide-react';
 import ConnectStatusBadge from './ConnectStatusBadge';
 import { parseIsoWeek } from '../../utils/dateUtils';
+import { CLIPBOARD_FEEDBACK_DURATION } from '../../constants/timing';
 
 /**
  * ConnectDetailModal Component (Simplified)
@@ -68,7 +69,7 @@ export default function ConnectDetailModal({ connect, onClose, onUpdateStatus, r
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), CLIPBOARD_FEEDBACK_DURATION);
     } catch (err) {
       console.error('Failed to copy:', err);
       alert('Failed to copy message. Please copy manually.');
