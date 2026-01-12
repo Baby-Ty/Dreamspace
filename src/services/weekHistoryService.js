@@ -4,10 +4,7 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { logger } from '../utils/logger.js';
-
-// Use direct function app URL on live site (same pattern as other services)
-const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-const API_BASE_URL = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+import { apiClient } from './apiClient.js';
 
 /**
  * Week History Service
@@ -23,12 +20,7 @@ export async function getPastWeeks(userId) {
   try {
     logger.info('weekHistoryService', 'Getting past weeks history', { userId });
 
-    const response = await fetch(`${API_BASE_URL}/getPastWeeks/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiClient.get(`/getPastWeeks/${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

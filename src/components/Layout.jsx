@@ -23,12 +23,19 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const { user, userRole, logout } = useAuth();
 
-  // Active navigation items (pilot scope)
+  // Check user role for navigation filtering
+  // Use roles object as source of truth (not the derived role string)
+  const isAdmin = user?.roles?.admin === true;
+
+  // Active navigation items (pilot scope) - role-based filtering
   const activeNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Dream Book', href: '/dream-book', icon: BookOpen },
-    { name: 'Dream Team', href: '/dream-team', icon: UserPlus },
-    { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
+    { name: 'Dream Team', href: '/dream-team', icon: UserPlus }, // Visible to all users
+    // People Hub - visible to admins only
+    ...(isAdmin ? [
+      { name: 'People Hub', href: '/people', icon: UserCog, roleLabel: 'Admin' },
+    ] : []),
     // Week Ahead removed - current week goals now shown on Dashboard
   ];
 

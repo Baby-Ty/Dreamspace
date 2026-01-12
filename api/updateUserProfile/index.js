@@ -97,7 +97,14 @@ module.exports = async function (context, req) {
       title: profileData.title || existingDocument?.title || '',
       department: profileData.department || existingDocument?.department || '',
       manager: profileData.manager || existingDocument?.manager || '',
-      roles: profileData.roles || existingDocument?.roles || { admin: false, coach: false, employee: true, people: false },
+      // Only save admin, coach, employee roles (people role removed as it was unused)
+      // IMPORTANT: Use ?? (nullish coalescing) not || (which treats false as falsy)
+      roles: {
+        admin: profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false,
+        coach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
+        employee: profileData.roles?.employee ?? existingDocument?.roles?.employee ?? true
+        // people: REMOVED - was completely unused in frontend and backend
+      },
       // Aggregates (no arrays, just counts)
       score: existingDocument?.score || 0,
       dreamsCount: existingDocument?.dreamsCount || 0,
@@ -108,23 +115,45 @@ module.exports = async function (context, req) {
       // Structure version
       dataStructureVersion: 3,
       // Metadata
-      role: existingDocument?.role || 'user',
+      // Derive role from roles object (admin > coach > user)
+      // Use the NEW roles object we just built above
+      role: (profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false) ? 'admin' 
+          : (profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false) ? 'coach' 
+          : 'user',
+      // Derive isCoach from roles object for backward compatibility
+      isCoach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
       isActive: existingDocument?.isActive !== false,
       createdAt: existingDocument?.createdAt || new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
       profileUpdated: new Date().toISOString()
     };
 
-    context.log('💾 WRITE:', {
+    // Debug: Log what we're about to save
+    context.log('📥 RECEIVED from client:', JSON.stringify({
+      profileData_roles: profileData.roles,
+      existingDoc_roles: existingDocument?.roles
+    }));
+    
+    context.log('💾 WRITE (about to save):', {
       container: 'users',
       partitionKey: userId,
       id: updatedDocument.id,
       operation: 'upsert',
       dataStructureVersion: updatedDocument.dataStructureVersion,
+      role: updatedDocument.role,
+      roles: updatedDocument.roles,
+      isCoach: updatedDocument.isCoach,
       cardBackgroundImage: updatedDocument.cardBackgroundImage ? 'present' : 'missing'
     });
     
     const { resource } = await container.items.upsert(updatedDocument);
+    
+    context.log('✅ SAVED to DB:', JSON.stringify({
+      id: resource.id,
+      role: resource.role,
+      roles: resource.roles,
+      isCoach: resource.isCoach
+    }));
     
     context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion, 'cardBackgroundImage:', resource.cardBackgroundImage ? resource.cardBackgroundImage.substring(0, 80) : 'undefined');
     

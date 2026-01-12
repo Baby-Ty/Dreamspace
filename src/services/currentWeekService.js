@@ -4,10 +4,7 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { logger } from '../utils/logger.js';
-
-// Use direct function app URL on live site (same pattern as other services)
-const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-const API_BASE_URL = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+import { apiClient } from './apiClient.js';
 
 /**
  * Current Week Service
@@ -24,12 +21,7 @@ export async function getCurrentWeek(userId) {
   try {
     logger.info('currentWeekService', 'Getting current week', { userId });
 
-    const response = await fetch(`${API_BASE_URL}/getCurrentWeek/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiClient.get(`/getCurrentWeek/${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -76,17 +68,11 @@ export async function saveCurrentWeek(userId, weekId, goals, stats = {}) {
       goalsCount: goals.length 
     });
 
-    const response = await fetch(`${API_BASE_URL}/saveCurrentWeek`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        weekId,
-        goals,
-        stats
-      }),
+    const response = await apiClient.post('/saveCurrentWeek', {
+      userId,
+      weekId,
+      goals,
+      stats
     });
 
     if (!response.ok) {
@@ -129,16 +115,10 @@ export async function archiveWeek(userId, weekId, weekSummary) {
   try {
     logger.info('currentWeekService', 'Archiving week', { userId, weekId });
 
-    const response = await fetch(`${API_BASE_URL}/archiveWeek`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        weekId,
-        weekSummary
-      }),
+    const response = await apiClient.post('/archiveWeek', {
+      userId,
+      weekId,
+      weekSummary
     });
 
     if (!response.ok) {

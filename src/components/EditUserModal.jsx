@@ -17,8 +17,8 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
     roles: {
       admin: user.roles?.admin || false,
       coach: user.roles?.coach || user.isCoach || false,
-      employee: user.roles?.employee !== false, // Default true
-      people: user.roles?.people || false
+      employee: user.roles?.employee !== false // Default true
+      // people role removed - was unused
     },
     assignedCoachId: user.assignedCoachId || '',
     teamName: user.teamName || ''
@@ -168,7 +168,7 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
               <label className="block text-sm font-medium text-professional-gray-700 mb-2">
                 Roles
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -195,15 +195,6 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
                     className="w-4 h-4 text-netsurit-red border-professional-gray-300 rounded focus:ring-netsurit-red"
                   />
                   <span className="text-sm text-professional-gray-700">Employee</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.roles.people}
-                    onChange={() => handleCheckboxChange('people')}
-                    className="w-4 h-4 text-netsurit-red border-professional-gray-300 rounded focus:ring-netsurit-red"
-                  />
-                  <span className="text-sm text-professional-gray-700">People</span>
                 </label>
               </div>
             </div>
@@ -309,8 +300,7 @@ EditUserModal.propTypes = {
     roles: PropTypes.shape({
       admin: PropTypes.bool,
       coach: PropTypes.bool,
-      employee: PropTypes.bool,
-      people: PropTypes.bool
+      employee: PropTypes.bool
     }),
     isCoach: PropTypes.bool,
     assignedCoachId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

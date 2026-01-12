@@ -11,7 +11,8 @@ import {
   X,
   Edit3,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  ShieldAlert
 } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import FlagIcon from '../../components/FlagIcon';
@@ -23,6 +24,7 @@ import HelpTooltip from '../../components/HelpTooltip';
 import { showToast } from '../../utils/toast';
 import { logger } from '../../utils/logger';
 import { getCountryCode } from '../../utils/regionUtils';
+import { useAuth } from '../../context/AuthContext';
 
 // Lazy-load heavy modals with named chunks
 const ReportBuilderModal = lazy(() => import(/* webpackChunkName: "report-builder-modal" */ '../../components/ReportBuilderModal'));
@@ -35,8 +37,34 @@ const AssignUserModal = lazy(() => import(/* webpackChunkName: "assign-user-moda
 /**
  * Main layout for People Dashboard
  * Handles filters, orchestration, and modals
+ * REQUIRES: Admin role
  */
 export default function PeopleDashboardLayout() {
+  const { user, refreshUserRole } = useAuth();
+
+  // ACCESS CONTROL: Admin only
+  // Use roles object as source of truth (not the derived role string)
+  const isAdmin = user?.roles?.admin === true;
+  
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-professional-gray-200 p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-netsurit-red/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-8 h-8 text-netsurit-red" />
+          </div>
+          <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">Access Denied</h2>
+          <p className="text-professional-gray-600 mb-1">
+            You need <span className="font-semibold text-netsurit-red">admin privileges</span> to access People Hub.
+          </p>
+          <p className="text-sm text-professional-gray-500 mt-4">
+            Current role: <span className="font-medium">{user?.role || 'user'}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const {
     allUsers,
     coaches,
@@ -108,15 +136,62 @@ export default function PeopleDashboardLayout() {
   const handleSaveUser = async (userData) => {
     try {
       setActionLoading(true);
-      const result = await peopleService.updateUserProfile(selectedUser.id, {
+      
+      const dataToSend = {
         ...userData,
         region: userData.office
+      };
+      
+      // Debug logging
+      console.log('🔄 Saving user profile:', {
+        userId: selectedUser.id,
+        roles: dataToSend.roles,
+        name: dataToSend.name
       });
+      
+      const result = await peopleService.updateUserProfile(selectedUser.id, dataToSend);
 
       if (result.success) {
-        logger.info('people-dashboard', 'User profile updated successfully', { userId: selectedUser.id });
+        logger.info('people-dashboard', 'User profile updated successfully', { userId: selectedUser.id, roles: dataToSend.roles });
         showToast('Profile updated successfully', 'success');
+        
+        console.log('✅ Profile saved, refreshing data...');
         await refreshData();
+        
+        // If user edited their own profile, refresh their role in AuthContext
+        if (selectedUser.id === user?.id) {
+          console.log('🔄 User edited own profile, checking role changes...');
+          
+          // If they removed their own admin role, redirect to dashboard
+          if (!dataToSend.roles.admin && user.roles?.admin === true) {
+            console.log('⚠️ Admin role removed, redirecting to dashboard...');
+            showToast('Your admin role has been removed', 'info');
+            
+            // Set flag with timestamp to prevent role refresh loops
+            const timestamp = Date.now();
+            sessionStorage.setItem('roleUpdateInProgress', timestamp.toString());
+            
+            // Wait for DB write to complete, then force full page reload to clear all state
+            setTimeout(() => {
+              console.log('🔄 Reloading page to apply role changes...');
+              // Flag will be cleared on next page load after a delay
+              window.location.replace('/'); // Use replace() to prevent back button issues
+            }, 2000);
+          } else {
+            // For other role changes, wait for DB write then refresh
+            console.log('🔄 Waiting for DB write to complete...');
+            
+            // Set flag to prevent role refresh loops
+            sessionStorage.setItem('roleUpdateInProgress', 'true');
+            
+            setTimeout(async () => {
+              console.log('🔄 Refreshing current user role...');
+              await refreshUserRole();
+              sessionStorage.removeItem('roleUpdateInProgress');
+            }, 1500); // Increased delay to ensure DB write completes
+          }
+        }
+        
         setShowEditModal(false);
         setSelectedUser(null);
       } else {

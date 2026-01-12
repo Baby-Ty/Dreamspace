@@ -443,6 +443,20 @@ export const AuthProvider = ({ children }) => {
 
   // Refresh user role from database (useful after promotions)
   const refreshUserRole = useCallback(async () => {
+    // Check if a role update is already in progress to prevent loops
+    const roleUpdateTimestamp = sessionStorage.getItem('roleUpdateInProgress');
+    if (roleUpdateTimestamp) {
+      const elapsed = Date.now() - parseInt(roleUpdateTimestamp, 10);
+      if (elapsed < 5000) { // Skip if less than 5 seconds elapsed
+        console.log('⏭️ Role update in progress, skipping refresh...', { elapsed });
+        return;
+      } else {
+        // Clear old flag if more than 5 seconds passed
+        console.log('🧹 Clearing old roleUpdateInProgress flag');
+        sessionStorage.removeItem('roleUpdateInProgress');
+      }
+    }
+    
     if (!user?.id) {
       console.warn('No user ID available for refresh');
       return;
@@ -459,13 +473,14 @@ export const AuthProvider = ({ children }) => {
         const updatedUser = {
           ...user,
           role: existingUser.role,
-          isCoach: existingUser.isCoach
+          isCoach: existingUser.isCoach,
+          roles: existingUser.roles // Also update roles object
         };
         
         // Determine new role
         const newRole = determineUserRoleFromToken(accounts[0], null, existingUser);
         
-        console.log('✅ User role refreshed:', { oldRole: userRole, newRole });
+        console.log('✅ User role refreshed:', { oldRole: userRole, newRole, roles: existingUser.roles });
         setUser(updatedUser);
         setUserRole(newRole);
         
