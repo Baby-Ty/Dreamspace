@@ -131,10 +131,15 @@ async function getUserRole(userId, context) {
   
   try {
     const { resource } = await container.item(userId, userId).read();
+    
+    // Use roles object as source of truth (not the derived role string)
+    const isAdmin = resource?.roles?.admin === true;
+    const isCoach = resource?.roles?.coach === true || resource?.isCoach === true;
+    
+    // Keep role string for backward compatibility in logs
     const role = resource?.role || 'user';
-    const isCoach = resource?.isCoach === true || role === 'coach';
-    const isAdmin = role === 'admin';
-    context.log(`User ${userId} has role: ${role}, isCoach: ${isCoach}, isAdmin: ${isAdmin}`);
+    
+    context.log(`User ${userId} has role: ${role}, isCoach: ${isCoach}, isAdmin: ${isAdmin}, roles:`, resource?.roles);
     return { role, isCoach, isAdmin };
   } catch (error) {
     if (error.code === 404) {
@@ -220,7 +225,7 @@ async function requireAdmin(context, req) {
   const { role, isAdmin } = await getUserRole(user.userId, context);
   
   if (!isAdmin) {
-    context.log.warn(`User ${user.userId} attempted admin action with role: ${role}`);
+    context.log.warn(`User ${user.userId} attempted admin action (isAdmin: ${isAdmin}, role: ${role})`);
     send403(context, 'Admin access required');
     return null;
   }
