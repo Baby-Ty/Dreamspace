@@ -1,14 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
-
-/**
- * Get API base URL for backend calls
- */
-function getApiBase() {
-  const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-  return isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
-}
+import { apiClient } from './apiClient.js';
 
 /**
  * Style modifiers for image generation
@@ -68,23 +61,17 @@ export const dalleService = {
     }
 
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/generateImage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userSearchTerm: userSearchTerm.trim(),
-          options: {
-            size: options.size || '1024x1024',
-            quality: options.quality || 'hd',
-            model: options.model || 'dall-e-3',
-            imageType: options.imageType || IMAGE_TYPES.DREAM,
-            styleModifierId: options.styleModifierId || null,
-            customStyle: options.customStyle || null
-          }
-        })
+      // Use apiClient for automatic authentication
+      const response = await apiClient.post('/generateImage', {
+        userSearchTerm: userSearchTerm.trim(),
+        options: {
+          size: options.size || '1024x1024',
+          quality: options.quality || 'hd',
+          model: options.model || 'dall-e-3',
+          imageType: options.imageType || IMAGE_TYPES.DREAM,
+          styleModifierId: options.styleModifierId || null,
+          customStyle: options.customStyle || null
+        }
       });
 
       let data;
