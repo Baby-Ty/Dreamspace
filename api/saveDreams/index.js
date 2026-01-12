@@ -1,207 +1,138 @@
-const { CosmosClient } = require('@azure/cosmos');
-const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-// Initialize Cosmos client only if environment variables are present
-let client, database, dreamsContainer;
-if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
-  client = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
-  });
-  database = client.database('dreamspace');
-  dreamsContainer = database.container('dreams');
-}
-
-module.exports = async function (context, req) {
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
+module.exports = createApiHandler({
+  auth: 'user-access',
+  targetUserIdParam: 'body.userId',
+  containerName: 'dreams'
+}, async (context, req, { container }) => {
   const { userId, dreams, weeklyGoalTemplates } = req.body || {};
 
   context.log('saveDreams called:', { userId, dreamsCount: dreams?.length, templatesCount: weeklyGoalTemplates?.length });
 
   if (!userId) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'userId is required' }),
-      headers
-    };
-    return;
-  }
-
-  // AUTH CHECK: Users can only save their own dreams
-  if (isAuthRequired()) {
-    const user = await requireUserAccess(context, req, userId);
-    if (!user) return; // 401 or 403 already sent
-    context.log(`User ${user.email} saving dreams for ${userId}`);
+    throw { status: 400, message: 'userId is required' };
   }
 
   if (!Array.isArray(dreams)) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'dreams array is required' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'dreams array is required' };
   }
 
   // weeklyGoalTemplates is optional - can be empty array
   if (weeklyGoalTemplates && !Array.isArray(weeklyGoalTemplates)) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'weeklyGoalTemplates must be an array if provided' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'weeklyGoalTemplates must be an array if provided' };
   }
-
-  // Check if Cosmos DB is configured
-  if (!dreamsContainer) {
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Database not configured', 
-        details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' 
-      }),
-      headers
-    };
-    return;
-  }
-
+  const documentId = userId;
+  
+  context.log(`Saving dreams document for user: ${userId}`);
+  
+  // Try to read existing document
+  let existingDoc;
   try {
-    const documentId = userId;
-    
-    context.log(`Saving dreams document for user: ${userId}`);
-    
-    // Try to read existing document
-    let existingDoc;
-    try {
-      const { resource } = await dreamsContainer.item(documentId, userId).read();
-      existingDoc = resource;
-      context.log(`Found existing dreams document`);
-    } catch (error) {
-      if (error.code !== 404) {
-        context.log.error(`Error reading dreams document: ${error.code} - ${error.message}`);
-        throw error;
-      }
-      context.log(`Creating new dreams document for ${userId}`);
-    }
-
-    // Prepare the document - simplified structure with goals instead of milestones
-    // IMPORTANT: Always use 'dreams' field, never 'dreamBook' to avoid duplicates
-    // IMPORTANT: Preserve yearVision from existing document to prevent it from being overwritten
-    const document = {
-      id: documentId,
-      userId: userId,
-      dreams: dreams.map(dream => ({
-        id: dream.id,
-        title: dream.title,
-        description: dream.description || '',
-        motivation: dream.motivation || '',
-        approach: dream.approach || '',
-        category: dream.category,
-        goals: (dream.goals || []).map(goal => ({
-          id: goal.id,
-          title: goal.title,
-          description: goal.description || '',
-          type: goal.type || 'general',
-          recurrence: goal.recurrence,
-          targetWeeks: goal.targetWeeks,
-          targetMonths: goal.targetMonths,
-          frequency: goal.frequency, // Persist frequency for weekly/monthly goals
-          startDate: goal.startDate,
-          targetDate: goal.targetDate,
-          weeksRemaining: goal.weeksRemaining, // ← NEW: Persist weeks remaining
-          monthsRemaining: goal.monthsRemaining, // ← NEW: Persist months remaining
-          active: goal.active !== false,
-          completed: goal.completed || false,
-          completedAt: goal.completedAt,
-          createdAt: goal.createdAt || new Date().toISOString()
-        })),
-        progress: dream.progress || 0,
-        targetDate: dream.targetDate,
-        image: dream.image || dream.picture, // Support both image (new) and picture (legacy)
-        notes: dream.notes || [],
-        coachNotes: dream.coachNotes || [], // Coach-user conversation messages
-        history: dream.history || [],
-        completed: dream.completed || false,
-        isPublic: dream.isPublic || false,
-        createdAt: dream.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })),
-      weeklyGoalTemplates: (weeklyGoalTemplates || []).map(template => ({
-        id: template.id,
-        type: 'weekly_goal_template', // ✅ CRITICAL: Must include type so frontend can identify templates
-        goalType: template.goalType, // consistency or deadline
-        title: template.title,
-        description: template.description,
-        dreamId: template.dreamId,
-        dreamTitle: template.dreamTitle,
-        dreamCategory: template.dreamCategory,
-        goalId: template.goalId, // Changed from milestoneId
-        recurrence: template.recurrence || 'weekly',
-        active: template.active !== false,
-        durationType: template.durationType || (template.durationWeeks || template.targetWeeks ? 'weeks' : 'unlimited'),
-        durationWeeks: template.durationWeeks || template.targetWeeks,
-        targetWeeks: template.targetWeeks || template.durationWeeks, // Preserve for backward compatibility
-        targetMonths: template.targetMonths, // For monthly goals
-        weeksRemaining: template.weeksRemaining, // ← NEW: Persist weeks remaining
-        monthsRemaining: template.monthsRemaining, // ← NEW: Persist months remaining
-        startDate: template.startDate,
-        createdAt: template.createdAt || new Date().toISOString()
-      })),
-      // ✅ CRITICAL: Preserve yearVision from existing document
-      yearVision: existingDoc?.yearVision || '',
-      createdAt: existingDoc?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // IMPORTANT: Remove 'dreamBook' field if it exists to prevent duplicates
-    // Cosmos DB upsert replaces the entire document, but we want to be explicit
-    if (document.dreamBook) {
-      delete document.dreamBook;
-      context.log('⚠️ Removed duplicate dreamBook field from document');
-    }
-
-    context.log('💾 WRITE:', {
-      container: 'dreams',
-      partitionKey: userId,
-      id: document.id,
-      operation: 'upsert',
-      dreamsCount: dreams.length
-    });
-
-    // Upsert the document
-    const { resource } = await dreamsContainer.items.upsert(document);
-    
-    context.log(`✅ Successfully saved dreams document for ${userId}`);
-    
-    context.res = {
-      status: 200,
-      body: JSON.stringify({ 
-        success: true, 
-        id: resource.id,
-        dreamsCount: dreams.length,
-        templatesCount: weeklyGoalTemplates?.length || 0
-      }),
-      headers
-    };
+    const { resource } = await container.item(documentId, userId).read();
+    existingDoc = resource;
+    context.log(`Found existing dreams document`);
   } catch (error) {
-    context.log.error('Error saving dreams:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
-      }),
-      headers
-    };
+    if (error.code !== 404) {
+      context.log.error(`Error reading dreams document: ${error.code} - ${error.message}`);
+      throw error;
+    }
+    context.log(`Creating new dreams document for ${userId}`);
   }
-};
+
+  // Prepare the document - simplified structure with goals instead of milestones
+  // IMPORTANT: Always use 'dreams' field, never 'dreamBook' to avoid duplicates
+  // IMPORTANT: Preserve yearVision from existing document to prevent it from being overwritten
+  const document = {
+    id: documentId,
+    userId: userId,
+    dreams: dreams.map(dream => ({
+      id: dream.id,
+      title: dream.title,
+      description: dream.description || '',
+      motivation: dream.motivation || '',
+      approach: dream.approach || '',
+      category: dream.category,
+      goals: (dream.goals || []).map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description || '',
+        type: goal.type || 'general',
+        recurrence: goal.recurrence,
+        targetWeeks: goal.targetWeeks,
+        targetMonths: goal.targetMonths,
+        frequency: goal.frequency, // Persist frequency for weekly/monthly goals
+        startDate: goal.startDate,
+        targetDate: goal.targetDate,
+        weeksRemaining: goal.weeksRemaining, // ← NEW: Persist weeks remaining
+        monthsRemaining: goal.monthsRemaining, // ← NEW: Persist months remaining
+        active: goal.active !== false,
+        completed: goal.completed || false,
+        completedAt: goal.completedAt,
+        createdAt: goal.createdAt || new Date().toISOString()
+      })),
+      progress: dream.progress || 0,
+      targetDate: dream.targetDate,
+      image: dream.image || dream.picture, // Support both image (new) and picture (legacy)
+      notes: dream.notes || [],
+      coachNotes: dream.coachNotes || [], // Coach-user conversation messages
+      history: dream.history || [],
+      completed: dream.completed || false,
+      isPublic: dream.isPublic || false,
+      createdAt: dream.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })),
+    weeklyGoalTemplates: (weeklyGoalTemplates || []).map(template => ({
+      id: template.id,
+      type: 'weekly_goal_template', // ✅ CRITICAL: Must include type so frontend can identify templates
+      goalType: template.goalType, // consistency or deadline
+      title: template.title,
+      description: template.description,
+      dreamId: template.dreamId,
+      dreamTitle: template.dreamTitle,
+      dreamCategory: template.dreamCategory,
+      goalId: template.goalId, // Changed from milestoneId
+      recurrence: template.recurrence || 'weekly',
+      active: template.active !== false,
+      durationType: template.durationType || (template.durationWeeks || template.targetWeeks ? 'weeks' : 'unlimited'),
+      durationWeeks: template.durationWeeks || template.targetWeeks,
+      targetWeeks: template.targetWeeks || template.durationWeeks, // Preserve for backward compatibility
+      targetMonths: template.targetMonths, // For monthly goals
+      weeksRemaining: template.weeksRemaining, // ← NEW: Persist weeks remaining
+      monthsRemaining: template.monthsRemaining, // ← NEW: Persist months remaining
+      startDate: template.startDate,
+      createdAt: template.createdAt || new Date().toISOString()
+    })),
+    // ✅ CRITICAL: Preserve yearVision from existing document
+    yearVision: existingDoc?.yearVision || '',
+    createdAt: existingDoc?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  // IMPORTANT: Remove 'dreamBook' field if it exists to prevent duplicates
+  // Cosmos DB upsert replaces the entire document, but we want to be explicit
+  if (document.dreamBook) {
+    delete document.dreamBook;
+    context.log('⚠️ Removed duplicate dreamBook field from document');
+  }
+
+  context.log('💾 WRITE:', {
+    container: 'dreams',
+    partitionKey: userId,
+    id: document.id,
+    operation: 'upsert',
+    dreamsCount: dreams.length
+  });
+
+  // Upsert the document
+  const { resource } = await container.items.upsert(document);
+  
+  context.log(`✅ Successfully saved dreams document for ${userId}`);
+  
+  return { 
+    success: true, 
+    id: resource.id,
+    dreamsCount: dreams.length,
+    templatesCount: weeklyGoalTemplates?.length || 0
+  };
+});
 

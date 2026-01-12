@@ -1,20 +1,4 @@
-const { CosmosClient } = require('@azure/cosmos');
-const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
-
-// Initialize Cosmos client only if environment variables are present
-let client, database, usersContainer, dreamsContainer, connectsContainer, scoringContainer;
-if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
-  client = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
-  });
-  database = client.database('dreamspace');
-  usersContainer = database.container('users');
-  dreamsContainer = database.container('dreams');
-  connectsContainer = database.container('connects');
-  scoringContainer = database.container('scoring');
-}
-
+const { createApiHandler } = require('../utils/apiWrapper');
 
 // Helper to generate all ISO weeks for a given year (52 or 53 weeks)
 function getAllWeeksForYear(year) {
@@ -273,153 +257,94 @@ function extractWeeklyGoals(weekDoc, templates, context) {
   return weeklyGoals;
 }
 
-module.exports = async function (context, req) {
-  const headers = getCorsHeaders();
-  
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
+module.exports = createApiHandler({
+  auth: 'user-access',
+  targetUserIdParam: 'bindingData.userId'
+}, async (context, req, { provider }) => {
   const userId = context.bindingData.userId;
 
   if (!userId) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'User ID is required' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'User ID is required' };
   }
 
-  // AUTH CHECK: Users can only access their own data (admins/coaches can access others)
-  if (isAuthRequired()) {
-    const user = await requireUserAccess(context, req, userId);
-    if (!user) return; // 401 or 403 already sent
-    context.log(`User ${user.email} accessing data for ${userId}`);
-  }
+  const usersContainer = provider.getContainer('users');
+  const dreamsContainer = provider.getContainer('dreams');
+  const connectsContainer = provider.getContainer('connects');
+  const scoringContainer = provider.getContainer('scoring');
+  const database = provider.database;
 
-  // Check if Cosmos DB is configured
-  if (!usersContainer || !dreamsContainer) {
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Database not configured', 
-        details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' 
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    };
-    return;
+  // Load user profile
+  const profile = await loadUserProfile(usersContainer, userId, context);
+  
+  if (!profile) {
+    throw { status: 404, message: 'User not found' };
   }
-
-  try {
-    // Load user profile
-    const profile = await loadUserProfile(usersContainer, userId, context);
-    
-    if (!profile) {
-      context.res = {
-        status: 404,
-        body: JSON.stringify({ error: 'User not found' }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      };
-      return;
+  
+  // All users are on v3 (6-container architecture)
+  context.log('Loading v3 6-container structure data');
+  
+  const currentYear = new Date().getFullYear();
+  
+  // Initialize week document (creates if missing, updates if needed)
+  const weekDoc = await initializeWeekDocument(database, userId, currentYear, context);
+  
+  // Load data from all containers in parallel
+  const [dreamsDoc, connects] = await Promise.all([
+    loadDreamsDocument(dreamsContainer, userId, context),
+    loadConnects(connectsContainer, userId, context)
+  ]);
+  
+  // Load current year scoring from scoring container
+  const scoringResult = await scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read().catch(error => {
+    if (error.code === 404) {
+      context.log(`No scoring document found for ${userId}`);
+      return { status: 'rejected', reason: error };
     }
-    
-    // All users are on v3 (6-container architecture)
-    {
-      context.log('Loading v3 6-container structure data');
-      
-      const currentYear = new Date().getFullYear();
-      
-      // Initialize week document (creates if missing, updates if needed)
-      const weekDoc = await initializeWeekDocument(database, userId, currentYear, context);
-      
-      // Load data from all containers in parallel
-      const [dreamsDoc, connects] = await Promise.all([
-        loadDreamsDocument(dreamsContainer, userId, context),
-        loadConnects(connectsContainer, userId, context)
-      ]);
-      
-      // Load current year scoring from scoring container
-      const scoringResult = await scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read().catch(error => {
-        if (error.code === 404) {
-          context.log(`No scoring document found for ${userId}`);
-          return { status: 'rejected', reason: error };
-        }
-        throw error;
-      });
-      
-      // Extract data from aggregated dreams document
-      const dreamBook = dreamsDoc ? (dreamsDoc.dreams || dreamsDoc.dreamBook || []) : [];
-      const templates = dreamsDoc ? (dreamsDoc.weeklyGoalTemplates || []) : [];
-      const rawVision = dreamsDoc?.yearVision;
-      const yearVision = typeof rawVision === 'string' ? rawVision : '';
-      context.log(`Loaded dreams: ${dreamBook.length} dreams, ${templates.length} templates, vision: ${yearVision ? 'yes' : 'no'}`);
-      
-      // Extract and flatten weekly goals from week document
-      const weeklyGoals = extractWeeklyGoals(weekDoc, templates, context);
-      
-      // Extract scoring
-      let scoringHistory = [];
-      let totalScore = profile.score || 0;
-      if (scoringResult && scoringResult.resource) {
-        const scoringDoc = scoringResult.resource;
-        scoringHistory = scoringDoc.entries || [];
-        totalScore = scoringDoc.totalScore || 0;
-      }
-      
-      // Combine into legacy format for backward compatibility
-      // Exclude yearVision from profile - it belongs in dreams container, not users container
-      const { _rid, _self, _etag, _attachments, _ts, lastUpdated, yearVision: _, ...cleanProfile } = profile;
-      
-      const userData = {
-        ...cleanProfile,
-        dataStructureVersion: profile.dataStructureVersion, // ✅ Keep this so frontend knows structure
-        score: totalScore, // Override with score from scoring container
-        dreamBook,
-        yearVision, // From dreams container (source of truth)
-        weeklyGoals,
-        connects,
-        scoringHistory,
-        careerGoals: [], // Disabled in Phase 1
-        developmentPlan: [] // Disabled in Phase 1
-      };
-      
-      context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`, {
-        cardBackgroundImageInResponse: !!userData.cardBackgroundImage,
-        cardBackgroundImage: userData.cardBackgroundImage ? userData.cardBackgroundImage.substring(0, 80) : 'undefined',
-        yearVision: userData.yearVision ? `"${userData.yearVision.substring(0, 50)}${userData.yearVision.length > 50 ? '...' : ''}"` : '(empty)',
-        responseKeys: Object.keys(userData).filter(k => !k.startsWith('_')).join(', ')
-      });
-      
-      context.res = {
-        status: 200,
-        body: JSON.stringify(userData),
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      };
-    }
-  } catch (error) {
-    context.log.error('Error loading user data:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    };
+    throw error;
+  });
+  
+  // Extract data from aggregated dreams document
+  const dreamBook = dreamsDoc ? (dreamsDoc.dreams || dreamsDoc.dreamBook || []) : [];
+  const templates = dreamsDoc ? (dreamsDoc.weeklyGoalTemplates || []) : [];
+  const rawVision = dreamsDoc?.yearVision;
+  const yearVision = typeof rawVision === 'string' ? rawVision : '';
+  context.log(`Loaded dreams: ${dreamBook.length} dreams, ${templates.length} templates, vision: ${yearVision ? 'yes' : 'no'}`);
+  
+  // Extract and flatten weekly goals from week document
+  const weeklyGoals = extractWeeklyGoals(weekDoc, templates, context);
+  
+  // Extract scoring
+  let scoringHistory = [];
+  let totalScore = profile.score || 0;
+  if (scoringResult && scoringResult.resource) {
+    const scoringDoc = scoringResult.resource;
+    scoringHistory = scoringDoc.entries || [];
+    totalScore = scoringDoc.totalScore || 0;
   }
-};
+  
+  // Combine into legacy format for backward compatibility
+  // Exclude yearVision from profile - it belongs in dreams container, not users container
+  const { _rid, _self, _etag, _attachments, _ts, lastUpdated, yearVision: _, ...cleanProfile } = profile;
+  
+  const userData = {
+    ...cleanProfile,
+    dataStructureVersion: profile.dataStructureVersion, // ✅ Keep this so frontend knows structure
+    score: totalScore, // Override with score from scoring container
+    dreamBook,
+    yearVision, // From dreams container (source of truth)
+    weeklyGoals,
+    connects,
+    scoringHistory,
+    careerGoals: [], // Disabled in Phase 1
+    developmentPlan: [] // Disabled in Phase 1
+  };
+  
+  context.log(`✅ Loaded 6-container data: ${dreamBook.length} dreams, ${weeklyGoals.length} goals, ${connects.length} connects, ${scoringHistory.length} scoring entries`, {
+    cardBackgroundImageInResponse: !!userData.cardBackgroundImage,
+    cardBackgroundImage: userData.cardBackgroundImage ? userData.cardBackgroundImage.substring(0, 80) : 'undefined',
+    yearVision: userData.yearVision ? `"${userData.yearVision.substring(0, 50)}${userData.yearVision.length > 50 ? '...' : ''}"` : '(empty)',
+    responseKeys: Object.keys(userData).filter(k => !k.startsWith('_')).join(', ')
+  });
+  
+  return userData;
+});

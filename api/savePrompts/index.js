@@ -3,25 +3,11 @@
  * Persists prompt configuration changes to Cosmos DB
  */
 
-const { getCosmosProvider } = require('../utils/cosmosProvider');
-const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-module.exports = async function (context, req) {
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
-  // AUTH CHECK: Only admins can modify AI prompts
-  if (isAuthRequired()) {
-    const user = await requireAdmin(context, req);
-    if (!user) return; // 401/403 already sent
-  }
-
+module.exports = createApiHandler({
+  auth: 'admin'
+}, async (context, req, { provider }) => {
   const { prompts, modifiedBy } = req.body || {};
 
   context.log('savePrompts called:', { 
@@ -31,90 +17,46 @@ module.exports = async function (context, req) {
 
   // Validate input
   if (!prompts || typeof prompts !== 'object') {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'Prompts data is required' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'Prompts data is required' };
   }
 
   // Validate structure
   const requiredSections = ['imageGeneration', 'visionGeneration', 'styleModifiers'];
   for (const section of requiredSections) {
     if (!prompts[section]) {
-      context.res = {
-        status: 400,
-        body: JSON.stringify({ error: `Missing required section: ${section}` }),
-        headers
-      };
-      return;
+      throw { status: 400, message: `Missing required section: ${section}` };
     }
   }
 
-  try {
-    const cosmosProvider = getCosmosProvider();
-    if (!cosmosProvider) {
-      context.res = {
-        status: 500,
-        body: JSON.stringify({ 
-          error: 'Database connection failed',
-          details: 'Cosmos DB provider not initialized'
-        }),
-        headers
-      };
-      return;
-    }
-
-    // Get current prompts to save to history before updating
-    const currentPrompts = await cosmosProvider.getPrompts();
-    
-    // Save current version to history if it exists (non-blocking - don't fail if history save fails)
-    if (currentPrompts) {
-      try {
-        const historyEntry = await cosmosProvider.addPromptHistoryEntry(
-          currentPrompts, 
-          currentPrompts.modifiedBy || 'unknown',
-          `Snapshot before update by ${modifiedBy || 'system'}`
-        );
-        if (historyEntry) {
-          context.log(`📜 Saved prompt history entry: ${historyEntry.version}`);
-        } else {
-          context.log('⚠️ History entry not saved (container may not exist)');
-        }
-      } catch (historyError) {
-        // Log but don't fail - history is optional
-        context.log.warn('⚠️ Failed to save history entry (non-blocking):', historyError.message);
+  // Get current prompts to save to history before updating
+  const currentPrompts = await provider.getPrompts();
+  
+  // Save current version to history if it exists (non-blocking - don't fail if history save fails)
+  if (currentPrompts) {
+    try {
+      const historyEntry = await provider.addPromptHistoryEntry(
+        currentPrompts, 
+        currentPrompts.modifiedBy || 'unknown',
+        `Snapshot before update by ${modifiedBy || 'system'}`
+      );
+      if (historyEntry) {
+        context.log(`📜 Saved prompt history entry: ${historyEntry.version}`);
+      } else {
+        context.log('⚠️ History entry not saved (container may not exist)');
       }
+    } catch (historyError) {
+      // Log but don't fail - history is optional
+      context.log.warn('⚠️ Failed to save history entry (non-blocking):', historyError.message);
     }
-
-    // Save prompts with metadata
-    const savedPrompts = await cosmosProvider.upsertPrompts(prompts, modifiedBy || 'system');
-    
-    // Clean metadata before returning
-    const cleanPrompts = cosmosProvider.cleanMetadata(savedPrompts);
-
-    context.log('✅ Saved prompts configuration');
-
-    context.res = {
-      status: 200,
-      body: JSON.stringify({ 
-        success: true,
-        prompts: cleanPrompts
-      }),
-      headers
-    };
-  } catch (error) {
-    context.log.error('Error saving prompts:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        success: false,
-        error: 'Internal server error', 
-        details: error.message 
-      }),
-      headers
-    };
   }
-};
 
+  // Save prompts with metadata
+  const savedPrompts = await provider.upsertPrompts(prompts, modifiedBy || 'system');
+  
+  // Clean metadata before returning
+  const cleanPrompts = provider.cleanMetadata(savedPrompts);
+
+  context.log('✅ Saved prompts configuration');
+
+  return { success: true, prompts: cleanPrompts };
+});

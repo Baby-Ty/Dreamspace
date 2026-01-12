@@ -3,9 +3,13 @@
 // Health check endpoint
 // Tests connectivity to Azure Cosmos DB and returns service status
 
+const { createApiHandler } = require('../utils/apiWrapper');
 const { CosmosClient } = require("@azure/cosmos");
 
-module.exports = async function (context, req) {
+module.exports = createApiHandler({
+  auth: 'none',
+  skipDbCheck: true
+}, async (context, req) => {
   const startTime = Date.now();
   
   const health = {
@@ -83,17 +87,36 @@ module.exports = async function (context, req) {
       statusCode = 200; // Still functional, just degraded
     }
 
+    // For health endpoint, we need to control the exact status code
     context.res = {
       status: statusCode,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate"
       },
-      body: health
+      body: JSON.stringify(health)
     };
+    
+    // Return null to indicate we've already set the response
+    return null;
 
   } catch (error) {
     const totalResponseTime = Date.now() - startTime;
+    
+    const errorResponse = {
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      service: "DreamSpace API",
+      message: "Health check failed",
+      error: error.message,
+      checks: {
+        api: { 
+          status: "unhealthy", 
+          responseTime: totalResponseTime,
+          error: error.message
+        }
+      }
+    };
     
     context.res = {
       status: 503,
@@ -101,21 +124,11 @@ module.exports = async function (context, req) {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate"
       },
-      body: {
-        status: "unhealthy",
-        timestamp: new Date().toISOString(),
-        service: "DreamSpace API",
-        message: "Health check failed",
-        error: error.message,
-        checks: {
-          api: { 
-            status: "unhealthy", 
-            responseTime: totalResponseTime,
-            error: error.message
-          }
-        }
-      }
+      body: JSON.stringify(errorResponse)
     };
+    
+    // Return null to indicate we've already set the response
+    return null;
   }
-};
+});
 

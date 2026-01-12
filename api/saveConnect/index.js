@@ -1,31 +1,10 @@
-const { CosmosClient } = require('@azure/cosmos');
-const { requireAuth, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-// Initialize Cosmos client only if environment variables are present
-let client, database, connectsContainer;
-if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
-  client = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
-  });
-  database = client.database('dreamspace');
-  connectsContainer = database.container('connects');
-}
-
-module.exports = async function (context, req) {
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
-  // AUTH CHECK: Authenticated users only
-  if (isAuthRequired()) {
-    const user = await requireAuth(context, req);
-    if (!user) return; // 401 already sent
+module.exports = createApiHandler({
+  auth: 'user',
+  containerName: 'connects'
+}, async (context, req, { container, user }) => {
+  if (user) {
     context.log(`User ${user.email} saving connect`);
   }
 
@@ -34,12 +13,7 @@ module.exports = async function (context, req) {
   context.log('Saving connect:', { userId, connectId: connectData?.id });
 
   if (!connectData) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'connectData is required' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'connectData is required' };
   }
 
   // Use the connect's userId (sender's ID) as partition key, not the request userId
@@ -47,28 +21,8 @@ module.exports = async function (context, req) {
   const partitionUserId = connectData.userId || userId;
   
   if (!partitionUserId) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'userId is required in connectData' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'userId is required in connectData' };
   }
-
-  // Check if Cosmos DB is configured
-  if (!connectsContainer) {
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Database not configured', 
-        details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' 
-      }),
-      headers
-    };
-    return;
-  }
-
-  try {
     // Create the connect document
     const connectId = connectData.id 
       ? String(connectData.id) 
@@ -102,39 +56,24 @@ module.exports = async function (context, req) {
       updatedAt: new Date().toISOString()
     };
 
-    // Upsert the connect using sender's userId as partition key
-    context.log('💾 WRITE:', {
-      container: 'connects',
-      partitionKey: partitionUserId,
-      id: document.id,
-      operation: 'upsert',
-      note: 'Using sender userId as partition key for both sender and recipient updates'
-    });
-    
-    // Upsert using the partition key - Cosmos DB SDK will use document.userId automatically
-    const { resource } = await connectsContainer.items.upsert(document);
-    
-    context.log('Successfully saved connect:', resource.id);
-    
-    context.res = {
-      status: 200,
-      body: JSON.stringify({ 
-        success: true, 
-        id: resource.id,
-        connect: resource
-      }),
-      headers
-    };
-  } catch (error) {
-    context.log.error('Error saving connect:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
-      }),
-      headers
-    };
-  }
-};
+  // Upsert the connect using sender's userId as partition key
+  context.log('💾 WRITE:', {
+    container: 'connects',
+    partitionKey: partitionUserId,
+    id: document.id,
+    operation: 'upsert',
+    note: 'Using sender userId as partition key for both sender and recipient updates'
+  });
+  
+  // Upsert using the partition key - Cosmos DB SDK will use document.userId automatically
+  const { resource } = await container.items.upsert(document);
+  
+  context.log('Successfully saved connect:', resource.id);
+  
+  return { 
+    success: true, 
+    id: resource.id,
+    connect: resource
+  };
+});
 

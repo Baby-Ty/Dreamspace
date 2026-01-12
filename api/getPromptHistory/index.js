@@ -3,72 +3,32 @@
  * Returns the version history of AI prompt configurations
  */
 
-const { getCosmosProvider } = require('../utils/cosmosProvider');
-const { requireAdmin, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-module.exports = async function (context, req) {
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
-  // AUTH CHECK: Only admins can view prompt history
-  if (isAuthRequired()) {
-    const user = await requireAdmin(context, req);
-    if (!user) return; // 401/403 already sent
-  }
-
+module.exports = createApiHandler({
+  auth: 'admin',
+  skipDbCheck: true
+}, async (context, req, { provider }) => {
   // Get optional limit parameter
   const limit = parseInt(req.query.limit) || 50;
 
   context.log('getPromptHistory called:', { limit });
 
-  try {
-    const cosmosProvider = getCosmosProvider();
-    if (!cosmosProvider) {
-      context.res = {
-        status: 200,
-        body: JSON.stringify({ 
-          success: true,
-          history: [],
-          message: 'Cosmos DB not configured, no history available'
-        }),
-        headers
-      };
-      return;
-    }
-
-    // Get history entries
-    const history = await cosmosProvider.getPromptHistory(limit);
-    
-    // Clean metadata from each entry
-    const cleanHistory = history.map(entry => cosmosProvider.cleanMetadata(entry));
-
-    context.log(`✅ Retrieved ${cleanHistory.length} prompt history entries`);
-
-    context.res = {
-      status: 200,
-      body: JSON.stringify({ 
-        success: true,
-        history: cleanHistory
-      }),
-      headers
-    };
-  } catch (error) {
-    context.log.error('Error getting prompt history:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        success: false,
-        error: 'Internal server error', 
-        details: error.message 
-      }),
-      headers
+  if (!provider) {
+    return { 
+      success: true,
+      history: [],
+      message: 'Cosmos DB not configured, no history available'
     };
   }
-};
 
+  // Get history entries
+  const history = await provider.getPromptHistory(limit);
+  
+  // Clean metadata from each entry
+  const cleanHistory = history.map(entry => provider.cleanMetadata(entry));
+
+  context.log(`✅ Retrieved ${cleanHistory.length} prompt history entries`);
+
+  return { success: true, history: cleanHistory };
+});

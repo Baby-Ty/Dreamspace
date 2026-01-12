@@ -1,27 +1,10 @@
-const { CosmosClient } = require('@azure/cosmos');
-const { requireUserAccess, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-// Initialize Cosmos client only if environment variables are present
-let client, database, container;
-if (process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
-  client = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
-  });
-  database = client.database('dreamspace');
-  container = database.container('users');
-}
-
-module.exports = async function (context, req) {
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
+module.exports = createApiHandler({
+  auth: 'user-access',
+  targetUserIdParam: 'bindingData.userId',
+  containerName: 'users'
+}, async (context, req, { container }) => {
   const userId = context.bindingData.userId;
   const profileData = req.body;
 
@@ -34,150 +17,111 @@ module.exports = async function (context, req) {
   });
 
   if (!userId) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'User ID is required' }),
-      headers
-    };
-    return;
-  }
-
-  // AUTH CHECK: User can only update their own profile
-  if (isAuthRequired()) {
-    const user = await requireUserAccess(context, req, userId);
-    if (!user) return; // 401/403 already sent
+    throw { status: 400, message: 'User ID is required' };
   }
 
   if (!profileData) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'Profile data is required' }),
-      headers
-    };
-    return;
+    throw { status: 400, message: 'Profile data is required' };
   }
 
-  // Check if Cosmos DB is configured
-  if (!container) {
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ error: 'Database not configured', details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' }),
-      headers
-    };
-    return;
-  }
-
+  // First, try to get the existing user document
+  let existingDocument = null;
   try {
-    // First, try to get the existing user document
-    let existingDocument = null;
-    try {
-      const { resource } = await container.item(userId, userId).read();
-      existingDocument = resource;
-    } catch (error) {
-      if (error.code !== 404) {
-        throw error; // Re-throw if it's not a "not found" error
-      }
-      // User doesn't exist yet - that's okay, we'll create a new one
-    }
-
-    // Create updated document with ONLY profile data (6-container architecture)
-    // Arrays (dreams, connects, etc.) are stored in separate containers
-    const updatedDocument = {
-      id: userId,
-      userId: userId,
-      // Basic profile fields
-      name: profileData.displayName || profileData.name || existingDocument?.name || 'Unknown User',
-      email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
-      office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
-      avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
-      cardBackgroundImage: profileData.cardBackgroundImage !== undefined && profileData.cardBackgroundImage !== null && profileData.cardBackgroundImage !== '' 
-        ? profileData.cardBackgroundImage 
-        : (existingDocument?.cardBackgroundImage || undefined),
-      // Additional profile fields
-      title: profileData.title || existingDocument?.title || '',
-      department: profileData.department || existingDocument?.department || '',
-      manager: profileData.manager || existingDocument?.manager || '',
-      // Only save admin, coach, employee roles (people role removed as it was unused)
-      // IMPORTANT: Use ?? (nullish coalescing) not || (which treats false as falsy)
-      roles: {
-        admin: profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false,
-        coach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
-        employee: profileData.roles?.employee ?? existingDocument?.roles?.employee ?? true
-        // people: REMOVED - was completely unused in frontend and backend
-      },
-      // Aggregates (no arrays, just counts)
-      score: existingDocument?.score || 0,
-      dreamsCount: existingDocument?.dreamsCount || 0,
-      connectsCount: existingDocument?.connectsCount || 0,
-      weeksActiveCount: existingDocument?.weeksActiveCount || 0,
-      // Current year for convenience
-      currentYear: new Date().getFullYear(),
-      // Structure version
-      dataStructureVersion: 3,
-      // Metadata
-      // Derive role from roles object (admin > coach > user)
-      // Use the NEW roles object we just built above
-      role: (profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false) ? 'admin' 
-          : (profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false) ? 'coach' 
-          : 'user',
-      // Derive isCoach from roles object for backward compatibility
-      isCoach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
-      isActive: existingDocument?.isActive !== false,
-      createdAt: existingDocument?.createdAt || new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      profileUpdated: new Date().toISOString()
-    };
-
-    // Debug: Log what we're about to save
-    context.log('📥 RECEIVED from client:', JSON.stringify({
-      profileData_roles: profileData.roles,
-      existingDoc_roles: existingDocument?.roles
-    }));
-    
-    context.log('💾 WRITE (about to save):', {
-      container: 'users',
-      partitionKey: userId,
-      id: updatedDocument.id,
-      operation: 'upsert',
-      dataStructureVersion: updatedDocument.dataStructureVersion,
-      role: updatedDocument.role,
-      roles: updatedDocument.roles,
-      isCoach: updatedDocument.isCoach,
-      cardBackgroundImage: updatedDocument.cardBackgroundImage ? 'present' : 'missing'
-    });
-    
-    const { resource } = await container.items.upsert(updatedDocument);
-    
-    context.log('✅ SAVED to DB:', JSON.stringify({
-      id: resource.id,
-      role: resource.role,
-      roles: resource.roles,
-      isCoach: resource.isCoach
-    }));
-    
-    context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion, 'cardBackgroundImage:', resource.cardBackgroundImage ? resource.cardBackgroundImage.substring(0, 80) : 'undefined');
-    
-    context.res = {
-      status: 200,
-      body: JSON.stringify({ 
-        success: true, 
-        id: resource.id,
-        name: resource.name,
-        email: resource.email,
-        office: resource.office,
-        title: resource.title,
-        department: resource.department,
-        manager: resource.manager,
-        roles: resource.roles
-      }),
-      headers
-    };
+    const { resource } = await container.item(userId, userId).read();
+    existingDocument = resource;
   } catch (error) {
-    context.log.error('Error updating user profile:', error);
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ error: 'Internal server error', details: error.message }),
-      headers
-    };
+    if (error.code !== 404) {
+      throw error; // Re-throw if it's not a "not found" error
+    }
+    // User doesn't exist yet - that's okay, we'll create a new one
   }
-};
+
+  // Create updated document with ONLY profile data (6-container architecture)
+  // Arrays (dreams, connects, etc.) are stored in separate containers
+  const updatedDocument = {
+    id: userId,
+    userId: userId,
+    // Basic profile fields
+    name: profileData.displayName || profileData.name || existingDocument?.name || 'Unknown User',
+    email: profileData.mail || profileData.userPrincipalName || profileData.email || existingDocument?.email || '',
+    office: profileData.region || profileData.officeLocation || profileData.city || profileData.office || existingDocument?.office || 'Remote',
+    avatar: profileData.picture || existingDocument?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName || profileData.name || 'User')}&background=6366f1&color=fff&size=100`,
+    cardBackgroundImage: profileData.cardBackgroundImage !== undefined && profileData.cardBackgroundImage !== null && profileData.cardBackgroundImage !== '' 
+      ? profileData.cardBackgroundImage 
+      : (existingDocument?.cardBackgroundImage || undefined),
+    // Additional profile fields
+    title: profileData.title || existingDocument?.title || '',
+    department: profileData.department || existingDocument?.department || '',
+    manager: profileData.manager || existingDocument?.manager || '',
+    // Only save admin, coach, employee roles (people role removed as it was unused)
+    // IMPORTANT: Use ?? (nullish coalescing) not || (which treats false as falsy)
+    roles: {
+      admin: profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false,
+      coach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
+      employee: profileData.roles?.employee ?? existingDocument?.roles?.employee ?? true
+      // people: REMOVED - was completely unused in frontend and backend
+    },
+    // Aggregates (no arrays, just counts)
+    score: existingDocument?.score || 0,
+    dreamsCount: existingDocument?.dreamsCount || 0,
+    connectsCount: existingDocument?.connectsCount || 0,
+    weeksActiveCount: existingDocument?.weeksActiveCount || 0,
+    // Current year for convenience
+    currentYear: new Date().getFullYear(),
+    // Structure version
+    dataStructureVersion: 3,
+    // Metadata
+    // Derive role from roles object (admin > coach > user)
+    // Use the NEW roles object we just built above
+    role: (profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false) ? 'admin' 
+        : (profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false) ? 'coach' 
+        : 'user',
+    // Derive isCoach from roles object for backward compatibility
+    isCoach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
+    isActive: existingDocument?.isActive !== false,
+    createdAt: existingDocument?.createdAt || new Date().toISOString(),
+    lastUpdated: new Date().toISOString(),
+    profileUpdated: new Date().toISOString()
+  };
+
+  // Debug: Log what we're about to save
+  context.log('📥 RECEIVED from client:', JSON.stringify({
+    profileData_roles: profileData.roles,
+    existingDoc_roles: existingDocument?.roles
+  }));
+  
+  context.log('💾 WRITE (about to save):', {
+    container: 'users',
+    partitionKey: userId,
+    id: updatedDocument.id,
+    operation: 'upsert',
+    dataStructureVersion: updatedDocument.dataStructureVersion,
+    role: updatedDocument.role,
+    roles: updatedDocument.roles,
+    isCoach: updatedDocument.isCoach,
+    cardBackgroundImage: updatedDocument.cardBackgroundImage ? 'present' : 'missing'
+  });
+  
+  const { resource } = await container.items.upsert(updatedDocument);
+  
+  context.log('✅ SAVED to DB:', JSON.stringify({
+    id: resource.id,
+    role: resource.role,
+    roles: resource.roles,
+    isCoach: resource.isCoach
+  }));
+  
+  context.log('Successfully updated user profile:', resource.id, 'Name:', resource.name, 'Office:', resource.office, 'dataStructureVersion:', resource.dataStructureVersion, 'cardBackgroundImage:', resource.cardBackgroundImage ? resource.cardBackgroundImage.substring(0, 80) : 'undefined');
+  
+  return { 
+    success: true, 
+    id: resource.id,
+    name: resource.name,
+    email: resource.email,
+    office: resource.office,
+    title: resource.title,
+    department: resource.department,
+    manager: resource.manager,
+    roles: resource.roles
+  };
+});

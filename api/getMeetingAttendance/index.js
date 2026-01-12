@@ -1,109 +1,51 @@
-const { getCosmosProvider } = require('../utils/cosmosProvider');
-const { requireCoach, isAuthRequired, getCorsHeaders } = require('../utils/authMiddleware');
+const { createApiHandler } = require('../utils/apiWrapper');
 
-module.exports = async function (context, req) {
+module.exports = createApiHandler({
+  auth: 'coach'
+}, async (context, req, { provider }) => {
   const teamId = context.bindingData.teamId;
 
-  // Set CORS headers
-  const headers = getCorsHeaders();
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    context.res = { status: 200, headers };
-    return;
-  }
-
   if (!teamId) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ error: 'Team ID is required' }),
-      headers
-    };
-    return;
-  }
-
-  // AUTH CHECK: Only coaches can view meeting attendance
-  if (isAuthRequired()) {
-    const user = await requireCoach(context, req);
-    if (!user) return; // 401/403 already sent
+    throw { status: 400, message: 'Team ID is required' };
   }
   
   // Validate teamId format
   if (typeof teamId !== 'string' || !teamId.trim()) {
-    context.res = {
-      status: 400,
-      body: JSON.stringify({ 
-        error: 'Invalid team ID',
-        details: 'teamId must be a non-empty string'
-      }),
-      headers
-    };
-    return;
-  }
-
-  const cosmosProvider = getCosmosProvider();
-  if (!cosmosProvider) {
-    context.res = {
-      status: 500,
-      body: JSON.stringify({ 
-        error: 'Database not configured', 
-        details: 'COSMOS_ENDPOINT and COSMOS_KEY environment variables are required' 
-      }),
-      headers
-    };
-    return;
-  }
-
-  try {
-    const attendanceContainer = cosmosProvider.getContainer('meeting_attendance');
-    
-    // Query meetings for this team without ORDER BY to avoid composite index requirement
-    // Sort in JavaScript instead (more reliable than SQL ORDER BY with Cosmos DB)
-    const query = {
-      query: 'SELECT * FROM c WHERE c.teamId = @teamId',
-      parameters: [
-        { name: '@teamId', value: teamId }
-      ]
-    };
-
-    const { resources } = await attendanceContainer.items.query(query).fetchAll();
-    
-    // Clean metadata from results
-    const meetings = resources.map(meeting => cosmosProvider.cleanMetadata(meeting));
-    
-    // Sort by date descending (most recent first)
-    meetings.sort((a, b) => {
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateB - dateA; // Descending order
-    });
-
-    context.log(`✅ Successfully retrieved ${meetings.length} meeting records for team ${teamId}`);
-
-    context.res = {
-      status: 200,
-      body: JSON.stringify({
-        success: true,
-        meetings: meetings,
-        count: meetings.length,
-        teamId: teamId,
-        timestamp: new Date().toISOString()
-      }),
-      headers
-    };
-  } catch (error) {
-    context.log.error('Error retrieving meeting attendance:', error);
-    
-    context.res = {
-      status: 500,
-      body: JSON.stringify({
-        error: 'Failed to retrieve meeting attendance',
-        details: error.message,
-        teamId: teamId,
-        timestamp: new Date().toISOString()
-      }),
-      headers
+    throw { 
+      status: 400, 
+      message: 'Invalid team ID',
+      details: 'teamId must be a non-empty string'
     };
   }
-};
 
+  const attendanceContainer = provider.getContainer('meeting_attendance');
+  
+  // Query meetings for this team without ORDER BY to avoid composite index requirement
+  const query = {
+    query: 'SELECT * FROM c WHERE c.teamId = @teamId',
+    parameters: [{ name: '@teamId', value: teamId }]
+  };
+
+  const { resources: meetings } = await attendanceContainer.items.query(query).fetchAll();
+
+  // Sort in JavaScript (more reliable than SQL ORDER BY)
+  meetings.sort((a, b) => {
+    // Primary sort: by date (newest first)
+    const aDate = new Date(a.date || 0).getTime();
+    const bDate = new Date(b.date || 0).getTime();
+    if (aDate !== bDate) return bDate - aDate;
+    
+    // Secondary sort: by createdAt (newest first)
+    const aCreated = new Date(a.createdAt || 0).getTime();
+    const bCreated = new Date(b.createdAt || 0).getTime();
+    return bCreated - aCreated;
+  });
+
+  context.log(`✅ Retrieved ${meetings.length} meetings for team ${teamId}`);
+
+  return {
+    success: true,
+    meetings,
+    count: meetings.length
+  };
+});
