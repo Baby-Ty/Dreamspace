@@ -1,14 +1,7 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
-
-/**
- * Get API base URL for backend calls
- */
-function getApiBase() {
-  const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-  return isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
-}
+import { apiClient } from './apiClient.js';
 
 /**
  * GPT Service - calls backend API to generate/polish vision statements
@@ -27,17 +20,10 @@ export const gptService = {
     }
 
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/generateVision`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userInput: userInput.trim(),
-          dreams: dreams.map(d => ({ title: d.title, category: d.category })),
-          action: 'generate'
-        })
+      const response = await apiClient.post('/generateVision', {
+        userInput: userInput.trim(),
+        dreams: dreams.map(d => ({ title: d.title, category: d.category })),
+        action: 'generate'
       });
 
       let data;
@@ -79,17 +65,10 @@ export const gptService = {
     }
 
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/generateVision`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userInput: existingVision.trim(),
-          dreams: dreams.map(d => ({ title: d.title, category: d.category })),
-          action: 'polish'
-        })
+      const response = await apiClient.post('/generateVision', {
+        userInput: existingVision.trim(),
+        dreams: dreams.map(d => ({ title: d.title, category: d.category })),
+        action: 'polish'
       });
 
       let data;

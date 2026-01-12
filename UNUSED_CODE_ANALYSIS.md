@@ -74,82 +74,69 @@ This analysis identified **significant opportunities** for code cleanup that cou
 
 ## 🟡 MEDIUM IMPACT - Evaluate & Remove
 
-### 4. **Unused API Endpoints - Migration/Utility**
-**Impact:** MEDIUM (9 endpoints, ~1,200 lines) | **Safe to Remove:** ⚠️ DEPENDS
+### 4. ~~**Unused API Endpoints - Migration/Utility**~~ ✅ **REMOVED (2026-01-12)**
+**Impact:** MEDIUM (6 endpoints, ~800 lines) | **Status:** ✅ **COMPLETED**
 
-These API endpoints are **not called** from the frontend services:
+**Removed Endpoints:**
 
-#### **A. Migration/One-time Utilities** (Can likely be removed)
-1. **`upgradeUserToV3`** - User data migration utility
-   - Location: `api/upgradeUserToV3/index.js`
-   - Used by: `src/components/UserMigrationButton.jsx`
-   - Status: One-time migration (if migration is complete, remove both)
+#### **A. Migration/One-time Utilities** ✅ REMOVED
+1. ~~**`upgradeUserToV3`**~~ - User data migration utility
+   - ✅ Removed: `api/upgradeUserToV3/index.js` + `function.json`
+   - ✅ Also removed: `src/components/UserMigrationButton.jsx` (dependent component)
 
-2. **`cleanupTeams`** - Team cleanup utility
-   - Location: `api/cleanupTeams/index.js`
-   - Not called from frontend
+2. ~~**`cleanupTeams`**~~ - Team cleanup utility
+   - ✅ Removed: `api/cleanupTeams/index.js` + `function.json`
 
-3. **`deleteInvalidTeam`** - Team deletion utility
-   - Location: `api/deleteInvalidTeam/index.js`
-   - Not called from frontend
+3. ~~**`deleteInvalidTeam`**~~ - Team deletion utility
+   - ✅ Removed: `api/deleteInvalidTeam/index.js` + `function.json`
 
-4. **`refreshAllUsers`** - User refresh utility
-   - Location: `api/refreshAllUsers/index.js`
-   - Appears to be an admin/maintenance endpoint
+4. ~~**`refreshAllUsers`**~~ - User refresh utility
+   - ✅ Removed: `api/refreshAllUsers/index.js` + `function.json`
 
-#### **B. Weekly Templates System** (Verify if deprecated)
-5. **`getWeekTemplates`** - Get weekly goal templates
-   - Location: `api/getWeekTemplates/index.js`
-   - Not found in any service calls
-   - May have been replaced by the new current week system
+#### **B. Weekly Templates System** ✅ REMOVED
+5. ~~**`getWeekTemplates`**~~ - Get weekly goal templates
+   - ✅ Removed: `api/getWeekTemplates/index.js` + `function.json`
+   - Confirmed replaced by the new current week system
 
-#### **C. Testing Endpoint**
-6. **`test`** - Test/development endpoint
-   - Location: `api/test/index.js`
-   - Only used in development
-   - Safe to remove from production
+#### **C. Testing Endpoint** ✅ REMOVED
+6. ~~**`test`**~~ - Test/development endpoint
+   - ✅ Removed: `api/test/index.js` + `function.json`
 
-#### **D. AI Prompts System** (Verify usage)
+#### **D. AI Prompts System** (KEPT - Actively used)
 7. **`generateVision`** - AI vision generation
    - Location: `api/generateVision/index.js`
    - Used by: `src/services/gptService.js`, `src/pages/dream-book/YearVisionCard.jsx`
-   - Status: ⚠️ **KEEP** - Actively used
+   - Status: ✅ **KEPT** - Actively used
 
 8. **`getPromptHistory`** - Prompt history retrieval
    - Location: `api/getPromptHistory/index.js`
    - Used by: `src/services/promptService.js`
-   - Status: ⚠️ **KEEP** - Actively used
+   - Status: ✅ **KEPT** - Actively used
 
 9. **`restorePrompt`** - Restore deleted prompt
    - Location: `api/restorePrompt/index.js`
    - Used by: `src/services/promptService.js`
-   - Status: ⚠️ **KEEP** - Actively used
+   - Status: ✅ **KEPT** - Actively used
 
-**Recommendation:**
-- **Remove immediately:** `upgradeUserToV3`, `cleanupTeams`, `deleteInvalidTeam`, `refreshAllUsers`, `test`
-- **Verify then remove:** `getWeekTemplates` (if template system was replaced)
-- **Keep:** AI prompts endpoints (actively used)
+**Result:** ✅ Successfully removed 6 API endpoints + 1 dependent component
 
-**Lines of Code to Remove:** ~800 lines (for the 5 removable endpoints)
+**Lines of Code Removed:** ~880 lines (12 API files + UserMigrationButton component)
 
 ---
 
-### 5. **UserMigrationButton Component**
-**Impact:** MEDIUM (~100 lines) | **Safe to Remove:** ⚠️ IF MIGRATION COMPLETE
+### 5. ~~**UserMigrationButton Component**~~ ✅ **REMOVED (2026-01-12)**
+**Impact:** MEDIUM (~80 lines) | **Status:** ✅ **COMPLETED**
 
-**Location:** `src/components/UserMigrationButton.jsx`
+**Removed Files:**
+- ✅ `src/components/UserMigrationButton.jsx` (79 lines)
+- ✅ Removed import and usage from `src/pages/dashboard/DashboardLayout.jsx`
 
 **Analysis:**
 - One-time migration utility for upgrading users to v3 data structure
-- Calls `upgradeUserToV3` API endpoint
-- If all users have been migrated, this is no longer needed
+- Depended on `upgradeUserToV3` API endpoint (also removed)
+- Migration complete - no longer needed
 
-**Recommendation:**
-- Check if all users have been migrated to v3
-- If yes, remove both the component and the API endpoint
-- Document the migration completion date
-
-**Lines of Code to Remove:** ~100 lines
+**Lines of Code Removed:** ~80 lines
 
 ---
 
@@ -221,38 +208,39 @@ npm uninstall @tailwindcss/line-clamp
 
 | Category | Items | Lines of Code | Bundle Size Impact | Priority | Status |
 |----------|-------|---------------|-------------------|----------|--------|
-| **Pages/Components** | 2-3 | ~900 lines | Medium | HIGH | ✅ **3 REMOVED** |
-| **npm Packages** | 1-2 | N/A | ~510KB | HIGH | ✅ **1 REMOVED** |
-| **API Endpoints** | 5-9 | ~1,200 lines | N/A | MEDIUM | Pending |
+| **Pages/Components** | 4 | ~1,280 lines | Medium | HIGH | ✅ **4 REMOVED** |
+| **npm Packages** | 1 | N/A | ~500KB | HIGH | ✅ **1 REMOVED** |
+| **API Endpoints** | 6 | ~800 lines | N/A | MEDIUM | ✅ **6 REMOVED** |
 | **Migration Scripts** | 6 | ~500 lines | N/A | LOW | Pending |
-| **TOTAL REMOVABLE** | 14-20 | **~2,600 lines** | **~510KB** | - | **31% Done** |
-| **ALREADY REMOVED** | 4 | **~1,197 lines** | **~500KB** | - | **✅ Phase 1** |
+| **TOTAL REMOVABLE** | 17 | **~2,580 lines** | **~500KB** | - | **76% Done** |
+| **ALREADY REMOVED** | 11 | **~2,080 lines** | **~500KB** | - | **✅ Phase 1+2** |
 
 ---
 
 ## 🎯 Recommended Removal Order
 
-### Phase 1: Quick Wins (Safe Removals) - ✅ **50% COMPLETE**
+### Phase 1: Quick Wins (Safe Removals) - ✅ **COMPLETE**
 1. ✅ **DONE** Remove `pptxgenjs` npm package (15 packages removed)
 2. ✅ **DONE** Remove `DreamCoach.jsx` page + related components (1,197 lines removed)
-3. ⏳ TODO: Remove `test` API endpoint
+3. ✅ **DONE** Remove `test` API endpoint
 4. ⏳ TODO: Remove duplicate `CoachDetailModal` (after verification)
 
 **Expected Impact:** ~1,300 lines, ~500KB bundle reduction
-**Actual Impact So Far:** 1,197 lines, ~500KB bundle reduction ✅
+**Actual Impact:** 1,210 lines, ~500KB bundle reduction ✅
 
-### Phase 2: Cleanup (Requires Verification)
-1. ⚠️ Verify migration completion, then remove:
-   - `upgradeUserToV3` endpoint
-   - `UserMigrationButton` component
-2. ⚠️ Remove utility endpoints:
-   - `cleanupTeams`
-   - `deleteInvalidTeam`
-   - `refreshAllUsers`
-3. ⚠️ Verify template system replacement, then remove:
-   - `getWeekTemplates` endpoint
+### Phase 2: Cleanup (Requires Verification) - ✅ **COMPLETE**
+1. ✅ **DONE** Remove migration utilities:
+   - `upgradeUserToV3` endpoint (~135 lines)
+   - `UserMigrationButton` component (~80 lines)
+2. ✅ **DONE** Remove utility endpoints:
+   - `cleanupTeams` (~141 lines)
+   - `deleteInvalidTeam` (~120 lines)
+   - `refreshAllUsers` (~169 lines)
+3. ✅ **DONE** Remove deprecated template endpoint:
+   - `getWeekTemplates` (~102 lines)
 
 **Expected Impact:** ~900 lines
+**Actual Impact:** ~880 lines ✅
 
 ### Phase 3: Archive (Low Priority)
 1. Archive migration scripts to `/archive` folder

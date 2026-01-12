@@ -15,7 +15,6 @@ import DashboardDreamCard from './DashboardDreamCard';
 import DreamTrackerModal from '../../components/DreamTrackerModal';
 import GuideModal from '../../components/GuideModal';
 import PastWeeksModal from '../../components/PastWeeksModal';
-import UserMigrationButton from '../../components/UserMigrationButton';
 import AIImageGenerator from '../../components/AIImageGenerator';
 import { showToast } from '../../utils/toast';
 
@@ -219,11 +218,6 @@ export default function DashboardLayout() {
         onShowGuide={() => setShowGuide(true)}
       />
       
-      {/* V1 to V3 Migration Banner - Only show for v1 users */}
-      {currentUser.dataStructureVersion && currentUser.dataStructureVersion < 3 && (
-        <UserMigrationButton userId={currentUser.id} />
-      )}
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6">
         {/* Left Column - Current Week Goals */}

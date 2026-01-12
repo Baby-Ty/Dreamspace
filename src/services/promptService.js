@@ -1,17 +1,11 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
-
-/**
- * Get API base URL for backend calls
- */
-function getApiBase() {
-  const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-  return isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
-}
+import { apiClient } from './apiClient.js';
 
 /**
  * Prompt Service - manages AI prompt configurations
+ * Uses apiClient for authenticated requests
  */
 export const promptService = {
   /**
@@ -20,13 +14,7 @@ export const promptService = {
    */
   async getPrompts() {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/getPrompts`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiClient.get('/getPrompts');
 
       let result;
       try {
@@ -66,16 +54,9 @@ export const promptService = {
    */
   async savePrompts(prompts, modifiedBy) {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/savePrompts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompts,
-          modifiedBy: modifiedBy || 'unknown'
-        })
+      const response = await apiClient.post('/savePrompts', {
+        prompts,
+        modifiedBy: modifiedBy || 'unknown'
       });
 
       let result;
@@ -115,13 +96,7 @@ export const promptService = {
    */
   async getPromptHistory(limit = 50) {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/getPromptHistory?limit=${limit}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiClient.get(`/getPromptHistory?limit=${limit}`);
 
       let result;
       try {
@@ -161,16 +136,9 @@ export const promptService = {
    */
   async restorePrompt(version, modifiedBy) {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/restorePrompt`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          version,
-          modifiedBy: modifiedBy || 'unknown'
-        })
+      const response = await apiClient.post('/restorePrompt', {
+        version,
+        modifiedBy: modifiedBy || 'unknown'
       });
 
       let result;
@@ -215,22 +183,15 @@ export const promptService = {
    */
   async testImageGeneration(userSearchTerm, imageType = 'dream', styleModifierId = null) {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/generateImage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userSearchTerm: userSearchTerm.trim(),
-          options: {
-            imageType: imageType,
-            styleModifierId: styleModifierId || null,
-            size: '1024x1024',
-            quality: 'hd',
-            model: 'dall-e-3'
-          }
-        })
+      const response = await apiClient.post('/generateImage', {
+        userSearchTerm: userSearchTerm.trim(),
+        options: {
+          imageType: imageType,
+          styleModifierId: styleModifierId || null,
+          size: '1024x1024',
+          quality: 'hd',
+          model: 'dall-e-3'
+        }
       });
 
       let data;
@@ -266,17 +227,10 @@ export const promptService = {
    */
   async testVisionGeneration(userInput, action = 'generate', dreams = []) {
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/generateVision`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userInput: userInput.trim(),
-          dreams: dreams.map(d => ({ title: d.title || d, category: d.category || 'general' })),
-          action: action
-        })
+      const response = await apiClient.post('/generateVision', {
+        userInput: userInput.trim(),
+        dreams: dreams.map(d => ({ title: d.title || d, category: d.category || 'general' })),
+        action: action
       });
 
       let data;
@@ -302,4 +256,3 @@ export const promptService = {
 };
 
 export default promptService;
-
