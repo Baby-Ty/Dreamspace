@@ -183,14 +183,15 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
 
     try {
       // OPTIMISTIC UPDATE: Update in localDream
+      const updatedGoal = { ...goal, completed: !goal.completed, completedAt: !goal.completed ? new Date().toISOString() : null };
       const updatedGoals = (localDream.goals || []).map(g =>
-        g.id === goalId ? { ...g, completed: !g.completed, completedAt: !g.completed ? new Date().toISOString() : null } : g
+        g.id === goalId ? updatedGoal : g
       );
       const updatedDream = { ...localDream, goals: updatedGoals };
       setLocalDream(updatedDream);
 
-      // Update via context (updates dream in database)
-      await updateGoal(localDream.id, goalId, { completed: !goal.completed });
+      // Update via context (updates dream in database with FULL goal object)
+      await updateGoal(localDream.id, updatedGoal);
       
       // ALSO UPDATE CURRENTWEEK CONTAINER: Sync the goal completion state
       // This ensures dashboard and dream modal stay in sync
