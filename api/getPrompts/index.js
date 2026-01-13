@@ -6,8 +6,7 @@
 const { createApiHandler } = require('../utils/apiWrapper');
 
 module.exports = createApiHandler({
-  auth: 'user',
-  skipDbCheck: true // We handle cosmosProvider check manually
+  auth: 'user'
 }, async (context, req, { provider }) => {
   // If cosmosProvider is not available, return defaults
   if (!provider) {
@@ -28,6 +27,22 @@ module.exports = createApiHandler({
         vibrant_coastal: { label: 'Vibrant Coastal Illustration', modifier: 'vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements' },
         semi_realistic: { label: 'Semi-Realistic Landscape Art', modifier: 'semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic' },
         photorealistic_cinematic: { label: 'Photorealistic Cinematic', modifier: 'photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights' }
+      },
+      aiLimits: {
+        imageGeneration: {
+          dailyLimitPerUser: 25,
+          dailyLimitTotal: 500,
+          perMinuteLimit: 10,
+          costPerRequest: 0.08,
+          modelName: 'DALL-E 3 HD'
+        },
+        visionGeneration: {
+          dailyLimitPerUser: 100,
+          dailyLimitTotal: 2000,
+          perMinuteLimit: 20,
+          costPerRequest: 0.00015,
+          modelName: 'GPT-4o-mini'
+        }
       }
     };
     
@@ -36,6 +51,8 @@ module.exports = createApiHandler({
 
   // Always fetch fresh prompts from Cosmos DB (no caching)
   let prompts;
+  const defaultPrompts = provider.getDefaultPrompts();
+  
   try {
     // Fetch fresh prompts from Cosmos DB
     prompts = await provider.getPrompts();
@@ -43,13 +60,30 @@ module.exports = createApiHandler({
     // If prompts don't exist, create defaults
     if (!prompts) {
       context.log('📝 Prompts not found, creating defaults');
-      const defaultPrompts = provider.getDefaultPrompts();
       prompts = await provider.upsertPrompts(defaultPrompts, 'system');
+    } else {
+      // Merge with defaults for any missing sections (e.g., aiLimits added later)
+      const cosmosAiLimits = prompts.aiLimits;
+      prompts = {
+        ...defaultPrompts,
+        ...prompts,
+        // Deep merge aiLimits to preserve any existing values while adding new fields
+        aiLimits: {
+          imageGeneration: {
+            ...defaultPrompts.aiLimits.imageGeneration,
+            ...(cosmosAiLimits?.imageGeneration || {})
+          },
+          visionGeneration: {
+            ...defaultPrompts.aiLimits.visionGeneration,
+            ...(cosmosAiLimits?.visionGeneration || {})
+          }
+        }
+      };
     }
   } catch (promptError) {
     context.log.warn('Failed to load/create prompts from Cosmos DB, using defaults:', promptError.message);
     // Fallback to default prompts
-    prompts = provider.getDefaultPrompts();
+    prompts = defaultPrompts;
   }
   
   // Clean metadata before returning

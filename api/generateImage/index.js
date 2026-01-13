@@ -1,20 +1,120 @@
 /**
  * Azure Function: Generate Image using DALL-E
  * Proxies requests to OpenAI DALL-E API to keep API key server-side
+ * 
+ * Rate Limits (configurable via People Hub > AI Prompts Configuration):
+ * - Per-minute: handled by rateLimiter.js
+ * - Per-day per-user: configurable in Cosmos DB (default: 25)
+ * - Per-day total: configurable in Cosmos DB (default: 500)
  */
 
 const { createApiHandler } = require('../utils/apiWrapper');
 
+// Default limits (used if Cosmos DB config not available)
+const DEFAULT_LIMITS = {
+  dailyLimitPerUser: 25,
+  dailyLimitTotal: 500
+};
+
+// In-memory daily usage tracking (resets on function restart, but that's OK for soft limits)
+const dailyUsage = {
+  date: new Date().toISOString().split('T')[0],
+  users: new Map(),
+  total: 0
+};
+
+function resetIfNewDay() {
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyUsage.date !== today) {
+    dailyUsage.date = today;
+    dailyUsage.users.clear();
+    dailyUsage.total = 0;
+  }
+}
+
+function checkDailyLimit(userId, limits, context) {
+  resetIfNewDay();
+  
+  const dailyLimitPerUser = limits?.dailyLimitPerUser || DEFAULT_LIMITS.dailyLimitPerUser;
+  const dailyLimitTotal = limits?.dailyLimitTotal || DEFAULT_LIMITS.dailyLimitTotal;
+  
+  const userCount = dailyUsage.users.get(userId) || 0;
+  
+  // Check per-user daily limit
+  if (userCount >= dailyLimitPerUser) {
+    context.log.warn(`Daily limit reached for user ${userId}: ${userCount}/${dailyLimitPerUser}`);
+    return { 
+      allowed: false, 
+      reason: `Daily image generation limit reached (${dailyLimitPerUser} per day). Try again tomorrow.`,
+      userCount,
+      totalCount: dailyUsage.total,
+      dailyLimitPerUser,
+      dailyLimitTotal
+    };
+  }
+  
+  // Check organization-wide daily limit
+  if (dailyUsage.total >= dailyLimitTotal) {
+    context.log.warn(`Organization daily limit reached: ${dailyUsage.total}/${dailyLimitTotal}`);
+    return { 
+      allowed: false, 
+      reason: `Organization daily image limit reached. Try again tomorrow.`,
+      userCount,
+      totalCount: dailyUsage.total,
+      dailyLimitPerUser,
+      dailyLimitTotal
+    };
+  }
+  
+  return { allowed: true, userCount, totalCount: dailyUsage.total, dailyLimitPerUser, dailyLimitTotal };
+}
+
+function recordUsage(userId) {
+  resetIfNewDay();
+  const current = dailyUsage.users.get(userId) || 0;
+  dailyUsage.users.set(userId, current + 1);
+  dailyUsage.total++;
+}
+
 module.exports = createApiHandler({
   auth: 'user',
   skipDbCheck: true
-}, async (context, req, { provider }) => {
+}, async (context, req, { provider, user }) => {
   const { userSearchTerm, options = {} } = req.body || {};
+  
+  // Load limits from Cosmos DB prompts config (or use defaults)
+  let aiLimits = null;
+  try {
+    if (provider) {
+      const prompts = await provider.getPrompts();
+      aiLimits = prompts?.aiLimits?.imageGeneration;
+    }
+  } catch (err) {
+    context.log.warn('Failed to load AI limits from config, using defaults:', err.message);
+  }
+  
+  // Check daily limits before processing
+  const dailyCheck = checkDailyLimit(user?.userId || 'anonymous', aiLimits, context);
+  if (!dailyCheck.allowed) {
+    throw { 
+      status: 429, 
+      message: dailyCheck.reason,
+      details: {
+        dailyUserUsage: dailyCheck.userCount,
+        dailyTotalUsage: dailyCheck.totalCount,
+        dailyUserLimit: dailyCheck.dailyLimitPerUser,
+        dailyTotalLimit: dailyCheck.dailyLimitTotal
+      }
+    };
+  }
 
   context.log('generateImage called:', { 
     userSearchTermLength: userSearchTerm?.length,
     imageType: options.imageType,
-    styleModifierId: options.styleModifierId
+    styleModifierId: options.styleModifierId,
+    dailyUserUsage: dailyCheck.userCount + 1,
+    dailyTotalUsage: dailyCheck.totalCount + 1,
+    limitsSource: aiLimits ? 'cosmos-db' : 'defaults'
   });
 
   // Validate input
@@ -150,11 +250,26 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
     throw { status: 500, message: 'Invalid response from OpenAI DALL-E API' };
   }
 
-  context.log('✅ Image generated successfully');
+  // Record successful usage for daily limits
+  recordUsage(user?.userId || 'anonymous');
+  
+  const finalUserCount = dailyUsage.users.get(user?.userId || 'anonymous') || 0;
+  const userLimit = dailyCheck.dailyLimitPerUser;
+  
+  context.log('✅ Image generated successfully', {
+    dailyUserUsage: finalUserCount,
+    dailyTotalUsage: dailyUsage.total
+  });
 
   return { 
     success: true,
     url: data.data[0].url,
-    revisedPrompt: data.data[0].revised_prompt || prompt
+    revisedPrompt: data.data[0].revised_prompt || prompt,
+    // Include usage info so frontend can show remaining
+    usage: {
+      dailyUserUsage: finalUserCount,
+      dailyUserLimit: userLimit,
+      dailyUserRemaining: userLimit - finalUserCount
+    }
   };
 });

@@ -128,6 +128,23 @@ Make it sound more visionary and confident, but still authentically me.`
           label: 'Photorealistic Cinematic',
           modifier: 'photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights'
         }
+      },
+      // AI Usage Limits - controls cost by limiting image generation
+      aiLimits: {
+        imageGeneration: {
+          dailyLimitPerUser: 25,       // Max images per user per day
+          dailyLimitTotal: 500,        // Max images org-wide per day
+          perMinuteLimit: 10,          // Max requests per minute (burst protection)
+          costPerRequest: 0.08,        // Cost in USD per DALL-E 3 HD image
+          modelName: 'DALL-E 3 HD'     // Display name for the model
+        },
+        visionGeneration: {
+          dailyLimitPerUser: 100,      // Max vision requests per user per day
+          dailyLimitTotal: 2000,       // Max vision requests org-wide per day
+          perMinuteLimit: 20,          // Max requests per minute
+          costPerRequest: 0.00015,     // Cost in USD per GPT-4o-mini request
+          modelName: 'GPT-4o-mini'     // Display name for the model
+        }
       }
     };
   }

@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../components/ConfirmModal';
 import { useFieldHistory } from './PromptFieldHistory';
 import GlobalHistoryPanel from './GlobalHistoryPanel';
-import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection } from './PromptFields';
+import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection, AILimitsSection } from './PromptFields';
 
 /**
  * Prompt Editor Section Component
@@ -47,7 +47,8 @@ export default function PromptEditorSection() {
   const [expandedSections, setExpandedSections] = useState({
     imageGeneration: false,
     visionGeneration: false,
-    styleModifiers: false
+    styleModifiers: false,
+    aiLimits: false
   });
 
   // Load prompts on mount
@@ -131,6 +132,20 @@ export default function PromptEditorSection() {
         ...prev.styleModifiers,
         [styleId]: {
           ...prev.styleModifiers[styleId],
+          [field]: value
+        }
+      }
+    }));
+    setHasChanges(true);
+  };
+
+  const updateAILimit = (section, field, value) => {
+    setPrompts(prev => ({
+      ...prev,
+      aiLimits: {
+        ...prev.aiLimits,
+        [section]: {
+          ...(prev.aiLimits?.[section] || {}),
           [field]: value
         }
       }
@@ -406,6 +421,16 @@ export default function PromptEditorSection() {
           loadingHistory={loadingHistory}
           onCloseHistory={() => setFieldHistoryView(null)}
           onRestoreStyleModifier={restoreStyleModifierValue}
+        />
+      )}
+
+      {/* AI Usage Limits Section */}
+      {!showHistory && (
+        <AILimitsSection
+          prompts={prompts}
+          expanded={expandedSections.aiLimits}
+          onToggle={() => toggleSection('aiLimits')}
+          onUpdateLimits={updateAILimit}
         />
       )}
 
