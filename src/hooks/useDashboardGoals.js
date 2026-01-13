@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDashboardGoalsLoader } from './dashboard-goals-loader';
-import { useDashboardGoalsActions } from './useDashboardGoalsActions';
+import { useDashboardGoalsActions } from './dashboard-goals-actions';
 
 /**
  * useDashboardGoals - Orchestrates dashboard goal operations
