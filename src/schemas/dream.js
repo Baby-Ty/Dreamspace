@@ -75,7 +75,8 @@ export const WeeklyGoalTemplateSchema = z.object({
   dreamId: z.string(),
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
-  milestoneId: z.union([z.string(), z.number()]).optional(),
+  goalId: z.union([z.string(), z.number()]).optional(), // Links to parent dream goal
+  milestoneId: z.union([z.string(), z.number()]).optional(), // @deprecated - use goalId
   recurrence: z.enum(['weekly', 'monthly']).default('weekly'),
   targetWeeks: z.number().optional(),
   targetMonths: z.number().optional(),
@@ -185,6 +186,7 @@ export function parseWeeklyGoalTemplate(data) {
       dreamId: data?.dreamId || '',
       dreamTitle: data?.dreamTitle,
       dreamCategory: data?.dreamCategory,
+      goalId: data?.goalId || data?.milestoneId, // Prefer goalId, fallback to milestoneId
       recurrence: data?.recurrence || 'weekly',
       targetWeeks: data?.targetWeeks,
       targetMonths: data?.targetMonths,

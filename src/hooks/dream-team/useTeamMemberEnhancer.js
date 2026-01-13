@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import databaseService from '../../services/databaseService';
 import { getAccentColor, getActivityStatus, calculateCompletionStats, calculateWeeklyProgress } from './teamHelpers';
 
 /**
@@ -48,71 +47,19 @@ export function useTeamMemberEnhancer(teamData, currentUser) {
             }
           }
           
-          // Load avatar and background if needed
-          const needsAvatarLoad = !updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:');
-          const needsBackgroundLoad = !updatedMember.cardBackgroundImage || 
-                                    (typeof updatedMember.cardBackgroundImage === 'string' && !updatedMember.cardBackgroundImage.trim());
-          
-          if (needsAvatarLoad || needsBackgroundLoad) {
-            try {
-              const userDataResult = await databaseService.loadUserData(memberId);
-              
-              if (userDataResult.success && userDataResult.data) {
-                // Extract avatar
-                let avatar = userDataResult.data.avatar || 
-                            userDataResult.data.currentUser?.avatar || 
-                            userDataResult.data.picture ||
-                            userDataResult.data.profile?.avatar ||
-                            userDataResult.data.profilePicture;
-                
-                // Skip blob URLs
-                if (avatar && typeof avatar === 'string' && avatar.startsWith('blob:')) {
-                  avatar = null;
-                }
-                
-                if (avatar && typeof avatar === 'string' && avatar.trim() && 
-                    !avatar.includes('ui-avatars.com') && !avatar.startsWith('blob:')) {
-                  updatedMember.avatar = avatar;
-                } else if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com')) {
-                  updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
-                }
-
-                // Extract card background
-                const cardBackgroundImage = userDataResult.data.cardBackgroundImage || 
-                                          userDataResult.data.currentUser?.cardBackgroundImage;
-                
-                if (cardBackgroundImage && typeof cardBackgroundImage === 'string' && cardBackgroundImage.trim()) {
-                  updatedMember.cardBackgroundImage = cardBackgroundImage;
-                }
-              } else {
-                if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com')) {
-                  updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
-                }
-              }
-            } catch (avatarError) {
-              console.warn(`⚠️ Could not load avatar/background for ${member.name}:`, avatarError);
-              if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com')) {
-                updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
-              }
-            }
+          // Use avatar/background from member data (already loaded via getAllUsers)
+          // Don't fetch individual user data - it requires coach/admin access for other users
+          if (!updatedMember.avatar || updatedMember.avatar.includes('ui-avatars.com') || updatedMember.avatar.startsWith('blob:')) {
+            // Use fallback avatar
+            updatedMember.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'User')}&background=EC4B5C&color=fff&size=100`;
           }
           
-          // Load dreams if missing
-          if (!updatedMember.dreamBook || updatedMember.dreamBook.length === 0) {
-            try {
-              const userDataResult = await databaseService.loadUserData(memberId);
-              if (userDataResult.success && userDataResult.data) {
-                const dreams = userDataResult.data.dreams || userDataResult.data.dreamBook || [];
-                if (dreams.length > 0) {
-                  console.log(`✅ Loaded ${dreams.length} dreams for ${member.name}`);
-                  updatedMember.dreamBook = dreams;
-                  updatedMember.dreamsCount = dreams.length;
-                }
-              }
-            } catch (dreamError) {
-              console.warn(`⚠️ Could not load dreams for ${member.name}:`, dreamError);
-            }
-          } else {
+          // cardBackgroundImage should already be set from getAllUsers response
+          // No need to fetch - it's included in the user data from getAllUsers
+          
+          // Dreams are already loaded from getAllUsers (public dreams only for non-coaches)
+          // No need to fetch individual user data - just use what's already provided
+          if (updatedMember.dreamBook && updatedMember.dreamBook.length > 0) {
             const actualCount = updatedMember.dreamBook.length;
             if (updatedMember.dreamsCount !== actualCount) {
               updatedMember.dreamsCount = actualCount;

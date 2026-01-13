@@ -67,11 +67,12 @@ class DatabaseService {
       }
     } catch (error) {
       console.error('Error saving user data:', error);
-      // Fallback to localStorage if Cosmos DB fails
-      if (this.useCosmosDB) {
-        console.log('🔄 Falling back to localStorage');
+      // In production, DO NOT silently fall back to localStorage - this causes data divergence
+      // Only use localStorage fallback in development mode
+      if (!this.useCosmosDB) {
         return this.saveToLocalStorage(userId, userData);
       }
+      // In production, propagate the error so UI can handle it appropriately
       return fail(ErrorCodes.SAVE_ERROR, error.message || 'Failed to save user data');
     }
   }
@@ -100,12 +101,13 @@ class DatabaseService {
       }
     } catch (error) {
       console.error('Error loading user data:', error);
-      // Fallback to localStorage if Cosmos DB fails
-      if (this.useCosmosDB) {
-        console.log('🔄 Falling back to localStorage');
+      // In production, DO NOT silently fall back to localStorage - this hides real errors
+      // Only use localStorage fallback in development mode
+      if (!this.useCosmosDB) {
         const localData = this.loadFromLocalStorage(userId);
         return ok(localData);
       }
+      // In production, propagate the error so UI can handle it appropriately
       return fail(ErrorCodes.LOAD_ERROR, error.message || 'Failed to load user data');
     }
   }

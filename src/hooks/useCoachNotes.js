@@ -3,6 +3,7 @@
 
 import { useState, useCallback } from 'react';
 import coachingService from '../services/coachingService';
+import { toast } from '../utils/toast';
 
 /**
  * useCoachNotes - Manages coach messaging for a dream
@@ -29,7 +30,7 @@ export function useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachV
    */
   const addCoachMessage = useCallback(async (message) => {
     if (!message.trim()) {
-      alert('Please enter a message');
+      toast.warning('Please enter a message');
       return;
     }
 
@@ -81,11 +82,11 @@ export function useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachV
         console.log('✅ Coach message added successfully');
       } else {
         console.error('❌ Failed to add coach message:', result.error);
-        alert('Failed to send message. Please try again.');
+        toast.error('Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('❌ Error adding coach message:', error);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.');
     }
   }, [localDream, setLocalDream, setHasChanges, isCoachViewing, teamMember, currentUser]);
 

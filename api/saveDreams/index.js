@@ -1,26 +1,21 @@
 const { createApiHandler } = require('../utils/apiWrapper');
+const { validateRequest, SaveDreamsRequestSchema, createValidationError } = require('../utils/validation');
 
 module.exports = createApiHandler({
   auth: 'user-access',
   targetUserIdParam: 'body.userId',
   containerName: 'dreams'
 }, async (context, req, { container }) => {
-  const { userId, dreams, weeklyGoalTemplates } = req.body || {};
+  // Validate request body with Zod schema
+  const validation = validateRequest(req.body, SaveDreamsRequestSchema);
+  if (!validation.success) {
+    context.log.warn('saveDreams validation failed:', validation.errors);
+    throw createValidationError(validation.errors);
+  }
+
+  const { userId, dreams, weeklyGoalTemplates } = validation.data;
 
   context.log('saveDreams called:', { userId, dreamsCount: dreams?.length, templatesCount: weeklyGoalTemplates?.length });
-
-  if (!userId) {
-    throw { status: 400, message: 'userId is required' };
-  }
-
-  if (!Array.isArray(dreams)) {
-    throw { status: 400, message: 'dreams array is required' };
-  }
-
-  // weeklyGoalTemplates is optional - can be empty array
-  if (weeklyGoalTemplates && !Array.isArray(weeklyGoalTemplates)) {
-    throw { status: 400, message: 'weeklyGoalTemplates must be an array if provided' };
-  }
   const documentId = userId;
   
   context.log(`Saving dreams document for user: ${userId}`);
@@ -90,7 +85,7 @@ module.exports = createApiHandler({
       dreamId: template.dreamId,
       dreamTitle: template.dreamTitle,
       dreamCategory: template.dreamCategory,
-      goalId: template.goalId, // Changed from milestoneId
+      goalId: template.goalId || template.milestoneId, // Prefer goalId, fallback to milestoneId for backward compat
       recurrence: template.recurrence || 'weekly',
       active: template.active !== false,
       durationType: template.durationType || (template.durationWeeks || template.targetWeeks ? 'weeks' : 'unlimited'),

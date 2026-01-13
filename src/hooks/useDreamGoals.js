@@ -4,6 +4,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { getCurrentIsoWeek, getNextNWeeks, getWeeksUntilDate, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
+import { toast } from '../utils/toast';
 
 /**
  * useDreamGoals - Manages all goal operations for a dream
@@ -81,7 +82,7 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
     const { title, consistency, targetWeeks, targetMonths, frequency, targetDate } = newGoalData;
 
     if (!title.trim()) {
-      alert('Please enter a goal title');
+      toast.warning('Please enter a goal title');
       return;
     }
 
@@ -180,7 +181,7 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       console.log('✅ Goal added successfully');
     } catch (error) {
       console.error('❌ Failed to add goal:', error);
-      alert('Failed to add goal. Please try again.');
+      toast.error('Failed to add goal. Please try again.');
     } finally {
       setIsSavingGoal(false);
     }
@@ -239,7 +240,7 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       console.log('✅ Goal deleted successfully');
     } catch (error) {
       console.error('❌ Failed to delete goal:', error);
-      alert('Failed to delete goal. Please try again.');
+      toast.error('Failed to delete goal. Please try again.');
     }
   }, [canEdit, localDream, setLocalDream, setHasChanges, deleteGoal, currentUser]);
 
@@ -284,7 +285,7 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       console.log('✅ Goal updated successfully');
     } catch (error) {
       console.error('❌ Failed to update goal:', error);
-      alert('Failed to update goal. Please try again.');
+      toast.error('Failed to update goal. Please try again.');
     } finally {
       setIsSavingGoalEdit(false);
     }

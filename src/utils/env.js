@@ -36,14 +36,14 @@ const envSchema = z.object({
   // Application environment (custom)
   VITE_APP_ENV: z.enum(['development', 'production', 'test']).optional(),
 
-  // Azure AD / Microsoft Entra ID
+  // Azure AD / Microsoft Entra ID - REQUIRED for authentication
   VITE_AZURE_CLIENT_ID: z.string().uuid({
-    message: 'VITE_AZURE_CLIENT_ID must be a valid UUID'
-  }).optional(), // Optional because it's hardcoded in authConfig currently
+    message: 'VITE_AZURE_CLIENT_ID must be a valid UUID (Azure App Registration Client ID)'
+  }).optional(), // Validated at runtime in authConfig.js with clear error
 
   VITE_AZURE_TENANT_ID: z.string().uuid({
-    message: 'VITE_AZURE_TENANT_ID must be a valid UUID'
-  }).optional(),
+    message: 'VITE_AZURE_TENANT_ID must be a valid UUID (Azure AD Tenant ID)'
+  }).optional(), // Optional - falls back to 'common' multi-tenant endpoint
 
   // Azure Cosmos DB endpoint (key is kept server-side only)
   VITE_COSMOS_ENDPOINT: z.string().url({
@@ -224,6 +224,8 @@ export const env = validation.data || {
   // Fallback to safe defaults if validation failed in production
   MODE: import.meta.env.MODE || 'development',
   VITE_APP_ENV: import.meta.env.VITE_APP_ENV,
+  VITE_AZURE_CLIENT_ID: import.meta.env.VITE_AZURE_CLIENT_ID,
+  VITE_AZURE_TENANT_ID: import.meta.env.VITE_AZURE_TENANT_ID,
   VITE_COSMOS_ENDPOINT: import.meta.env.VITE_COSMOS_ENDPOINT,
   VITE_COSMOS_DATABASE: import.meta.env.VITE_COSMOS_DATABASE || 'dreamspace',
   VITE_COSMOS_CONTAINER: import.meta.env.VITE_COSMOS_CONTAINER || 'users',
@@ -245,6 +247,13 @@ export const config = {
   isDev: isDevelopment(),
   isProd: isProduction(),
   isTest: isTest(),
+
+  // Azure AD / Microsoft Entra ID
+  azureAd: {
+    clientId: env.VITE_AZURE_CLIENT_ID,
+    tenantId: env.VITE_AZURE_TENANT_ID,
+    isConfigured: !!env.VITE_AZURE_CLIENT_ID,
+  },
 
   // Azure Cosmos DB (key is server-side only)
   cosmos: {
@@ -298,6 +307,7 @@ export const config = {
 export function logConfig() {
   console.log('🔧 Environment Configuration:');
   console.log('  Environment:', config.env);
+  console.log('  Azure AD:', config.azureAd.isConfigured ? '✅ Configured' : '❌ Not configured (auth will fail)');
   console.log('  Cosmos DB:', config.cosmos.isConfigured ? '✅ Configured' : '❌ Not configured');
   console.log('  Unsplash API:', config.unsplash.isConfigured ? '✅ Configured' : '❌ Not configured (using mocks)');
   console.log('  OpenAI API:', config.openai.isConfigured ? '✅ Configured' : '❌ Not configured (AI image generation disabled)');

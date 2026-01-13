@@ -32,6 +32,7 @@ const {
   requireCoach,
   requireUserAccess
 } = require('./authMiddleware');
+const { checkRateLimit, addRateLimitHeaders } = require('./rateLimiter');
 
 /**
  * Get value from nested object path
@@ -64,11 +65,13 @@ function createApiHandler(options, handler) {
     auth: options.auth || 'none',
     targetUserIdParam: options.targetUserIdParam || 'body.userId',
     containerName: options.containerName || null,
-    skipDbCheck: options.skipDbCheck || false
+    skipDbCheck: options.skipDbCheck || false,
+    rateLimit: options.rateLimit !== false // Rate limiting enabled by default
   };
 
   return async function (context, req) {
     const headers = getCorsHeaders();
+    let responseHeaders = headers; // For rate limit headers
 
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
@@ -168,6 +171,28 @@ function createApiHandler(options, handler) {
         }
       }
 
+      // Check rate limit (after auth so we can use user ID for tracking)
+      if (config.rateLimit) {
+        const rateLimitResult = checkRateLimit(context, req, user);
+        responseHeaders = addRateLimitHeaders(headers, rateLimitResult);
+        
+        if (!rateLimitResult.allowed) {
+          context.log.warn('Rate limit exceeded:', {
+            endpoint: context.executionContext?.functionName,
+            userId: user?.userId || 'anonymous'
+          });
+          context.res = {
+            status: rateLimitResult.statusCode,
+            body: JSON.stringify({
+              error: rateLimitResult.message,
+              retryAfter: rateLimitResult.headers['Retry-After']
+            }),
+            headers: responseHeaders
+          };
+          return;
+        }
+      }
+
       // Call the business logic handler
       const result = await handler(context, req, {
         container,
@@ -184,12 +209,12 @@ function createApiHandler(options, handler) {
       context.res = {
         status: 200,
         body: JSON.stringify(result),
-        headers
+        headers: responseHeaders
       };
 
     } catch (error) {
       // Handle errors thrown by business logic
-      handleError(context, error, headers);
+      handleError(context, error, responseHeaders || headers);
     }
   };
 }

@@ -24,6 +24,9 @@ export const actionTypes = {
   LOAD_PERSISTED_DATA: 'LOAD_PERSISTED_DATA',
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
+  // Loading state actions
+  SET_LOADING: 'SET_LOADING',
+  SET_DATA_LOADED: 'SET_DATA_LOADED',
 };
 
 /**
@@ -33,8 +36,10 @@ export const actionTypes = {
 export const appReducer = (state, action) => {
   switch (action.type) {
     case actionTypes.LOAD_PERSISTED_DATA:
-      // ✅ FIX: Preserve dreams if payload has empty dreams but state already has dreams
-      // This prevents dreams from disappearing during data loading race conditions
+      // Data preservation for race conditions:
+      // When loading from multiple sources (API, localStorage), data may arrive at different times.
+      // We preserve existing data if incoming data is empty to prevent UI flickering.
+      // TODO: Long-term fix - use explicit loading states per data type
       const loadedDreams = action.payload.currentUser?.dreamBook || action.payload.dreamBook || [];
       const currentDreams = state.currentUser?.dreamBook || [];
       const preservedDreams = (loadedDreams.length > 0 || currentDreams.length === 0) 
@@ -273,6 +278,36 @@ export const appReducer = (state, action) => {
       return {
         ...state,
         isAuthenticated: false
+      };
+
+    case actionTypes.SET_LOADING:
+      // Set loading state for specific data type
+      // Usage: dispatch({ type: SET_LOADING, payload: { dreams: true } })
+      return {
+        ...state,
+        loading: {
+          ...state.loading,
+          ...action.payload
+        }
+      };
+
+    case actionTypes.SET_DATA_LOADED:
+      // Mark specific data as loaded (for race condition handling)
+      // Usage: dispatch({ type: SET_DATA_LOADED, payload: { dreams: true, source: 'api' } })
+      return {
+        ...state,
+        dataLoaded: {
+          ...state.dataLoaded,
+          [action.payload.type]: {
+            loaded: true,
+            source: action.payload.source,
+            timestamp: Date.now()
+          }
+        },
+        loading: {
+          ...state.loading,
+          [action.payload.type]: false
+        }
       };
 
     default:

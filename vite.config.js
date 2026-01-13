@@ -6,9 +6,16 @@ import react from '@vitejs/plugin-react'
 // Since you have a custom domain (CNAME file), serve from root
 const base = '/'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   base,
+  // Strip console.log/debug in production builds (keep console.error/warn for debugging)
+  esbuild: {
+    // Mark these as pure (no side effects) so they get removed in production
+    pure: mode === 'production' ? ['console.log', 'console.debug', 'console.info'] : [],
+    // Also drop debugger statements in production
+    drop: mode === 'production' ? ['debugger'] : [],
+  },
   server: {
     // Proxy API requests to Azure Functions running locally
     proxy: {
@@ -40,4 +47,4 @@ export default defineConfig({
     // Increase chunk size warning limit since we're using large libraries
     chunkSizeWarningLimit: 1000
   }
-})
+}))

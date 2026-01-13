@@ -1,4 +1,15 @@
 const { createApiHandler } = require('../utils/apiWrapper');
+const { validateRequest, z, createValidationError } = require('../utils/validation');
+
+// Flexible user data schema - validates structure without being too strict
+// This endpoint accepts various formats (old/new, wrapped/unwrapped)
+const FlexibleUserDataSchema = z.object({
+  userId: z.union([z.string().min(1), z.number()]).optional(),
+  id: z.union([z.string().min(1), z.number()]).optional()
+}).passthrough().refine(
+  (data) => data.userId || data.id || data.currentUser?.userId || data.currentUser?.id,
+  { message: 'userId or id is required (can be at root or in currentUser)' }
+);
 
 // Helper to determine if data is in old monolithic format
 function isOldFormat(userData) {
@@ -109,7 +120,15 @@ module.exports = createApiHandler({
   targetUserIdParam: 'bindingData.userId'
 }, async (context, req, { provider }) => {
   const userId = context.bindingData.userId;
-  const userData = req.body;
+  
+  // Validate request body structure
+  const validation = validateRequest(req.body, FlexibleUserDataSchema);
+  if (!validation.success) {
+    context.log.warn('saveUserData validation failed:', validation.errors);
+    throw createValidationError(validation.errors);
+  }
+  
+  const userData = validation.data;
 
   context.log('Saving user data for userId:', userId);
 

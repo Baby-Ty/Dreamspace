@@ -17,6 +17,7 @@ import GuideModal from '../../components/GuideModal';
 import PastWeeksModal from '../../components/PastWeeksModal';
 import AIImageGenerator from '../../components/AIImageGenerator';
 import { showToast } from '../../utils/toast';
+import { useConfirm } from '../../components/ConfirmModal';
 
 /**
  * Dashboard Layout Component
@@ -24,7 +25,8 @@ import { showToast } from '../../utils/toast';
  */
 export default function DashboardLayout() {
   const { currentUser, updateDream } = useApp();
-  
+  const confirm = useConfirm();
+
   // Week rollover check (fallback - primary is server-side timer)
   useWeekRollover();
   
@@ -91,14 +93,13 @@ export default function DashboardLayout() {
   const handleTestRollover = useCallback(async () => {
     if (!currentUser?.id) return;
     
-    const confirmed = window.confirm(
-      '🧪 TEST MODE: Simulate week rollover?\n\n' +
-      'This will:\n' +
-      '• Archive current week to pastWeeks\n' +
-      '• Decrement remaining weeks on goals (-1)\n' +
-      '• Create new week with goals from templates\n\n' +
-      'Continue?'
-    );
+    const confirmed = await confirm({
+      title: '🧪 Test Week Rollover',
+      message: 'This will simulate a week rollover:\n\n• Archive current week to pastWeeks\n• Decrement remaining weeks on goals (-1)\n• Create new week with goals from templates\n\nContinue?',
+      type: 'question',
+      confirmText: 'Run Test',
+      cancelText: 'Cancel'
+    });
     
     if (!confirmed) return;
     
@@ -108,11 +109,7 @@ export default function DashboardLayout() {
       
       if (result.success) {
         if (result.rolled) {
-          alert(`✅ Week rollover successful!\n\n` +
-            `From: ${result.fromWeek}\n` +
-            `To: ${result.toWeek}\n` +
-            `Goals: ${result.goalsCount}\n\n` +
-            `Refreshing dashboard...`);
+          showToast(`Week rollover successful! ${result.goalsCount} goals rolled from ${result.fromWeek} to ${result.toWeek}`, 'success', 5000);
           
           // ⏱️ Wait for Cosmos DB eventual consistency before loading goals
           // Use event-driven refresh instead of page reload to prevent reload loop
@@ -122,18 +119,18 @@ export default function DashboardLayout() {
             console.log('✅ Dashboard refreshed after test rollover');
           }, 2000); // Wait 2 seconds to allow for eventual consistency
         } else {
-          alert(`ℹ️ ${result.message || 'No rollover needed'}`);
+          showToast(result.message || 'No rollover needed', 'info');
         }
       } else {
-        alert(`❌ Rollover failed: ${result.error || 'Unknown error'}`);
+        showToast(`Rollover failed: ${result.error || 'Unknown error'}`, 'error');
       }
     } catch (error) {
       console.error('Test rollover error:', error);
-      alert(`❌ Error: ${error.message}`);
+      showToast(`Error: ${error.message}`, 'error');
     } finally {
       setIsRollingOver(false);
     }
-  }, [currentUser?.id, loadCurrentWeekGoals, refreshPastWeeks]);
+  }, [currentUser?.id, loadCurrentWeekGoals, refreshPastWeeks, confirm]);
 
   // Early return for loading
   if (!currentUser) {

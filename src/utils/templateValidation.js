@@ -78,15 +78,19 @@ function getWeeksBetween(startWeekIso, endWeekIso) {
 
 /**
  * Auto-deactivate templates that have expired
+ * @param {Array} templates - Goal templates
+ * @param {string} currentWeekIso - Current ISO week
+ * @param {Array} goals - Goals array (was milestones, renamed for consistency)
  */
-export const checkAndDeactivateExpiredTemplates = (templates, currentWeekIso, milestones = []) => {
+export const checkAndDeactivateExpiredTemplates = (templates, currentWeekIso, goals = []) => {
   return templates.map(template => {
-    // Find associated milestone if any
-    const milestone = template.milestoneId 
-      ? milestones.find(m => m.id === template.milestoneId)
+    // Find associated goal if any (goalId is preferred, milestoneId for backward compat)
+    const linkedId = template.goalId || template.milestoneId;
+    const linkedGoal = linkedId 
+      ? goals.find(g => g.id === linkedId)
       : null;
     
-    const isActive = isTemplateActiveForWeek(template, currentWeekIso, milestone);
+    const isActive = isTemplateActiveForWeek(template, currentWeekIso, linkedGoal);
     
     // If template should not be active, mark it
     if (!isActive && template.active !== false) {

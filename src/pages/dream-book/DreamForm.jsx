@@ -144,15 +144,15 @@ function DreamForm({
       <div className="flex space-x-2">
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || uploadingImage}
           aria-label={isEditing ? 'Update dream' : 'Save dream'}
           data-testid="save-dream-button"
           className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSaving ? (
+          {isSaving || uploadingImage ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-              <span>{isEditing ? 'Updating...' : 'Saving...'}</span>
+              <span>{uploadingImage ? 'Uploading image...' : (isEditing ? 'Updating...' : 'Saving...')}</span>
             </>
           ) : (
             <>
@@ -164,7 +164,7 @@ function DreamForm({
         <button
           type="button"
           onClick={onCancel}
-          disabled={isSaving}
+          disabled={isSaving || uploadingImage}
           aria-label="Cancel"
           data-testid="cancel-button"
           className="inline-flex items-center justify-center px-4 py-3 bg-white text-professional-gray-700 border border-professional-gray-300 rounded-xl hover:bg-professional-gray-50 focus:outline-none focus:ring-2 focus:ring-professional-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"

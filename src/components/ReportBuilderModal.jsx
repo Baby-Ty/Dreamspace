@@ -4,6 +4,7 @@ import { X, BarChart3, Download } from 'lucide-react';
 import { useReportData, exportReport } from './report-builder';
 import ReportFilters from './report-builder/ReportFilters';
 import ReportPreviewTable from './report-builder/ReportPreviewTable';
+import { toast } from '../utils/toast';
 
 /**
  * Report Builder Modal - Orchestrator component
@@ -76,7 +77,7 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
       onComplete: () => setIsGenerating(false),
       onError: () => {
         setIsGenerating(false);
-        alert('Export failed. Please try again.');
+        toast.error('Export failed. Please try again.');
       }
     });
   };

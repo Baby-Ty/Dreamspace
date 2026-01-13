@@ -14,7 +14,8 @@ export const WeeklyGoalInstanceSchema = z.object({
   dreamId: z.string().optional(),
   dreamTitle: z.string().optional(),
   dreamCategory: z.string().optional(),
-  milestoneId: z.union([z.string(), z.number()]).optional(),
+  goalId: z.union([z.string(), z.number()]).optional(), // Links to parent dream goal
+  milestoneId: z.union([z.string(), z.number()]).optional(), // @deprecated - use goalId
   // For weekly goals
   recurrence: z.enum(['weekly', 'monthly']).optional(),
   targetWeeks: z.number().optional(),
@@ -107,7 +108,7 @@ export function parseWeeklyGoalInstance(data) {
       id: data.id || `goal_${Date.now()}`,
       templateId: data.templateId,
       dreamId: data.dreamId,
-      milestoneId: data.milestoneId,
+      goalId: data.goalId || data.milestoneId, // Prefer goalId, fallback to milestoneId
       title: data.title || '',
       description: data.description || '',
       dreamTitle: data.dreamTitle,

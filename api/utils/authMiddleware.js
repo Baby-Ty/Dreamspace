@@ -24,17 +24,34 @@ const CLIENT_ID = process.env.AZURE_CLIENT_ID || 'ebe60b7a-93c9-4b12-8375-4ab318
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://dreamspace.tylerstewart.co.za';
 
 // Cosmos client for role lookups (lazy init)
+let cosmosClient = null;
 let usersContainer = null;
+let teamsContainer = null;
 
-function getCosmosContainer() {
-  if (!usersContainer && process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
-    const client = new CosmosClient({
+function getCosmosClient() {
+  if (!cosmosClient && process.env.COSMOS_ENDPOINT && process.env.COSMOS_KEY) {
+    cosmosClient = new CosmosClient({
       endpoint: process.env.COSMOS_ENDPOINT,
       key: process.env.COSMOS_KEY
     });
+  }
+  return cosmosClient;
+}
+
+function getCosmosContainer() {
+  const client = getCosmosClient();
+  if (!usersContainer && client) {
     usersContainer = client.database('dreamspace').container('users');
   }
   return usersContainer;
+}
+
+function getTeamsContainer() {
+  const client = getCosmosClient();
+  if (!teamsContainer && client) {
+    teamsContainer = client.database('dreamspace').container('teams');
+  }
+  return teamsContainer;
 }
 
 // JWKS client for Microsoft's signing keys (lazy init)
@@ -118,15 +135,16 @@ async function validateToken(req, context) {
 
 /**
  * Get user role and flags from Cosmos DB
+ * Also checks if user is a team manager (which grants coach privileges)
  * @param {string} userId - User ID (email)
  * @param {object} context - Azure Function context
- * @returns {Promise<object>} { role: string, isCoach: boolean, isAdmin: boolean }
+ * @returns {Promise<object>} { role: string, isCoach: boolean, isAdmin: boolean, isTeamManager: boolean }
  */
 async function getUserRole(userId, context) {
   const container = getCosmosContainer();
   if (!container) {
     context.log.warn('Cosmos container not available - defaulting to user role');
-    return { role: 'user', isCoach: false, isAdmin: false };
+    return { role: 'user', isCoach: false, isAdmin: false, isTeamManager: false };
   }
   
   try {
@@ -134,20 +152,41 @@ async function getUserRole(userId, context) {
     
     // Use roles object as source of truth (not the derived role string)
     const isAdmin = resource?.roles?.admin === true;
-    const isCoach = resource?.roles?.coach === true || resource?.isCoach === true;
+    let isCoach = resource?.roles?.coach === true || resource?.isCoach === true;
     
     // Keep role string for backward compatibility in logs
-    const role = resource?.role || 'user';
+    let role = resource?.role || 'user';
     
-    context.log(`User ${userId} has role: ${role}, isCoach: ${isCoach}, isAdmin: ${isAdmin}, roles:`, resource?.roles);
-    return { role, isCoach, isAdmin };
+    // Also check if user is a team manager (grants coach privileges)
+    let isTeamManager = false;
+    const teamsContainer = getTeamsContainer();
+    if (teamsContainer && !isCoach && !isAdmin) {
+      try {
+        // Query teams where this user is the manager
+        const { resources: teams } = await teamsContainer.items.query({
+          query: 'SELECT c.id FROM c WHERE c.managerId = @userId',
+          parameters: [{ name: '@userId', value: userId }]
+        }).fetchAll();
+        
+        if (teams && teams.length > 0) {
+          isTeamManager = true;
+          isCoach = true; // Team managers have coach privileges
+          context.log(`User ${userId} is a team manager - granting coach privileges`);
+        }
+      } catch (teamError) {
+        context.log.warn('Error checking team manager status:', teamError.message);
+      }
+    }
+    
+    context.log(`User ${userId} has role: ${role}, isCoach: ${isCoach}, isAdmin: ${isAdmin}, isTeamManager: ${isTeamManager}, roles:`, resource?.roles);
+    return { role, isCoach, isAdmin, isTeamManager };
   } catch (error) {
     if (error.code === 404) {
       context.log(`User ${userId} not found in database - defaulting to user role`);
-      return { role: 'user', isCoach: false, isAdmin: false };
+      return { role: 'user', isCoach: false, isAdmin: false, isTeamManager: false };
     }
     context.log.error('Error fetching user role:', error.message);
-    return { role: 'user', isCoach: false, isAdmin: false };
+    return { role: 'user', isCoach: false, isAdmin: false, isTeamManager: false };
   }
 }
 

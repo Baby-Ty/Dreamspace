@@ -1,10 +1,14 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../auth/authConfig';
-import databaseService from '../services/databaseService';
 import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
 import { GraphService } from '../services/graphService';
 import { apiClient } from '../services/apiClient';
+
+// Import split modules for single responsibility
+import { useTokens } from '../auth/useTokens';
+import { useUserProfile } from '../auth/useUserProfile';
+import { determineUserRole } from '../auth/roleUtils';
 
 const AuthContext = createContext();
 
@@ -15,43 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loginError, setLoginError] = useState(null);
 
-  // Token getter function for Microsoft Graph API (memoized to prevent unnecessary re-renders)
-  const getToken = useCallback(async () => {
-    if (accounts.length === 0) {
-      return null;
-    }
-    
-    try {
-      const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0]
-      });
-      return response.accessToken;
-    } catch (error) {
-      console.error('Failed to acquire token:', error);
-      return null;
-    }
-  }, [accounts, instance]);
-
-  // API Token getter function for our backend API (returns ID token, not access token)
-  // The ID token has audience = our client ID, suitable for our own API validation
-  const getApiToken = useCallback(async () => {
-    if (accounts.length === 0) {
-      return null;
-    }
-    
-    try {
-      const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0]
-      });
-      // Return ID token for our API (not access token which is for Graph)
-      return response.idToken;
-    } catch (error) {
-      console.error('Failed to acquire API token:', error);
-      return null;
-    }
-  }, [accounts, instance]);
+  // Use token management hook
+  const { getToken, getApiToken } = useTokens();
 
   // Wire up apiClient with token getter when user is authenticated
   useEffect(() => {
@@ -65,6 +34,10 @@ export const AuthProvider = ({ children }) => {
   const authedFetch = useAuthenticatedFetch(getToken);
   const graph = useMemo(() => GraphService(authedFetch, getToken), [authedFetch, getToken]);
 
+  // Use user profile management hook
+  const { fetchUserProfile, createFallbackUser, refreshFromDatabase } = useUserProfile(graph);
+
+  // Handle account changes and fetch profile
   useEffect(() => {
     console.log('🔄 AuthContext useEffect:', { 
       accountsLength: accounts.length, 
@@ -75,237 +48,30 @@ export const AuthProvider = ({ children }) => {
     if (accounts.length > 0) {
       const account = accounts[0];
       console.log('👤 Found MSAL account:', account.name);
-      fetchUserProfile(account);
+      handleFetchUserProfile(account);
     } else if (inProgress === 'none') {
       console.log('🏁 No accounts found and MSAL not in progress, setting loading to false');
       setIsLoading(false);
     }
   }, [accounts, inProgress]);
 
-  const fetchUserProfile = async (account) => {
+  // Fetch user profile and set state
+  const handleFetchUserProfile = async (account) => {
     try {
       setIsLoading(true);
-      console.log('🔄 Fetching user profile for:', account.name);
       
-      // Call Microsoft Graph to get user profile using graph service
-      console.log('📞 Calling Microsoft Graph API...');
-      const profileResult = await graph.getMe();
+      const userData = await fetchUserProfile(account);
+      const role = determineUserRole(account, null, userData);
 
-      if (profileResult.success) {
-        const profileData = profileResult.data;
-        
-        // Try to get user photo from Microsoft Graph and upload to blob storage
-        let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
-        const userId = profileData.userPrincipalName || profileData.mail || account.username;
-        
-        console.log('📸 Attempting to fetch and upload profile picture from Microsoft Graph...');
-        const uploadResult = await graph.uploadMyPhotoToStorage(userId);
-        if (uploadResult.success && uploadResult.data) {
-          // Successfully uploaded to blob storage - use permanent URL
-          avatarUrl = uploadResult.data;
-          console.log('✅ Profile picture uploaded to blob storage:', avatarUrl);
-        } else {
-          // Try fallback to temporary blob URL (for development/testing)
-          console.log('ℹ️ Blob storage upload failed or no photo available, trying temporary blob URL...');
-          const photoResult = await graph.getMyPhoto();
-          if (photoResult.success && photoResult.data) {
-            avatarUrl = photoResult.data;
-            console.log('⚠️ Using temporary blob URL (will expire after session):', avatarUrl);
-            console.log('💡 Consider checking blob storage configuration for permanent URLs');
-          } else {
-            console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
-          }
-        }
-
-        // Create fresh profile for authenticated users
-        // Note: dreamCategories will be populated from global data in AppContext
-        let userData = {
-          id: profileData.userPrincipalName || profileData.mail || account.username,
-          aadObjectId: account.localAccountId,
-          name: profileData.displayName,
-          email: profileData.mail || profileData.userPrincipalName,
-          office: determineOfficeFromProfile(profileData),
-          avatar: avatarUrl,
-          dreamBook: [],
-          careerGoals: [],
-          developmentPlan: [],
-          score: 0,
-          connects: [],
-          dreamsCount: 0,
-          connectsCount: 0
-        };
-
-        // Check if user data already exists before creating new profile
-        try {
-          console.log('🔄 Checking for existing user data in database...');
-          const existingData = await databaseService.loadUserData(userData.id);
-          
-          // Unwrap the response - loadUserData returns { success: true, data: {...} }
-          if (existingData && existingData.success && existingData.data) {
-            // User data already exists, merge with existing data
-            console.log('✅ Found existing user data, merging with current profile');
-            // Check old format with currentUser wrapper or new format direct data
-            const existingUser = existingData.data.currentUser || existingData.data;
-            console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
-            console.log('📊 Data structure version:', existingUser.dataStructureVersion || 1);
-            
-            // Check if existing avatar is a valid permanent blob storage URL
-            const existingAvatar = existingUser.avatar;
-            const isValidPermanentAvatar = existingAvatar && 
-                typeof existingAvatar === 'string' && 
-                existingAvatar.startsWith('https://') &&
-                existingAvatar.includes('.blob.core.windows.net') &&
-                !existingAvatar.startsWith('blob:') && 
-                !existingAvatar.includes('ui-avatars.com');
-            
-            let shouldSaveAvatar = false;
-            
-            if (isValidPermanentAvatar) {
-              // Use existing permanent avatar URL (valid blob storage URL)
-              console.log('✅ Using existing permanent avatar URL from database');
-              avatarUrl = existingAvatar;
-            } else if (existingAvatar && existingAvatar.startsWith('blob:')) {
-              // Existing avatar is a blob URL - try to upload to get permanent URL
-              console.log('⚠️ Existing avatar is a blob URL, attempting to upload to blob storage...');
-              const uploadResult = await graph.uploadMyPhotoToStorage(userData.id);
-              if (uploadResult.success && uploadResult.data) {
-                avatarUrl = uploadResult.data;
-                shouldSaveAvatar = true; // Save the new permanent URL
-                console.log('✅ Successfully uploaded existing blob URL to permanent storage');
-              } else {
-                console.log('ℹ️ Could not upload blob URL, keeping new avatar from Graph');
-                // If we have a new avatarUrl from Graph (fetched above), use it and save it
-                if (avatarUrl && avatarUrl !== `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`) {
-                  shouldSaveAvatar = true;
-                }
-              }
-            } else {
-              // Existing avatar is old/unreadable format or missing
-              // Use the avatarUrl we fetched/uploaded above (from Graph)
-              console.log('⚠️ Existing avatar is not a valid permanent URL, using newly fetched avatar');
-              if (avatarUrl && avatarUrl.startsWith('https://') && avatarUrl.includes('.blob.core.windows.net')) {
-                // We have a valid permanent blob URL from Graph upload
-                shouldSaveAvatar = true;
-                console.log('✅ New permanent avatar URL will be saved to database');
-              }
-            }
-            
-            userData = {
-              ...existingUser,
-              // Update only basic profile info, keep everything else
-              name: userData.name,
-              email: userData.email,
-              office: userData.office,
-              avatar: avatarUrl // Use the final avatar URL (permanent if available)
-            };
-            console.log('📚 Merged dreams count:', userData.dreamBook?.length || 0);
-            
-            // Save updated avatar to database if we have a new permanent URL
-            if (shouldSaveAvatar && avatarUrl && avatarUrl.startsWith('https://') && avatarUrl.includes('.blob.core.windows.net')) {
-              try {
-                console.log('💾 Saving updated avatar to database for existing user...');
-                const profileUpdate = {
-                  id: userData.id,
-                  userId: userData.id,
-                  name: userData.name,
-                  email: userData.email,
-                  office: userData.office,
-                  avatar: avatarUrl,
-                  lastUpdated: new Date().toISOString()
-                };
-                const saveResult = await databaseService.saveUserData(userData.id, profileUpdate);
-                if (saveResult.success) {
-                  console.log('✅ Avatar updated successfully in database');
-                } else {
-                  console.log('⚠️ Failed to save avatar update:', saveResult.error);
-                }
-              } catch (saveError) {
-                console.error('❌ Error saving avatar update:', saveError);
-                // Continue anyway - avatar is still in memory/state
-              }
-            }
-          } else {
-            // No existing data, save new user profile (6-container architecture)
-            console.log('🆕 No existing data found, saving new user profile with 6-container structure');
-            // Save minimal profile (no arrays - those go to separate containers)
-            const minimalProfile = {
-              id: userData.id,
-              userId: userData.id,
-              name: userData.name,
-              email: userData.email,
-              office: userData.office,
-              avatar: userData.avatar,
-              score: 0,
-              dreamsCount: 0,
-              connectsCount: 0,
-              weeksActiveCount: 0,
-              currentYear: new Date().getFullYear(),
-              dataStructureVersion: 3,
-              role: 'user',
-              isActive: true,
-              createdAt: new Date().toISOString(),
-              lastUpdated: new Date().toISOString()
-            };
-            
-            const saveResult = await databaseService.saveUserData(userData.id, minimalProfile);
-            if (saveResult.success) {
-              console.log('✅ New user profile saved successfully (6-container, v3)');
-              
-              // Create empty dreams document for new user
-              try {
-                const itemService = (await import('../services/itemService.js')).default;
-                await itemService.saveDreams(userData.id, [], []);
-                console.log('✅ Created empty dreams document for new user');
-              } catch (dreamsError) {
-                console.error('⚠️ Failed to create initial dreams document:', dreamsError);
-                // Continue anyway - it will be created when they add their first dream
-              }
-              
-              // Update userData with the saved profile properties to prevent duplicate saves
-              userData = { ...userData, ...minimalProfile };
-            } else {
-              console.log('ℹ️ Profile save failed but continuing with login:', saveResult.error);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error checking/updating user profile:', error);
-          // Continue with login even if database operations fail
-          console.log('ℹ️ Continuing with login despite error');
-        }
-
-        // Get roles from the ID token (Entra App Roles)
-        const userRole = determineUserRoleFromToken(account, profileData, userData);
-
-        setUser(userData);
-        setUserRole(userRole);
-        console.log('✅ User profile setup completed with', userData.dreamBook?.length || 0, 'dreams');
-      } else {
-        console.error('Failed to fetch profile:', profileResult.error);
-        throw new Error(profileResult.error.message);
-      }
+      setUser(userData);
+      setUserRole(role);
+      console.log('✅ User profile setup completed with', userData.dreamBook?.length || 0, 'dreams');
     } catch (error) {
       console.error('Error fetching user profile:', error);
       // Fallback to basic account info
-      // IMPORTANT: Always use email as ID (not GUID) to match Cosmos DB storage
-      console.log('🔄 Using fallback basic user info');
-      const emailId = account.username || account.userPrincipalName || account.localAccountId;
-      const basicUser = {
-        id: emailId, // Use email, not GUID, to match Cosmos DB storage
-        aadObjectId: account.localAccountId, // Store GUID separately for reference
-        name: account.name,
-        email: account.username || account.userPrincipalName,
-        office: 'Remote',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(account.name)}&background=EC4B5C&color=fff&size=100`,
-        dreamBook: [],
-        careerGoals: [],
-        developmentPlan: [],
-        score: 0,
-        connects: [],
-        dreamsCount: 0,
-        connectsCount: 0
-      };
+      const basicUser = createFallbackUser(account);
       setUser(basicUser);
-      setUserRole(determineUserRoleFromToken(account, null, basicUser));
+      setUserRole(determineUserRole(account, null, basicUser));
       console.log('✅ Basic user setup completed');
     } finally {
       console.log('🏁 Finishing user profile fetch');
@@ -313,124 +79,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const determineOfficeFromProfile = (profile) => {
-    // Logic to determine office based on profile
-    if (profile.officeLocation) return profile.officeLocation;
-    if (profile.city) return profile.city;
-    if (profile.country === 'South Africa') {
-      return 'Cape Town'; // Default for SA users
-    }
-    return 'Remote';
-  };
-
-  const determineUserRoleFromToken = (account, profile, userData) => {
-    try {
-      // PRIORITY 1: Check role from Cosmos DB userData (set via People Hub promotion)
-      if (userData?.role) {
-        console.log('User role from Cosmos DB:', userData.role);
-        // Map database roles
-        if (userData.role === 'admin') return 'admin';
-        if (userData.role === 'coach' || userData.role === 'manager') return 'coach';
-        if (userData.role === 'user' || userData.role === 'employee') return 'employee';
-      }
-      
-      // PRIORITY 2: Check if user has isCoach flag (legacy support)
-      if (userData?.isCoach === true) {
-        console.log('User has isCoach flag set to true');
-        return 'coach';
-      }
-      
-      // PRIORITY 3: Get roles from the ID token claims (Entra App Roles)
-      const idTokenClaims = account?.idTokenClaims;
-      const roles = idTokenClaims?.roles || [];
-      
-      console.log('User roles from Entra ID:', roles);
-      
-      // Map Entra roles to application roles
-      // Priority order: admin > manager > coach > employee
-      if (roles.includes('DreamSpace.Admin') || roles.includes('Admin')) {
-        return 'admin';
-      } else if (roles.includes('DreamSpace.Manager') || roles.includes('Manager')) {
-        return 'coach';
-      } else if (roles.includes('DreamSpace.Coach') || roles.includes('Coach')) {
-        return 'coach';
-      }
-      
-      // PRIORITY 4: Fallback to job title-based logic if no app roles are assigned
-      if (profile) {
-        const jobTitle = profile.jobTitle?.toLowerCase() || '';
-        const department = profile.department?.toLowerCase() || '';
-        
-        if (jobTitle.includes('admin') || jobTitle.includes('administrator')) {
-          return 'admin';
-        } else if (jobTitle.includes('manager') || jobTitle.includes('lead') || department.includes('management')) {
-          return 'coach';
-        } else if (jobTitle.includes('coach') || jobTitle.includes('mentor')) {
-          return 'coach';
-        }
-      }
-      
-      // Default role
-      return 'employee';
-    } catch (error) {
-      console.error('Error determining user role:', error);
-      return 'employee';
-    }
-  };
-
+  // Login handler
   const login = async () => {
     try {
       setIsLoading(true);
-      setLoginError(null); // Clear any previous errors
-      
-      // Microsoft login
+      setLoginError(null);
       
       // Try popup first, fallback to redirect if popup is blocked
       try {
         await instance.loginPopup(loginRequest);
       } catch (popupError) {
-        // Check if error is due to popup being blocked
         if (popupError.errorCode === 'popup_window_error' || 
             popupError.message?.includes('popup') || 
             popupError.name === 'BrowserAuthError') {
           console.log('Popup blocked, trying redirect...');
           setLoginError('Popup was blocked. Redirecting to login page...');
-          // Give user a moment to see the message
-          setTimeout(() => {
-            instance.loginRedirect(loginRequest);
-          }, 2000);
+          setTimeout(() => instance.loginRedirect(loginRequest), 2000);
           return;
         }
-        throw popupError; // Re-throw if it's not a popup issue
+        throw popupError;
       }
-      
     } catch (error) {
       console.error('Login failed:', error);
-      
-      // Provide specific error messages based on error type
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (error.errorCode === 'user_cancelled') {
-        errorMessage = 'Login was cancelled. Please try again when ready.';
-      } else if (error.errorCode === 'network_error') {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.errorCode === 'invalid_client') {
-        errorMessage = 'Configuration error. Please contact support.';
-      } else if (error.message?.includes('AADSTS')) {
-        errorMessage = 'Microsoft authentication error. Please try again or contact your IT administrator.';
-      }
-      
-      setLoginError(errorMessage);
+      setLoginError(getLoginErrorMessage(error));
       setIsLoading(false);
     }
   };
 
+  // Logout handler
   const logout = async () => {
     try {
-      // Clear API client token before logout
       apiClient.clearTokenGetter();
-      
-      // Microsoft logout
       await instance.logoutPopup({
         postLogoutRedirectUri: window.location.origin
       });
@@ -443,18 +122,15 @@ export const AuthProvider = ({ children }) => {
 
   // Refresh user role from database (useful after promotions)
   const refreshUserRole = useCallback(async () => {
-    // Check if a role update is already in progress to prevent loops
+    // Prevent loops with timestamp check
     const roleUpdateTimestamp = sessionStorage.getItem('roleUpdateInProgress');
     if (roleUpdateTimestamp) {
       const elapsed = Date.now() - parseInt(roleUpdateTimestamp, 10);
-      if (elapsed < 5000) { // Skip if less than 5 seconds elapsed
+      if (elapsed < 5000) {
         console.log('⏭️ Role update in progress, skipping refresh...', { elapsed });
         return;
-      } else {
-        // Clear old flag if more than 5 seconds passed
-        console.log('🧹 Clearing old roleUpdateInProgress flag');
-        sessionStorage.removeItem('roleUpdateInProgress');
       }
+      sessionStorage.removeItem('roleUpdateInProgress');
     }
     
     if (!user?.id) {
@@ -463,38 +139,22 @@ export const AuthProvider = ({ children }) => {
     }
     
     try {
-      console.log('🔄 Refreshing user role from database...');
-      const existingData = await databaseService.loadUserData(user.id);
-      
-      if (existingData && existingData.success && existingData.data) {
-        const existingUser = existingData.data.currentUser || existingData.data;
-        
-        // Update user with fresh data from database
-        const updatedUser = {
-          ...user,
-          role: existingUser.role,
-          isCoach: existingUser.isCoach,
-          roles: existingUser.roles // Also update roles object
-        };
-        
-        // Determine new role
-        const newRole = determineUserRoleFromToken(accounts[0], null, existingUser);
-        
-        console.log('✅ User role refreshed:', { oldRole: userRole, newRole, roles: existingUser.roles });
+      const updatedUser = await refreshFromDatabase(user.id, user);
+      if (updatedUser) {
+        const newRole = determineUserRole(accounts[0], null, updatedUser);
+        console.log('✅ User role refreshed:', { oldRole: userRole, newRole });
         setUser(updatedUser);
         setUserRole(newRole);
-        
         return { success: true, role: newRole };
       }
-      
       return { success: false, error: 'Failed to load user data' };
     } catch (error) {
       console.error('❌ Error refreshing user role:', error);
       return { success: false, error: error.message };
     }
-  }, [user, accounts, userRole]);
+  }, [user, accounts, userRole, refreshFromDatabase]);
 
-  // Refresh user role when window regains focus (useful after promotions)
+  // Refresh user role when window regains focus
   useEffect(() => {
     const handleFocus = async () => {
       if (user?.id && accounts.length > 0) {
@@ -517,8 +177,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     refreshUserRole,
     clearLoginError: () => setLoginError(null),
-    getToken,       // For Microsoft Graph API (access token)
-    getApiToken,    // For our backend API (ID token)
+    getToken,
+    getApiToken,
     graph
   };
 
@@ -536,3 +196,17 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Helper: Get user-friendly login error message
+function getLoginErrorMessage(error) {
+  if (error.errorCode === 'user_cancelled') {
+    return 'Login was cancelled. Please try again when ready.';
+  } else if (error.errorCode === 'network_error') {
+    return 'Network error. Please check your connection and try again.';
+  } else if (error.errorCode === 'invalid_client') {
+    return 'Configuration error. Please contact support.';
+  } else if (error.message?.includes('AADSTS')) {
+    return 'Microsoft authentication error. Please try again or contact your IT administrator.';
+  }
+  return 'Login failed. Please try again.';
+}

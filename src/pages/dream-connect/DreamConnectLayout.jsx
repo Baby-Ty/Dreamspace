@@ -11,6 +11,7 @@ import ConnectRequestModal from './ConnectRequestModal';
 import { useDreamConnections } from '../../hooks/useDreamConnections';
 import { useApp } from '../../context/AppContext';
 import { useRovingFocus } from '../../hooks/useRovingFocus';
+import { toast } from '../../utils/toast';
 
 /**
  * Main layout for Dream Connect page
@@ -82,12 +83,12 @@ export default function DreamConnectLayout() {
   // Send request handler
   const handleSendRequest = async () => {
     if (!selectedUser || !requestMessage.trim() || !agenda.trim()) {
-      alert('Please fill in the agenda/topics field');
+      toast.warning('Please fill in the agenda/topics field');
       return;
     }
 
     if (proposedWeeks.length === 0) {
-      alert('Please select at least one available week');
+      toast.warning('Please select at least one available week');
       return;
     }
 
@@ -120,11 +121,11 @@ export default function DreamConnectLayout() {
 
       await addConnect(connectData);
       handleCloseModal();
-      alert(`Dream Connect request sent to ${selectedUser?.name}! 🎉`);
+      toast.success(`Dream Connect request sent to ${selectedUser?.name}! 🎉`);
       
     } catch (err) {
       console.error('❌ Error sending connect request:', err);
-      alert(`Failed to send connect request to ${selectedUser?.name}. Please try again.`);
+      toast.error(`Failed to send connect request to ${selectedUser?.name}. Please try again.`);
     } finally {
       setIsSavingConnect(false);
     }
@@ -160,7 +161,7 @@ export default function DreamConnectLayout() {
       handleCloseDetailModal();
     } catch (err) {
       console.error('Failed to update connect:', err);
-      alert('Failed to update connect status. Please try again.');
+      toast.error('Failed to update connect status. Please try again.');
     }
   };
 

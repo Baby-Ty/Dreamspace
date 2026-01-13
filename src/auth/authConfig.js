@@ -29,14 +29,30 @@ const getAuthority = () => {
   if (tenantId) {
     return `https://login.microsoftonline.com/${tenantId}`;
   }
-  // Fallback to common for development
+  // Fallback to common endpoint (multi-tenant) - works but less secure than tenant-specific
+  console.warn('⚠️ VITE_AZURE_TENANT_ID not set. Using common endpoint (multi-tenant).');
   return 'https://login.microsoftonline.com/common';
+};
+
+// Get client ID from environment - REQUIRED in production
+const getClientId = () => {
+  const clientId = import.meta.env.VITE_AZURE_CLIENT_ID;
+  if (!clientId) {
+    const errorMsg = '❌ VITE_AZURE_CLIENT_ID is required. Set it in your .env file or deployment configuration.';
+    console.error(errorMsg);
+    // In production, this will cause MSAL initialization to fail with a clear error
+    // In development, we throw to catch the issue early
+    if (import.meta.env.DEV) {
+      throw new Error(errorMsg);
+    }
+  }
+  return clientId;
 };
 
 export const msalConfig = {
   auth: {
-    // Use environment variable or fallback to hardcoded value for backward compatibility
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID || "ebe60b7a-93c9-4b12-8375-4ab3181000e8",
+    // Client ID from environment variable - required for proper tenant isolation
+    clientId: getClientId(),
     authority: getAuthority(), 
     redirectUri: getRedirectUri(),
     postLogoutRedirectUri: getRedirectUri(),

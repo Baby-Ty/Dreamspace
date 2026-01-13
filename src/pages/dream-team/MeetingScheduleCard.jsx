@@ -3,6 +3,7 @@ import { Calendar, MapPin, Save } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
+import { toast } from '../../utils/toast';
 
 /**
  * Meeting Schedule Card Component
@@ -53,11 +54,11 @@ export default function MeetingScheduleCard({ teamId, isCoach, onSave, nextMeeti
         }
       } else {
         console.error('❌ Failed to save meeting:', result.error);
-        alert(`Failed to save meeting: ${result.error}`);
+        toast.error(`Failed to save meeting: ${result.error}`);
       }
     } catch (error) {
       console.error('❌ Error saving meeting:', error);
-      alert(`Error saving meeting: ${error.message}`);
+      toast.error(`Error saving meeting: ${error.message}`);
     } finally {
       setIsSaving(false);
     }

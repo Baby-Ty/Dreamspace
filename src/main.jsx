@@ -7,7 +7,15 @@ import App from './App.jsx'
 import './index.css'
 // Initialize Application Insights monitoring
 import './config/appInsights';
+// Initialize logger with appropriate level for environment
+import { setLogLevel, LogLevel, logger } from './utils/logger';
 
+// Set log level based on environment (DEBUG in dev, WARN in prod)
+if (import.meta.env.PROD) {
+  setLogLevel(LogLevel.WARN); // Only show warnings and errors in production
+}
+
+// These console.log calls will be stripped in production builds by esbuild
 console.log('🚀 Initializing DreamSpace App...');
 console.log('MSAL Config:', { 
   clientId: msalConfig.auth.clientId, 
@@ -36,7 +44,12 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('❌ App Error:', error, errorInfo);
+    // Use logger for structured error tracking (goes to App Insights in prod)
+    logger.critical('app', 'React component error', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    });
   }
 
   render() {

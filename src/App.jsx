@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import { ConfirmProvider } from './components/ConfirmModal';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -46,10 +47,11 @@ function AppContent() {
 
   return (
     <AppProvider key={user?.id} initialUser={user}>
-      <Router basename={import.meta.env.BASE_URL}>
-        <Layout>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
+      <ConfirmProvider>
+        <Router basename={import.meta.env.BASE_URL}>
+          <Layout>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dream-book" element={<DreamBook />} />
               {/* /dreams-week-ahead removed - redundant with Dashboard */}
@@ -62,10 +64,11 @@ function AppContent() {
               <Route path="/health" element={<HealthCheck />} />
               <Route path="/build-overview" element={<BuildOverview />} />
               <Route path="/labs/adaptive-cards" element={<AdaptiveCardsLab />} />
-            </Routes>
-          </Suspense>
-        </Layout>
-      </Router>
+              </Routes>
+            </Suspense>
+          </Layout>
+        </Router>
+      </ConfirmProvider>
     </AppProvider>
   );
 }

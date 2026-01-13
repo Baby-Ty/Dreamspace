@@ -1,51 +1,35 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; 
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import itemService from '../services/itemService';
-import { mockDreams } from '../constants/dreamInspiration';
 import currentWeekService from '../services/currentWeekService';
 import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks, getWeeksUntilDate } from '../utils/dateUtils';
-import { useModal } from './useModal';
+import { toast } from '../utils/toast';
+
+// Import split hooks for maintainability
+import { useDreamDragDrop } from './dream-book/useDreamDragDrop';
+import { useDreamInspiration } from './dream-book/useDreamInspiration';
+import { useDreamForm } from './dream-book/useDreamForm';
+import { useDreamModals } from './dream-book/useDreamModals';
 
 /**
  * Custom hook for Dream Book data management and business logic
- * Handles all state, handlers, and drag & drop for the Dream Book feature
+ * Orchestrates smaller focused hooks for form, modals, drag-drop, and inspiration
  */
 export function useDreamBook() {
   const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, weeklyGoals, deleteWeeklyGoal } = useApp();
   
-  // Form state
-  const [editingDream, setEditingDream] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [inspirationCategory, setInspirationCategory] = useState('All');
-  
-  // Modal state (using useModal for cleaner management)
-  const dreamTrackerModal = useModal(); // { isOpen, data: dream, open, close }
-  const stockPhotoModal = useModal();   // { isOpen, data: formDataContext, open, close }
-  const aiImageModal = useModal();      // { isOpen, data: formDataContext, open, close }
-  const inspirationModal = useModal();  // { isOpen, open, close }
-  const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, targetDate: '' } });
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [tempDreamId, setTempDreamId] = useState(null);
-  const [draggingIndex, setDraggingIndex] = useState(null);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
-  const [inspirationItems, setInspirationItems] = useState(mockDreams);
-  const [loadingInspiration, setLoadingInspiration] = useState(false);
-  const [inspirationError, setInspirationError] = useState('');
-
   const maxDreams = 10;
   const dreams = currentUser?.dreamBook || [];
-  // Ensure yearVision is always a string (API might return error object)
-  // Use local state to allow optimistic updates when saving
+
+  // Year vision state with optimistic updates
   const [localYearVision, setLocalYearVision] = useState(() => {
     const rawYearVision = currentUser?.yearVision;
     return typeof rawYearVision === 'string' ? rawYearVision : '';
   });
   
-  // Sync local state with currentUser when it changes
   useEffect(() => {
     const rawYearVision = currentUser?.yearVision;
     const syncedVision = typeof rawYearVision === 'string' ? rawYearVision : '';
@@ -53,547 +37,194 @@ export function useDreamBook() {
       setLocalYearVision(syncedVision);
     }
   }, [currentUser?.yearVision]);
+
+  // Use split hooks
+  const dragDrop = useDreamDragDrop(reorderDreams);
+  const form = useDreamForm(dreamCategories);
+  const inspiration = useDreamInspiration(false); // Will be controlled by modals
   
-  const yearVision = localYearVision;
+  const modals = useDreamModals({
+    currentUser,
+    isCreating: form.isCreating,
+    tempDreamId: form.tempDreamId,
+    editingDream: form.editingDream,
+    setUploadingImage: form.setUploadingImage,
+    updateDream
+  });
 
-  // Drag and drop handlers
-  const handleDragStart = useCallback((e, index) => {
-    setDraggingIndex(index);
-    e.dataTransfer.setData('text/plain', String(index));
-    e.dataTransfer.effectAllowed = 'move';
-  }, []);
+  // Reload inspiration when modal opens
+  const inspirationState = useDreamInspiration(modals.showInspiration);
 
-  const handleDragOver = useCallback((e, index) => {
-    e.preventDefault();
-    if (dragOverIndex !== index) setDragOverIndex(index);
-    e.dataTransfer.dropEffect = 'move';
-  }, [dragOverIndex]);
-
-  const handleDrop = useCallback((e, targetIndex) => {
-    e.preventDefault();
-    const sourceIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (!Number.isNaN(sourceIndex) && sourceIndex !== targetIndex) {
-      reorderDreams(sourceIndex, targetIndex);
-    }
-    setDraggingIndex(null);
-    setDragOverIndex(null);
-  }, [reorderDreams]);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggingIndex(null);
-    setDragOverIndex(null);
-  }, []);
-
-  // Inspiration loading (disabled remote fetching for demo reliability)
-  const fetchUnsplashForTitle = useCallback(async (title, category) => '', []);
-  const loadInspirationImages = useCallback(async () => {
-    setLoadingInspiration(true); 
-    setInspirationError('');
-    try {
-      const updated = await Promise.all(mockDreams.map(async (d) => {
-        if (d.image) {
-          return d;
-        }
-        const image = await fetchUnsplashForTitle(d.title, d.category);
-        return { ...d, image };
-      }));
-      setInspirationItems(updated);
-    } catch (err) {
-      console.error('Failed to load inspiration images:', err);
-      setInspirationError('Failed to load inspiration images.'); 
-      setInspirationItems(mockDreams);
-    } finally { 
-      setLoadingInspiration(false); 
-    }
-  }, [fetchUnsplashForTitle]);
-
-  useEffect(() => { if (inspirationModal.isOpen) { setInspirationCategory('All'); loadInspirationImages(); } }, [inspirationModal.isOpen, loadInspirationImages]);
-
-  const filteredInspiration = useMemo(() => inspirationItems.filter((d) => inspirationCategory === 'All' || d.category === inspirationCategory), [inspirationItems, inspirationCategory]);
-
-  // Dream CRUD handlers
-  const handleEdit = useCallback((dream) => {
-    setEditingDream(dream.id);
-    setFormData({
-      title: dream.title,
-      category: dream.category,
-      description: dream.description,
-      isPublic: dream.isPublic || false,
-      image: dream.image,
-      firstGoal: {
-        enabled: false,
-        title: '',
-        consistency: 'weekly',
-        targetWeeks: 12,
-        targetMonths: 6,
-        frequency: 2,
-        targetDate: ''
-      }
-    });
-  }, []);
-
-  const handleCreate = useCallback(() => {
-    setIsCreating(true);
-    const newTempId = `dream_${Date.now()}`;
-    setTempDreamId(newTempId);
-    setFormData({
-      title: '',
-      category: dreamCategories?.[0] || 'Health',
-      description: '',
-      isPublic: false,
-      image: '',
-      firstGoal: {
-        enabled: false,
-        title: '',
-        consistency: 'weekly',
-        targetWeeks: 12,
-        targetMonths: 6,
-        frequency: 2,
-        targetDate: ''
-      }
-    });
-  }, [dreamCategories]);
-
+  // Dream save handler (creates or updates)
   const handleSave = useCallback(async () => {
-    if (isSaving) return; // Prevent double-clicks
-    setIsSaving(true);
-    try {
-      if (isCreating) {
-      const newDream = {
-        id: tempDreamId,
-        title: formData.title,
-        category: formData.category,
-        description: formData.description,
-        isPublic: formData.isPublic,
-        image: formData.image,
-        progress: 25,
-        milestones: [],
-        notes: [],
-        history: []
-      };
-
-      // Add first goal if enabled
-      if (formData.firstGoal.enabled) {
-        const goalId = `goal_${Date.now()}`;
-        const nowIso = new Date().toISOString();
-        const currentWeekIso = getCurrentIsoWeek();
-        
-        // Calculate targetWeeks and weeksRemaining for goals (same logic as GoalsTab)
-        let targetWeeks, weeksRemaining;
-        if (formData.firstGoal.consistency === 'deadline' && formData.firstGoal.targetDate) {
-          // For deadline goals: convert targetDate to targetWeeks
-          targetWeeks = dateToWeeks(formData.firstGoal.targetDate, currentWeekIso);
-          weeksRemaining = targetWeeks; // Initialize with targetWeeks
-        } else if (formData.firstGoal.consistency === 'monthly') {
-          // Convert months to weeks for unified tracking
-          targetWeeks = monthsToWeeks(formData.firstGoal.targetMonths);
-          weeksRemaining = targetWeeks;
-        } else {
-          // Weekly consistency goal
-          targetWeeks = formData.firstGoal.targetWeeks;
-          weeksRemaining = formData.firstGoal.targetWeeks;
-        }
-        
-        const goal = {
-          id: goalId,
-          title: formData.firstGoal.title || formData.title,
-          type: formData.firstGoal.consistency === 'deadline' ? 'deadline' : 'consistency',
-          recurrence: formData.firstGoal.consistency === 'deadline' ? undefined : formData.firstGoal.consistency,
-          targetWeeks: targetWeeks, // All goal types now use targetWeeks
-          targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : undefined,
-          frequency: formData.firstGoal.consistency === 'monthly' 
-            ? (formData.firstGoal.frequency || 2) 
-            : (formData.firstGoal.consistency === 'weekly' ? (formData.firstGoal.frequency || 1) : undefined),
-          startDate: nowIso,
-          // targetDate is kept for backward compatibility but targetWeeks is the source of truth
-          targetDate: formData.firstGoal.consistency === 'deadline' ? formData.firstGoal.targetDate : undefined,
-          weeksRemaining: weeksRemaining,
-          active: true,
-          completed: false,
-          createdAt: nowIso
-        };
-        
-        newDream.goals = [goal];
-        
-        // Add goal to currentWeek container (NEW SIMPLIFIED SYSTEM)
-        console.log('📅 Adding first goal to currentWeek container');
-        
-        try {
-          // Create goal instance for current week (same structure as GoalsTab)
-          const newGoalInstance = {
-            id: goalId,
-            templateId: goalId, // Self-reference for now
-            type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
-            title: goal.title,
-            description: '',
-            dreamId: tempDreamId,
-            dreamTitle: formData.title,
-            dreamCategory: formData.category,
-            recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
-            targetWeeks: goal.targetWeeks,
-            targetMonths: goal.targetMonths,
-            targetDate: goal.targetDate,
-            frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' 
-              ? (goal.frequency || 2) 
-              : (goal.type === 'consistency' && goal.recurrence === 'weekly' ? (goal.frequency || 1) : null),
-            completionCount: 0,
-            completionDates: [],
-            completed: false,
-            completedAt: null,
-            skipped: false,
-            weeksRemaining: goal.type === 'deadline' && goal.targetDate
-              ? getWeeksUntilDate(goal.targetDate, currentWeekIso)
-              : (goal.targetWeeks || null),
-            monthsRemaining: goal.targetMonths || null,
-            weekId: currentWeekIso,
-            createdAt: nowIso
-          };
-          
-          // Get existing current week goals
-          const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
-          const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
-          
-          // Add new goal to current week
-          const updatedGoals = [...existingGoals, newGoalInstance];
-          const result = await currentWeekService.saveCurrentWeek(
-            currentUser.id,
-            currentWeekIso,
-            updatedGoals
-          );
-          
-          if (result.success) {
-            console.log('✅ First goal added to currentWeek successfully');
-          } else {
-            console.error('❌ Failed to add first goal to currentWeek:', result.error);
-          }
-        } catch (error) {
-          console.error('❌ Failed to create first goal:', error);
-          // Continue anyway - goal is saved to dream
-        }
-      } else {
-        newDream.goals = [];
-      }
-
-      await addDream(newDream);
-
-      // Dispatch event to notify other components (like dashboard) that dreams have been updated
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('dreams-updated'));
-      }, 100);
-
-      setIsCreating(false);
-      setTempDreamId(null);
-    } else {
-      const updatedDream = dreams.find(d => d.id === editingDream);
-      if (updatedDream) {
-        await updateDream({ 
-          ...updatedDream, 
-          title: formData.title,
-          category: formData.category,
-          description: formData.description,
-          isPublic: formData.isPublic,
-          image: formData.image
-        });
-      }
-      setEditingDream(null);
+    // Don't save while another save is in progress or image is uploading
+    if (form.isSaving || form.uploadingImage) {
+      console.log('⏳ Save blocked - isSaving:', form.isSaving, 'uploadingImage:', form.uploadingImage);
+      return;
     }
+    form.setIsSaving(true);
     
-    setFormData({
-      title: '',
-      category: '',
-      description: '',
-      isPublic: false,
-      image: '',
-      firstGoal: {
-        enabled: false,
-        title: '',
-        consistency: 'weekly',
-        targetWeeks: 12,
-        targetMonths: 6,
-        frequency: 2,
-        targetDate: ''
+    try {
+      if (form.isCreating) {
+        const newDream = {
+          id: form.tempDreamId,
+          title: form.formData.title,
+          category: form.formData.category,
+          description: form.formData.description,
+          isPublic: form.formData.isPublic,
+          image: form.formData.image,
+          progress: 25,
+          milestones: [],
+          notes: [],
+          history: [],
+          goals: []
+        };
+
+        // Add first goal if enabled
+        if (form.formData.firstGoal.enabled) {
+          const goal = createFirstGoal(form.formData, form.tempDreamId);
+          newDream.goals = [goal];
+          
+          // Add goal to currentWeek container
+          await addGoalToCurrentWeek(goal, form.formData, form.tempDreamId, currentUser?.id);
+        }
+
+        await addDream(newDream);
+        setTimeout(() => window.dispatchEvent(new CustomEvent('dreams-updated')), 100);
+        
+        form.setIsCreating(false);
+        form.setTempDreamId(null);
+      } else {
+        const updatedDream = dreams.find(d => d.id === form.editingDream);
+        if (updatedDream) {
+          await updateDream({ 
+            ...updatedDream, 
+            title: form.formData.title,
+            category: form.formData.category,
+            description: form.formData.description,
+            isPublic: form.formData.isPublic,
+            image: form.formData.image
+          });
+        }
+        form.setEditingDream(null);
       }
-    });
+      
+      form.resetForm();
     } finally {
-      setIsSaving(false);
+      form.setIsSaving(false);
     }
-  }, [isCreating, tempDreamId, formData, dreams, editingDream, addDream, updateDream, currentUser, isSaving]);
+  }, [form, dreams, addDream, updateDream, currentUser?.id]);
 
-  const handleCancel = useCallback(() => {
-    setIsCreating(false);
-    setEditingDream(null);
-    setTempDreamId(null);
-    setFormData({
-      title: '',
-      category: '',
-      description: '',
-      isPublic: false,
-      image: '',
-      firstGoal: {
-        enabled: false,
-        title: '',
-        consistency: 'weekly',
-        targetWeeks: 12,
-        targetMonths: 6,
-        frequency: 2,
-        targetDate: ''
-      }
-    });
-  }, []);
-
+  // Dream delete handler
   const handleDelete = useCallback(async (dreamId) => {
     if (!window.confirm('Are you sure you want to delete this dream? This will also remove all associated weekly goals.')) {
       return;
     }
     
-    console.log(`🗑️ Deleting dream ${dreamId} and all associated weekly goals`);
-    
     try {
       const userId = currentUser?.id;
-      if (!userId) {
-        console.error('❌ No user ID available');
-        return;
-      }
+      if (!userId) return;
       
-      // Find the dream to get its goals
       const dream = dreams.find(d => d.id === dreamId);
       
-      // Step 1: Remove goals from currentWeek container
+      // Remove goals from currentWeek container
       const currentWeekIso = getCurrentIsoWeek();
       const currentWeekResult = await currentWeekService.getCurrentWeek(userId);
       
       if (currentWeekResult.success && currentWeekResult.data) {
         const currentWeekGoals = currentWeekResult.data.goals || [];
-        // Filter out all goals associated with this dream
         const remainingGoals = currentWeekGoals.filter(g => g.dreamId !== dreamId);
         
         if (remainingGoals.length < currentWeekGoals.length) {
-          const removedCount = currentWeekGoals.length - remainingGoals.length;
-          console.log(`🗑️ Removing ${removedCount} goals from currentWeek container`);
-          
-          const saveResult = await currentWeekService.saveCurrentWeek(
-            userId,
-            currentWeekIso,
-            remainingGoals
-          );
-          
-          if (saveResult.success) {
-            console.log(`✅ Removed ${removedCount} goals from current week`);
-          } else {
-            console.error('❌ Failed to remove goals from current week:', saveResult.error);
-          }
+          await currentWeekService.saveCurrentWeek(userId, currentWeekIso, remainingGoals);
         }
       }
       
-      // Step 2: Delete templates and instances from weeklyGoals state
-      if (dream && dream.goals && dream.goals.length > 0) {
-        console.log(`🧹 Cleaning up ${dream.goals.length} goals from weekly goals`);
-        
-        // Delete all weekly goals (templates and instances) associated with this dream's goals
+      // Clean up weekly goals
+      if (dream?.goals?.length > 0) {
         for (const goal of dream.goals) {
-          // Find all weekly goals (templates and instances) that match this goal
           const relatedWeeklyGoals = (weeklyGoals || []).filter(wg => 
             wg.goalId === goal.id || wg.id === goal.id || wg.dreamId === dreamId
           );
-          
-          console.log(`🗑️ Found ${relatedWeeklyGoals.length} weekly goals for goal ${goal.id}`);
-          
-          // Delete each one (deleteWeeklyGoal handles templates vs instances)
           for (const weeklyGoal of relatedWeeklyGoals) {
-            if (deleteWeeklyGoal) {
-              await deleteWeeklyGoal(weeklyGoal.id);
-            }
+            if (deleteWeeklyGoal) await deleteWeeklyGoal(weeklyGoal.id);
           }
         }
       }
       
-      // Also clean up any weekly goals directly associated with the dream (without goalId)
+      // Clean up direct dream weekly goals
       const dreamWeeklyGoals = (weeklyGoals || []).filter(wg => wg.dreamId === dreamId);
-      console.log(`🗑️ Found ${dreamWeeklyGoals.length} direct dream weekly goals`);
-      
       for (const weeklyGoal of dreamWeeklyGoals) {
-        if (deleteWeeklyGoal) {
-          await deleteWeeklyGoal(weeklyGoal.id);
-        }
+        if (deleteWeeklyGoal) await deleteWeeklyGoal(weeklyGoal.id);
       }
       
-      // Step 3: Finally, delete the dream itself (this removes templates from dreams container)
       await deleteDream(dreamId);
       
-      console.log(`✅ Successfully deleted dream ${dreamId} and all associated weekly goals`);
-      
-      // Dispatch custom event to trigger refresh in other components (dashboard, week ahead)
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('goals-updated'));
         window.dispatchEvent(new CustomEvent('dreams-updated'));
       }, 100);
     } catch (error) {
-      console.error('❌ Error deleting dream:', error);
-      alert(`Failed to delete dream: ${error.message}`);
+      console.error('Error deleting dream:', error);
+      toast.error(`Failed to delete dream: ${error.message}`);
     }
   }, [dreams, weeklyGoals, deleteDream, deleteWeeklyGoal, currentUser?.id]);
 
   // Image upload handler
   const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        alert('Image size must be less than 5MB');
-        return;
-      }
-
-      try {
-        setUploadingImage(true);
-        const dreamId = isCreating ? tempDreamId : editingDream;
-        const result = await itemService.uploadDreamPicture(
-          currentUser.id,
-          dreamId,
-          file
-        );
-
-        if (result.success) {
-          setFormData(prev => ({ ...prev, image: result.data.url }));
-          console.log('✅ Dream image uploaded successfully');
-        } else {
-          console.error('Failed to upload image:', result.error);
-          alert('Failed to upload image. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        alert('Failed to upload image. Please try again.');
-      } finally {
-        setUploadingImage(false);
-      }
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.warning('Please select an image file');
+      return;
     }
-  }, [isCreating, tempDreamId, editingDream, currentUser]);
 
-  // Dream tracker modal handlers (using useModal)
-  const handleViewDream = useCallback((dream) => {
-    dreamTrackerModal.open(dream);
-  }, [dreamTrackerModal]);
-
-  const handleCloseDreamModal = useCallback(() => {
-    dreamTrackerModal.close();
-  }, [dreamTrackerModal]);
-
-  const handleUpdateDream = useCallback((updatedDream) => {
-    updateDream(updatedDream);
-    // Update the viewing dream to reflect changes, but keep modal open
-    dreamTrackerModal.updateData(updatedDream);
-  }, [updateDream, dreamTrackerModal]);
-
-  // Stock photo search handlers (using useModal)
-  const handleOpenStockPhotoSearch = useCallback((formDataContext) => {
-    stockPhotoModal.open(formDataContext);
-  }, [stockPhotoModal]);
-
-  const handleSelectStockPhoto = useCallback((imageUrl) => {
-    if (stockPhotoModal.data && stockPhotoModal.data.setFormData) {
-      stockPhotoModal.data.setFormData({ 
-        ...stockPhotoModal.data.formData, 
-        image: imageUrl 
-      });
-    }
-    stockPhotoModal.close();
-  }, [stockPhotoModal]);
-
-  const handleCloseStockPhotoSearch = useCallback(() => {
-    stockPhotoModal.close();
-  }, [stockPhotoModal]);
-
-  // AI image generator handlers (using useModal)
-  const handleOpenAIImageGenerator = useCallback((formDataContext) => {
-    aiImageModal.open(formDataContext);
-  }, [aiImageModal]);
-
-  const handleSelectAIImage = useCallback(async (imageUrl) => {
-    if (!aiImageModal.data || !aiImageModal.data.setFormData) {
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.warning('Image size must be less than 5MB');
       return;
     }
 
     try {
-      setUploadingImage(true);
-
-      // Upload to blob storage via backend (backend fetches from URL server-side to avoid CORS)
-      const dreamId = isCreating ? tempDreamId : editingDream;
-      const result = await itemService.uploadDreamPictureFromUrl(
-        currentUser.id,
-        dreamId,
-        imageUrl
-      );
+      form.setUploadingImage(true);
+      const dreamId = form.isCreating ? form.tempDreamId : form.editingDream;
+      const result = await itemService.uploadDreamPicture(currentUser.id, dreamId, file);
 
       if (result.success) {
-        // Set the blob storage URL in form data
-        aiImageModal.data.setFormData({ 
-          ...aiImageModal.data.formData, 
-          image: result.data.url 
-        });
-        console.log('✅ DALL-E image uploaded to blob storage successfully');
+        form.setFormData(prev => ({ ...prev, image: result.data.url }));
       } else {
-        console.error('Failed to upload DALL-E image:', result.error);
-        alert('Failed to upload image. Please try again.');
+        toast.error('Failed to upload image. Please try again.');
       }
     } catch (error) {
-      console.error('Error uploading DALL-E image:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
     } finally {
-      setUploadingImage(false);
-      aiImageModal.close();
+      form.setUploadingImage(false);
     }
-  }, [aiImageModal, isCreating, tempDreamId, editingDream, currentUser]);
-
-  const handleCloseAIImageGenerator = useCallback(() => {
-    aiImageModal.close();
-  }, [aiImageModal]);
-
-  // Inspiration modal handlers (using useModal)
-  const handleOpenInspiration = useCallback(() => {
-    inspirationModal.open();
-  }, [inspirationModal]);
-
-  const handleCloseInspiration = useCallback(() => {
-    inspirationModal.close();
-  }, [inspirationModal]);
+  }, [form, currentUser]);
 
   // Vision save handler
   const handleSaveVision = useCallback(async (visionText) => {
     if (!currentUser?.id) return;
     
-    // Optimistic update - update UI immediately
     setLocalYearVision(visionText);
     
     try {
-      // Save vision to dreams container alongside dreamBook
       const result = await itemService.saveYearVision(currentUser.id, visionText);
       if (result.success) {
-        console.log('✅ Year vision saved successfully');
-        // Update context state so it persists across component remounts
-        if (window.dispatchEvent) {
-          window.dispatchEvent(new CustomEvent('vision-updated', { detail: { vision: visionText } }));
-        }
+        window.dispatchEvent(new CustomEvent('vision-updated', { detail: { vision: visionText } }));
       } else {
-        console.error('❌ Failed to save vision:', result.error);
-        // Revert optimistic update on error
         const rawYearVision = currentUser?.yearVision;
         setLocalYearVision(typeof rawYearVision === 'string' ? rawYearVision : '');
       }
     } catch (error) {
-      console.error('❌ Error saving vision:', error);
-      // Revert optimistic update on error
+      console.error('Error saving vision:', error);
       const rawYearVision = currentUser?.yearVision;
       setLocalYearVision(typeof rawYearVision === 'string' ? rawYearVision : '');
     }
   }, [currentUser?.id, currentUser?.yearVision]);
 
-  // Loading state
   const loading = !currentUser || !dreamCategories;
 
   return {
@@ -602,75 +233,164 @@ export function useDreamBook() {
     maxDreams,
     currentUser,
     dreamCategories,
-    yearVision,
+    yearVision: localYearVision,
     loading,
     
-    // Form state
-    editingDream,
-    isCreating,
-    formData,
-    setFormData,
-    uploadingImage,
-    isSaving,
-    tempDreamId,
+    // Form state (from useDreamForm)
+    editingDream: form.editingDream,
+    isCreating: form.isCreating,
+    formData: form.formData,
+    setFormData: form.setFormData,
+    uploadingImage: form.uploadingImage,
+    isSaving: form.isSaving,
+    tempDreamId: form.tempDreamId,
     
-    // Modal state (from useModal hooks)
-    viewingDream: dreamTrackerModal.data,
-    showStockPhotoSearch: stockPhotoModal.isOpen,
-    showAIImageGenerator: aiImageModal.isOpen,
-    showInspiration: inspirationModal.isOpen,
+    // Modal state (from useDreamModals)
+    viewingDream: modals.viewingDream,
+    showStockPhotoSearch: modals.showStockPhotoSearch,
+    showAIImageGenerator: modals.showAIImageGenerator,
+    showInspiration: modals.showInspiration,
     
-    // Drag state
-    draggingIndex,
-    dragOverIndex,
+    // Drag state (from useDreamDragDrop)
+    draggingIndex: dragDrop.draggingIndex,
+    dragOverIndex: dragDrop.dragOverIndex,
     
-    // Inspiration state
-    inspirationCategory,
-    setInspirationCategory,
-    filteredInspiration,
-    loadingInspiration,
-    inspirationError,
+    // Inspiration state (from useDreamInspiration)
+    inspirationCategory: inspirationState.inspirationCategory,
+    setInspirationCategory: inspirationState.setInspirationCategory,
+    filteredInspiration: inspirationState.filteredInspiration,
+    loadingInspiration: inspirationState.loadingInspiration,
+    inspirationError: inspirationState.inspirationError,
     
     // Dream CRUD handlers
-    handleEdit,
-    handleCreate,
+    handleEdit: form.handleEdit,
+    handleCreate: form.handleCreate,
     handleSave,
-    handleCancel,
+    handleCancel: form.handleCancel,
     handleDelete,
     
     // Image handlers
     handleImageUpload,
     
-    // Dream tracker handlers
-    handleViewDream,
-    handleCloseDreamModal,
-    handleUpdateDream,
+    // Dream tracker handlers (from useDreamModals)
+    handleViewDream: modals.handleViewDream,
+    handleCloseDreamModal: modals.handleCloseDreamModal,
+    handleUpdateDream: modals.handleUpdateDream,
     
-    // Stock photo handlers
-    handleOpenStockPhotoSearch,
-    handleSelectStockPhoto,
-    handleCloseStockPhotoSearch,
+    // Stock photo handlers (from useDreamModals)
+    handleOpenStockPhotoSearch: modals.handleOpenStockPhotoSearch,
+    handleSelectStockPhoto: modals.handleSelectStockPhoto,
+    handleCloseStockPhotoSearch: modals.handleCloseStockPhotoSearch,
     
-    // AI image generator handlers
-    handleOpenAIImageGenerator,
-    handleSelectAIImage,
-    handleCloseAIImageGenerator,
+    // AI image generator handlers (from useDreamModals)
+    handleOpenAIImageGenerator: modals.handleOpenAIImageGenerator,
+    handleSelectAIImage: modals.handleSelectAIImage,
+    handleCloseAIImageGenerator: modals.handleCloseAIImageGenerator,
     
-    // Inspiration handlers
-    handleOpenInspiration,
-    handleCloseInspiration,
+    // Inspiration handlers (from useDreamModals)
+    handleOpenInspiration: modals.handleOpenInspiration,
+    handleCloseInspiration: modals.handleCloseInspiration,
     
     // Vision handler
     handleSaveVision,
     
-    // Drag & drop handlers
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleDragEnd,
+    // Drag & drop handlers (from useDreamDragDrop)
+    handleDragStart: dragDrop.handleDragStart,
+    handleDragOver: dragDrop.handleDragOver,
+    handleDrop: dragDrop.handleDrop,
+    handleDragEnd: dragDrop.handleDragEnd,
     
     // Reorder actions
     reorderDreams
   };
 }
 
+// Helper: Create first goal object
+function createFirstGoal(formData, dreamId) {
+  const goalId = `goal_${Date.now()}`;
+  const nowIso = new Date().toISOString();
+  const currentWeekIso = getCurrentIsoWeek();
+  
+  let targetWeeks, weeksRemaining;
+  if (formData.firstGoal.consistency === 'deadline' && formData.firstGoal.targetDate) {
+    targetWeeks = dateToWeeks(formData.firstGoal.targetDate, currentWeekIso);
+    weeksRemaining = targetWeeks;
+  } else if (formData.firstGoal.consistency === 'monthly') {
+    targetWeeks = monthsToWeeks(formData.firstGoal.targetMonths);
+    weeksRemaining = targetWeeks;
+  } else {
+    targetWeeks = formData.firstGoal.targetWeeks;
+    weeksRemaining = formData.firstGoal.targetWeeks;
+  }
+  
+  return {
+    id: goalId,
+    title: formData.firstGoal.title || formData.title,
+    type: formData.firstGoal.consistency === 'deadline' ? 'deadline' : 'consistency',
+    recurrence: formData.firstGoal.consistency === 'deadline' ? undefined : formData.firstGoal.consistency,
+    targetWeeks,
+    targetMonths: formData.firstGoal.consistency === 'monthly' ? formData.firstGoal.targetMonths : undefined,
+    frequency: formData.firstGoal.consistency === 'monthly' 
+      ? (formData.firstGoal.frequency || 2) 
+      : (formData.firstGoal.consistency === 'weekly' ? (formData.firstGoal.frequency || 1) : undefined),
+    startDate: nowIso,
+    targetDate: formData.firstGoal.consistency === 'deadline' ? formData.firstGoal.targetDate : undefined,
+    weeksRemaining,
+    active: true,
+    completed: false,
+    createdAt: nowIso
+  };
+}
+
+// Helper: Add goal to current week container
+async function addGoalToCurrentWeek(goal, formData, dreamId, userId) {
+  if (!userId) return;
+  
+  const currentWeekIso = getCurrentIsoWeek();
+  const nowIso = new Date().toISOString();
+  
+  try {
+    const newGoalInstance = {
+      id: goal.id,
+      templateId: goal.id,
+      type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
+      title: goal.title,
+      description: '',
+      dreamId,
+      dreamTitle: formData.title,
+      dreamCategory: formData.category,
+      recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
+      targetWeeks: goal.targetWeeks,
+      targetMonths: goal.targetMonths,
+      targetDate: goal.targetDate,
+      frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' 
+        ? (goal.frequency || 2) 
+        : (goal.type === 'consistency' && goal.recurrence === 'weekly' ? (goal.frequency || 1) : null),
+      completionCount: 0,
+      completionDates: [],
+      completed: false,
+      completedAt: null,
+      skipped: false,
+      weeksRemaining: goal.type === 'deadline' && goal.targetDate
+        ? getWeeksUntilDate(goal.targetDate, currentWeekIso)
+        : (goal.targetWeeks || null),
+      monthsRemaining: goal.targetMonths || null,
+      weekId: currentWeekIso,
+      createdAt: nowIso
+    };
+    
+    const currentWeekResponse = await currentWeekService.getCurrentWeek(userId);
+    const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
+    
+    const updatedGoals = [...existingGoals, newGoalInstance];
+    const result = await currentWeekService.saveCurrentWeek(userId, currentWeekIso, updatedGoals);
+    
+    if (result.success) {
+      console.log('✅ First goal added to currentWeek successfully');
+    } else {
+      console.error('❌ Failed to add first goal to currentWeek:', result.error);
+    }
+  } catch (error) {
+    console.error('❌ Failed to create first goal:', error);
+  }
+}

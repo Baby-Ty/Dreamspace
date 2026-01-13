@@ -50,6 +50,35 @@ module.exports = createApiHandler({
 
     const { resources: users } = await usersContainer.items.query(usersQuery).fetchAll();
     
+    // Load dreams from dreams container (v3 6-container architecture)
+    // Dreams are stored separately from user profiles
+    // Wrap in try-catch to prevent failures from breaking the whole endpoint
+    let dreamsByUser = {};
+    try {
+      const dreamsContainer = provider.getContainer('dreams');
+      if (dreamsContainer) {
+        // Only query dreams for team members (more efficient)
+        const dreamsQuery = {
+          query: `SELECT c.id, c.userId, c.dreams, c.dreamBook FROM c WHERE c.userId IN (${allMemberIds.map((_, i) => `@userId${i}`).join(', ')}) OR c.id IN (${allMemberIds.map((_, i) => `@id${i}`).join(', ')})`,
+          parameters: [
+            ...allMemberIds.map((id, i) => ({ name: `@userId${i}`, value: id.toString() })),
+            ...allMemberIds.map((id, i) => ({ name: `@id${i}`, value: id.toString() }))
+          ]
+        };
+        const { resources: dreamsDocs } = await dreamsContainer.items.query(dreamsQuery).fetchAll();
+        
+        // Create a map of userId -> dreams for efficient lookup
+        for (const doc of dreamsDocs) {
+          const docUserId = doc.userId || doc.id;
+          dreamsByUser[docUserId] = doc.dreams || doc.dreamBook || [];
+        }
+        context.log(`📚 Loaded dreams for ${Object.keys(dreamsByUser).length} team members`);
+      }
+    } catch (dreamsError) {
+      context.log.warn('⚠️ Could not load dreams from dreams container:', dreamsError.message);
+      // Continue without dreams container data - will use user document fallback
+    }
+    
     // Transform user data - prioritize currentUser data like getAllUsers API
     users.forEach(user => {
       const currentUser = user.currentUser || {};
@@ -59,6 +88,16 @@ module.exports = createApiHandler({
       const bestAvatar = currentUser.avatar || user.avatar || user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(bestName)}&background=6366f1&color=fff&size=100`;
       
       const userId = user.userId || user.id;
+      
+      // Get dreams from dreams container (v3) or user document (v1/v2 fallback)
+      const dreamsFromContainer = dreamsByUser[userId] || [];
+      const allDreams = dreamsFromContainer.length > 0 
+        ? dreamsFromContainer 
+        : (currentUser.dreamBook || user.dreamBook || []);
+      
+      // Filter to only public dreams for team view (privacy)
+      const publicDreams = allDreams.filter(dream => dream.isPublic === true);
+      
       teamMembers.push({
         id: userId,
         userId: userId,
@@ -66,14 +105,18 @@ module.exports = createApiHandler({
         email: bestEmail,
         office: bestOffice,
         avatar: bestAvatar,
+        // Include cardBackgroundImage for team member cards
+        cardBackgroundImage: currentUser.cardBackgroundImage || user.cardBackgroundImage,
         score: currentUser.score || user.score || 0,
-        dreamsCount: (currentUser.dreamBook && currentUser.dreamBook.length) || (user.dreamBook && user.dreamBook.length) || currentUser.dreamsCount || user.dreamsCount || 0,
+        dreamsCount: allDreams.length || currentUser.dreamsCount || user.dreamsCount || 0,
         connectsCount: currentUser.connectsCount || user.connectsCount || 0,
         lastActiveAt: user.lastActiveAt || user.lastModified || new Date().toISOString(),
         isCoach: userId === managerId, // Flag to identify the coach
-        // Include complete dream data for Dream Coach modal
-        dreamBook: currentUser.dreamBook || user.dreamBook || [],
-        sampleDreams: currentUser.sampleDreams || user.sampleDreams || [],
+        // Include public dreams for team view (all team members can see)
+        dreamBook: publicDreams,
+        sampleDreams: publicDreams.length > 0 
+          ? publicDreams.slice(0, 3).map(d => ({ title: d.title, category: d.category, image: d.image }))
+          : (currentUser.sampleDreams || user.sampleDreams || []),
         dreamCategories: currentUser.dreamCategories || user.dreamCategories || [],
         careerGoals: currentUser.careerGoals || user.careerGoals || [],
         skills: currentUser.skills || user.skills || [],

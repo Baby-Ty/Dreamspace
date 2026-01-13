@@ -14,6 +14,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import promptService from '../../services/promptService';
 import { showToast } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
+import { useConfirm } from '../../components/ConfirmModal';
 import { useFieldHistory } from './PromptFieldHistory';
 import GlobalHistoryPanel from './GlobalHistoryPanel';
 import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection } from './PromptFields';
@@ -24,6 +25,7 @@ import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection 
  */
 export default function PromptEditorSection() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const [prompts, setPrompts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,9 +102,14 @@ export default function PromptEditorSection() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Are you sure you want to reset all prompts to defaults? This will discard all unsaved changes.')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Reset Prompts',
+      message: 'Are you sure you want to reset all prompts to defaults? This will discard all unsaved changes.',
+      type: 'warning',
+      confirmText: 'Reset',
+      cancelText: 'Cancel'
+    });
+    if (!confirmed) return;
     await loadPrompts();
   };
 
@@ -166,9 +173,14 @@ export default function PromptEditorSection() {
   };
 
   const handleRestore = async (version) => {
-    if (!confirm(`Are you sure you want to restore to version from ${new Date(version.timestamp).toLocaleString()}? Current prompts will be saved to history before restoring.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Restore Version',
+      message: `Are you sure you want to restore to version from ${new Date(version.timestamp).toLocaleString()}? Current prompts will be saved to history before restoring.`,
+      type: 'warning',
+      confirmText: 'Restore',
+      cancelText: 'Cancel'
+    });
+    if (!confirmed) return;
 
     try {
       setRestoring(true);

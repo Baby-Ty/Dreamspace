@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react';
 import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
+import { toast } from '../utils/toast';
 
 /**
  * useDashboardGoalsActions - Handles all goal manipulation actions
@@ -84,7 +85,7 @@ export function useDashboardGoalsActions(
       } catch (error) {
         console.error('❌ Failed to increment monthly goal, reverting:', error);
         setCurrentWeekGoals(currentWeekGoals);
-        alert('Failed to save goal. Please try again.');
+        toast.error('Failed to save goal. Please try again.');
       }
       return;
     }
@@ -124,7 +125,7 @@ export function useDashboardGoalsActions(
       } catch (error) {
         console.error('❌ Failed to increment weekly goal, reverting:', error);
         setCurrentWeekGoals(currentWeekGoals);
-        alert('Failed to save goal. Please try again.');
+        toast.error('Failed to save goal. Please try again.');
       }
       return;
     }
@@ -215,7 +216,7 @@ export function useDashboardGoalsActions(
     } catch (error) {
       console.error('❌ Failed to toggle goal, reverting:', error);
       setCurrentWeekGoals(currentWeekGoals);
-      alert('Failed to save goal. Please try again.');
+      toast.error('Failed to save goal. Please try again.');
     }
   }, [currentWeekGoals, currentUser?.id, currentUser?.dreamBook, updateDeadlineGoalAndTemplate, weeklyGoals]);
 
@@ -281,7 +282,7 @@ export function useDashboardGoalsActions(
     } catch (error) {
       console.error('❌ Failed to decrement goal, reverting:', error);
       setCurrentWeekGoals(currentWeekGoals);
-      alert('Failed to undo goal. Please try again.');
+      toast.error('Failed to undo goal. Please try again.');
     }
   }, [currentWeekGoals, currentUser?.id]);
 
@@ -425,7 +426,7 @@ export function useDashboardGoalsActions(
       setShowAddGoal(false);
     } catch (error) {
       console.error('❌ Failed to add goal:', error);
-      alert(`Failed to add goal: ${error.message}`);
+      toast.error(`Failed to add goal: ${error.message}`);
     }
   }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals, updateDream]);
 
@@ -499,7 +500,7 @@ export function useDashboardGoalsActions(
       }
     } catch (error) {
       console.error('❌ Failed to skip goal:', error);
-      alert('Failed to skip goal. Please try again.');
+      toast.error('Failed to skip goal. Please try again.');
     }
   }, [currentWeekGoals, currentUser?.id]);
 
