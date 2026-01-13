@@ -7,6 +7,7 @@ import itemService from '../services/itemService';
 import { mockDreams } from '../constants/dreamInspiration';
 import currentWeekService from '../services/currentWeekService';
 import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks, getWeeksUntilDate } from '../utils/dateUtils';
+import { useModal } from './useModal';
 
 /**
  * Custom hook for Dream Book data management and business logic
@@ -15,15 +16,16 @@ import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks, getWeeksUntilDate } from
 export function useDreamBook() {
   const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, weeklyGoals, deleteWeeklyGoal } = useApp();
   
-  // Form and modal state
+  // Form state
   const [editingDream, setEditingDream] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [viewingDream, setViewingDream] = useState(null);
-  const [showStockPhotoSearch, setShowStockPhotoSearch] = useState(false);
-  const [showAIImageGenerator, setShowAIImageGenerator] = useState(false);
-  const [showInspiration, setShowInspiration] = useState(false);
   const [inspirationCategory, setInspirationCategory] = useState('All');
-  const [currentFormData, setCurrentFormData] = useState(null);
+  
+  // Modal state (using useModal for cleaner management)
+  const dreamTrackerModal = useModal(); // { isOpen, data: dream, open, close }
+  const stockPhotoModal = useModal();   // { isOpen, data: formDataContext, open, close }
+  const aiImageModal = useModal();      // { isOpen, data: formDataContext, open, close }
+  const inspirationModal = useModal();  // { isOpen, open, close }
   const [formData, setFormData] = useState({ title: '', category: '', description: '', isPublic: false, image: '', firstGoal: { enabled: false, title: '', consistency: 'weekly', targetWeeks: 12, targetMonths: 6, frequency: 1, targetDate: '' } });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,7 +107,7 @@ export function useDreamBook() {
     }
   }, [fetchUnsplashForTitle]);
 
-  useEffect(() => { if (showInspiration) { setInspirationCategory('All'); loadInspirationImages(); } }, [showInspiration, loadInspirationImages]);
+  useEffect(() => { if (inspirationModal.isOpen) { setInspirationCategory('All'); loadInspirationImages(); } }, [inspirationModal.isOpen, loadInspirationImages]);
 
   const filteredInspiration = useMemo(() => inspirationItems.filter((d) => inspirationCategory === 'All' || d.category === inspirationCategory), [inspirationItems, inspirationCategory]);
 
@@ -473,51 +475,47 @@ export function useDreamBook() {
     }
   }, [isCreating, tempDreamId, editingDream, currentUser]);
 
-  // Dream tracker modal handlers
+  // Dream tracker modal handlers (using useModal)
   const handleViewDream = useCallback((dream) => {
-    setViewingDream(dream);
-  }, []);
+    dreamTrackerModal.open(dream);
+  }, [dreamTrackerModal]);
 
   const handleCloseDreamModal = useCallback(() => {
-    setViewingDream(null);
-  }, []);
+    dreamTrackerModal.close();
+  }, [dreamTrackerModal]);
 
   const handleUpdateDream = useCallback((updatedDream) => {
     updateDream(updatedDream);
     // Update the viewing dream to reflect changes, but keep modal open
-    setViewingDream(updatedDream);
-  }, [updateDream]);
+    dreamTrackerModal.updateData(updatedDream);
+  }, [updateDream, dreamTrackerModal]);
 
-  // Stock photo search handlers
+  // Stock photo search handlers (using useModal)
   const handleOpenStockPhotoSearch = useCallback((formDataContext) => {
-    setCurrentFormData(formDataContext);
-    setShowStockPhotoSearch(true);
-  }, []);
+    stockPhotoModal.open(formDataContext);
+  }, [stockPhotoModal]);
 
   const handleSelectStockPhoto = useCallback((imageUrl) => {
-    if (currentFormData && currentFormData.setFormData) {
-      currentFormData.setFormData({ 
-        ...currentFormData.formData, 
+    if (stockPhotoModal.data && stockPhotoModal.data.setFormData) {
+      stockPhotoModal.data.setFormData({ 
+        ...stockPhotoModal.data.formData, 
         image: imageUrl 
       });
     }
-    setShowStockPhotoSearch(false);
-    setCurrentFormData(null);
-  }, [currentFormData]);
+    stockPhotoModal.close();
+  }, [stockPhotoModal]);
 
   const handleCloseStockPhotoSearch = useCallback(() => {
-    setShowStockPhotoSearch(false);
-    setCurrentFormData(null);
-  }, []);
+    stockPhotoModal.close();
+  }, [stockPhotoModal]);
 
-  // AI image generator handlers
+  // AI image generator handlers (using useModal)
   const handleOpenAIImageGenerator = useCallback((formDataContext) => {
-    setCurrentFormData(formDataContext);
-    setShowAIImageGenerator(true);
-  }, []);
+    aiImageModal.open(formDataContext);
+  }, [aiImageModal]);
 
   const handleSelectAIImage = useCallback(async (imageUrl) => {
-    if (!currentFormData || !currentFormData.setFormData) {
+    if (!aiImageModal.data || !aiImageModal.data.setFormData) {
       return;
     }
 
@@ -534,8 +532,8 @@ export function useDreamBook() {
 
       if (result.success) {
         // Set the blob storage URL in form data
-        currentFormData.setFormData({ 
-          ...currentFormData.formData, 
+        aiImageModal.data.setFormData({ 
+          ...aiImageModal.data.formData, 
           image: result.data.url 
         });
         console.log('✅ DALL-E image uploaded to blob storage successfully');
@@ -548,24 +546,22 @@ export function useDreamBook() {
       alert('Failed to upload image. Please try again.');
     } finally {
       setUploadingImage(false);
-      setShowAIImageGenerator(false);
-      setCurrentFormData(null);
+      aiImageModal.close();
     }
-  }, [currentFormData, isCreating, tempDreamId, editingDream, currentUser]);
+  }, [aiImageModal, isCreating, tempDreamId, editingDream, currentUser]);
 
   const handleCloseAIImageGenerator = useCallback(() => {
-    setShowAIImageGenerator(false);
-    setCurrentFormData(null);
-  }, []);
+    aiImageModal.close();
+  }, [aiImageModal]);
 
-  // Inspiration modal handlers
+  // Inspiration modal handlers (using useModal)
   const handleOpenInspiration = useCallback(() => {
-    setShowInspiration(true);
-  }, []);
+    inspirationModal.open();
+  }, [inspirationModal]);
 
   const handleCloseInspiration = useCallback(() => {
-    setShowInspiration(false);
-  }, []);
+    inspirationModal.close();
+  }, [inspirationModal]);
 
   // Vision save handler
   const handleSaveVision = useCallback(async (visionText) => {
@@ -618,11 +614,11 @@ export function useDreamBook() {
     isSaving,
     tempDreamId,
     
-    // Modal state
-    viewingDream,
-    showStockPhotoSearch,
-    showAIImageGenerator,
-    showInspiration,
+    // Modal state (from useModal hooks)
+    viewingDream: dreamTrackerModal.data,
+    showStockPhotoSearch: stockPhotoModal.isOpen,
+    showAIImageGenerator: aiImageModal.isOpen,
+    showInspiration: inspirationModal.isOpen,
     
     // Drag state
     draggingIndex,

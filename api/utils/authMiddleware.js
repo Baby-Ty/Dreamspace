@@ -153,10 +153,12 @@ async function getUserRole(userId, context) {
 
 /**
  * Check if authentication is required (feature flag)
+ * Authentication is REQUIRED by default for security.
+ * Set REQUIRE_AUTH=false explicitly to disable (development only).
  * @returns {boolean}
  */
 function isAuthRequired() {
-  return process.env.REQUIRE_AUTH === 'true';
+  return process.env.REQUIRE_AUTH !== 'false';
 }
 
 /**

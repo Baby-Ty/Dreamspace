@@ -5,9 +5,11 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
-class ScoringService {
+class ScoringService extends BaseService {
   constructor() {
+    super();
     console.log('🏆 Scoring Service initialized');
   }
 
@@ -18,25 +20,14 @@ class ScoringService {
    * @returns {Promise<{success: boolean, data?: object, error?: string}>}
    */
   async getScoring(userId, year) {
-    try {
-      const encodedUserId = encodeURIComponent(userId);
-      console.log('📂 Loading scoring:', { userId, year });
+    const encodedUserId = encodeURIComponent(userId);
+    console.log('📂 Loading scoring:', { userId, year });
 
-      const response = await apiClient.get(`/getScoring/${encodedUserId}?year=${year}`);
-
-      if (response.ok) {
-        const scoringDoc = await response.json();
-        console.log(`✅ Loaded scoring for ${year}, total: ${scoringDoc.totalScore}`);
-        return ok(scoringDoc);
-      } else {
-        const error = await response.json();
-        console.error('❌ Error loading scoring:', error);
-        return fail(ErrorCodes.LOAD_ERROR, error.error || 'Failed to load scoring');
-      }
-    } catch (error) {
-      console.error('❌ Error loading scoring:', error);
-      return fail(ErrorCodes.LOAD_ERROR, error.message || 'Failed to load scoring');
-    }
+    return this.handleApiRequest(`/getScoring/${encodedUserId}?year=${year}`, {
+      method: 'GET',
+      successMessage: `Loaded scoring for ${year}`,
+      errorMessage: 'Failed to load scoring'
+    });
   }
 
   /**

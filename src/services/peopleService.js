@@ -4,20 +4,19 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
 /**
  * People Service for DreamSpace
  * Handles core user and team relationship data
  */
-class PeopleService {
+class PeopleService extends BaseService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    super();
     
     console.log('👥 People Service initialized:', {
       useCosmosDB: this.useCosmosDB,
-      isLiveSite,
-      hostname: window.location.hostname,
+      hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
       environment: import.meta.env.VITE_APP_ENV
     });
   }
@@ -57,28 +56,23 @@ class PeopleService {
    * @returns {Promise<{success: boolean, data?: array, error?: object}>}
    */
   async getTeamRelationships() {
-    try {
-      if (this.useCosmosDB) {
-        const response = await apiClient.get('/getTeamRelationships');
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Retrieved team relationships from Cosmos DB:', result.teams?.length || 0);
-        return ok(result.teams || []);
-      } else {
-        // Fallback to localStorage for development
+    if (this.useCosmosDB) {
+      return this.handleApiRequest('/getTeamRelationships', {
+        method: 'GET',
+        successMessage: 'Retrieved team relationships from Cosmos DB',
+        errorMessage: 'Failed to fetch team relationships',
+        transform: (result) => result.teams || []
+      });
+    } else {
+      // Fallback to localStorage for development
+      try {
         const teams = await this.getLocalStorageTeams();
         console.log('📱 Retrieved team relationships from localStorage:', teams.length);
         return ok(teams);
+      } catch (error) {
+        console.error('❌ Error fetching team relationships from localStorage:', error);
+        return ok([]);
       }
-    } catch (error) {
-      console.error('❌ Error fetching team relationships:', error);
-      // Fallback to localStorage on error
-      const teams = await this.getLocalStorageTeams();
-      return ok(teams);
     }
   }
 
@@ -89,26 +83,23 @@ class PeopleService {
    * @returns {Promise<{success: boolean, data?: object, error?: object}>}
    */
   async updateUserProfile(userId, profileData) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await apiClient.post(`/updateUserProfile/${userId}`, profileData);
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ User profile updated in Cosmos DB:', userId);
-        return ok(result);
-      } else {
-        // Handle locally for development
+    if (this.useCosmosDB) {
+      return this.handleApiRequest(`/updateUserProfile/${userId}`, {
+        method: 'POST',
+        body: profileData,
+        successMessage: `User profile updated in Cosmos DB: ${userId}`,
+        errorMessage: 'Failed to update user profile'
+      });
+    } else {
+      // Handle locally for development
+      try {
         const success = await this.updateUserProfileLocalStorage(userId, profileData);
         console.log('📱 User profile updated in localStorage:', userId);
         return ok({ success });
+      } catch (error) {
+        console.error('❌ Error updating user profile in localStorage:', error);
+        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update user profile');
       }
-    } catch (error) {
-      console.error('❌ Error updating user profile:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update user profile');
     }
   }
 

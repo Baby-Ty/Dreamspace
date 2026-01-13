@@ -10,20 +10,22 @@ import {
   Award, 
   Users, 
   MapPin,
-  Mail,
-  Calendar,
-  CheckCircle2,
-  Eye,
-  Edit3,
-  Star
+  Mail
 } from 'lucide-react';
 import DreamTrackerModal from './DreamTrackerModal';
 import CareerTrackerModal from './CareerTrackerModal';
 import FlagIcon from './FlagIcon';
-import peopleService from '../services/peopleService';
-import { showToast } from '../utils/toast';
-import { logger } from '../utils/logger';
 import { getCountryCode } from '../utils/regionUtils';
+
+// Import extracted tab components
+import {
+  OverviewTab,
+  DreamsTab,
+  CareerGoalsTab,
+  DevelopmentTab,
+  SkillsTab,
+  ConnectsTab
+} from './user-management';
 
 const UserManagementModal = ({ user, onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -54,14 +56,10 @@ const UserManagementModal = ({ user, onClose }) => {
   };
 
   const handleUpdateDream = (updatedDream) => {
-    // For admin view, we could potentially sync this back to the user data
-    // For now, just close the modal
     setSelectedDream(updatedDream);
   };
 
   const handleUpdateCareerItem = (updatedItem, type) => {
-    // For admin view, we could potentially sync this back to the user data
-    // For now, just close the modal
     setSelectedCareerItem(null);
     setCareerItemType(null);
   };
@@ -99,51 +97,41 @@ const UserManagementModal = ({ user, onClose }) => {
                     <Mail className="w-4 h-4 mr-1" />
                     <span className="text-sm">{user.email}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <FlagIcon countryCode={getCountryCode(user.office)} className="w-4 h-4" />
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    <FlagIcon countryCode={getCountryCode(user.office)} className="w-4 h-4 mr-1" />
                     <span className="text-sm">{user.office}</span>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg text-sm font-medium">
-                    Score: {user.score} pts
-                  </span>
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg text-sm font-medium">
-                    {user.dreamsCount} Dreams
-                  </span>
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg text-sm font-medium">
-                    {user.connectsCount} Connects
-                  </span>
                 </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="self-start sm:self-center p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-              aria-label="Close"
+              className="self-end sm:self-auto p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+              aria-label="Close modal"
             >
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="border-b border-professional-gray-200 bg-professional-gray-50">
-          <nav className="flex space-x-0" aria-label="User Management Tabs">
+        {/* Tabs */}
+        <div className="bg-professional-gray-50 border-b border-professional-gray-200 px-4 sm:px-6">
+          <nav className="flex space-x-1 overflow-x-auto py-2" aria-label="User management tabs">
             {tabs.map((tab) => {
-              const IconComponent = tab.icon;
+              const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                     isActiveTab(tab.id)
-                      ? 'bg-white text-netsurit-red border-b-2 border-netsurit-red'
-                      : 'text-professional-gray-600 hover:text-professional-gray-900 hover:bg-professional-gray-100'
+                      ? 'bg-netsurit-red text-white shadow-md'
+                      : 'text-professional-gray-700 hover:bg-professional-gray-200 hover:text-professional-gray-900'
                   }`}
                 >
-                  <IconComponent className="w-4 h-4" />
-                  <span className="hidden sm:inline">{tab.name}</span>
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.name}</span>
                 </button>
               );
             })}
@@ -159,603 +147,28 @@ const UserManagementModal = ({ user, onClose }) => {
           {activeTab === 'skills' && <SkillsTab user={user} />}
           {activeTab === 'connects' && <ConnectsTab user={user} />}
         </div>
-        
-        {/* Nested Modals */}
+
+        {/* Nested Dream Tracker Modal */}
         {selectedDream && (
           <DreamTrackerModal
             dream={selectedDream}
             onClose={handleCloseDreamModal}
-            onUpdate={handleUpdateDream}
+            onUpdateDream={handleUpdateDream}
+            isReadOnly={true}
           />
         )}
-        
+
+        {/* Nested Career Tracker Modal */}
         {selectedCareerItem && (
           <CareerTrackerModal
-            careerItem={selectedCareerItem}
-            type={careerItemType}
+            item={selectedCareerItem}
+            itemType={careerItemType}
             onClose={handleCloseCareerModal}
             onUpdate={handleUpdateCareerItem}
+            isReadOnly={true}
           />
         )}
       </div>
-    </div>
-  );
-};
-
-// Overview Tab Component
-const OverviewTab = ({ user }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    office: user.office || '',
-    title: user.title || '',
-    department: user.department || ''
-  });
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const result = await peopleService.updateUserProfile(user.id, editedData);
-
-      if (result.success) {
-        logger.info('user-management-modal', 'User profile updated successfully', { userId: user.id });
-        showToast('Profile updated successfully', 'success');
-        // Update local user object
-        Object.assign(user, editedData);
-        setIsEditing(false);
-      } else {
-        logger.error('user-management-modal', 'Failed to update user profile', { error: result.error, userId: user.id });
-        showToast('Failed to update profile. Please try again.', 'error');
-      }
-    } catch (error) {
-      logger.error('user-management-modal', 'Error updating user profile', { error: error.message, userId: user.id });
-      showToast('Error updating profile. Please try again.', 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditedData({
-      name: user.name || '',
-      email: user.email || '',
-      office: user.office || '',
-      title: user.title || '',
-      department: user.department || ''
-    });
-    setIsEditing(false);
-  };
-
-  const regionOptions = ['All', 'South Africa', 'United States', 'Mexico', 'Brazil', 'Poland'];
-
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">User Overview</h3>
-        {!isEditing ? (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            <Edit3 className="w-4 h-4" />
-            <span>Edit Profile</span>
-          </button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-professional-gray-100 text-professional-gray-700 rounded-lg hover:bg-professional-gray-200 transition-all duration-200"
-            >
-              <X className="w-4 h-4" />
-              <span>Cancel</span>
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Form */}
-      {isEditing && (
-        <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl p-4 sm:p-5">
-          <h4 className="text-lg font-bold text-professional-gray-900 mb-4">Edit Profile Information</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                value={editedData.name}
-                onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={editedData.email}
-                onChange={(e) => setEditedData({ ...editedData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" />
-                Region / Office
-              </label>
-              <select
-                value={editedData.office}
-                onChange={(e) => setEditedData({ ...editedData, office: e.target.value })}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-              >
-                {regionOptions.map((region) => (
-                  <option key={region} value={region}>
-                    {region}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                value={editedData.title}
-                onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-professional-gray-700 mb-2">
-                Department
-              </label>
-              <input
-                type="text"
-                value={editedData.department}
-                onChange={(e) => setEditedData({ ...editedData, department: e.target.value })}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-        <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center">
-              <div className="p-3 bg-netsurit-light-coral/20 rounded-xl">
-                <BookOpen className="w-8 h-8 text-netsurit-red" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-professional-gray-600">Active Dreams</p>
-                <p className="text-2xl font-bold text-professional-gray-900">{user.dreamsCount || 0}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center">
-              <div className="p-3 bg-netsurit-coral/20 rounded-xl">
-                <Users className="w-8 h-8 text-netsurit-coral" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-professional-gray-600">Connections</p>
-                <p className="text-2xl font-bold text-professional-gray-900">{user.connectsCount || 0}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center">
-              <div className="p-3 bg-netsurit-orange/20 rounded-xl">
-                <Star className="w-8 h-8 text-netsurit-orange" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-professional-gray-600">Total Score</p>
-                <p className="text-2xl font-bold text-professional-gray-900">{user.score || 0}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dream Categories */}
-      <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
-        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
-          <h4 className="text-lg font-bold text-professional-gray-900">Dream Categories</h4>
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="flex flex-wrap gap-2">
-            {user.dreamCategories?.map((category) => (
-              <span
-                key={category}
-                className="px-3 py-1 bg-professional-gray-100 text-professional-gray-700 text-sm rounded-lg font-medium"
-              >
-                {category}
-              </span>
-            )) || <span className="text-professional-gray-500">No categories yet</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
-        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
-          <h4 className="text-lg font-bold text-professional-gray-900">Recent Activity</h4>
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3 text-sm text-professional-gray-600">
-              <Calendar className="w-4 h-4" />
-              <span>Last login: {new Date().toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center space-x-3 text-sm text-professional-gray-600">
-              <BookOpen className="w-4 h-4" />
-              <span>Latest dream: {user.latestDreamTitle || 'No dreams yet'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Dreams Tab Component
-const DreamsTab = ({ user, onOpenDreamModal }) => {
-  const dreams = user.sampleDreams || [];
-
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Dream Book</h3>
-        <span className="text-sm text-professional-gray-600">{dreams.length} dreams</span>
-      </div>
-
-      {dreams.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {dreams.map((dream, index) => (
-            <div 
-              key={index} 
-              className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-              onClick={() => onOpenDreamModal(dream)}
-            >
-              <img
-                src={dream.image}
-                alt={dream.title}
-                className="w-full h-32 object-cover"
-              />
-              <div className="p-4 sm:p-5">
-                <h4 className="font-bold text-professional-gray-900 mb-2">{dream.title}</h4>
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 bg-professional-gray-100 text-professional-gray-700 text-xs rounded-lg font-medium">
-                    {dream.category}
-                  </span>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenDreamModal(dream);
-                    }}
-                    className="text-netsurit-red hover:text-netsurit-coral text-sm font-medium flex items-center transition-colors duration-200"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <BookOpen className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
-          <p className="text-professional-gray-500">No dreams created yet</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Career Goals Tab Component
-const CareerGoalsTab = ({ user, onOpenCareerModal }) => {
-  const careerGoals = user.careerGoals || [];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'In Progress':
-        return 'bg-netsurit-warm-orange/20 text-netsurit-orange';
-      case 'Planned':
-        return 'bg-netsurit-light-coral/20 text-netsurit-coral';
-      case 'Completed':
-        return 'bg-netsurit-red/20 text-netsurit-red';
-      default:
-        return 'bg-professional-gray-100 text-professional-gray-800';
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900">Career Goals</h3>
-        <span className="text-sm text-gray-600">{careerGoals.length} goals</span>
-      </div>
-
-      <div className="space-y-4">
-        {careerGoals.map((goal) => (
-          <div 
-            key={goal.id} 
-            className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => onOpenCareerModal(goal, 'goal')}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold text-gray-900">{goal.title}</h4>
-                {goal.description && (
-                  <p className="text-sm text-gray-600 mt-1">{goal.description}</p>
-                )}
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(goal.status)}`}>
-                    {goal.status}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    Target: {new Date(goal.targetDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenCareerModal(goal, 'goal');
-                }}
-                className="text-netsurit-red hover:text-netsurit-coral text-sm font-medium flex items-center"
-              >
-                <Edit3 className="w-4 h-4 mr-1" />
-                Edit
-              </button>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-professional-gray-600 mb-1">
-                <span>Progress</span>
-                <span>{goal.progress}%</span>
-              </div>
-              <div className="w-full bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
-                <div 
-                  className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-3 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden" 
-                  style={{ width: `${goal.progress}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Development Tab Component
-const DevelopmentTab = ({ user, onOpenCareerModal }) => {
-  const developmentPlan = user.developmentPlan || [];
-
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Development Plan</h3>
-        <span className="text-sm text-professional-gray-600">{developmentPlan.length} activities</span>
-      </div>
-
-      <div className="space-y-4">
-        {developmentPlan.map((item) => (
-          <div 
-            key={item.id} 
-            className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer"
-            onClick={() => onOpenCareerModal(item, 'development')}
-          >
-            <div className="p-4 sm:p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-professional-gray-900">{item.title}</h4>
-                  {item.description && (
-                    <p className="text-sm text-professional-gray-600 mt-1">{item.description}</p>
-                  )}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {item.skills?.map((skill, index) => (
-                      <span key={index} className="px-3 py-1 bg-netsurit-light-coral/20 text-netsurit-red text-xs rounded-lg font-medium">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="px-3 py-1 bg-netsurit-warm-orange/20 text-netsurit-orange text-xs rounded-lg font-medium">
-                    {item.status}
-                  </span>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenCareerModal(item, 'development');
-                    }}
-                    className="text-netsurit-red hover:text-netsurit-coral text-sm font-medium flex items-center transition-colors duration-200"
-                  >
-                    <Edit3 className="w-4 h-4 mr-1" />
-                    Edit
-                  </button>
-                </div>
-              </div>
-              
-              {/* Progress Bar */}
-              <div>
-                <div className="flex justify-between text-sm text-professional-gray-600 mb-1">
-                  <span>Progress</span>
-                  <span>{item.progress}%</span>
-                </div>
-                <div className="w-full bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
-                  <div 
-                    className="bg-gradient-to-r from-netsurit-red to-netsurit-coral h-3 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden" 
-                    style={{ width: `${item.progress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Skills Tab Component
-const SkillsTab = ({ user }) => {
-  // Mock skills data
-  const technicalSkills = [
-    { name: 'JavaScript', level: 85, category: 'Programming' },
-    { name: 'React', level: 80, category: 'Frontend' },
-    { name: 'Node.js', level: 75, category: 'Backend' },
-    { name: 'AWS', level: 70, category: 'Cloud' }
-  ];
-
-  const softSkills = [
-    { name: 'Communication', level: 90 },
-    { name: 'Leadership', level: 75 },
-    { name: 'Problem Solving', level: 85 },
-    { name: 'Teamwork', level: 88 }
-  ];
-
-  const getSkillColor = (level) => {
-    if (level >= 80) return 'bg-gradient-to-r from-netsurit-red to-netsurit-coral';
-    if (level >= 60) return 'bg-gradient-to-r from-netsurit-coral to-netsurit-orange';
-    return 'bg-gradient-to-r from-netsurit-orange to-netsurit-warm-orange';
-  };
-
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Skills Assessment</h3>
-
-      {/* Technical Skills */}
-      <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
-        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
-          <h4 className="text-lg font-bold text-professional-gray-900">Technical Skills</h4>
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {technicalSkills.map((skill, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-professional-gray-900">{skill.name}</span>
-                  <span className="text-sm text-professional-gray-600">{skill.level}%</span>
-                </div>
-                <div className="w-full bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
-                  <div 
-                    className={`h-3 rounded-full transition-all duration-700 ease-out shadow-lg ${getSkillColor(skill.level)}`}
-                    style={{ width: `${skill.level}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-professional-gray-500">{skill.category}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Soft Skills */}
-      <div className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl">
-        <div className="p-4 sm:p-5 border-b border-professional-gray-200 bg-professional-gray-50">
-          <h4 className="text-lg font-bold text-professional-gray-900">Soft Skills</h4>
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {softSkills.map((skill, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-professional-gray-900">{skill.name}</span>
-                  <span className="text-sm text-professional-gray-600">{skill.level}%</span>
-                </div>
-                <div className="w-full bg-professional-gray-200 rounded-full h-3 shadow-inner border border-professional-gray-300">
-                  <div 
-                    className={`h-3 rounded-full transition-all duration-700 ease-out shadow-lg ${getSkillColor(skill.level)}`}
-                    style={{ width: `${skill.level}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Connects Tab Component
-const ConnectsTab = ({ user }) => {
-  const connects = user.connects || [];
-
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl sm:text-2xl font-bold text-professional-gray-900">Dream Connects</h3>
-        <span className="text-sm text-professional-gray-600">{connects.length} connections</span>
-      </div>
-
-      {connects.length > 0 ? (
-        <div className="space-y-4">
-          {connects.map((connect) => (
-            <div key={connect.id} className="bg-white rounded-2xl border border-professional-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-              <div className="p-4 sm:p-5">
-                <div className="flex items-start space-x-4">
-                  <img
-                    src={connect.avatar}
-                    alt={connect.withWhom}
-                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-bold text-professional-gray-900">{connect.withWhom}</h4>
-                      <span className="text-sm text-professional-gray-600">{new Date(connect.date).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-professional-gray-600 mt-2">{connect.notes}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Users className="w-12 h-12 mx-auto mb-4 text-professional-gray-300" />
-          <p className="text-professional-gray-500">No connections yet</p>
-        </div>
-      )}
     </div>
   );
 };

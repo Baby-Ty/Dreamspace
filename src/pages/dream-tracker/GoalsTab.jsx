@@ -3,15 +3,9 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Plus, 
-  X, 
-  Target,
-  Repeat,
-  Calendar,
-  Loader2
-} from 'lucide-react';
+import { Plus, Target } from 'lucide-react';
 import GoalAccordion from '../../components/GoalAccordion';
+import { AddGoalForm } from './goals-tab';
 
 /**
  * Goals Tab - Manages dream goals (add, edit, delete, toggle)
@@ -46,13 +40,18 @@ export function GoalsTab({
       description: '',
       type: 'consistency',
       recurrence: 'weekly',
-      consistency: 'weekly', // New field for UI consistency with other forms
+      consistency: 'weekly',
       targetWeeks: 12,
       targetMonths: 6,
-      frequency: 1, // Default to 1 for weekly (will be 2 for monthly)
+      frequency: 1,
       startDate: '',
       targetDate: ''
     });
+  };
+
+  const handleCancel = () => {
+    setIsAddingGoal(false);
+    resetNewGoalData();
   };
 
   return (
@@ -77,321 +76,18 @@ export function GoalsTab({
             onClick={() => setIsAddingGoal(true)}
             className="w-full bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-3 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 text-sm font-medium"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" aria-hidden="true" />
             <span>Add New Goal</span>
           </button>
         )
       ) : (
-        <div className="bg-professional-gray-50 rounded-xl border border-professional-gray-200 p-4 space-y-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <h4 className="font-bold text-professional-gray-900 text-sm">Add New Goal</h4>
-            <button
-              onClick={() => {
-                setIsAddingGoal(false);
-                resetNewGoalData();
-              }}
-              className="text-professional-gray-500 hover:text-professional-gray-700 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-medium text-professional-gray-700 mb-1">
-              Goal Title <span className="text-netsurit-red">*</span>
-            </label>
-            <input
-              type="text"
-              value={newGoalData.title}
-              onChange={(e) => setNewGoalData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g., Gym 3x a week"
-              className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-medium text-professional-gray-700 mb-1">
-              Description (Optional)
-            </label>
-            <textarea
-              value={newGoalData.description}
-              onChange={(e) => setNewGoalData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Add details about this goal..."
-              rows={2}
-              className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm resize-none"
-            />
-          </div>
-
-          {/* Goal Type - How often? */}
-          <div>
-            <label className="block text-xs font-medium text-professional-gray-700 mb-2">
-              How often? <span className="text-netsurit-red">*</span>
-            </label>
-            <div 
-              className="grid grid-cols-3 gap-2"
-              role="group"
-              aria-label="Goal frequency"
-            >
-              <button
-                type="button"
-                onClick={() => setNewGoalData(prev => ({ 
-                  ...prev, 
-                  type: 'consistency',
-                  recurrence: 'weekly',
-                  consistency: 'weekly',
-                  frequency: prev.consistency === 'weekly' ? prev.frequency : 1
-                }))}
-                aria-pressed={newGoalData.type === 'consistency' && newGoalData.recurrence === 'weekly'}
-                data-testid="weekly-consistency-button"
-                className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  newGoalData.type === 'consistency' && newGoalData.recurrence === 'weekly'
-                    ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
-                    : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
-                }`}
-              >
-                <Repeat className="w-4 h-4 mb-1" aria-hidden="true" />
-                <span>Weekly</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setNewGoalData(prev => ({ 
-                  ...prev, 
-                  type: 'consistency',
-                  recurrence: 'monthly',
-                  consistency: 'monthly',
-                  frequency: prev.consistency === 'monthly' ? prev.frequency : 2
-                }))}
-                aria-pressed={newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly'}
-                data-testid="monthly-consistency-button"
-                className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  newGoalData.type === 'consistency' && newGoalData.recurrence === 'monthly'
-                    ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
-                    : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
-                }`}
-              >
-                <Calendar className="w-4 h-4 mb-1" aria-hidden="true" />
-                <span>Monthly</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setNewGoalData(prev => ({ 
-                  ...prev, 
-                  type: 'deadline',
-                  consistency: 'deadline',
-                  recurrence: undefined
-                }))}
-                aria-pressed={newGoalData.type === 'deadline'}
-                data-testid="deadline-consistency-button"
-                className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  newGoalData.type === 'deadline'
-                    ? 'bg-gradient-to-br from-netsurit-red to-netsurit-coral text-white shadow-md ring-2 ring-netsurit-red ring-offset-1'
-                    : 'bg-white text-professional-gray-700 hover:bg-professional-gray-100 hover:shadow-sm border border-professional-gray-300'
-                }`}
-              >
-                <Target className="w-4 h-4 mb-1" aria-hidden="true" />
-                <span>Deadline</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Consistency Options */}
-          {newGoalData.type === 'consistency' && (
-            <>
-              {/* Target Duration */}
-              <div className="space-y-1">
-                <label className="block text-xs font-medium text-professional-gray-700">
-                  Track for how many {newGoalData.recurrence === 'monthly' ? 'months' : 'weeks'}?
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={newGoalData.recurrence === 'monthly' ? 24 : 52}
-                  value={newGoalData.recurrence === 'monthly' 
-                    ? (newGoalData.targetMonths === '' ? '' : (newGoalData.targetMonths || 6))
-                    : (newGoalData.targetWeeks === '' ? '' : (newGoalData.targetWeeks || 12))}
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
-                    // Allow empty string for free typing
-                    if (inputValue === '') {
-                      setNewGoalData(prev => ({
-                        ...prev,
-                        ...(prev.recurrence === 'monthly' 
-                          ? { targetMonths: '' }
-                          : { targetWeeks: '' }
-                        )
-                      }));
-                      return;
-                    }
-                    const numValue = parseInt(inputValue, 10);
-                    if (!isNaN(numValue)) {
-                      setNewGoalData(prev => ({
-                        ...prev,
-                        ...(prev.recurrence === 'monthly' 
-                          ? { targetMonths: numValue }
-                          : { targetWeeks: numValue }
-                        )
-                      }));
-                    }
-                  }}
-                  onBlur={(e) => {
-                    // Apply default if empty on blur
-                    const inputValue = e.target.value;
-                    if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
-                      const defaultValue = newGoalData.recurrence === 'monthly' ? 6 : 12;
-                      setNewGoalData(prev => ({
-                        ...prev,
-                        ...(prev.recurrence === 'monthly' 
-                          ? { targetMonths: defaultValue }
-                          : { targetWeeks: defaultValue }
-                        )
-                      }));
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
-                  aria-label={`Target ${newGoalData.recurrence === 'monthly' ? 'months' : 'weeks'}`}
-                  data-testid="goal-duration-input"
-                />
-                <p className="text-xs text-professional-gray-500">
-                  Default: {newGoalData.recurrence === 'monthly' ? '6 months' : '12 weeks'}
-                </p>
-              </div>
-              {/* Weekly frequency input */}
-              {newGoalData.recurrence === 'weekly' && (
-                <div>
-                  <label className="block text-xs font-medium text-professional-gray-700 mb-1">
-                    Completions per week <span className="text-netsurit-red">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={newGoalData.frequency === '' ? '' : (newGoalData.frequency || 1)}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      // Allow empty string for free typing
-                      if (inputValue === '') {
-                        setNewGoalData(prev => ({ ...prev, frequency: '' }));
-                        return;
-                      }
-                      const numValue = parseInt(inputValue, 10);
-                      if (!isNaN(numValue)) {
-                        setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(7, numValue)) }));
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Apply default if empty on blur
-                      const inputValue = e.target.value;
-                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
-                        setNewGoalData(prev => ({ ...prev, frequency: 1 }));
-                      }
-                    }}
-                    min="1"
-                    max="7"
-                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
-                    placeholder="e.g., 3"
-                  />
-                  <p className="text-xs text-professional-gray-500 mt-1">
-                    How many times you want to complete this goal each week (e.g., 3x = three times per week)
-                  </p>
-                </div>
-              )}
-              
-              {/* Monthly frequency input */}
-              {newGoalData.recurrence === 'monthly' && (
-                <div>
-                  <label className="block text-xs font-medium text-professional-gray-700 mb-1">
-                    Completions per month <span className="text-netsurit-red">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={newGoalData.frequency === '' ? '' : (newGoalData.frequency || 2)}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      // Allow empty string for free typing
-                      if (inputValue === '') {
-                        setNewGoalData(prev => ({ ...prev, frequency: '' }));
-                        return;
-                      }
-                      const numValue = parseInt(inputValue, 10);
-                      if (!isNaN(numValue)) {
-                        setNewGoalData(prev => ({ ...prev, frequency: Math.max(1, Math.min(31, numValue)) }));
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Apply default if empty on blur
-                      const inputValue = e.target.value;
-                      if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
-                        setNewGoalData(prev => ({ ...prev, frequency: 2 }));
-                      }
-                    }}
-                    min="1"
-                    max="31"
-                    className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
-                    placeholder="e.g., 2"
-                  />
-                  <p className="text-xs text-professional-gray-500 mt-1">
-                    How many times you want to complete this goal each month (e.g., 2x = twice per month)
-                  </p>
-                </div>
-              )}
-              <p className="text-xs text-professional-gray-500 mt-1">
-                {newGoalData.recurrence === 'weekly' && `Goal will show every week; complete it ${newGoalData.frequency || 1}x per week to mark the week complete`}
-                {newGoalData.recurrence === 'monthly' && `Goal will show every week; complete it ${newGoalData.frequency || 2}x per month to mark the month complete`}
-              </p>
-            </>
-          )}
-
-          {/* Deadline Options */}
-          {newGoalData.type === 'deadline' && (
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-professional-gray-700">
-                Target Date <span className="text-netsurit-red">*</span>
-              </label>
-              <input
-                type="date"
-                value={newGoalData.targetDate || ''}
-                onChange={(e) => setNewGoalData(prev => ({ ...prev, targetDate: e.target.value }))}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm"
-                aria-label="Target date"
-                data-testid="goal-deadline-input"
-              />
-              <p className="text-xs text-professional-gray-500">
-                Complete this goal by a specific date
-              </p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={onAddGoal}
-              disabled={!newGoalData.title.trim() || (newGoalData.type === 'deadline' && !newGoalData.targetDate) || isSavingGoal}
-              className="flex-1 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm font-medium"
-            >
-              {isSavingGoal ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Add Goal</span>
-                </>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setIsAddingGoal(false);
-                resetNewGoalData();
-              }}
-              className="px-4 py-2 bg-professional-gray-200 text-professional-gray-700 rounded-lg hover:bg-professional-gray-300 focus:outline-none focus:ring-2 focus:ring-professional-gray-400 transition-all duration-200 text-sm font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <AddGoalForm
+          newGoalData={newGoalData}
+          setNewGoalData={setNewGoalData}
+          onAddGoal={onAddGoal}
+          onCancel={handleCancel}
+          isSavingGoal={isSavingGoal}
+        />
       )}
 
       {/* Goals List with Accordion */}
@@ -436,9 +132,9 @@ GoalsTab.propTypes = {
     description: PropTypes.string,
     type: PropTypes.string,
     recurrence: PropTypes.string,
-    targetWeeks: PropTypes.number,
-    targetMonths: PropTypes.number,
-    frequency: PropTypes.number,
+    targetWeeks: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    targetMonths: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    frequency: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     startDate: PropTypes.string,
     targetDate: PropTypes.string
   }).isRequired,
@@ -457,7 +153,7 @@ GoalsTab.propTypes = {
     description: PropTypes.string,
     type: PropTypes.string,
     recurrence: PropTypes.string,
-    targetWeeks: PropTypes.number,
+    targetWeeks: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     startDate: PropTypes.string,
     targetDate: PropTypes.string
   }).isRequired,
@@ -468,10 +164,3 @@ GoalsTab.propTypes = {
 };
 
 export default React.memo(GoalsTab);
-
-
-
-
-
-
-

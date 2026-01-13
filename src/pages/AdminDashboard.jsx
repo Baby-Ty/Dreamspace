@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter, Settings, Shield, Loader2, RefreshCw } from 'lucide-react';
+import { Users, MapPin, TrendingUp, Award, AlertCircle, Filter, Settings, Shield, RefreshCw } from 'lucide-react';
 import adminService from '../services/adminService';
 import UserManagementModal from '../components/UserManagementModal';
+import { DataBoundary } from '../components/DataBoundary';
 
 const AdminDashboard = () => {
   const [anonymizeNames, setAnonymizeNames] = useState(false);
@@ -88,40 +89,15 @@ const AdminDashboard = () => {
     setShowUserModal(false);
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-4 sm:py-6">
-        <div className="text-center py-20">
-          <Loader2 className="h-12 w-12 text-netsurit-red animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Loading Admin Dashboard</h2>
-          <p className="text-professional-gray-600">Analyzing user data and engagement metrics...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 xl:px-12 py-4 sm:py-6">
-        <div className="text-center py-20">
-          <AlertCircle className="h-12 w-12 text-netsurit-red mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">Failed to Load Admin Data</h2>
-          <p className="text-professional-gray-600 mb-4">{error}</p>
-          <button
-            onClick={refreshData}
-            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-4 py-2 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            <span>Retry</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // Use DataBoundary for loading/error states
   return (
+    <DataBoundary
+      loading={isLoading}
+      error={error}
+      onRetry={refreshData}
+      loadingMessage="Loading Admin Dashboard"
+      errorTitle="Failed to Load Admin Data"
+    >
     <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Enhanced Header */}
       <div className="mb-8">
@@ -206,6 +182,7 @@ const AdminDashboard = () => {
         />
       )}
     </div>
+    </DataBoundary>
   );
 };
 

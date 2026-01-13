@@ -4,15 +4,15 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
 /**
  * User Management Service for DreamSpace
  * Handles user role assignments, team management, and coach assignments
  */
-class UserManagementService {
+class UserManagementService extends BaseService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    super();
     
     console.log('👥🔧 User Management Service initialized:', {
       useCosmosDB: this.useCosmosDB
@@ -57,29 +57,26 @@ class UserManagementService {
    * Assign user to existing coach
    * @param {string} userId - User ID
    * @param {string} coachId - Coach ID
-   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
-   */
-  async assignUserToCoach(userId, coachId) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await apiClient.post('/assignUserToCoach', {
+    if (this.useCosmosDB) {
+      return this.handleApiRequest('/assignUserToCoach', {
+        method: 'POST',
+        body: {
           userId,
           coachId,
           timestamp: new Date().toISOString()
-        });
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ User assigned to coach in Cosmos DB:', { userId, coachId });
-        return ok(result);
-      } else {
-        // Handle locally for development
+        },
+        successMessage: `User assigned to coach in Cosmos DB: ${userId} -> ${coachId}`,
+        errorMessage: 'Failed to assign user to coach'
+      });
+    } else {
+      // Handle locally for development
+      try {
         const success = await this.assignUserLocalStorage(userId, coachId);
         console.log('📱 User assigned to coach in localStorage:', { userId, coachId });
         return ok({ success });
+      } catch (error) {
+        console.error('❌ Error assigning user to coach in localStorage:', error);
+        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to assign user to coach');
       }
     } catch (error) {
       console.error('❌ Error assigning user to coach:', error);

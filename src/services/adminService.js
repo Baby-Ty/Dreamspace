@@ -5,11 +5,11 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
-class AdminService {
+class AdminService extends BaseService {
   constructor() {
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    super();
     
     console.log('🛡️ Admin Service initialized:', {
       useCosmosDB: this.useCosmosDB,
@@ -19,28 +19,23 @@ class AdminService {
 
   // Get all users with complete analytics data
   async getAllUsersForAdmin() {
-    try {
-      if (this.useCosmosDB) {
-        const response = await apiClient.get('/getAllUsers');
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Retrieved users for admin from Cosmos DB:', result.users?.length || 0);
-        return ok(result.users || []);
-      } else {
-        // Fallback to localStorage for development
+    if (this.useCosmosDB) {
+      return this.handleApiRequest('/getAllUsers', {
+        method: 'GET',
+        successMessage: `Retrieved users for admin from Cosmos DB`,
+        errorMessage: 'Failed to fetch users for admin',
+        transform: (result) => result.users || []
+      });
+    } else {
+      // Fallback to localStorage for development
+      try {
         const users = await this.getLocalStorageUsers();
         console.log('📱 Retrieved users for admin from localStorage:', users.length);
         return ok(users);
+      } catch (error) {
+        console.error('❌ Error fetching users from localStorage:', error);
+        return ok([]);
       }
-    } catch (error) {
-      console.error('❌ Error fetching users for admin:', error);
-      // Fallback to localStorage on error
-      const users = await this.getLocalStorageUsers();
-      return ok(users);
     }
   }
 
@@ -145,25 +140,17 @@ class AdminService {
 
   // Update user data (for admin management)
   async updateUserData(userId, userData) {
-    try {
-      if (this.useCosmosDB) {
-        const response = await apiClient.post(`/saveUserData/${userId}`, userData);
-
-        if (!response.ok) {
-          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Updated user data via admin:', userId);
-        return ok(result);
-      } else {
-        // Handle locally for development
-        console.log('📱 Updated user data in localStorage:', userId);
-        return ok(null);
-      }
-    } catch (error) {
-      console.error('❌ Error updating user data:', error);
-      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update user data');
+    if (this.useCosmosDB) {
+      return this.handleApiRequest(`/saveUserData/${userId}`, {
+        method: 'POST',
+        body: userData,
+        successMessage: `Updated user data via admin: ${userId}`,
+        errorMessage: 'Failed to update user data'
+      });
+    } else {
+      // Handle locally for development
+      console.log('📱 Updated user data in localStorage:', userId);
+      return ok(null);
     }
   }
 

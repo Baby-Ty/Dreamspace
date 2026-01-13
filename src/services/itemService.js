@@ -5,9 +5,11 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
-class ItemService {
+class ItemService extends BaseService {
   constructor() {
+    super();
     console.log('📦 Item Service initialized');
   }
 

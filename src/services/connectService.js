@@ -5,9 +5,11 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { BaseService } from './BaseService.js';
 
-class ConnectService {
+class ConnectService extends BaseService {
   constructor() {
+    super();
     console.log('🔗 Connect Service initialized');
   }
 
