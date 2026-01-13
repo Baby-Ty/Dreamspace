@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   // Create authenticated fetch and graph service
   const authedFetch = useAuthenticatedFetch(getToken);
-  const graph = useMemo(() => GraphService(authedFetch, getToken), [authedFetch, getToken]);
+  const graph = useMemo(() => GraphService(authedFetch, getToken, getApiToken), [authedFetch, getToken, getApiToken]);
 
   // Use user profile management hook
   const { fetchUserProfile, createFallbackUser, refreshFromDatabase } = useUserProfile(graph);

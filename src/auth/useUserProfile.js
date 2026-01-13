@@ -27,10 +27,29 @@ export function useUserProfile(graph) {
     const profileData = profileResult.data;
     const userId = profileData.userPrincipalName || profileData.mail || account.username;
     
-    // Get avatar URL
-    let avatarUrl = await fetchAvatarUrl(graph, profileData, userId);
+    // STEP 1: Check database FIRST for existing user and avatar
+    console.log('🔄 Checking for existing user data in database...');
+    const existingData = await databaseService.loadUserData(userId);
+    const existingUser = existingData?.success && existingData?.data 
+      ? (existingData.data.currentUser || existingData.data)
+      : null;
+    
+    // STEP 2: Determine if we need to upload avatar
+    const existingAvatar = existingUser?.avatar;
+    const hasValidPermanentAvatar = isValidPermanentAvatarUrl(existingAvatar);
+    
+    let avatarUrl;
+    if (hasValidPermanentAvatar) {
+      // Use existing permanent avatar - NO upload needed
+      console.log('✅ Using existing permanent avatar from database:', existingAvatar.substring(0, 80));
+      avatarUrl = existingAvatar;
+    } else {
+      // Need to fetch/upload avatar
+      console.log('📸 No valid permanent avatar found, fetching from Microsoft Graph...');
+      avatarUrl = await fetchAndUploadAvatar(graph, profileData, userId);
+    }
 
-    // Create fresh profile for authenticated users
+    // STEP 3: Build user data
     let userData = {
       id: userId,
       aadObjectId: account.localAccountId,
@@ -47,8 +66,28 @@ export function useUserProfile(graph) {
       connectsCount: 0
     };
 
-    // Check if user data already exists and merge/create
-    userData = await syncUserWithDatabase(userData, avatarUrl, graph);
+    // STEP 4: Merge with existing or create new user
+    if (existingUser) {
+      console.log('✅ Found existing user data, merging with current profile');
+      console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
+      
+      userData = {
+        ...existingUser,
+        name: userData.name,
+        email: userData.email,
+        office: userData.office,
+        avatar: avatarUrl
+      };
+      
+      // Save avatar update if we got a new permanent URL
+      if (!hasValidPermanentAvatar && isValidPermanentAvatarUrl(avatarUrl)) {
+        await saveAvatarToDatabase(userId, userData, avatarUrl);
+      }
+    } else {
+      // New user - create profile
+      console.log('🆕 No existing data found, saving new user profile');
+      await createNewUserProfile(userData);
+    }
     
     return userData;
   }, [graph]);
@@ -108,114 +147,59 @@ export function useUserProfile(graph) {
   return { fetchUserProfile, createFallbackUser, refreshFromDatabase };
 }
 
-// Helper: Fetch avatar URL from Graph and upload to blob storage
-async function fetchAvatarUrl(graph, profileData, userId) {
-  let avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
+/**
+ * Check if avatar URL is a valid permanent blob storage URL
+ */
+function isValidPermanentAvatarUrl(avatarUrl) {
+  return avatarUrl && 
+    typeof avatarUrl === 'string' && 
+    avatarUrl.startsWith('https://') &&
+    avatarUrl.includes('.blob.core.windows.net') &&
+    !avatarUrl.startsWith('blob:') && 
+    !avatarUrl.includes('ui-avatars.com');
+}
+
+/**
+ * Fetch avatar from Microsoft Graph and upload to blob storage
+ * Only called when user doesn't have a valid permanent avatar
+ */
+async function fetchAndUploadAvatar(graph, profileData, userId) {
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.displayName)}&background=EC4B5C&color=fff&size=100`;
   
-  console.log('📸 Attempting to fetch and upload profile picture from Microsoft Graph...');
-  const uploadResult = await graph.uploadMyPhotoToStorage(userId);
-  
-  if (uploadResult.success && uploadResult.data) {
-    avatarUrl = uploadResult.data;
-    console.log('✅ Profile picture uploaded to blob storage:', avatarUrl);
-  } else {
-    console.log('ℹ️ Blob storage upload failed or no photo available, trying temporary blob URL...');
+  try {
+    // Try to upload to blob storage
+    console.log('📤 Uploading profile picture to blob storage...');
+    const uploadResult = await graph.uploadMyPhotoToStorage(userId);
+    
+    if (uploadResult.success && uploadResult.data) {
+      console.log('✅ Profile picture uploaded to blob storage:', uploadResult.data);
+      return uploadResult.data;
+    }
+    
+    console.log('ℹ️ Blob storage upload failed:', uploadResult.error?.message || 'Unknown error');
+    
+    // Fallback: Try to get temporary blob URL (for current session only)
+    console.log('📸 Trying temporary blob URL from Microsoft Graph...');
     const photoResult = await graph.getMyPhoto();
     if (photoResult.success && photoResult.data) {
-      avatarUrl = photoResult.data;
-      console.log('⚠️ Using temporary blob URL (will expire after session):', avatarUrl);
-    } else {
-      console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
+      console.log('⚠️ Using temporary blob URL (will not persist across sessions)');
+      return photoResult.data;
     }
-  }
-  
-  return avatarUrl;
-}
-
-// Helper: Sync user with database (load existing or create new)
-async function syncUserWithDatabase(userData, avatarUrl, graph) {
-  try {
-    console.log('🔄 Checking for existing user data in database...');
-    const existingData = await databaseService.loadUserData(userData.id);
     
-    if (existingData && existingData.success && existingData.data) {
-      // User exists - merge with existing data
-      console.log('✅ Found existing user data, merging with current profile');
-      const existingUser = existingData.data.currentUser || existingData.data;
-      console.log('📚 Existing dreams count:', existingUser.dreamBook?.length || 0);
-      
-      // Handle avatar URL logic
-      const { finalAvatarUrl, shouldSaveAvatar } = await handleAvatarMerge(
-        existingUser.avatar, avatarUrl, userData.id, graph
-      );
-      
-      const mergedUser = {
-        ...existingUser,
-        name: userData.name,
-        email: userData.email,
-        office: userData.office,
-        avatar: finalAvatarUrl
-      };
-      
-      // Save updated avatar if needed
-      if (shouldSaveAvatar && finalAvatarUrl.startsWith('https://') && finalAvatarUrl.includes('.blob.core.windows.net')) {
-        await saveAvatarToDatabase(userData.id, mergedUser, finalAvatarUrl);
-      }
-      
-      return mergedUser;
-    } else {
-      // New user - create profile
-      console.log('🆕 No existing data found, saving new user profile with 6-container structure');
-      await createNewUserProfile(userData);
-      return userData;
-    }
+    console.log('ℹ️ No profile photo available from Microsoft 365, using generated avatar');
+    return fallbackAvatar;
   } catch (error) {
-    console.error('❌ Error checking/updating user profile:', error);
-    console.log('ℹ️ Continuing with login despite error');
-    return userData;
+    console.error('❌ Error fetching/uploading avatar:', error);
+    return fallbackAvatar;
   }
 }
 
-// Helper: Handle avatar merge logic
-async function handleAvatarMerge(existingAvatar, newAvatarUrl, userId, graph) {
-  const isValidPermanentAvatar = existingAvatar && 
-    typeof existingAvatar === 'string' && 
-    existingAvatar.startsWith('https://') &&
-    existingAvatar.includes('.blob.core.windows.net') &&
-    !existingAvatar.startsWith('blob:') && 
-    !existingAvatar.includes('ui-avatars.com');
-  
-  let finalAvatarUrl = newAvatarUrl;
-  let shouldSaveAvatar = false;
-  
-  if (isValidPermanentAvatar) {
-    console.log('✅ Using existing permanent avatar URL from database');
-    finalAvatarUrl = existingAvatar;
-  } else if (existingAvatar && existingAvatar.startsWith('blob:')) {
-    console.log('⚠️ Existing avatar is a blob URL, attempting to upload to blob storage...');
-    const uploadResult = await graph.uploadMyPhotoToStorage(userId);
-    if (uploadResult.success && uploadResult.data) {
-      finalAvatarUrl = uploadResult.data;
-      shouldSaveAvatar = true;
-      console.log('✅ Successfully uploaded existing blob URL to permanent storage');
-    } else if (newAvatarUrl && !newAvatarUrl.includes('ui-avatars.com')) {
-      shouldSaveAvatar = true;
-    }
-  } else {
-    console.log('⚠️ Existing avatar is not a valid permanent URL, using newly fetched avatar');
-    if (newAvatarUrl && newAvatarUrl.startsWith('https://') && newAvatarUrl.includes('.blob.core.windows.net')) {
-      shouldSaveAvatar = true;
-      console.log('✅ New permanent avatar URL will be saved to database');
-    }
-  }
-  
-  return { finalAvatarUrl, shouldSaveAvatar };
-}
-
-// Helper: Save avatar update to database
+/**
+ * Save avatar update to database
+ */
 async function saveAvatarToDatabase(userId, userData, avatarUrl) {
   try {
-    console.log('💾 Saving updated avatar to database for existing user...');
+    console.log('💾 Saving new permanent avatar to database...');
     const profileUpdate = {
       id: userId,
       userId: userId,
@@ -227,16 +211,18 @@ async function saveAvatarToDatabase(userId, userData, avatarUrl) {
     };
     const saveResult = await databaseService.saveUserData(userId, profileUpdate);
     if (saveResult.success) {
-      console.log('✅ Avatar updated successfully in database');
+      console.log('✅ Avatar saved to database successfully');
     } else {
-      console.log('⚠️ Failed to save avatar update:', saveResult.error);
+      console.log('⚠️ Failed to save avatar to database:', saveResult.error);
     }
   } catch (saveError) {
-    console.error('❌ Error saving avatar update:', saveError);
+    console.error('❌ Error saving avatar to database:', saveError);
   }
 }
 
-// Helper: Create new user profile in database
+/**
+ * Create new user profile in database
+ */
 async function createNewUserProfile(userData) {
   const minimalProfile = {
     id: userData.id,
@@ -259,7 +245,7 @@ async function createNewUserProfile(userData) {
   
   const saveResult = await databaseService.saveUserData(userData.id, minimalProfile);
   if (saveResult.success) {
-    console.log('✅ New user profile saved successfully (6-container, v3)');
+    console.log('✅ New user profile saved successfully (v3 structure)');
     
     // Create empty dreams document for new user
     try {

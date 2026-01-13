@@ -19,29 +19,7 @@ import PeopleModals from './components/PeopleModals';
 export default function PeopleDashboardLayout() {
   const { user, refreshUserRole } = useAuth();
 
-  // ACCESS CONTROL: Admin only
-  // Use roles object as source of truth (not the derived role string)
-  const isAdmin = user?.roles?.admin === true;
-  
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-xl border border-professional-gray-200 p-8 max-w-md text-center">
-          <div className="w-16 h-16 bg-netsurit-red/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldAlert className="w-8 h-8 text-netsurit-red" />
-          </div>
-          <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">Access Denied</h2>
-          <p className="text-professional-gray-600 mb-1">
-            You need <span className="font-semibold text-netsurit-red">admin privileges</span> to access People Hub.
-          </p>
-          <p className="text-sm text-professional-gray-500 mt-4">
-            Current role: <span className="font-medium">{user?.role || 'user'}</span>
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  // All hooks must be called before any conditional returns (Rules of Hooks)
   const {
     allUsers,
     coaches,
@@ -91,6 +69,29 @@ export default function PeopleDashboardLayout() {
     clearSelectedTeamMember,
     clearSelectedCoachToReplace
   } = usePeopleActions({ refreshData, user, refreshUserRole });
+
+  // ACCESS CONTROL: Admin only
+  // Use roles object as source of truth (not the derived role string)
+  const isAdmin = user?.roles?.admin === true;
+  
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-professional-gray-200 p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-netsurit-red/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-8 h-8 text-netsurit-red" />
+          </div>
+          <h2 className="text-2xl font-bold text-professional-gray-900 mb-2">Access Denied</h2>
+          <p className="text-professional-gray-600 mb-1">
+            You need <span className="font-semibold text-netsurit-red">admin privileges</span> to access People Hub.
+          </p>
+          <p className="text-sm text-professional-gray-500 mt-4">
+            Current role: <span className="font-medium">{user?.role || 'user'}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Coach selection handler (deprecated - now handled by CoachList toggle)
   const handleViewCoach = (coach) => {

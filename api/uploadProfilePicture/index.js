@@ -18,7 +18,12 @@ module.exports = createApiHandler({
 }, async (context, req) => {
   const userId = context.bindingData.userId;
 
-  context.log('Uploading profile picture for user:', userId);
+  context.log('📸 uploadProfilePicture called for user:', userId);
+  context.log('📸 Request method:', req.method);
+  context.log('📸 Content-Type header:', req.headers['content-type']);
+  context.log('📸 Body type:', typeof req.body);
+  context.log('📸 Body is Buffer:', Buffer.isBuffer(req.body));
+  context.log('📸 Body length:', req.body?.length || 0);
 
   if (!userId) {
     throw { status: 400, message: 'User ID is required' };
@@ -26,6 +31,7 @@ module.exports = createApiHandler({
 
   // Check if Blob Storage is configured
   if (!blobServiceClient) {
+    context.log.error('❌ Blob storage not configured - missing AZURE_STORAGE_CONNECTION_STRING');
     throw { 
       status: 500, 
       message: 'Blob storage not configured', 
@@ -35,7 +41,19 @@ module.exports = createApiHandler({
 
   // Get the image data from the request body
   // Body should be the raw image data (blob)
-  const imageBuffer = req.body;
+  let imageBuffer = req.body;
+  
+  // Handle case where body might be a string (base64 encoded)
+  if (typeof imageBuffer === 'string') {
+    context.log('📸 Converting string body to Buffer...');
+    imageBuffer = Buffer.from(imageBuffer, 'base64');
+  }
+  
+  // Ensure we have a Buffer
+  if (!Buffer.isBuffer(imageBuffer)) {
+    context.log('📸 Converting to Buffer from:', imageBuffer?.constructor?.name);
+    imageBuffer = Buffer.from(imageBuffer);
+  }
 
   if (!imageBuffer || imageBuffer.length === 0) {
     throw { status: 400, message: 'Image data is required' };
@@ -73,12 +91,19 @@ module.exports = createApiHandler({
     }
   };
 
-  await blockBlobClient.upload(imageBuffer, imageBuffer.length, uploadOptions);
+  context.log('📸 Uploading to blob storage...', { blobName, contentType, size: imageBuffer.length });
+  
+  try {
+    await blockBlobClient.upload(imageBuffer, imageBuffer.length, uploadOptions);
+  } catch (uploadError) {
+    context.log.error('❌ Blob upload failed:', uploadError.message);
+    throw { status: 500, message: 'Failed to upload to blob storage', details: uploadError.message };
+  }
 
   // Get the public URL
   const blobUrl = blockBlobClient.url;
 
-  context.log('Successfully uploaded profile picture:', blobUrl);
+  context.log('✅ Successfully uploaded profile picture:', blobUrl);
 
   return {
     success: true,

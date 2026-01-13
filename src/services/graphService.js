@@ -6,9 +6,10 @@ import { MeSchema, UserSchema, UserListSchema } from '../schemas/graph.js';
 /**
  * Factory function that creates a GraphService with authenticated fetch
  * @param {Function} authedFetch - Authenticated fetch function for JSON responses
- * @param {Function} getToken - Token getter function for custom requests (like blobs)
+ * @param {Function} getToken - Token getter function for MS Graph API (access token)
+ * @param {Function} getApiToken - Token getter function for our backend API (ID token)
  */
-export function GraphService(authedFetch, getToken = null) {
+export function GraphService(authedFetch, getToken = null, getApiToken = null) {
   const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
 
   return {
@@ -83,15 +84,15 @@ export function GraphService(authedFetch, getToken = null) {
       }
 
       try {
-        // Step 1: Fetch photo from Microsoft Graph
-        const token = await getToken();
-        if (!token) {
-          return fail(ErrorCodes.AUTH_ERROR, 'No authentication token available');
+        // Step 1: Fetch photo from Microsoft Graph (using MS Graph access token)
+        const graphToken = await getToken();
+        if (!graphToken) {
+          return fail(ErrorCodes.AUTH_ERROR, 'No MS Graph token available');
         }
 
         const response = await fetch(`${GRAPH_API_BASE}/me/photo/$value`, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${graphToken}`
           }
         });
 
@@ -106,15 +107,24 @@ export function GraphService(authedFetch, getToken = null) {
         const arrayBuffer = await photoBlob.arrayBuffer();
         const imageBuffer = new Uint8Array(arrayBuffer);
 
-        // Step 3: Upload to Azure Blob Storage via Azure Function
+        // Step 3: Get API token for our backend (ID token, not Graph access token)
+        const apiToken = getApiToken ? await getApiToken() : graphToken;
+        if (!apiToken) {
+          return fail(ErrorCodes.AUTH_ERROR, 'No API token available');
+        }
+
+        // Step 4: Upload to Azure Blob Storage via Azure Function
         const { config } = await import('../utils/env.js');
-        const uploadUrl = `${config.api.baseUrl}/uploadProfilePicture/${encodeURIComponent(userId)}`;
+        const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
+        const apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : config.api.baseUrl;
+        const uploadUrl = `${apiBase}/uploadProfilePicture/${encodeURIComponent(userId)}`;
         
         console.log('📤 Uploading profile picture to blob storage...');
         const uploadResponse = await fetch(uploadUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/octet-stream'
+            'Content-Type': 'application/octet-stream',
+            'Authorization': `Bearer ${apiToken}`
           },
           body: imageBuffer
         });
