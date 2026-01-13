@@ -61,6 +61,11 @@ export const dalleService = {
     }
 
     try {
+      // Debug: Check if token getter is configured
+      console.log('🔐 dalleService: Checking authentication before image generation...', {
+        hasTokenGetter: !!apiClient._getToken
+      });
+      
       // Use apiClient for automatic authentication
       const response = await apiClient.post('/generateImage', {
         userSearchTerm: userSearchTerm.trim(),

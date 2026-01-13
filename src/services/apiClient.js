@@ -47,13 +47,17 @@ class ApiClient {
    */
   async _getAuthHeaders() {
     if (!this._getToken) {
+      console.warn('🔐 API Client: No token getter configured! User may not be authenticated.');
       return {};
     }
     
     try {
       const token = await this._getToken();
       if (token) {
+        console.log('🔐 API Client: Token acquired successfully (length:', token.length, ')');
         return { 'Authorization': `Bearer ${token}` };
+      } else {
+        console.warn('🔐 API Client: Token getter returned null/undefined');
       }
     } catch (error) {
       console.warn('🔐 API Client: Failed to get token:', error.message);

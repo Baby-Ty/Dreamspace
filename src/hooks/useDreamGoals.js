@@ -189,8 +189,27 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       const updatedDream = { ...localDream, goals: updatedGoals };
       setLocalDream(updatedDream);
 
-      // Update via context
+      // Update via context (updates dream in database)
       await updateGoal(localDream.id, goalId, { completed: !goal.completed });
+      
+      // ALSO UPDATE CURRENTWEEK CONTAINER: Sync the goal completion state
+      // This ensures dashboard and dream modal stay in sync
+      const currentWeekIso = getCurrentIsoWeek();
+      const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
+      if (currentWeekResponse.success && currentWeekResponse.data) {
+        const currentWeekGoals = currentWeekResponse.data.goals || [];
+        // Update any goal instances that match this goalId or templateId
+        const updatedCurrentWeekGoals = currentWeekGoals.map(cwg => {
+          if (cwg.id === goalId || cwg.goalId === goalId || cwg.templateId === goalId) {
+            return { ...cwg, completed: !goal.completed, completedAt: !goal.completed ? new Date().toISOString() : null };
+          }
+          return cwg;
+        });
+        // Save back to currentWeek container
+        await currentWeekService.saveCurrentWeek(currentUser.id, currentWeekIso, updatedCurrentWeekGoals);
+        logger.info('useDreamGoals', 'Goal toggled and synced to currentWeek');
+      }
+      
       setHasChanges(false);
     } catch (error) {
       logger.error('useDreamGoals', 'Failed to toggle goal, rolling back', error);
@@ -198,7 +217,7 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       setLocalDream(previousDreamState);
       toast.error('Failed to toggle goal. Please try again.');
     }
-  }, [canEdit, dreamGoals, localDream, setLocalDream, setHasChanges, updateGoal]);
+  }, [canEdit, dreamGoals, localDream, setLocalDream, setHasChanges, updateGoal, currentUser]);
 
   // Delete goal
   const handleDeleteGoal = useCallback(async (goalId) => {
