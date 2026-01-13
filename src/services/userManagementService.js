@@ -57,26 +57,29 @@ class UserManagementService extends BaseService {
    * Assign user to existing coach
    * @param {string} userId - User ID
    * @param {string} coachId - Coach ID
-    if (this.useCosmosDB) {
-      return this.handleApiRequest('/assignUserToCoach', {
-        method: 'POST',
-        body: {
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
+  async assignUserToCoach(userId, coachId) {
+    try {
+      if (this.useCosmosDB) {
+        const response = await apiClient.post('/assignUserToCoach', {
           userId,
           coachId,
           timestamp: new Date().toISOString()
-        },
-        successMessage: `User assigned to coach in Cosmos DB: ${userId} -> ${coachId}`,
-        errorMessage: 'Failed to assign user to coach'
-      });
-    } else {
-      // Handle locally for development
-      try {
+        });
+
+        if (!response.ok) {
+          return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ User assigned to coach in Cosmos DB:', { userId, coachId });
+        return ok(result);
+      } else {
+        // Handle locally for development
         const success = await this.assignUserLocalStorage(userId, coachId);
         console.log('📱 User assigned to coach in localStorage:', { userId, coachId });
         return ok({ success });
-      } catch (error) {
-        console.error('❌ Error assigning user to coach in localStorage:', error);
-        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to assign user to coach');
       }
     } catch (error) {
       console.error('❌ Error assigning user to coach:', error);
