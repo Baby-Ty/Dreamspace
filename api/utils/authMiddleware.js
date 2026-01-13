@@ -18,10 +18,19 @@ const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const { CosmosClient } = require('@azure/cosmos');
 
-// Configuration from environment
+// Configuration from environment - REQUIRED in production
+// These must be set in Azure Functions App Settings
 const TENANT_ID = process.env.AZURE_TENANT_ID;
-const CLIENT_ID = process.env.AZURE_CLIENT_ID || 'ebe60b7a-93c9-4b12-8375-4ab3181000e8';
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://dreamspace.tylerstewart.co.za';
+const CLIENT_ID = process.env.AZURE_CLIENT_ID;
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+
+// Validate required config at startup (fail fast)
+if (!CLIENT_ID) {
+  console.error('❌ AZURE_CLIENT_ID is required. Set it in Azure Functions App Settings.');
+}
+if (!ALLOWED_ORIGIN) {
+  console.error('❌ ALLOWED_ORIGIN is required. Set it in Azure Functions App Settings.');
+}
 
 // Cosmos client for role lookups (lazy init)
 let cosmosClient = null;
