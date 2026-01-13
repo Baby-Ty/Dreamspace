@@ -2,9 +2,11 @@
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useCallback } from 'react';
-import { getCurrentIsoWeek, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
 import { toast } from '../utils/toast';
+import { buildGoalInstance, buildDreamGoal } from '../utils/goalInstanceBuilder';
+import { logger } from '../utils/logger';
 
 /**
  * useDashboardGoalsActions - Handles all goal manipulation actions
@@ -81,9 +83,9 @@ export function useDashboardGoalsActions(
         if (!result.success) {
           throw new Error(result.error);
         }
-        console.log('✅ Monthly goal incremented:', goalId);
+        logger.debug('useDashboardGoalsActions', 'Monthly goal incremented', { goalId });
       } catch (error) {
-        console.error('❌ Failed to increment monthly goal, reverting:', error);
+        logger.error('useDashboardGoalsActions', 'Failed to increment monthly goal, reverting', error);
         setCurrentWeekGoals(currentWeekGoals);
         toast.error('Failed to save goal. Please try again.');
       }
@@ -121,9 +123,9 @@ export function useDashboardGoalsActions(
         if (!result.success) {
           throw new Error(result.error);
         }
-        console.log('✅ Weekly goal incremented:', goalId);
+        logger.debug('useDashboardGoalsActions', 'Weekly goal incremented', { goalId });
       } catch (error) {
-        console.error('❌ Failed to increment weekly goal, reverting:', error);
+        logger.error('useDashboardGoalsActions', 'Failed to increment weekly goal, reverting', error);
         setCurrentWeekGoals(currentWeekGoals);
         toast.error('Failed to save goal. Please try again.');
       }
@@ -155,12 +157,12 @@ export function useDashboardGoalsActions(
       );
       
       if (result.success) {
-        console.log('✅ Goal toggled:', goalId);
+        logger.debug('useDashboardGoalsActions', 'Goal toggled', { goalId });
         
         // 3. UPDATE PARENT GOAL IN DREAM (if this is a deadline goal)
         const toggledGoal = optimisticGoals.find(g => g.id === goalId);
         if (toggledGoal?.dreamId && toggledGoal.type === 'deadline') {
-          console.log('📝 Updating parent goal in dream:', {
+          logger.debug('useDashboardGoalsActions', 'Updating parent goal in dream', {
             dreamId: toggledGoal.dreamId,
             goalId: toggledGoal.templateId || goalId,
             completed: toggledGoal.completed
@@ -201,11 +203,14 @@ export function useDashboardGoalsActions(
                 updatedParentGoal, 
                 updatedTemplate
               );
-              console.log('✅ Atomic update complete:', parentGoalId, toggledGoal.completed ? 'complete and inactive' : 'incomplete');
+              logger.debug('useDashboardGoalsActions', 'Atomic update complete', {
+                parentGoalId,
+                status: toggledGoal.completed ? 'complete and inactive' : 'incomplete'
+              });
               
               // If completed, note that it won't appear in future weeks
               if (toggledGoal.completed) {
-                console.log('🎉 Deadline goal completed early! Marked inactive - will not appear in future weeks.');
+                logger.info('useDashboardGoalsActions', 'Deadline goal completed early! Marked inactive - will not appear in future weeks');
               }
             }
           }
@@ -214,7 +219,7 @@ export function useDashboardGoalsActions(
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Failed to toggle goal, reverting:', error);
+      logger.error('useDashboardGoalsActions', 'Failed to toggle goal, reverting', error);
       setCurrentWeekGoals(currentWeekGoals);
       toast.error('Failed to save goal. Please try again.');
     }
@@ -278,9 +283,9 @@ export function useDashboardGoalsActions(
       if (!result.success) {
         throw new Error(result.error);
       }
-      console.log('✅ Goal decremented:', goalId);
+      logger.debug('useDashboardGoalsActions', 'Goal decremented', { goalId });
     } catch (error) {
-      console.error('❌ Failed to decrement goal, reverting:', error);
+      logger.error('useDashboardGoalsActions', 'Failed to decrement goal, reverting', error);
       setCurrentWeekGoals(currentWeekGoals);
       toast.error('Failed to undo goal. Please try again.');
     }
@@ -299,7 +304,7 @@ export function useDashboardGoalsActions(
     const currentWeekIso = getCurrentIsoWeek();
     const goalId = `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('📝 Adding goal to currentWeek container:', {
+    logger.debug('useDashboardGoalsActions', 'Adding goal to currentWeek container', {
       consistency: newGoal.consistency,
       dreamId: dreamId,
       selectedDream: selectedDream?.title,
@@ -307,51 +312,30 @@ export function useDashboardGoalsActions(
     });
     
     try {
-      // Calculate targetWeeks and weeksRemaining for deadline goals
-      let targetWeeks, weeksRemaining;
-      if (newGoal.consistency === 'deadline' && newGoal.targetDate) {
-        targetWeeks = dateToWeeks(newGoal.targetDate, currentWeekIso);
-        weeksRemaining = targetWeeks;
-      } else if (newGoal.consistency === 'monthly') {
-        targetWeeks = monthsToWeeks(newGoal.targetMonths);
-        weeksRemaining = targetWeeks;
-      } else {
-        targetWeeks = newGoal.targetWeeks;
-        weeksRemaining = newGoal.targetWeeks;
-      }
-
-      // Create new goal instance for current week
-      const newGoalInstance = {
-        id: goalId,
+      // Create new goal instance for current week using centralized builder
+      const newGoalInstance = buildGoalInstance({
+        goalId,
         templateId: goalId,
         type: newGoal.consistency === 'deadline' ? 'deadline' : 'weekly_goal',
         title: newGoal.title,
         description: newGoal.description || '',
-        dreamId: dreamId,
+        dreamId,
         dreamTitle: selectedDream?.title || '',
         dreamCategory: selectedDream?.category || '',
-        recurrence: newGoal.consistency === 'deadline' ? undefined : newGoal.consistency,
-        targetWeeks: targetWeeks,
-        targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : null,
-        targetDate: newGoal.consistency === 'deadline' ? newGoal.targetDate : null,
-        frequency: newGoal.consistency === 'monthly' 
-          ? (newGoal.frequency || 2) 
-          : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : null),
-        completionCount: 0,
-        completionDates: [],
-        completed: false,
-        completedAt: null,
-        skipped: false,
-        weeksRemaining: weeksRemaining,
+        consistency: newGoal.consistency,
+        targetWeeks: newGoal.targetWeeks,
+        targetMonths: newGoal.targetMonths,
+        targetDate: newGoal.targetDate,
+        frequency: newGoal.frequency,
         weekId: currentWeekIso,
-        createdAt: new Date().toISOString()
-      };
+        currentWeekIso,
+      });
       
       // Get existing goals from current week (if any)
       const existingGoals = currentWeekGoals || [];
       const updatedGoals = [...existingGoals, newGoalInstance];
       
-      console.log(`✨ Adding goal to currentWeek (total: ${updatedGoals.length})`);
+      logger.debug('useDashboardGoalsActions', 'Adding goal to currentWeek', { totalGoals: updatedGoals.length });
       
       // Save directly to currentWeek container
       const result = await currentWeekService.saveCurrentWeek(
@@ -364,49 +348,31 @@ export function useDashboardGoalsActions(
         throw new Error(result.error || 'Failed to save goal');
       }
       
-      console.log('✅ Goal added to currentWeek successfully');
+      logger.info('useDashboardGoalsActions', 'Goal added to currentWeek successfully');
       
       // Also add goal to dream's goals array (so it shows in Dream view)
       if (dreamId && selectedDream) {
-        // Calculate targetWeeks for dream goal
-        let dreamTargetWeeks, dreamWeeksRemaining;
-        if (newGoal.consistency === 'deadline' && newGoal.targetDate) {
-          dreamTargetWeeks = dateToWeeks(newGoal.targetDate, currentWeekIso);
-          dreamWeeksRemaining = dreamTargetWeeks;
-        } else if (newGoal.consistency === 'monthly') {
-          dreamTargetWeeks = monthsToWeeks(newGoal.targetMonths);
-          dreamWeeksRemaining = dreamTargetWeeks;
-        } else {
-          dreamTargetWeeks = newGoal.targetWeeks;
-          dreamWeeksRemaining = newGoal.targetWeeks;
-        }
-
-        const dreamGoal = {
-          id: goalId,
+        const dreamGoal = buildDreamGoal({
+          goalId,
           title: newGoal.title,
           type: newGoal.consistency === 'deadline' ? 'deadline' : 'consistency',
           recurrence: newGoal.consistency === 'deadline' ? undefined : newGoal.consistency,
-          targetWeeks: dreamTargetWeeks,
-          targetMonths: newGoal.consistency === 'monthly' ? newGoal.targetMonths : undefined,
-          targetDate: newGoal.consistency === 'deadline' ? newGoal.targetDate : undefined,
-          frequency: newGoal.consistency === 'monthly' 
-            ? (newGoal.frequency || 2) 
-            : (newGoal.consistency === 'weekly' ? (newGoal.frequency || 1) : undefined),
-          weeksRemaining: dreamWeeksRemaining,
-          startDate: new Date().toISOString(),
-          active: true,
-          completed: false,
-          createdAt: new Date().toISOString()
-        };
+          targetWeeks: newGoal.targetWeeks,
+          targetMonths: newGoal.targetMonths,
+          targetDate: newGoal.targetDate,
+          frequency: newGoal.frequency,
+          consistency: newGoal.consistency,
+          currentWeekIso,
+        });
         
         const updatedDream = {
           ...selectedDream,
           goals: [...(selectedDream.goals || []), dreamGoal]
         };
         
-        console.log('📚 Updating dream with new goal:', dreamId);
+        logger.debug('useDashboardGoalsActions', 'Updating dream with new goal', { dreamId });
         await updateDream(updatedDream);
-        console.log('✅ Dream updated with goal');
+        logger.info('useDashboardGoalsActions', 'Dream updated with goal');
       }
       
       // Reload goals to refresh UI
@@ -425,7 +391,7 @@ export function useDashboardGoalsActions(
       });
       setShowAddGoal(false);
     } catch (error) {
-      console.error('❌ Failed to add goal:', error);
+      logger.error('useDashboardGoalsActions', 'Failed to add goal', error);
       toast.error(`Failed to add goal: ${error.message}`);
     }
   }, [newGoal, currentUser?.dreamBook, currentUser?.id, currentWeekGoals, loadCurrentWeekGoals, updateDream]);
@@ -456,13 +422,13 @@ export function useDashboardGoalsActions(
       );
       
       if (result.success) {
-        console.log('✅ Goal background updated:', goalId);
+        logger.debug('useDashboardGoalsActions', 'Goal background updated', { goalId });
         return { success: true };
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Failed to update goal background, reverting:', error);
+      logger.error('useDashboardGoalsActions', 'Failed to update goal background, reverting', error);
       setCurrentWeekGoals(currentWeekGoals);
       return { success: false, error: error.message };
     }
@@ -494,12 +460,12 @@ export function useDashboardGoalsActions(
       
       if (result.success) {
         setCurrentWeekGoals(currentWeekGoals.filter(g => g.id !== goalId));
-        console.log('✅ Goal skipped for this week:', goalId);
+        logger.debug('useDashboardGoalsActions', 'Goal skipped for this week', { goalId });
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Failed to skip goal:', error);
+      logger.error('useDashboardGoalsActions', 'Failed to skip goal', error);
       toast.error('Failed to skip goal. Please try again.');
     }
   }, [currentWeekGoals, currentUser?.id]);

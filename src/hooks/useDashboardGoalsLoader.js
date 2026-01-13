@@ -2,8 +2,10 @@
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useCallback } from 'react';
-import { getCurrentIsoWeek, getWeeksUntilDate, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
+import { getCurrentIsoWeek, getWeeksUntilDate, monthsToWeeks } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
+import { buildInstanceFromTemplate, buildInstanceFromDreamGoal } from '../utils/goalInstanceBuilder';
+import { logger } from '../utils/logger';
 
 /**
  * useDashboardGoalsLoader - Handles loading and auto-instantiation of goals
@@ -30,15 +32,15 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
     const currentWeekIso = getCurrentIsoWeek();
     
     try {
-      console.log('📅 Dashboard: Loading current week goals for', currentWeekIso);
+      logger.debug('useDashboardGoalsLoader', 'Loading current week goals', { weekId: currentWeekIso });
       const result = await currentWeekService.getCurrentWeek(currentUser.id);
       
       let existingGoals = [];
       if (result.success && result.data) {
         existingGoals = result.data.goals || [];
-        console.log('✅ Dashboard: Loaded', existingGoals.length, 'goals for current week');
+        logger.debug('useDashboardGoalsLoader', 'Loaded goals for current week', { count: existingGoals.length });
       } else {
-        console.log('ℹ️ Dashboard: No goals found for current week');
+        logger.debug('useDashboardGoalsLoader', 'No goals found for current week');
       }
       
       // Auto-instantiate templates and deadline goals that don't have instances for current week
@@ -56,25 +58,26 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
       
       // Also check for goals from dreams that should appear in current week
       // This handles cases where templates might not exist yet
-      console.log('🔍 Dashboard: Checking dreams for goals...');
-      console.log('   Dreams count:', currentUser?.dreamBook?.length || 0);
+      logger.debug('useDashboardGoalsLoader', 'Checking dreams for goals', {
+        dreamsCount: currentUser?.dreamBook?.length || 0
+      });
       currentUser?.dreamBook?.forEach(dream => {
-        console.log(`   Dream: "${dream.title}" has ${dream.goals?.length || 0} goals`);
-        dream.goals?.forEach(goal => {
-          console.log(`      - "${goal.title}" (type: ${goal.type}, recurrence: ${goal.recurrence}, active: ${goal.active}, completed: ${goal.completed})`);
+        logger.debug('useDashboardGoalsLoader', 'Dream goals', {
+          dreamTitle: dream.title,
+          goalsCount: dream.goals?.length || 0
         });
       });
       
       const dreamGoals = (currentUser?.dreamBook || []).flatMap(dream => 
         (dream.goals || []).filter(goal => {
           if (goal.completed) {
-            console.log(`   ⏭️  Skipping completed goal: "${goal.title}"`);
+            logger.debug('useDashboardGoalsLoader', 'Skipping completed goal', { title: goal.title });
             return false;
           }
           
           // Skip inactive goals
           if (goal.active === false) {
-            console.log(`   ⏭️  Skipping inactive goal: "${goal.title}"`);
+            logger.debug('useDashboardGoalsLoader', 'Skipping inactive goal', { title: goal.title });
             return false;
           }
           
@@ -83,7 +86,10 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
           if (goal.type === 'deadline') {
             // If goal is already marked completed or inactive, skip it (don't recalculate)
             if (goal.completed || goal.active === false) {
-              console.log(`   ⏭️ Skipping deadline goal "${goal.title}" - ${goal.completed ? 'completed' : 'inactive'}`);
+              logger.debug('useDashboardGoalsLoader', 'Skipping deadline goal', {
+                title: goal.title,
+                reason: goal.completed ? 'completed' : 'inactive'
+              });
               return false;
             }
             
@@ -93,7 +99,10 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
                   ? goal.targetWeeks 
                   : (goal.targetDate ? getWeeksUntilDate(goal.targetDate, currentWeekIso) : -1));
             const active = weeksRemaining >= 0;
-            console.log(`   ${active ? '✅' : '❌'} Deadline goal: "${goal.title}" (${weeksRemaining} weeks remaining)`);
+            logger.debug('useDashboardGoalsLoader', `${active ? 'Including' : 'Skipping'} deadline goal`, {
+              title: goal.title,
+              weeksRemaining
+            });
             return active;
           }
           
@@ -104,15 +113,25 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
               : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined));
             
             if (weeksRemaining !== undefined && weeksRemaining < 0) {
-              console.log(`   ⏭️ Skipping expired consistency goal: "${goal.title}" (weeksRemaining: ${weeksRemaining})`);
+              logger.debug('useDashboardGoalsLoader', 'Skipping expired consistency goal', {
+                title: goal.title,
+                weeksRemaining
+              });
               return false;
             }
             
-            console.log(`   ✅ Consistency goal: "${goal.title}" (recurrence: ${goal.recurrence})`);
+            logger.debug('useDashboardGoalsLoader', 'Including consistency goal', {
+              title: goal.title,
+              recurrence: goal.recurrence
+            });
             return true;
           }
           
-          console.log(`   ❌ Skipping goal: "${goal.title}" (type: ${goal.type}, recurrence: ${goal.recurrence})`);
+          logger.debug('useDashboardGoalsLoader', 'Skipping goal', {
+            title: goal.title,
+            type: goal.type,
+            recurrence: goal.recurrence
+          });
           return false;
         }).map(goal => ({
           ...goal,
@@ -122,7 +141,7 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
         }))
       );
       
-      console.log(`📋 Dashboard: Found ${dreamGoals.length} goals from dreams to instantiate`);
+      logger.debug('useDashboardGoalsLoader', 'Found goals from dreams to instantiate', { count: dreamGoals.length });
       
       const newInstances = [];
       
@@ -130,13 +149,16 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
       for (const template of templates) {
         // Verify dream still exists before creating instance
         if (!existingDreamIds.has(template.dreamId)) {
-          console.log(`⚠️ Skipping template ${template.id} - dream ${template.dreamId} no longer exists`);
+          logger.warn('useDashboardGoalsLoader', 'Skipping template - dream no longer exists', {
+            templateId: template.id,
+            dreamId: template.dreamId
+          });
           continue;
         }
         
         // Filter out inactive templates and templates with weeksRemaining <= 0
         if (template.active === false) {
-          console.log(`⏭️ Skipping inactive template: "${template.title}"`);
+          logger.debug('useDashboardGoalsLoader', 'Skipping inactive template', { title: template.title });
           continue;
         }
         
@@ -145,7 +167,10 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
           : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined));
         
         if (templateWeeksRemaining !== undefined && templateWeeksRemaining < 0) {
-          console.log(`⏭️ Skipping expired template: "${template.title}" (weeksRemaining: ${templateWeeksRemaining})`);
+          logger.debug('useDashboardGoalsLoader', 'Skipping expired template', {
+            title: template.title,
+            weeksRemaining: templateWeeksRemaining
+          });
           continue;
         }
         
@@ -153,35 +178,10 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
         const hasInstance = existingTemplateIds.has(template.id) || existingGoalIds.has(template.id);
         
         if (!hasInstance) {
-          // Create instance for current week
-          const instance = {
-            id: `${template.id}_${currentWeekIso}`,
-            templateId: template.id,
-            type: 'weekly_goal',
-            title: template.title,
-            description: template.description || '',
-            dreamId: template.dreamId,
-            dreamTitle: template.dreamTitle,
-            dreamCategory: template.dreamCategory,
-            recurrence: template.recurrence || 'weekly',
-            targetWeeks: template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined),
-            targetMonths: template.targetMonths,
-            frequency: template.recurrence === 'weekly' 
-              ? (template.frequency || 1) 
-              : (template.recurrence === 'monthly' ? (template.frequency || 2) : undefined),
-            completionCount: 0,
-            completionDates: [],
-            weeksRemaining: template.weeksRemaining !== undefined 
-              ? template.weeksRemaining 
-              : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined)),
-            completed: false,
-            completedAt: null,
-            skipped: false,
-            weekId: currentWeekIso,
-            createdAt: new Date().toISOString()
-          };
+          // Create instance for current week using centralized builder
+          const instance = buildInstanceFromTemplate(template, currentWeekIso);
           newInstances.push(instance);
-          console.log('✨ Auto-creating instance from template:', template.title);
+          logger.debug('useDashboardGoalsLoader', 'Auto-creating instance from template', { title: template.title });
         }
       }
       
@@ -201,66 +201,46 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
               : (dreamGoal.targetWeeks !== undefined
                   ? dreamGoal.targetWeeks
                   : (dreamGoal.targetDate
-                      ? dateToWeeks(dreamGoal.targetDate, currentWeekIso)
+                      ? getWeeksUntilDate(dreamGoal.targetDate, currentWeekIso)
                       : -1));
             
             // Only create instance if deadline is still active (not past deadline, not completed, and not inactive)
             // Check both completed and active flags to ensure completed goals don't get new instances
             if (weeksRemaining >= 0 && !dreamGoal.completed && dreamGoal.active !== false) {
-              // Deadline goal instance
-              const instance = {
-                id: `${goalId}_${currentWeekIso}`,
-                templateId: goalId,
-                type: 'deadline',
-                title: dreamGoal.title,
-                description: dreamGoal.description || '',
-                dreamId: dreamGoal.dreamId,
-                dreamTitle: dreamGoal.dreamTitle,
-                dreamCategory: dreamGoal.dreamCategory,
-                targetWeeks: dreamGoal.targetWeeks || weeksRemaining,
-                targetDate: dreamGoal.targetDate,
-                weeksRemaining: weeksRemaining,
-                completed: dreamGoal.completed || false,
-                completedAt: dreamGoal.completedAt || null,
-                skipped: false,
-                weekId: currentWeekIso,
-                createdAt: new Date().toISOString()
-              };
+              // Deadline goal instance using centralized builder
+              const instance = buildInstanceFromDreamGoal(
+                dreamGoal,
+                dreamGoal.dreamId,
+                dreamGoal.dreamTitle,
+                dreamGoal.dreamCategory,
+                currentWeekIso,
+                currentWeekIso
+              );
               newInstances.push(instance);
-              console.log(`✨ Auto-creating deadline goal instance: "${dreamGoal.title}" (${weeksRemaining} weeks remaining)`);
+              logger.debug('useDashboardGoalsLoader', 'Auto-creating deadline goal instance', {
+                title: dreamGoal.title,
+                weeksRemaining
+              });
             } else {
-              console.log(`⏭️ Skipping deadline goal "${dreamGoal.title}" (${weeksRemaining < 0 ? 'past deadline' : 'already completed'})`);
+              logger.debug('useDashboardGoalsLoader', 'Skipping deadline goal', {
+                title: dreamGoal.title,
+                reason: weeksRemaining < 0 ? 'past deadline' : 'already completed'
+              });
             }
           } else if (dreamGoal.type === 'consistency') {
-            // Consistency goal instance (create even if no template exists)
-            const instance = {
-              id: `${goalId}_${currentWeekIso}`,
-              templateId: goalId,
-              type: 'weekly_goal',
-              title: dreamGoal.title,
-              description: dreamGoal.description || '',
-              dreamId: dreamGoal.dreamId,
-              dreamTitle: dreamGoal.dreamTitle,
-              dreamCategory: dreamGoal.dreamCategory,
-              recurrence: dreamGoal.recurrence || 'weekly',
-              targetWeeks: dreamGoal.targetWeeks || (dreamGoal.targetMonths ? monthsToWeeks(dreamGoal.targetMonths) : undefined),
-              targetMonths: dreamGoal.targetMonths,
-              frequency: dreamGoal.recurrence === 'weekly' 
-                ? (dreamGoal.frequency || 1) 
-                : (dreamGoal.recurrence === 'monthly' ? (dreamGoal.frequency || 2) : undefined),
-              completionCount: 0,
-              completionDates: [],
-              weeksRemaining: dreamGoal.weeksRemaining !== undefined 
-                ? dreamGoal.weeksRemaining 
-                : (dreamGoal.targetWeeks || (dreamGoal.targetMonths ? monthsToWeeks(dreamGoal.targetMonths) : undefined)),
-              completed: dreamGoal.completed || false,
-              completedAt: dreamGoal.completedAt || null,
-              skipped: false,
-              weekId: currentWeekIso,
-              createdAt: new Date().toISOString()
-            };
+            // Consistency goal instance using centralized builder
+            const instance = buildInstanceFromDreamGoal(
+              dreamGoal,
+              dreamGoal.dreamId,
+              dreamGoal.dreamTitle,
+              dreamGoal.dreamCategory,
+              currentWeekIso,
+              currentWeekIso
+            );
             newInstances.push(instance);
-            console.log('✨ Auto-creating consistency goal instance from dream:', dreamGoal.title);
+            logger.debug('useDashboardGoalsLoader', 'Auto-creating consistency goal instance from dream', {
+              title: dreamGoal.title
+            });
           }
         }
       }
@@ -275,10 +255,12 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
         );
         
         if (saveResult.success) {
-          console.log(`✅ Created ${newInstances.length} new goal instances for current week`);
+          logger.info('useDashboardGoalsLoader', 'Created new goal instances for current week', {
+            count: newInstances.length
+          });
           setCurrentWeekGoals(updatedGoals.filter(g => !g.skipped));
         } else {
-          console.error('❌ Failed to save new instances:', saveResult.error);
+          logger.error('useDashboardGoalsLoader', 'Failed to save new instances', { error: saveResult.error });
           setCurrentWeekGoals(existingGoals.filter(g => !g.skipped));
         }
       } else {
@@ -292,7 +274,7 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
               ? g.weeksRemaining 
               : getWeeksUntilDate(g.targetDate, currentWeekIso);
             if (weeksRemaining < 0) {
-              console.log(`⏭️ Filtering out past deadline goal: "${g.title}"`);
+              logger.debug('useDashboardGoalsLoader', 'Filtering out past deadline goal', { title: g.title });
               return false;
             }
           }
@@ -302,7 +284,7 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
         setCurrentWeekGoals(filteredGoals);
       }
     } catch (error) {
-      console.error('❌ Dashboard: Error loading week goals:', error);
+      logger.error('useDashboardGoalsLoader', 'Error loading week goals', error);
       setCurrentWeekGoals([]);
     } finally {
       setIsLoadingWeekGoals(false);

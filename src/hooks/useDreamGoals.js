@@ -2,9 +2,11 @@
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useCallback, useMemo } from 'react';
-import { getCurrentIsoWeek, getNextNWeeks, getWeeksUntilDate, monthsToWeeks, dateToWeeks } from '../utils/dateUtils';
+import { getCurrentIsoWeek } from '../utils/dateUtils';
 import currentWeekService from '../services/currentWeekService';
 import { toast } from '../utils/toast';
+import { buildGoalInstance, buildDreamGoal } from '../utils/goalInstanceBuilder';
+import { logger } from '../utils/logger';
 
 /**
  * useDreamGoals - Manages all goal operations for a dream
@@ -49,7 +51,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
 
   // Get goals for this dream from multiple sources
   const dreamGoals = useMemo(() => {
-    console.log(`🔍 [useDreamGoals] Loading goals for dream "${localDream.title}" (${localDream.id})`);
+    logger.debug('useDreamGoals', 'Loading goals for dream', {
+      dreamTitle: localDream.title,
+      dreamId: localDream.id
+    });
     
     // Source 1: Templates from weeklyGoals
     const templates = weeklyGoals.filter(g => {
@@ -70,7 +75,11 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
     
     const combined = [...templates, ...uniqueLegacyGoals];
     
-    console.log(`  📊 Goals: ${templates.length} templates + ${uniqueLegacyGoals.length} legacy = ${combined.length} total`);
+    logger.debug('useDreamGoals', 'Goals loaded', {
+      templates: templates.length,
+      legacy: uniqueLegacyGoals.length,
+      total: combined.length
+    });
     
     return combined;
   }, [weeklyGoals, localDream.goals, localDream.id, localDream.title]);
@@ -88,43 +97,26 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
 
     setIsSavingGoal(true);
 
+    const goalId = `goal_${Date.now()}`;
+    const currentWeekIso = getCurrentIsoWeek();
+    const previousDreamState = localDream; // Store for rollback
+
     try {
-      const goalId = `goal_${Date.now()}`;
-      const nowIso = new Date().toISOString();
-      const currentWeekIso = getCurrentIsoWeek();
-
-      // Calculate targetWeeks and weeksRemaining
-      let calculatedTargetWeeks, weeksRemaining;
-      if (consistency === 'deadline' && targetDate) {
-        calculatedTargetWeeks = dateToWeeks(targetDate, currentWeekIso);
-        weeksRemaining = calculatedTargetWeeks;
-      } else if (consistency === 'monthly') {
-        calculatedTargetWeeks = monthsToWeeks(targetMonths);
-        weeksRemaining = calculatedTargetWeeks;
-      } else {
-        calculatedTargetWeeks = targetWeeks;
-        weeksRemaining = targetWeeks;
-      }
-
-      // Create goal object
-      const goal = {
-        id: goalId,
+      // Create dream goal using centralized builder
+      const goal = buildDreamGoal({
+        goalId,
         title: title.trim(),
         type: consistency === 'deadline' ? 'deadline' : 'consistency',
         recurrence: consistency === 'deadline' ? undefined : consistency,
-        targetWeeks: calculatedTargetWeeks,
-        targetMonths: consistency === 'monthly' ? targetMonths : undefined,
-        frequency: consistency === 'monthly' ? (frequency || 2) :
-                  (consistency === 'weekly' ? (frequency || 1) : undefined),
-        startDate: nowIso,
-        targetDate: consistency === 'deadline' ? targetDate : undefined,
-        weeksRemaining: weeksRemaining,
-        active: true,
-        completed: false,
-        createdAt: nowIso
-      };
+        targetWeeks,
+        targetMonths,
+        targetDate,
+        frequency,
+        consistency,
+        currentWeekIso,
+      });
 
-      // Add to dream's goals array
+      // OPTIMISTIC UPDATE: Add to dream's goals array
       const updatedGoals = [...(localDream.goals || []), goal];
       const updatedDream = { ...localDream, goals: updatedGoals };
       setLocalDream(updatedDream);
@@ -132,9 +124,9 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       // Save to backend
       await addGoal(localDream.id, goal);
 
-      // Create instance in currentWeek container
-      const newGoalInstance = {
-        id: goalId,
+      // Create instance in currentWeek container using centralized builder
+      const newGoalInstance = buildGoalInstance({
+        goalId,
         templateId: goalId,
         type: goal.type === 'deadline' ? 'deadline' : 'weekly_goal',
         title: goal.title,
@@ -142,24 +134,15 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
         dreamId: localDream.id,
         dreamTitle: localDream.title,
         dreamCategory: localDream.category,
-        recurrence: goal.type === 'consistency' ? goal.recurrence : undefined,
-        targetWeeks: goal.targetWeeks,
-        targetMonths: goal.targetMonths,
-        targetDate: goal.targetDate,
-        frequency: goal.type === 'consistency' && goal.recurrence === 'monthly' ? (goal.frequency || 2) :
-                  (goal.type === 'consistency' && goal.recurrence === 'weekly' ? (goal.frequency || 1) : null),
-        completionCount: 0,
-        completionDates: [],
-        completed: false,
-        completedAt: null,
-        skipped: false,
-        weeksRemaining: goal.type === 'deadline' && goal.targetDate ?
-                       getWeeksUntilDate(goal.targetDate, currentWeekIso) :
-                       (goal.targetWeeks || null),
-        monthsRemaining: goal.targetMonths || null,
+        consistency,
+        targetWeeks,
+        targetMonths,
+        targetDate,
+        frequency,
+        recurrence: goal.recurrence,
         weekId: currentWeekIso,
-        createdAt: nowIso
-      };
+        currentWeekIso,
+      });
 
       const currentWeekResponse = await currentWeekService.getCurrentWeek(currentUser.id);
       const existingGoals = currentWeekResponse.success && currentWeekResponse.data?.goals || [];
@@ -178,9 +161,11 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       setIsAddingGoal(false);
       setHasChanges(false);
 
-      console.log('✅ Goal added successfully');
+      logger.info('useDreamGoals', 'Goal added successfully');
     } catch (error) {
-      console.error('❌ Failed to add goal:', error);
+      logger.error('useDreamGoals', 'Failed to add goal, rolling back', error);
+      // ROLLBACK: Restore previous dream state
+      setLocalDream(previousDreamState);
       toast.error('Failed to add goal. Please try again.');
     } finally {
       setIsSavingGoal(false);
@@ -194,8 +179,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
     const goal = dreamGoals.find(g => g.id === goalId);
     if (!goal) return;
 
+    const previousDreamState = localDream; // Store for rollback
+
     try {
-      // Update in localDream
+      // OPTIMISTIC UPDATE: Update in localDream
       const updatedGoals = (localDream.goals || []).map(g =>
         g.id === goalId ? { ...g, completed: !g.completed, completedAt: !g.completed ? new Date().toISOString() : null } : g
       );
@@ -206,7 +193,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       await updateGoal(localDream.id, goalId, { completed: !goal.completed });
       setHasChanges(false);
     } catch (error) {
-      console.error('❌ Failed to toggle goal:', error);
+      logger.error('useDreamGoals', 'Failed to toggle goal, rolling back', error);
+      // ROLLBACK: Restore previous dream state
+      setLocalDream(previousDreamState);
+      toast.error('Failed to toggle goal. Please try again.');
     }
   }, [canEdit, dreamGoals, localDream, setLocalDream, setHasChanges, updateGoal]);
 
@@ -218,8 +208,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       return;
     }
 
+    const previousDreamState = localDream; // Store for rollback
+
     try {
-      // Remove from localDream
+      // OPTIMISTIC UPDATE: Remove from localDream
       const updatedGoals = (localDream.goals || []).filter(g => g.id !== goalId);
       const updatedDream = { ...localDream, goals: updatedGoals };
       setLocalDream(updatedDream);
@@ -237,9 +229,11 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       }
 
       setHasChanges(false);
-      console.log('✅ Goal deleted successfully');
+      logger.info('useDreamGoals', 'Goal deleted successfully');
     } catch (error) {
-      console.error('❌ Failed to delete goal:', error);
+      logger.error('useDreamGoals', 'Failed to delete goal, rolling back', error);
+      // ROLLBACK: Restore previous dream state
+      setLocalDream(previousDreamState);
       toast.error('Failed to delete goal. Please try again.');
     }
   }, [canEdit, localDream, setLocalDream, setHasChanges, deleteGoal, currentUser]);
@@ -269,8 +263,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
     if (!editingGoal || !goalEditData || isSavingGoalEdit) return;
 
     setIsSavingGoalEdit(true);
+    const previousDreamState = localDream; // Store for rollback
 
     try {
+      // OPTIMISTIC UPDATE: Update goal title in localDream
       const updatedGoals = (localDream.goals || []).map(g =>
         g.id === editingGoal ? { ...g, title: goalEditData.title.trim() } : g
       );
@@ -282,9 +278,11 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
       setEditingGoal(null);
       setGoalEditData(null);
       setHasChanges(false);
-      console.log('✅ Goal updated successfully');
+      logger.info('useDreamGoals', 'Goal updated successfully');
     } catch (error) {
-      console.error('❌ Failed to update goal:', error);
+      logger.error('useDreamGoals', 'Failed to update goal, rolling back', error);
+      // ROLLBACK: Restore previous dream state
+      setLocalDream(previousDreamState);
       toast.error('Failed to update goal. Please try again.');
     } finally {
       setIsSavingGoalEdit(false);
