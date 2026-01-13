@@ -298,7 +298,102 @@ async function requireCoach(context, req) {
 }
 
 /**
- * Require user to be accessing their own data (or be admin/coach)
+ * Check if a coach has access to a specific team member
+ * @param {string} coachId - The coach's user ID
+ * @param {string} targetUserId - The user ID being accessed
+ * @param {object} context - Azure Function context
+ * @returns {Promise<boolean>} True if coach can access this user
+ */
+async function checkTeamMembership(coachId, targetUserId, context) {
+  const teamsContainer = getTeamsContainer();
+  if (!teamsContainer) {
+    context.log.warn('Teams container not available - denying coach access for safety');
+    return false;
+  }
+  
+  try {
+    // Query teams where this user is the manager and target is a member
+    const { resources: teams } = await teamsContainer.items.query({
+      query: 'SELECT c.id, c.teamMembers FROM c WHERE c.type = @type AND c.managerId = @coachId',
+      parameters: [
+        { name: '@type', value: 'team_relationship' },
+        { name: '@coachId', value: coachId }
+      ]
+    }).fetchAll();
+    
+    if (!teams || teams.length === 0) {
+      context.log(`Coach ${coachId} has no team assigned`);
+      return false;
+    }
+    
+    // Check if targetUserId is in any of the coach's teams
+    for (const team of teams) {
+      const members = team.teamMembers || [];
+      if (members.includes(targetUserId)) {
+        context.log(`Verified: ${targetUserId} is in coach ${coachId}'s team`);
+        return true;
+      }
+    }
+    
+    context.log(`User ${targetUserId} is NOT in coach ${coachId}'s team(s)`);
+    return false;
+  } catch (error) {
+    context.log.error('Error checking team membership:', error.message);
+    // Fail closed - deny access if we can't verify
+    return false;
+  }
+}
+
+/**
+ * Check if two users are in the same team (for team member visibility)
+ * This allows regular team members to see each other on Dream Team and Dream Connect
+ * @param {string} userId - The requesting user's ID
+ * @param {string} targetUserId - The user ID being accessed
+ * @param {object} context - Azure Function context
+ * @returns {Promise<boolean>} True if users are in the same team
+ */
+async function areUsersInSameTeam(userId, targetUserId, context) {
+  const teamsContainer = getTeamsContainer();
+  if (!teamsContainer) {
+    context.log.warn('Teams container not available');
+    return false;
+  }
+  
+  try {
+    // Query all teams and check if both users are members of any team
+    const { resources: teams } = await teamsContainer.items.query({
+      query: 'SELECT c.id, c.teamMembers, c.managerId FROM c WHERE c.type = @type',
+      parameters: [
+        { name: '@type', value: 'team_relationship' }
+      ]
+    }).fetchAll();
+    
+    for (const team of teams) {
+      const members = team.teamMembers || [];
+      const managerId = team.managerId;
+      
+      // Include manager in the team for visibility purposes
+      const allTeamMembers = [...members, managerId].filter(Boolean);
+      
+      const userInTeam = allTeamMembers.includes(userId);
+      const targetInTeam = allTeamMembers.includes(targetUserId);
+      
+      if (userInTeam && targetInTeam) {
+        context.log(`Users ${userId} and ${targetUserId} are in the same team`);
+        return true;
+      }
+    }
+    
+    context.log(`Users ${userId} and ${targetUserId} are NOT in the same team`);
+    return false;
+  } catch (error) {
+    context.log.error('Error checking if users are in same team:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Require user to be accessing their own data (or be admin/coach/teammate with proper access)
  * @param {object} context - Azure Function context
  * @param {object} req - HTTP request
  * @param {string} targetUserId - The user ID being accessed
@@ -308,27 +403,38 @@ async function requireUserAccess(context, req, targetUserId) {
   const user = await requireAuth(context, req);
   if (!user) return null;
   
-  const { role, isCoach, isAdmin } = await getUserRole(user.userId, context);
+  const { role, isCoach, isAdmin, isTeamManager } = await getUserRole(user.userId, context);
   
   // Admin can access any user
   if (isAdmin) {
+    context.log(`Admin ${user.userId} accessing data for ${targetUserId}`);
     return { ...user, role, isCoach, isAdmin };
   }
   
-  // Coach can access their team members (simplified - just allow any access for now)
-  // TODO: Add team membership check if needed
-  if (isCoach) {
+  // User accessing their own data - always allowed
+  if (user.userId === targetUserId || user.email === targetUserId) {
     return { ...user, role, isCoach, isAdmin };
   }
   
-  // Regular users can only access their own data
-  if (user.userId !== targetUserId && user.email !== targetUserId) {
-    context.log.warn(`User ${user.userId} attempted to access data for ${targetUserId}`);
-    send403(context, 'You can only access your own data');
-    return null;
+  // Coach can access their own team members
+  if (isCoach || isTeamManager) {
+    const hasAccess = await checkTeamMembership(user.userId, targetUserId, context);
+    if (hasAccess) {
+      return { ...user, role, isCoach, isAdmin, accessingTeamMember: true };
+    }
+    // Coach trying to access non-team member - fall through to same-team check
   }
   
-  return { ...user, role, isCoach, isAdmin };
+  // Regular users can see other users in their same team (Dream Team, Dream Connect)
+  const sameTeam = await areUsersInSameTeam(user.userId, targetUserId, context);
+  if (sameTeam) {
+    return { ...user, role, isCoach, isAdmin, accessingTeammate: true };
+  }
+  
+  // Not in same team - deny access
+  context.log.warn(`User ${user.userId} attempted to access data for ${targetUserId} (not in same team)`);
+  send403(context, 'You can only access data for members of your team');
+  return null;
 }
 
 module.exports = {
@@ -340,6 +446,8 @@ module.exports = {
   requireAdmin,
   requireCoach,
   requireUserAccess,
+  checkTeamMembership,
+  areUsersInSameTeam,
   send401,
   send403,
   ALLOWED_ORIGIN
