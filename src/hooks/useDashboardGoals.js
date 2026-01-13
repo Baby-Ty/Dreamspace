@@ -2,7 +2,7 @@
 //      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useEffect } from 'react';
-import { useDashboardGoalsLoader } from './useDashboardGoalsLoader';
+import { useDashboardGoalsLoader } from './dashboard-goals-loader';
 import { useDashboardGoalsActions } from './useDashboardGoalsActions';
 
 /**

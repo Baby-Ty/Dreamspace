@@ -1,0 +1,130 @@
+// DoD: no fetch in UI; <400 lines; early return for loading/error; 
+//      a11y roles/labels; minimal props; data-testid for key nodes.
+
+import { useState, useCallback } from 'react';
+import { getCurrentIsoWeek } from '../../utils/dateUtils';
+import currentWeekService from '../../services/currentWeekService';
+import { logger } from '../../utils/logger';
+import {
+  filterActiveTemplates,
+  filterActiveDreamGoals,
+  createTemplateInstances,
+  createDreamGoalInstances,
+  filterExpiredGoals
+} from './helpers';
+
+/**
+ * useDashboardGoalsLoader - Handles loading and auto-instantiation of goals
+ * 
+ * Extracted from useDashboardGoals to reduce complexity
+ * Handles: loading from currentWeek, auto-instantiating templates and dream goals
+ * 
+ * @param {object} currentUser - Current user object
+ * @param {array} weeklyGoals - Weekly goal templates from app context
+ * @returns {object} Loading state and loader function
+ */
+export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
+  const [currentWeekGoals, setCurrentWeekGoals] = useState([]);
+  const [isLoadingWeekGoals, setIsLoadingWeekGoals] = useState(true);
+
+  /**
+   * Load current week's goals from currentWeek container
+   * Auto-instantiate templates that don't have instances yet
+   */
+  const loadCurrentWeekGoals = useCallback(async () => {
+    if (!currentUser?.id) return;
+    
+    setIsLoadingWeekGoals(true);
+    const currentWeekIso = getCurrentIsoWeek();
+    
+    try {
+      logger.debug('useDashboardGoalsLoader', 'Loading current week goals', { weekId: currentWeekIso });
+      
+      // Load existing goals for current week
+      const result = await currentWeekService.getCurrentWeek(currentUser.id);
+      let existingGoals = [];
+      
+      if (result.success && result.data) {
+        existingGoals = result.data.goals || [];
+        logger.debug('useDashboardGoalsLoader', 'Loaded goals for current week', { count: existingGoals.length });
+      } else {
+        logger.debug('useDashboardGoalsLoader', 'No goals found for current week');
+      }
+      
+      // Build sets for efficient lookup
+      const existingDreamIds = new Set((currentUser?.dreamBook || []).map(d => d.id));
+      const existingGoalIds = new Set(existingGoals.map(g => g.id));
+      const existingTemplateIds = new Set(existingGoals.map(g => g.templateId).filter(Boolean));
+      
+      // Filter templates for existing dreams only
+      const activeTemplates = (weeklyGoals || []).filter(g => 
+        g.type === 'weekly_goal_template' && 
+        g.active !== false &&
+        g.dreamId && 
+        existingDreamIds.has(g.dreamId)
+      );
+      
+      // Step 1: Filter active templates that need instances
+      const templatesToInstantiate = filterActiveTemplates(
+        activeTemplates, 
+        existingDreamIds, 
+        existingTemplateIds, 
+        existingGoalIds
+      );
+      
+      // Step 2: Filter active dream goals (deadline and consistency)
+      const dreamGoalsToInstantiate = filterActiveDreamGoals(currentUser, currentWeekIso);
+      
+      // Step 3: Create instances from templates
+      const templateInstances = createTemplateInstances(templatesToInstantiate, currentWeekIso);
+      
+      // Step 4: Create instances from dream goals
+      const dreamGoalInstances = createDreamGoalInstances(
+        dreamGoalsToInstantiate, 
+        currentWeekIso, 
+        existingGoalIds, 
+        existingTemplateIds
+      );
+      
+      // Combine all new instances
+      const newInstances = [...templateInstances, ...dreamGoalInstances];
+      
+      // Save new instances if any were created
+      if (newInstances.length > 0) {
+        const updatedGoals = [...existingGoals, ...newInstances];
+        const saveResult = await currentWeekService.saveCurrentWeek(
+          currentUser.id,
+          currentWeekIso,
+          updatedGoals
+        );
+        
+        if (saveResult.success) {
+          logger.info('useDashboardGoalsLoader', 'Created new goal instances for current week', {
+            count: newInstances.length
+          });
+          setCurrentWeekGoals(filterExpiredGoals(updatedGoals, currentWeekIso));
+        } else {
+          logger.error('useDashboardGoalsLoader', 'Failed to save new instances', { error: saveResult.error });
+          setCurrentWeekGoals(filterExpiredGoals(existingGoals, currentWeekIso));
+        }
+      } else {
+        // No new instances - just filter expired goals
+        setCurrentWeekGoals(filterExpiredGoals(existingGoals, currentWeekIso));
+      }
+    } catch (error) {
+      logger.error('useDashboardGoalsLoader', 'Error loading week goals', error);
+      setCurrentWeekGoals([]);
+    } finally {
+      setIsLoadingWeekGoals(false);
+    }
+  }, [currentUser?.id, currentUser?.dreamBook, weeklyGoals]);
+
+  return {
+    currentWeekGoals,
+    setCurrentWeekGoals,
+    isLoadingWeekGoals,
+    loadCurrentWeekGoals
+  };
+}
+
+export default useDashboardGoalsLoader;
