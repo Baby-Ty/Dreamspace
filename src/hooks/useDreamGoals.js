@@ -209,6 +209,10 @@ export function useDreamGoals(localDream, setLocalDream, setHasChanges, appConte
         // Save back to currentWeek container
         await currentWeekService.saveCurrentWeek(currentUser.id, currentWeekIso, updatedCurrentWeekGoals);
         logger.info('useDreamGoals', 'Goal toggled and synced to currentWeek');
+        
+        // TRIGGER DASHBOARD REFRESH: Dispatch event to notify dashboard
+        window.dispatchEvent(new CustomEvent('goals-updated'));
+        logger.debug('useDreamGoals', 'Dispatched goals-updated event');
       }
       
       setHasChanges(false);
