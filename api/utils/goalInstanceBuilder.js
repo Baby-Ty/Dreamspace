@@ -13,15 +13,25 @@ const { getMonthId, monthsToWeeks, getWeeksUntilDate } = require('./weekDateUtil
  * @param {object} dream - Associated dream
  * @param {string} weekId - Target week ID (e.g., "2025-W47")
  * @param {object} previousInstance - Previous week's instance (optional)
+ * @param {object} options - Build options
+ * @param {boolean} options.decrementWeeksRemaining - Whether to decrement weeksRemaining (default: true)
  * @returns {object} Weekly goal instance
  */
-function buildWeeklyGoalInstance(template, dream, weekId, previousInstance) {
+function buildWeeklyGoalInstance(template, dream, weekId, previousInstance, options = {}) {
+  const { decrementWeeksRemaining = true } = options;
   const wasSkipped = previousInstance?.skipped || false;
   
-  // Decrement weeksRemaining; -1 means "done" (after final week)
-  const newWeeksRemaining = wasSkipped 
-    ? template.weeksRemaining // Don't decrement if skipped
-    : Math.max(-1, (template.weeksRemaining || template.targetWeeks || 0) - 1);
+  // Calculate weeksRemaining based on options
+  const currentWeeksRemaining = template.weeksRemaining !== undefined 
+    ? template.weeksRemaining 
+    : (template.targetWeeks || 0);
+  
+  // Decrement weeksRemaining only if requested and not skipped; -1 means "done" (after final week)
+  const newWeeksRemaining = !decrementWeeksRemaining
+    ? currentWeeksRemaining  // Mid-week sync: keep current value
+    : wasSkipped 
+      ? currentWeeksRemaining // Don't decrement if skipped
+      : Math.max(-1, currentWeeksRemaining - 1);
   
   const instance = {
     id: `${template.id}_${weekId}`,
@@ -54,9 +64,12 @@ function buildWeeklyGoalInstance(template, dream, weekId, previousInstance) {
  * @param {object} dream - Associated dream
  * @param {string} weekId - Target week ID (e.g., "2025-W47")
  * @param {object} previousInstance - Previous week's instance (optional)
+ * @param {object} options - Build options
+ * @param {boolean} options.decrementWeeksRemaining - Whether to decrement weeksRemaining (default: true)
  * @returns {object} Monthly goal instance
  */
-function buildMonthlyGoalInstance(template, dream, weekId, previousInstance) {
+function buildMonthlyGoalInstance(template, dream, weekId, previousInstance, options = {}) {
+  const { decrementWeeksRemaining = true } = options;
   const currentMonthId = getMonthId(weekId);
   const previousMonthId = previousInstance?.weekId ? getMonthId(previousInstance.weekId) : null;
   const isSameMonth = currentMonthId === previousMonthId;
@@ -96,15 +109,17 @@ function buildMonthlyGoalInstance(template, dream, weekId, previousInstance) {
   
   // Convert months to weeks for unified tracking
   // Initialize weeksRemaining if missing (convert from targetMonths)
-  const currentWeeksRemaining = template.weeksRemaining !== undefined
+  const templateWeeksRemaining = template.weeksRemaining !== undefined
     ? template.weeksRemaining
     : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : 0));
   
-  // Decrement weeks remaining weekly (not monthly); -1 means "done"
+  // Calculate weeksRemaining based on options
   const wasSkipped = previousInstance?.skipped || false;
-  const newWeeksRemaining = wasSkipped
-    ? currentWeeksRemaining
-    : Math.max(-1, currentWeeksRemaining - 1);
+  const newWeeksRemaining = !decrementWeeksRemaining
+    ? templateWeeksRemaining  // Mid-week sync: keep current value
+    : wasSkipped
+      ? templateWeeksRemaining // Don't decrement if skipped
+      : Math.max(-1, templateWeeksRemaining - 1);
   
   instance.weeksRemaining = newWeeksRemaining;
   instance.targetWeeks = template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined);
@@ -119,9 +134,13 @@ function buildMonthlyGoalInstance(template, dream, weekId, previousInstance) {
  * @param {object} dream - Associated dream
  * @param {string} weekId - Target week ID (e.g., "2025-W47")
  * @param {object} previousInstance - Previous week's instance (optional)
+ * @param {object} options - Build options
+ * @param {boolean} options.decrementWeeksRemaining - Whether to decrement weeksRemaining (default: true)
  * @returns {object} Deadline goal instance and update info
  */
-function buildDeadlineGoalInstance(goal, dream, weekId, previousInstance) {
+function buildDeadlineGoalInstance(goal, dream, weekId, previousInstance, options = {}) {
+  const { decrementWeeksRemaining = true } = options;
+  
   // Use targetWeeks if available, otherwise calculate from targetDate (backward compatibility)
   const targetWeeks = goal.targetWeeks !== undefined
     ? goal.targetWeeks
@@ -132,15 +151,17 @@ function buildDeadlineGoalInstance(goal, dream, weekId, previousInstance) {
   }
   
   // Initialize weeksRemaining if missing (use targetWeeks)
-  const currentWeeksRemaining = goal.weeksRemaining !== undefined
+  const goalWeeksRemaining = goal.weeksRemaining !== undefined
     ? goal.weeksRemaining
     : targetWeeks;
   
-  // Decrement weeksRemaining weekly (same as consistency goals)
+  // Calculate weeksRemaining based on options
   const wasSkipped = previousInstance?.skipped || false;
-  const newWeeksRemaining = wasSkipped
-    ? currentWeeksRemaining
-    : Math.max(-1, currentWeeksRemaining - 1);
+  const newWeeksRemaining = !decrementWeeksRemaining
+    ? goalWeeksRemaining  // Mid-week sync: keep current value
+    : wasSkipped
+      ? goalWeeksRemaining // Don't decrement if skipped
+      : Math.max(-1, goalWeeksRemaining - 1);
   
   // Only create instance if deadline is still active and not completed
   if (newWeeksRemaining >= 0 && !goal.completed && goal.active === true) {
@@ -176,19 +197,25 @@ function buildDeadlineGoalInstance(goal, dream, weekId, previousInstance) {
  * @param {object} dream - Associated dream
  * @param {string} weekId - Target week ID (e.g., "2025-W47")
  * @param {object} previousInstance - Previous week's instance (optional)
+ * @param {object} options - Build options
+ * @param {boolean} options.decrementWeeksRemaining - Whether to decrement weeksRemaining (default: true)
  * @returns {object} Weekly consistency goal instance and update info
  */
-function buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstance) {
+function buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstance, options = {}) {
+  const { decrementWeeksRemaining = true } = options;
+  
   // Initialize weeksRemaining if missing
-  const currentWeeksRemaining = goal.weeksRemaining !== undefined 
+  const goalWeeksRemaining = goal.weeksRemaining !== undefined 
     ? goal.weeksRemaining 
     : goal.targetWeeks;
   
-  // Decrement if previous goal wasn't skipped; -1 means "done"
+  // Calculate weeksRemaining based on options
   const wasSkipped = previousInstance?.skipped || false;
-  const newWeeksRemaining = wasSkipped
-    ? currentWeeksRemaining
-    : Math.max(-1, currentWeeksRemaining - 1);
+  const newWeeksRemaining = !decrementWeeksRemaining
+    ? goalWeeksRemaining  // Mid-week sync: keep current value
+    : wasSkipped
+      ? goalWeeksRemaining // Don't decrement if skipped
+      : Math.max(-1, goalWeeksRemaining - 1);
   
   // Create instance if weeks remaining >= 0 (0 = final week, still shows)
   if (newWeeksRemaining >= 0) {
@@ -227,23 +254,28 @@ function buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstanc
  * @param {object} dream - Associated dream
  * @param {string} weekId - Target week ID (e.g., "2025-W47")
  * @param {object} previousInstance - Previous week's instance (optional)
+ * @param {object} options - Build options
+ * @param {boolean} options.decrementWeeksRemaining - Whether to decrement weeksRemaining (default: true)
  * @returns {object} Monthly consistency goal instance and update info
  */
-function buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstance) {
+function buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstance, options = {}) {
+  const { decrementWeeksRemaining = true } = options;
   const currentMonthId = getMonthId(weekId);
   const previousMonthId = previousInstance?.weekId ? getMonthId(previousInstance.weekId) : null;
   const isSameMonth = currentMonthId === previousMonthId;
   
   // Initialize weeksRemaining if missing (convert from targetMonths)
-  const currentWeeksRemaining = goal.weeksRemaining !== undefined
+  const goalWeeksRemaining = goal.weeksRemaining !== undefined
     ? goal.weeksRemaining
     : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : 0));
   
-  // Decrement weeks remaining weekly (not monthly); -1 means "done"
+  // Calculate weeksRemaining based on options
   const wasSkipped = previousInstance?.skipped || false;
-  const newWeeksRemaining = wasSkipped
-    ? currentWeeksRemaining
-    : Math.max(-1, currentWeeksRemaining - 1);
+  const newWeeksRemaining = !decrementWeeksRemaining
+    ? goalWeeksRemaining  // Mid-week sync: keep current value
+    : wasSkipped
+      ? goalWeeksRemaining // Don't decrement if skipped
+      : Math.max(-1, goalWeeksRemaining - 1);
   
   // Create instance if weeks remaining >= 0 (0 = final week, still shows)
   if (newWeeksRemaining >= 0) {

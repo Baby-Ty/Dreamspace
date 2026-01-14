@@ -7,13 +7,9 @@
 const { getCosmosProvider } = require('./cosmosProvider');
 const { 
   getCurrentIsoWeek, 
-  parseIsoWeek, 
   getWeekRange, 
   getWeeksBetween, 
-  getNextWeekId, 
-  getMonthId, 
-  monthsToWeeks, 
-  getWeeksUntilDate 
+  getNextWeekId 
 } = require('./weekDateUtils');
 const { calculateScore } = require('./goalScoring');
 const { fetchDreamsWithConsistencyRetry } = require('./cosmosConsistencyHelper');
@@ -173,15 +169,10 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
   // 2. Filter active templates
   const activeTemplates = filterActiveTemplates(templates, dreams, context);
   
-  log(`📋 ${userId}: Found ${activeTemplates.length} active templates (filtered from ${templates.length} total templates)`);
-  
-  // Log details about filtered templates for debugging
-  if (templates.length > activeTemplates.length) {
-    const filteredCount = templates.length - activeTemplates.length;
-    log(`📋 ${userId}: Filtered out ${filteredCount} inactive/completed template(s)`);
-  }
+  log(`📋 ${userId}: Processing ${activeTemplates.length} active templates (of ${templates.length} total)`);
   
   // 3. Create instances from templates
+  let templateGoalsCreated = 0;
   for (const template of activeTemplates) {
     const dream = dreams.find(d => d.id === template.dreamId);
     const previousInstance = previousGoals.find(g => g.templateId === template.id);
@@ -193,189 +184,116 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
       result = buildMonthlyGoalInstance(template, dream, weekId, previousInstance);
     }
     
-    if (result && result.instance) {
-      // Check for duplicate before adding
-      if (!newGoalIds.has(result.instance.id)) {
-        newGoals.push(result.instance);
-        newGoalIds.add(result.instance.id);
-        
-        // Track template update for next rollover
-        if (template.weeksRemaining !== result.weeksRemaining) {
-          const existingUpdate = templateUpdates.get(template.id) || template;
-          templateUpdates.set(template.id, {
-            ...existingUpdate,
-            weeksRemaining: result.weeksRemaining
-          });
-        }
-      } else {
-        log(`⚠️ ${userId}: Skipping duplicate instance: ${result.instance.id}`);
+    if (result && result.instance && !newGoalIds.has(result.instance.id)) {
+      newGoals.push(result.instance);
+      newGoalIds.add(result.instance.id);
+      templateGoalsCreated++;
+      
+      // Track template update if weeksRemaining changed
+      if (template.weeksRemaining !== result.weeksRemaining) {
+        templateUpdates.set(template.id, {
+          ...(templateUpdates.get(template.id) || template),
+          weeksRemaining: result.weeksRemaining
+        });
       }
     }
   }
+  
+  log(`📋 ${userId}: Created ${templateGoalsCreated} goals from templates`);
   
   // 4. Also add consistency and deadline goals from dreams.goals[]
   // BUT skip goals that already have templates (templates are processed in step 3)
   const dreamGoalUpdates = new Map(); // Track goal updates by dreamId -> goalId
   const templateIds = new Set(templates.map(t => t.id)); // Track template IDs to avoid duplicates
   
-  log(`📋 ${userId}: Processing ${dreams.length} dream(s) for consistency/deadline goals`);
-  log(`📋 ${userId}: Found ${templateIds.size} template(s) - will skip goals that match template IDs`);
+  // Counters for summary logging
+  let deadlineCount = 0, consistencyCount = 0;
   
   for (const dream of dreams) {
-    if (dream.completed) {
-      log(`⏭️ ${userId}: Skipping completed dream "${dream.title}"`);
-      continue;
-    }
+    if (dream.completed) continue;
     
     const allDreamGoals = dream.goals || [];
-    log(`🔍 ${userId}: Dream "${dream.title}" has ${allDreamGoals.length} goal(s)`);
     
-    // Log all goals for debugging
-    allDreamGoals.forEach(g => {
-      log(`   📋 Goal: "${g.title}" (type: ${g.type}, active: ${g.active}, completed: ${g.completed}, id: ${g.id})`);
-    });
+    // Filter deadline goals: must be active, not completed, no existing template
+    const deadlineGoals = allDreamGoals.filter(g => 
+      g.type === 'deadline' && 
+      g.active === true && 
+      g.completed !== true && 
+      !templateIds.has(g.id)
+    );
     
-    // Separate deadline goals (skip if completed or inactive)
-    // IMPORTANT: Check both completed flag and active flag (including undefined/null)
-    const deadlineGoals = allDreamGoals.filter(g => {
-      if (g.type !== 'deadline') return false;
-      
-      // Skip if completed
-      if (g.completed === true) {
-        log(`   ⏭️ Skipping deadline goal "${g.title}" (${g.id}) - completed: true`);
-        return false;
-      }
-      
-      // Skip if not explicitly active (only process if active === true)
-      // For deadline goals, we only want to process if active is explicitly true
-      // This catches false, undefined, null, or any other falsy value
-      if (g.active !== true) {
-        log(`   ⏭️ Skipping deadline goal "${g.title}" (${g.id}) - not active (active: ${g.active}, type: ${typeof g.active})`);
-        return false;
-      }
-      
-      if (templateIds.has(g.id)) {
-        log(`   ⏭️ Skipping deadline goal "${g.title}" (${g.id}) - already has template`);
-        return false;
-      }
-      log(`   ✅ Including deadline goal "${g.title}" (${g.id}) - active: ${g.active}, completed: ${g.completed}`);
-      return true;
-    });
+    // Filter consistency goals: must not be completed, no existing template
+    const consistencyGoals = allDreamGoals.filter(g => 
+      g.type === 'consistency' && 
+      !g.completed && 
+      !templateIds.has(g.id)
+    );
     
-    log(`📋 ${userId}: Found ${deadlineGoals.length} active deadline goal(s) in "${dream.title}" (after filtering)`);
-    
-    const dreamGoals = allDreamGoals.filter(g => {
-      // For consistency goals, skip if completed
-      if (g.type === 'consistency' && g.completed) {
-        log(`   ⏭️ Skipping completed consistency goal: "${g.title}"`);
-        return false;
-      }
-      // For deadline goals, we'll process them separately (they need weeksRemaining update even if completed)
-      if (g.type === 'deadline') {
-        return false; // Processed separately above
-      }
-      if (g.type !== 'consistency' && g.type !== 'deadline') {
-        log(`   ⏭️ Skipping goal type "${g.type}": "${g.title}"`);
-        return false;
-      }
-      // Skip if this goal already has a template (template was processed in step 3)
-      if (templateIds.has(g.id)) {
-        log(`   ⏭️ Skipping goal "${g.title}" - already has template (will be created from template)`);
-        return false;
-      }
-      log(`   ✅ Processing goal: "${g.title}" (type: ${g.type}, recurrence: ${g.recurrence})`);
-      return true;
-    });
-    
-    // Process deadline goals like consistency goals (decrement weeksRemaining, don't recalculate)
+    // Process deadline goals
     for (const goal of deadlineGoals) {
       const previousInstance = previousGoals.find(g => g.templateId === goal.id);
       const result = buildDeadlineGoalInstance(goal, dream, weekId, previousInstance);
       
-      if (!result) {
-        log(`⚠️ ${userId}: Skipping deadline goal "${goal.title}" - no targetWeeks or targetDate`);
-        continue;
-      }
+      if (!result) continue;
       
       const { instance, weeksRemaining: newWeeksRemaining, targetWeeks } = result;
       
-      log(`📅 ${userId}: Processing deadline goal "${goal.title}" (targetWeeks: ${targetWeeks}, new weeksRemaining: ${newWeeksRemaining})`);
-      
-      // Always update weeksRemaining in dreams container (even if completed)
+      // Always update weeksRemaining in dreams container
       if (!dreamGoalUpdates.has(dream.id)) {
         dreamGoalUpdates.set(dream.id, []);
       }
       dreamGoalUpdates.get(dream.id).push({
         ...goal,
-        targetWeeks: targetWeeks, // Ensure targetWeeks is set
+        targetWeeks: targetWeeks,
         weeksRemaining: newWeeksRemaining
       });
       
-      log(`✅ ${userId}: Queued deadline goal "${goal.title}" update: weeksRemaining → ${newWeeksRemaining}${goal.completed ? ' (completed)' : ''}`);
+      // Add instance if created and not duplicate
+      if (instance && !newGoalIds.has(instance.id)) {
+        newGoals.push(instance);
+        newGoalIds.add(instance.id);
+        deadlineCount++;
+      }
+    }
+    
+    // Process consistency goals
+    for (const goal of consistencyGoals) {
+      if (!goal.recurrence) continue;
       
-      // Add instance if created
-      if (instance) {
-        if (!newGoalIds.has(instance.id)) {
+      const previousInstance = previousGoals.find(g => g.templateId === goal.id);
+      let result;
+      
+      if (goal.recurrence === 'weekly' && goal.targetWeeks) {
+        result = buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstance);
+      } else if (goal.recurrence === 'monthly' && goal.targetMonths) {
+        result = buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstance);
+      }
+      
+      if (result) {
+        const { instance, weeksRemaining: newWeeksRemaining } = result;
+        
+        // Track goal update for saving back to dreams container
+        if (!dreamGoalUpdates.has(dream.id)) {
+          dreamGoalUpdates.set(dream.id, []);
+        }
+        dreamGoalUpdates.get(dream.id).push({
+          ...goal,
+          weeksRemaining: newWeeksRemaining
+        });
+        
+        // Add instance if created and not duplicate
+        if (instance && !newGoalIds.has(instance.id)) {
           newGoals.push(instance);
           newGoalIds.add(instance.id);
-          log(`✨ ${userId}: Added deadline goal "${goal.title}" (${newWeeksRemaining} weeks remaining)`);
-        } else {
-          log(`⚠️ ${userId}: Skipping duplicate deadline goal instance: ${instance.id}`);
-        }
-      } else {
-        if (goal.completed) {
-          log(`⏭️ ${userId}: Skipping completed deadline goal "${goal.title}" (weeksRemaining updated to ${newWeeksRemaining})`);
-        } else if (goal.active === false) {
-          log(`⏭️ ${userId}: Skipping inactive deadline goal "${goal.title}" (weeksRemaining: ${newWeeksRemaining})`);
-        } else {
-          log(`⏭️ ${userId}: Skipping past deadline goal "${goal.title}" (weeksRemaining: ${newWeeksRemaining})`);
+          consistencyCount++;
         }
       }
     }
-    
-    log(`📋 ${userId}: Found ${dreamGoals.length} active consistency/deadline goal(s) in "${dream.title}" (after filtering templates)`);
-    
-    // Process consistency goals (deadline goals already processed above)
-    for (const goal of dreamGoals) {
-      if (goal.type === 'consistency' && goal.recurrence) {
-        const previousInstance = previousGoals.find(g => g.templateId === goal.id);
-        let result;
-        
-        if (goal.recurrence === 'weekly' && goal.targetWeeks) {
-          log(`   📅 Processing weekly consistency goal: "${goal.title}"`);
-          result = buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstance);
-        } else if (goal.recurrence === 'monthly' && goal.targetMonths) {
-          log(`   📅 Processing monthly consistency goal: "${goal.title}"`);
-          result = buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstance);
-        }
-        
-        if (result) {
-          const { instance, weeksRemaining: newWeeksRemaining } = result;
-          
-          // Track goal update for saving back to dreams container
-          if (!dreamGoalUpdates.has(dream.id)) {
-            dreamGoalUpdates.set(dream.id, []);
-          }
-          dreamGoalUpdates.get(dream.id).push({
-            ...goal,
-            weeksRemaining: newWeeksRemaining
-          });
-          
-          if (instance) {
-            // Check for duplicate before adding
-            if (!newGoalIds.has(instance.id)) {
-              newGoals.push(instance);
-              newGoalIds.add(instance.id);
-              log(`✨ ${userId}: Added consistency goal "${goal.title}" (${newWeeksRemaining} weeks remaining)`);
-            } else {
-              log(`⚠️ ${userId}: Skipping duplicate consistency goal instance: ${instance.id}`);
-            }
-          } else {
-            log(`⏭️ ${userId}: Skipping completed consistency goal "${goal.title}" (weeksRemaining: ${newWeeksRemaining}) - will mark inactive`);
-          }
-        }
-      }
-    }
+  }
+  
+  // Summary logging
+  if (deadlineCount > 0 || consistencyCount > 0) {
+    log(`📋 ${userId}: Added ${deadlineCount} deadline + ${consistencyCount} consistency goals from dreams`);
   }
   
   // Save updated templates back to Cosmos DB if any were modified
@@ -409,6 +327,9 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
   
   log(`📋 ${userId}: Creating missing goal instances for ${weekId}`);
   
+  // Build options: don't decrement weeksRemaining for mid-week sync
+  const buildOptions = { decrementWeeksRemaining: false };
+  
   // 1. Get existing goals (or empty array if no doc)
   const existingGoals = currentWeekDoc?.goals || [];
   const existingGoalIds = new Set(existingGoals.map(g => g.id));
@@ -430,14 +351,12 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
   
   const dreams = dreamsDoc.dreamBook || dreamsDoc.dreams || [];
   const templates = dreamsDoc.weeklyGoalTemplates || [];
+  const templateIds = new Set(templates.map(t => t.id));
   
   log(`📋 ${userId}: Found ${dreams.length} dreams and ${templates.length} templates`);
   
   // 3. Find active templates that need instances
   const newInstances = [];
-  const templateIds = new Set(templates.map(t => t.id));
-  
-  // Filter active templates
   const activeTemplates = filterActiveTemplates(templates, dreams, context);
   
   for (const template of activeTemplates) {
@@ -450,40 +369,18 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
     
     const dream = dreams.find(d => d.id === template.dreamId);
     
-    // Create instance WITHOUT decrementing weeksRemaining (same week)
-    // Use the template's current weeksRemaining value directly
-    const instance = {
-      id: instanceId,
-      templateId: template.id,
-      type: template.recurrence === 'monthly' ? 'monthly_goal' : 'weekly_goal',
-      title: template.title,
-      description: template.description || '',
-      dreamId: template.dreamId,
-      dreamTitle: dream?.title || template.dreamTitle || '',
-      dreamCategory: dream?.category || template.dreamCategory || '',
-      recurrence: template.recurrence,
-      completed: false,
-      completedAt: null,
-      skipped: false,
-      weekId: weekId,
-      createdAt: new Date().toISOString(),
-      targetWeeks: template.targetWeeks,
-      weeksRemaining: template.weeksRemaining !== undefined 
-        ? template.weeksRemaining 
-        : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined)),
-      frequency: template.frequency || (template.recurrence === 'monthly' ? 2 : 1),
-      completionCount: 0,
-      completionDates: [],
-    };
-    
-    // Add monthId for monthly goals
-    if (template.recurrence === 'monthly') {
-      instance.monthId = getMonthId(weekId);
-      instance.targetMonths = template.targetMonths;
+    // Use builders with decrementWeeksRemaining: false (same week, no decrement)
+    let result;
+    if (template.recurrence === 'weekly') {
+      result = buildWeeklyGoalInstance(template, dream, weekId, null, buildOptions);
+    } else if (template.recurrence === 'monthly') {
+      result = buildMonthlyGoalInstance(template, dream, weekId, null, buildOptions);
     }
     
-    newInstances.push(instance);
-    log(`✨ ${userId}: Creating instance for template "${template.title}"`);
+    if (result && result.instance) {
+      newInstances.push(result.instance);
+      log(`✨ ${userId}: Creating instance for template "${template.title}"`);
+    }
   }
   
   // 4. Find active dream goals (deadline and consistency) that need instances
@@ -504,73 +401,24 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
       
       // Handle deadline goals
       if (goal.type === 'deadline' && goal.active === true) {
-        const weeksRemaining = goal.weeksRemaining !== undefined 
-          ? goal.weeksRemaining 
-          : (goal.targetWeeks !== undefined 
-              ? goal.targetWeeks 
-              : (goal.targetDate ? getWeeksUntilDate(goal.targetDate, weekId) : -1));
-        
-        // Only create if deadline hasn't passed
-        if (weeksRemaining >= 0) {
-          const instance = {
-            id: instanceId,
-            templateId: goal.id,
-            type: 'deadline',
-            title: goal.title,
-            description: goal.description || '',
-            dreamId: dream.id,
-            dreamTitle: dream.title,
-            dreamCategory: dream.category,
-            targetWeeks: goal.targetWeeks || weeksRemaining,
-            targetDate: goal.targetDate,
-            weeksRemaining: weeksRemaining,
-            completed: false,
-            completedAt: null,
-            skipped: false,
-            weekId: weekId,
-            createdAt: new Date().toISOString()
-          };
-          newInstances.push(instance);
+        const result = buildDeadlineGoalInstance(goal, dream, weekId, null, buildOptions);
+        if (result && result.instance) {
+          newInstances.push(result.instance);
           log(`✨ ${userId}: Creating instance for deadline goal "${goal.title}"`);
         }
       }
       
       // Handle consistency goals
       if (goal.type === 'consistency' && goal.recurrence) {
-        const weeksRemaining = goal.weeksRemaining !== undefined 
-          ? goal.weeksRemaining 
-          : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined));
+        let result;
+        if (goal.recurrence === 'weekly') {
+          result = buildWeeklyConsistencyGoalInstance(goal, dream, weekId, null, buildOptions);
+        } else if (goal.recurrence === 'monthly') {
+          result = buildMonthlyConsistencyGoalInstance(goal, dream, weekId, null, buildOptions);
+        }
         
-        // Only create if not expired
-        if (weeksRemaining === undefined || weeksRemaining >= 0) {
-          const instance = {
-            id: instanceId,
-            templateId: goal.id,
-            type: goal.recurrence === 'monthly' ? 'monthly_goal' : 'weekly_goal',
-            title: goal.title,
-            description: goal.description || '',
-            dreamId: dream.id,
-            dreamTitle: dream.title,
-            dreamCategory: dream.category,
-            recurrence: goal.recurrence,
-            targetWeeks: goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined),
-            targetMonths: goal.targetMonths,
-            weeksRemaining: weeksRemaining,
-            frequency: goal.frequency || (goal.recurrence === 'monthly' ? 2 : 1),
-            completionCount: 0,
-            completionDates: [],
-            completed: false,
-            completedAt: null,
-            skipped: false,
-            weekId: weekId,
-            createdAt: new Date().toISOString()
-          };
-          
-          if (goal.recurrence === 'monthly') {
-            instance.monthId = getMonthId(weekId);
-          }
-          
-          newInstances.push(instance);
+        if (result && result.instance) {
+          newInstances.push(result.instance);
           log(`✨ ${userId}: Creating instance for consistency goal "${goal.title}"`);
         }
       }

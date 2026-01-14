@@ -143,7 +143,7 @@ const SaveDreamsRequestSchema = z.object({
 const WeeklyGoalInstanceSchema = z.object({
   id: z.string().min(1),
   templateId: z.string().optional(),
-  type: z.enum(['weekly_goal', 'deadline']).default('weekly_goal'),
+  type: z.enum(['weekly_goal', 'monthly_goal', 'deadline']).default('weekly_goal'),
   title: z.string().min(1, 'Goal title is required'),
   description: z.string().optional(),
   dreamId: z.string().optional().nullable(),
