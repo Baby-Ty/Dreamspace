@@ -25,10 +25,13 @@ export function useDreamConnections() {
   const [currentPage, setCurrentPage] = useState(1);
   const USERS_PER_PAGE = 8; // 2 rows of 4 columns
 
-  // Load users and generate suggestions
+  // Don't auto-load - Dream Connect is a "Coming Soon" feature
+  // Data loads only when the component explicitly calls refreshData() on mount
+  // This prevents expensive getAllUsers call from running on every app load
   useEffect(() => {
-    loadData();
-  }, [currentUser?.id, currentUser?.userId]);
+    // No-op: Defer loading until page is actually visited
+    setIsLoading(false);
+  }, []);
 
   const loadData = useCallback(async () => {
     const userId = currentUser?.id || currentUser?.userId;

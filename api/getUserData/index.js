@@ -285,23 +285,20 @@ module.exports = createApiHandler({
   
   const currentYear = new Date().getFullYear();
   
-  // Initialize week document (creates if missing, updates if needed)
-  const weekDoc = await initializeWeekDocument(database, userId, currentYear, context);
-  
-  // Load data from all containers in parallel
-  const [dreamsDoc, connects] = await Promise.all([
+  // Load ALL data in parallel - dreams and connects don't depend on weekDoc
+  // This significantly improves load time by not waiting for week initialization
+  const [weekDoc, dreamsDoc, connects, scoringResult] = await Promise.all([
+    initializeWeekDocument(database, userId, currentYear, context),
     loadDreamsDocument(dreamsContainer, userId, context),
-    loadConnects(connectsContainer, userId, context)
+    loadConnects(connectsContainer, userId, context),
+    scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read().catch(error => {
+      if (error.code === 404) {
+        context.log(`No scoring document found for ${userId}`);
+        return { status: 'rejected', reason: error };
+      }
+      throw error;
+    })
   ]);
-  
-  // Load current year scoring from scoring container
-  const scoringResult = await scoringContainer.item(`${userId}_${currentYear}_scoring`, userId).read().catch(error => {
-    if (error.code === 404) {
-      context.log(`No scoring document found for ${userId}`);
-      return { status: 'rejected', reason: error };
-    }
-    throw error;
-  });
   
   // Extract data from aggregated dreams document
   const dreamBook = dreamsDoc ? (dreamsDoc.dreams || dreamsDoc.dreamBook || []) : [];

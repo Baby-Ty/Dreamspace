@@ -1,5 +1,5 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { DataBoundary } from '../../components/DataBoundary';
 import ConnectionFilters from './ConnectionFilters';
@@ -54,6 +54,14 @@ export default function DreamConnectLayout() {
   const [proposedWeeks, setProposedWeeks] = useState([]);
   const [isSavingConnect, setIsSavingConnect] = useState(false);
   const [schedulingOption, setSchedulingOption] = useState('teams');
+
+  // Load data when page is visited (deferred loading - Dream Connect is "Coming Soon")
+  // This prevents expensive getAllUsers call from running on every app load
+  useEffect(() => {
+    if (currentUser?.id) {
+      refreshData();
+    }
+  }, [currentUser?.id]);
 
   // Roving tabindex for keyboard navigation in grid
   const connectionsCount = Array.isArray(connections) ? connections.length : 0;
