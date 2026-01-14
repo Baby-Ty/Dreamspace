@@ -7,15 +7,18 @@ import { Trophy, Target, TrendingUp, Star, Medal } from 'lucide-react';
  * Centralizes all business logic for the scorecard page
  * Now supports all-time scoring across multiple years
  */
-export function useScorecardData(currentUser, scoringHistory, scoringRules, allYearsScoring = []) {
+export function useScorecardData(currentUser, scoringHistory = [], allYearsScoring = []) {
+  // Ensure scoringHistory is always an array
+  const safeHistory = Array.isArray(scoringHistory) ? scoringHistory : [];
+  
   // Calculate all-time total score (sum across all years)
   const allTimeScore = useMemo(() => {
     if (allYearsScoring && allYearsScoring.length > 0) {
       return allYearsScoring.reduce((sum, yearDoc) => sum + (yearDoc.totalScore || 0), 0);
     }
     // Fallback to scoringHistory if allYearsScoring not available
-    return scoringHistory.reduce((sum, item) => sum + item.points, 0);
-  }, [allYearsScoring, scoringHistory]);
+    return safeHistory.reduce((sum, item) => sum + (item.points || 0), 0);
+  }, [allYearsScoring, safeHistory]);
   
   // Keep totalScore for backward compatibility (alias for allTimeScore)
   const totalScore = allTimeScore;
@@ -66,26 +69,34 @@ export function useScorecardData(currentUser, scoringHistory, scoringRules, allY
   }, [currentUser?.dreamBook]);
 
   // Calculate category statistics
+  // Support both 'type' field (legacy) and 'source' field (current API format)
   const categoryStats = useMemo(() => {
+    const matchesDream = (item) => 
+      item.type === 'dreamCompleted' || item.source === 'dream';
+    const matchesConnect = (item) => 
+      item.type === 'dreamConnect' || item.source === 'connect';
+    const matchesAttendance = (item) => 
+      item.type === 'groupAttendance' || item.source === 'attendance' || item.source === 'group';
+    
     return {
       dreamsCompleted: {
-        count: scoringHistory.filter(item => item.type === 'dreamCompleted').length,
-        points: scoringHistory.filter(item => item.type === 'dreamCompleted').reduce((sum, item) => sum + item.points, 0)
+        count: safeHistory.filter(matchesDream).length,
+        points: safeHistory.filter(matchesDream).reduce((sum, item) => sum + (item.points || 0), 0)
       },
       dreamConnects: {
-        count: scoringHistory.filter(item => item.type === 'dreamConnect').length,
-        points: scoringHistory.filter(item => item.type === 'dreamConnect').reduce((sum, item) => sum + item.points, 0)
+        count: safeHistory.filter(matchesConnect).length,
+        points: safeHistory.filter(matchesConnect).reduce((sum, item) => sum + (item.points || 0), 0)
       },
       groupAttendance: {
-        count: scoringHistory.filter(item => item.type === 'groupAttendance').length,
-        points: scoringHistory.filter(item => item.type === 'groupAttendance').reduce((sum, item) => sum + item.points, 0)
+        count: safeHistory.filter(matchesAttendance).length,
+        points: safeHistory.filter(matchesAttendance).reduce((sum, item) => sum + (item.points || 0), 0)
       },
       dreamProgress: {
         count: dreamProgressStats.totalDreams,
         points: dreamProgressStats.averageProgress
       }
     };
-  }, [scoringHistory, dreamProgressStats]);
+  }, [safeHistory, dreamProgressStats]);
 
   // Get score level based on total points
   const getScoreLevel = useMemo(() => {
@@ -107,7 +118,7 @@ export function useScorecardData(currentUser, scoringHistory, scoringRules, allY
 
   // Group history by date
   const groupedHistory = useMemo(() => {
-    return scoringHistory.reduce((groups, item) => {
+    return safeHistory.reduce((groups, item) => {
       const date = new Date(item.date).toDateString();
       if (!groups[date]) {
         groups[date] = [];
@@ -115,7 +126,7 @@ export function useScorecardData(currentUser, scoringHistory, scoringRules, allY
       groups[date].push(item);
       return groups;
     }, {});
-  }, [scoringHistory]);
+  }, [safeHistory]);
 
   const sortedDates = useMemo(() => {
     return Object.keys(groupedHistory).sort((a, b) => new Date(b) - new Date(a));

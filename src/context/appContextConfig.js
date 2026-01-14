@@ -17,6 +17,13 @@ export const DEFAULT_DREAM_CATEGORIES = [
   'Other'
 ];
 
+// Scoring rules - points awarded for different activities
+export const SCORING_RULES = {
+  dreamCompleted: 10,   // +10 for completing a dream
+  dreamConnect: 5,      // +5 for dream connects
+  groupAttendance: 3    // +3 for group attendance
+};
+
 // Initial state for AppContext
 export const initialState = {
   isAuthenticated: false,

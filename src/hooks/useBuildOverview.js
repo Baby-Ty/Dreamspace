@@ -9,198 +9,239 @@ export function useBuildOverview() {
   const overview = useMemo(
     () => ({
       hero: {
-        projectName: 'DreamSpace Platform',
-        releaseTrain: 'Q1 2026 launch',
-        snapshotDate: 'November 9, 2025',
+        projectName: 'DreamsApp',
+        releaseTrain: 'Netsurit Dreams Program',
+        snapshotDate: 'January 2026',
         sponsors: [
-          { role: 'Executive Sponsor', name: 'Lindy Jacobs' },
-          { role: 'Product Owner', name: 'Thabo Nkosi' },
-          { role: 'Tech Lead', name: 'Alicia Chen' }
+          { role: 'Owner', name: 'Netsurit' },
+          { role: 'Built For', name: 'All Netsurit Team Members' }
         ],
-        valueHeadline: 'Dream tracking, coaching, and progress updates in one spot. Perfect for exec coffee reviews.',
+        valueHeadline: 'A place for everyone at Netsurit to document personal dreams, set weekly goals, connect with colleagues, and get coaching support. Because work is better when you\'re chasing dreams.',
         callsToAction: [
-          { label: 'Quick Project Brief', href: '/docs/build-overview-brief.pdf' },
-          { label: '7-min Video Tour', href: 'https://contoso.wistia.com/medias/dreamspace-walkthrough' }
+          { label: 'Go to Dashboard', href: '/' },
+          { label: 'View Health Status', href: '/health' }
         ]
       },
       stakeholderSnapshot: {
         cadence: [
-          { label: 'Steering Committee', frequency: '2nd Monday each month, 30 min' },
-          { label: 'Product Demos', frequency: 'Thursdays 2 PM SAST' },
-          { label: 'Retro & Planning', frequency: 'Alt Fridays, 45 min' }
+          { label: 'Dream Connects', frequency: 'Team members meet to discuss shared dreams' },
+          { label: 'Coaching Sessions', frequency: 'Coaches check in with their team regularly' },
+          { label: 'Weekly Goals', frequency: 'Everyone sets and tracks goals each week' }
         ],
         roles: [
-          { title: 'Executive Sponsor', owner: 'Lindy Jacobs', availability: 'Tuesdays 10-12' },
-          { title: 'Product Owner', owner: 'Thabo Nkosi', availability: 'Daily at 9:15 AM' },
-          { title: 'Tech Lead', owner: 'Alicia Chen', availability: 'Mon-Thu 1-4 PM' }
+          { title: 'Regular Users', owner: 'All team members', availability: 'Create dreams, set goals, connect' },
+          { title: 'Coaches', owner: 'Team leads & managers', availability: 'Track team progress, provide support' },
+          { title: 'Admins', owner: 'HR & IT', availability: 'User management, system config' }
         ]
       },
       businessOutcomes: {
         objectives: [
           {
-            title: 'Coaching Engagement',
-            metric: '8/10 users with coaches',
+            title: 'Dream Engagement',
+            metric: 'Team members actively creating and tracking dreams',
             status: 'on-track'
           },
           {
-            title: 'Goal Completion',
-            metric: '+25% weekly goals done',
-            status: 'at-risk'
+            title: 'Weekly Goals',
+            metric: 'Consistent goal-setting and completion across teams',
+            status: 'on-track'
           },
           {
-            title: 'Executive Visibility',
-            metric: 'All VPs using dashboard',
+            title: 'Team Connections',
+            metric: 'Colleagues connecting over shared interests',
+            status: 'on-track'
+          },
+          {
+            title: 'Coaching Adoption',
+            metric: 'Managers using coaching tools to support teams',
             status: 'on-track'
           }
         ]
       },
       scope: {
         v1Highlights: [
-          'Dream Book with timelines and context',
-          'Coach dashboard with insights and quick actions',
-          'People dashboard for HR exports',
-          'Automated scoring with analytics'
+          'Dream Book – up to 10 personal dreams with images, progress, and milestones',
+          'Weekly Goals – set, track, and complete goals linked to your dreams',
+          'Dream Connect – find colleagues with similar dreams and schedule meetups',
+          'Scorecard – earn points for dreams, goals, and connections',
+          'Dream Team – coaches see team progress and provide support',
+          'People Dashboard – browse all team members and their dreams',
+          'Admin Tools – user management and system oversight'
         ],
         milestoneRoadmap: [
-          { phase: 'Discovery & UX', window: 'Sep–Oct 2025', focus: 'User research and prototypes' },
-          { phase: 'Build & Polish', window: 'Nov–Dec 2025', focus: 'Core features and performance' },
-          { phase: 'Pilot Launch', window: 'Jan 2026', focus: 'Limited release with support' },
-          { phase: 'Full Launch', window: 'Mar 2026', focus: 'Company-wide rollout' }
+          { phase: 'Core Features', window: 'Live', focus: 'Dream Book, Weekly Goals, Scorecard' },
+          { phase: 'Connections', window: 'Live', focus: 'Dream Connect, Team Browsing' },
+          { phase: 'Coaching', window: 'Live', focus: 'Dream Team, Coach Dashboard' },
+          { phase: 'Admin', window: 'Live', focus: 'User Management, Health Monitoring' }
         ]
       },
       experienceGallery: {
         screenshots: [
-          { title: 'Dashboard', caption: 'Quick view of usage, alerts, and progress', asset: '/assets/dream-dashboard.png' },
-          { title: 'Coach Tools', caption: 'Team alerts and easy actions', asset: '/assets/coach-workspace.png' },
-          { title: 'Dream Book', caption: 'Personal story with timeline and milestones', asset: '/assets/dream-book.png' }
+          { title: 'Dashboard', caption: 'Your home base – dreams, goals, and quick stats', asset: '/assets/dashboard.png' },
+          { title: 'Dream Book', caption: 'Create and manage up to 10 personal dreams', asset: '/assets/dream-book.png' },
+          { title: 'Dream Connect', caption: 'Find and connect with like-minded colleagues', asset: '/assets/dream-connect.png' }
         ],
         recording: {
-          title: 'Full walkthrough',
-          duration: '7 min',
-          href: 'https://contoso.wistia.com/medias/dreamspace-e2e'
+          title: 'Quick tour of the app',
+          duration: '5 min',
+          href: '#'
         }
       },
       architecture: {
         overview: [
           {
-            title: 'Frontend',
-            details: ['React app with responsive design', 'Microsoft login integration', 'Clean, accessible UI']
+            title: 'What You See (Frontend)',
+            details: [
+              'React 18 app – fast, modern, works on any device',
+              'Tailwind CSS – clean Netsurit-branded look',
+              'Azure Static Web Apps – globally distributed for speed'
+            ]
           },
           {
-            title: 'Backend',
-            details: ['Azure cloud functions', 'Office 365 data integration', 'Built-in monitoring and logs']
+            title: 'Behind the Scenes (Backend)',
+            details: [
+              '30+ Azure Functions handling all the logic',
+              'Node.js 20 – reliable and well-supported',
+              'Microsoft Graph for profile photos and org data'
+            ]
           },
           {
-            title: 'Database',
-            details: ['Cosmos DB for fast queries', 'File storage for images', 'Background job processing']
+            title: 'Where Data Lives (Database)',
+            details: [
+              'Azure Cosmos DB – fast NoSQL database',
+              'Azure Blob Storage – for profile and dream images',
+              'Smart partitioning so your data loads quickly'
+            ]
           }
         ],
         stack: [
-          { label: 'Frontend', value: 'React + Tailwind CSS' },
-          { label: 'Backend', value: 'Azure Functions' },
-          { label: 'Auth', value: 'Microsoft 365 login' },
-          { label: 'Monitoring', value: 'Azure insights' }
+          { label: 'Frontend', value: 'React 18, Vite, Tailwind CSS' },
+          { label: 'Backend', value: 'Azure Functions (Node.js 20)' },
+          { label: 'Database', value: 'Azure Cosmos DB (NoSQL)' },
+          { label: 'Auth', value: 'Azure AD / Microsoft 365 SSO' },
+          { label: 'Hosting', value: 'Azure Static Web Apps' },
+          { label: 'Monitoring', value: 'Azure Application Insights' }
         ]
       },
       dataStrategy: {
         models: [
-          { title: 'Users', description: 'Basic profiles, one doc per person' },
-          { title: 'Dreams', description: 'Dream Book + goals bundled together' },
-          { title: 'Weeks', description: 'Yearly docs tracking progress' }
+          { title: 'Users', description: 'Profile info – name, email, office, role' },
+          { title: 'Dreams', description: 'Your dream book and weekly goal templates' },
+          { title: 'Connects', description: 'Records of colleague connections and meetups' },
+          { title: 'Scoring', description: 'Points earned for activity, by year' },
+          { title: 'Teams', description: 'Coaching relationships and team assignments' },
+          { title: 'Weeks', description: 'Weekly goals organized by year' }
         ],
         caching: [
-          'Fast global content delivery',
-          'Smart data reuse in the app',
-          'API responses cached for speed'
+          'Azure CDN for static assets worldwide',
+          'Smart client-side caching to reduce API calls',
+          'Background data refresh keeps things snappy'
         ]
       },
       codebase: {
         structure: [
           {
-            title: 'Clean Architecture',
+            title: '3-Layer Pattern',
             points: [
-              'Simple page wrappers that delegate to layouts',
-              'Layouts handle UI, hooks handle data',
-              'Everything separated by responsibility'
+              'Pages are thin wrappers (just a few lines)',
+              'Layouts handle the UI and compose components',
+              'Hooks manage data fetching and state',
+              'Services handle API calls'
             ]
           },
           {
-            title: 'Reliable APIs',
+            title: 'Quality Standards',
             points: [
-              'Services handle all external calls',
-              'Data validation before UI updates',
-              'Clean logging and error handling'
+              'No API calls in UI components – data comes from hooks',
+              'Files stay under 400 lines – easy to read',
+              'Zod schemas validate all data',
+              'Error handling built into every service'
             ]
           }
         ],
         sharedSystems: [
-          { label: 'State', detail: 'React Context with localStorage backup' },
-          { label: 'Styling', detail: 'Tailwind with company colors' },
-          { label: 'Auth', detail: 'Microsoft 365 integration' }
+          { label: 'State Management', detail: 'React Context + useReducer pattern' },
+          { label: 'Styling', detail: 'Tailwind CSS with Netsurit brand colors' },
+          { label: 'Validation', detail: 'Zod schemas for type-safe data' },
+          { label: 'Error Handling', detail: 'Centralized ok/fail pattern in services' }
         ],
         tooling: [
-          'Fast dev server with hot reload',
-          'Automated testing setup',
-          'Code quality tools and formatting'
+          'Vite – super fast dev server with hot reload',
+          'Vitest – testing framework with React Testing Library',
+          'ESLint – keeps code consistent',
+          'GitHub Actions – automated builds and deploys'
         ]
       },
       codingStandards: {
         dod: [
-          'Files stay small (<400 lines) and follow patterns',
-          'No direct API calls in UI components',
-          'Early handling of loading and errors'
+          'No fetch calls in UI – hooks handle data',
+          'Files under 400 lines',
+          'Early return for loading and error states',
+          'Accessibility labels on interactive elements',
+          'data-testid attributes for testing'
         ],
         accessibility: [
-          'Screen reader friendly with proper labels',
-          'Testable components with data attributes',
-          'Keyboard navigation works everywhere'
+          'Screen reader friendly with ARIA labels',
+          'Keyboard navigation throughout',
+          'Color contrast meets WCAG standards',
+          'Focus indicators on all interactive elements'
         ],
         cursorRules: [
-          'Keep changes tight and incremental—full rewrites need a nod',
-          'Don’t add new files or reshuffle folders without sign-off',
-          'Azure + Cosmos DB facts must be spot-on, partition keys included every time'
+          'Incremental changes preferred – no big rewrites',
+          'New files or restructuring needs sign-off',
+          'Azure and Cosmos patterns must be followed exactly',
+          'All API calls include partition keys'
         ]
       },
       security: {
         highlights: [
-          'Role-based access (user, coach, admin)',
-          'Regular security reviews and updates',
-          'Security planning completed'
+          'Microsoft 365 SSO – no separate passwords',
+          'Role-based access – user, coach, and admin levels',
+          'HTTPS everywhere – all data encrypted in transit',
+          'Data partitioned by user – you only see your stuff',
+          'Azure AD groups control admin and coach access'
         ],
         compliance: [
-          { label: 'SOC 2', status: 'In progress' },
+          { label: 'Authentication', status: 'Azure AD / MSAL' },
+          { label: 'Data Encryption', status: 'At rest and in transit' },
+          { label: 'POPIA', status: 'Compliant' },
           { label: 'GDPR', status: 'Compliant' },
-          { label: 'POPIA', status: 'Compliant' }
+          { label: 'Audit Logging', status: 'Application Insights' }
         ]
       },
       operations: {
         releasePipeline: [
-          'Automated testing through dev/staging/prod',
-          'Feature flags for safe rollouts',
-          'Quick rollback capability'
+          'Push to main → automatic build and deploy',
+          'Azure Static Web Apps handles hosting',
+          'Azure Functions deploy from same repo',
+          'Rollback by reverting the commit'
         ],
         monitoring: [
-          'Performance dashboards and alerts',
-          'Incident response integration',
-          'Weekly operations reviews'
+          'Application Insights tracks errors and performance',
+          'Health check page shows all API endpoints status',
+          'Alerts for failed requests or slow responses',
+          'Real-time usage metrics available'
         ]
       },
       futureRoadmap: {
         priorities: [
-          { item: 'Smart Notifications', target: 'Q2 2026', notes: 'Teams alerts based on progress' },
-          { item: 'AI Progress Summaries', target: 'Q3 2026', notes: 'Automated dream insights' }
+          { item: 'Teams Notifications', target: 'Future', notes: 'Reminders and updates in Microsoft Teams' },
+          { item: 'AI Summaries', target: 'Future', notes: 'Smart progress insights and suggestions' },
+          { item: 'Mobile App', target: 'Future', notes: 'React Native version for phones' },
+          { item: 'Group Challenges', target: 'Future', notes: 'Team-based dream competitions' }
         ],
         experiments: [
-          'Quick feedback surveys',
-          'Goal alignment features'
+          'Offline mode for when you\'re disconnected',
+          'Video call integration for virtual connects',
+          'Advanced analytics and reporting'
         ]
       },
       resources: [
-        { label: 'Product Brief', href: '/docs/product-brief.pdf' },
-        { label: 'Architecture Deck', href: '/docs/architecture-overview.pdf' },
-        { label: 'Analytics Dashboard', href: 'https://app.powerbi.com/groups/dreamspace-analytics' },
-        { label: 'Support Playbook', href: '/docs/support-playbook.pdf' },
-        { label: 'Teams Channel', href: 'https://teams.microsoft.com/l/channel/dreamspace-build' }
+        { label: 'Dashboard', href: '/' },
+        { label: 'Dream Book', href: '/dream-book' },
+        { label: 'Scorecard', href: '/scorecard' },
+        { label: 'Health Check', href: '/health' },
+        { label: 'Admin Dashboard', href: '/admin' }
       ]
     }),
     []
@@ -212,5 +253,3 @@ export function useBuildOverview() {
     error: null
   };
 }
-
-

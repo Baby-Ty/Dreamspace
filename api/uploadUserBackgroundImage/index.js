@@ -168,8 +168,9 @@ module.exports = createApiHandler({
   const safeUserId = userId.replace(/[^a-zA-Z0-9-_@.]/g, '_');
   const timestamp = Date.now();
   
-  // Derive extension from content type (webp on success, png on failure)
-  const extension = contentType === 'image/webp' ? 'webp' : 'png';
+  // Derive extension from content type
+  const extensionMap = { 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' };
+  const extension = extensionMap[contentType] || 'jpg';
   const blobName = `${safeUserId}_${timestamp}.${extension}`;
 
   // Get blob client

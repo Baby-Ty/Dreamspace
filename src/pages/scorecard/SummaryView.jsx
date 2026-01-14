@@ -78,13 +78,19 @@ function SummaryView({ categoryStats, scoringRules, totalScore }) {
                     />
                   );
                 }
+                // Map category keys to SCORING_RULES keys (handle plural -> singular)
+                const keyMap = {
+                  dreamsCompleted: 'dreamCompleted',
+                  dreamConnects: 'dreamConnect'
+                };
+                const ruleKey = keyMap[category.key] || category.key;
                 return (
                   <ActivityCard
                     key={category.key}
                     title={category.label}
                     count={category.stats.count}
                     points={category.stats.points}
-                    pointsEach={scoringRules[category.key === 'dreamsCompleted' ? 'dreamCompleted' : category.key]}
+                    pointsEach={scoringRules?.[ruleKey] ?? 0}
                     icon={category.icon}
                     color={category.color}
                     bgColor={category.bgColor}
@@ -150,8 +156,20 @@ SummaryView.propTypes = {
       points: PropTypes.number.isRequired
     }).isRequired
   }).isRequired,
-  scoringRules: PropTypes.object.isRequired,
+  scoringRules: PropTypes.shape({
+    dreamCompleted: PropTypes.number,
+    dreamConnect: PropTypes.number,
+    groupAttendance: PropTypes.number
+  }),
   totalScore: PropTypes.number.isRequired
+};
+
+SummaryView.defaultProps = {
+  scoringRules: {
+    dreamCompleted: 10,
+    dreamConnect: 5,
+    groupAttendance: 3
+  }
 };
 
 export default SummaryView;

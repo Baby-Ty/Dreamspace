@@ -69,31 +69,37 @@ function HistoryView({ groupedHistory, sortedDates, totalActivities }) {
                   role="list"
                   aria-label={`Activities for ${new Date(date).toLocaleDateString()}`}
                 >
-                  {dayItems.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="flex items-center justify-between p-3 bg-professional-gray-50 rounded-lg hover:bg-professional-gray-100 transition-colors duration-200"
-                      role="listitem"
-                      data-testid={`history-item-${item.id}`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-professional-gray-900 text-sm truncate">
-                          {item.title}
-                        </h5>
-                        <p className="text-xs text-professional-gray-600 mt-1">
-                          {item.category}
-                        </p>
+                  {dayItems.map((item) => {
+                    // Support both old (title/category) and new (activity/source) field names
+                    const displayTitle = item.title || item.activity || 'Activity';
+                    const displayCategory = item.category || item.source || 'Points';
+                    
+                    return (
+                      <div 
+                        key={item.id} 
+                        className="flex items-center justify-between p-3 bg-professional-gray-50 rounded-lg hover:bg-professional-gray-100 transition-colors duration-200"
+                        role="listitem"
+                        data-testid={`history-item-${item.id}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-medium text-professional-gray-900 text-sm truncate">
+                            {displayTitle}
+                          </h5>
+                          <p className="text-xs text-professional-gray-600 mt-1 capitalize">
+                            {displayCategory}
+                          </p>
+                        </div>
+                        <div className="text-right ml-3">
+                          <span 
+                            className="text-sm font-bold text-netsurit-red"
+                            aria-label={`Earned ${item.points} points`}
+                          >
+                            +{item.points}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right ml-3">
-                        <span 
-                          className="text-sm font-bold text-netsurit-red"
-                          aria-label={`Earned ${item.points} points`}
-                        >
-                          +{item.points}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -109,8 +115,11 @@ HistoryView.propTypes = {
     PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
-        category: PropTypes.string.isRequired,
+        // Support both naming conventions
+        title: PropTypes.string,
+        activity: PropTypes.string,
+        category: PropTypes.string,
+        source: PropTypes.string,
         points: PropTypes.number.isRequired,
         date: PropTypes.oneOfType([
           PropTypes.string,

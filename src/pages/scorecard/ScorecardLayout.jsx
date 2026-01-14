@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Trophy, BarChart3, Calendar } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { SCORING_RULES } from '../../context/appContextConfig';
 import { useScorecardData } from '../../hooks/useScorecardData';
 import SummaryView from './SummaryView';
 import HistoryView from './HistoryView';
@@ -13,7 +14,7 @@ import HelpTooltip from '../../components/HelpTooltip';
  * Orchestrates view state and renders header with score summary
  */
 function ScorecardLayout() {
-  const { currentUser, scoringRules, scoringHistory, allYearsScoring } = useApp();
+  const { currentUser, scoringHistory, allYearsScoring } = useApp();
   const [viewMode, setViewMode] = useState('summary'); // 'summary' or 'detailed'
 
   // Get all calculated data from hook (now with all-time scoring support)
@@ -28,7 +29,7 @@ function ScorecardLayout() {
     progressToNext,
     groupedHistory,
     sortedDates
-  } = useScorecardData(currentUser, scoringHistory, scoringRules, allYearsScoring);
+  } = useScorecardData(currentUser, scoringHistory, allYearsScoring);
 
   // Early return for loading state
   if (!currentUser) {
@@ -177,7 +178,7 @@ function ScorecardLayout() {
         {viewMode === 'summary' ? (
           <SummaryView 
             categoryStats={categoryStats}
-            scoringRules={scoringRules}
+            scoringRules={SCORING_RULES}
             totalScore={totalScore}
           />
         ) : viewMode === 'breakdown' ? (
@@ -189,7 +190,7 @@ function ScorecardLayout() {
           <HistoryView 
             groupedHistory={groupedHistory}
             sortedDates={sortedDates}
-            totalActivities={scoringHistory.length}
+            totalActivities={scoringHistory?.length ?? 0}
           />
         )}
       </div>

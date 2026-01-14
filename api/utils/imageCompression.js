@@ -1,24 +1,7 @@
-// Lazy load Sharp to handle environments where native binaries may not work
-let sharp = null;
-let sharpLoadError = null;
-
-function loadSharp() {
-  if (sharp !== null || sharpLoadError !== null) {
-    return sharp;
-  }
-  try {
-    sharp = require('sharp');
-    console.log('Sharp loaded successfully');
-  } catch (error) {
-    sharpLoadError = error;
-    console.error('Sharp failed to load:', error.message);
-  }
-  return sharp;
-}
+const Jimp = require('jimp');
 
 /**
- * Compress image to target size using Sharp
- * Falls back to returning original image if Sharp is unavailable
+ * Compress image to target size using Jimp (pure JavaScript, works everywhere)
  * @param {Buffer} imageBuffer - Original image buffer
  * @param {Object} options - Compression options
  * @param {number} options.maxSizeKB - Target max size in KB (default: 300)
@@ -37,42 +20,30 @@ async function compressImage(imageBuffer, options = {}) {
   
   const targetBytes = maxSizeKB * 1024;
   
-  // Try to load Sharp - if it fails, return original image
-  const sharpLib = loadSharp();
-  if (!sharpLib) {
-    console.warn('Sharp unavailable, skipping compression. Error:', sharpLoadError?.message);
-    return {
-      buffer: imageBuffer,
-      contentType: 'image/png',
-      originalSize: imageBuffer.length,
-      compressedSize: imageBuffer.length,
-      quality: null,
-      error: 'Sharp not available in this environment'
-    };
-  }
-  
   try {
-    let quality = initialQuality;
-    let compressed = await sharpLib(imageBuffer)
-      .resize({ width: maxWidth, withoutEnlargement: true })
-      .webp({ quality })
-      .toBuffer();
+    // Load image with Jimp
+    const image = await Jimp.read(imageBuffer);
     
-    // Reduce quality iteratively if still too large, but maintain minimum quality
-    while (compressed.length > targetBytes && quality > minQuality) {
-      quality -= 5;  // Smaller steps for better quality control
-      compressed = await sharpLib(imageBuffer)
-        .resize({ width: maxWidth, withoutEnlargement: true })
-        .webp({ quality })
-        .toBuffer();
+    // Resize if wider than maxWidth (maintain aspect ratio)
+    if (image.getWidth() > maxWidth) {
+      image.resize(maxWidth, Jimp.AUTO);
     }
     
-    // If still too large at min quality, accept it (quality > file size)
-    // This ensures we don't sacrifice too much visual quality
+    // Try different quality levels to hit target size
+    let quality = initialQuality;
+    let compressed = await image.quality(quality).getBufferAsync(Jimp.MIME_JPEG);
+    
+    // Reduce quality iteratively if still too large
+    while (compressed.length > targetBytes && quality > minQuality) {
+      quality -= 5;
+      compressed = await image.quality(quality).getBufferAsync(Jimp.MIME_JPEG);
+    }
+    
+    console.log(`Jimp compression: ${(imageBuffer.length / 1024).toFixed(0)}KB -> ${(compressed.length / 1024).toFixed(0)}KB (quality: ${quality})`);
     
     return {
       buffer: compressed,
-      contentType: 'image/webp',
+      contentType: 'image/jpeg',
       originalSize: imageBuffer.length,
       compressedSize: compressed.length,
       quality
@@ -82,7 +53,7 @@ async function compressImage(imageBuffer, options = {}) {
     console.error('Image compression failed:', error.message);
     return {
       buffer: imageBuffer,
-      contentType: 'image/png', // Keep original format on failure
+      contentType: 'image/png',
       originalSize: imageBuffer.length,
       compressedSize: imageBuffer.length,
       quality: null,
