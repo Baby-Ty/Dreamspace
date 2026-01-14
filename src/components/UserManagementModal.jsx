@@ -4,16 +4,12 @@ import { useState } from 'react';
 import { 
   X, 
   User, 
-  Target, 
   BookOpen, 
-  TrendingUp, 
-  Award, 
   Users, 
   MapPin,
   Mail
 } from 'lucide-react';
 import DreamTrackerModal from './DreamTrackerModal';
-import CareerTrackerModal from './CareerTrackerModal';
 import FlagIcon from './FlagIcon';
 import { getCountryCode } from '../utils/regionUtils';
 
@@ -21,9 +17,6 @@ import { getCountryCode } from '../utils/regionUtils';
 import {
   OverviewTab,
   DreamsTab,
-  CareerGoalsTab,
-  DevelopmentTab,
-  SkillsTab,
   ConnectsTab
 } from './user-management';
 
@@ -32,8 +25,6 @@ const UserManagementModal = ({ user, onClose }) => {
   
   // Nested modal state
   const [selectedDream, setSelectedDream] = useState(null);
-  const [selectedCareerItem, setSelectedCareerItem] = useState(null);
-  const [careerItemType, setCareerItemType] = useState(null);
 
   if (!user) return null;
 
@@ -45,31 +36,13 @@ const UserManagementModal = ({ user, onClose }) => {
     setSelectedDream(null);
   };
 
-  const handleOpenCareerModal = (item, type) => {
-    setSelectedCareerItem(item);
-    setCareerItemType(type);
-  };
-
-  const handleCloseCareerModal = () => {
-    setSelectedCareerItem(null);
-    setCareerItemType(null);
-  };
-
   const handleUpdateDream = (updatedDream) => {
     setSelectedDream(updatedDream);
-  };
-
-  const handleUpdateCareerItem = (updatedItem, type) => {
-    setSelectedCareerItem(null);
-    setCareerItemType(null);
   };
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: User },
     { id: 'dreams', name: 'Dreams', icon: BookOpen },
-    { id: 'career-goals', name: 'Career Goals', icon: Target },
-    { id: 'development', name: 'Development', icon: TrendingUp },
-    { id: 'skills', name: 'Skills', icon: Award },
     { id: 'connects', name: 'Connects', icon: Users },
   ];
 
@@ -142,9 +115,6 @@ const UserManagementModal = ({ user, onClose }) => {
         <div className="p-4 sm:p-5 overflow-y-auto max-h-[calc(90vh-200px)]">
           {activeTab === 'overview' && <OverviewTab user={user} />}
           {activeTab === 'dreams' && <DreamsTab user={user} onOpenDreamModal={handleOpenDreamModal} />}
-          {activeTab === 'career-goals' && <CareerGoalsTab user={user} onOpenCareerModal={handleOpenCareerModal} />}
-          {activeTab === 'development' && <DevelopmentTab user={user} onOpenCareerModal={handleOpenCareerModal} />}
-          {activeTab === 'skills' && <SkillsTab user={user} />}
           {activeTab === 'connects' && <ConnectsTab user={user} />}
         </div>
 
@@ -154,17 +124,6 @@ const UserManagementModal = ({ user, onClose }) => {
             dream={selectedDream}
             onClose={handleCloseDreamModal}
             onUpdateDream={handleUpdateDream}
-            isReadOnly={true}
-          />
-        )}
-
-        {/* Nested Career Tracker Modal */}
-        {selectedCareerItem && (
-          <CareerTrackerModal
-            item={selectedCareerItem}
-            itemType={careerItemType}
-            onClose={handleCloseCareerModal}
-            onUpdate={handleUpdateCareerItem}
             isReadOnly={true}
           />
         )}

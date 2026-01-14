@@ -30,22 +30,6 @@ export {
   parseNote
 } from './dream.js';
 
-// Career schemas
-export {
-  CareerGoalSchema,
-  CareerGoalListSchema,
-  DevelopmentPlanSchema,
-  DevelopmentPlanListSchema,
-  SkillSchema,
-  SkillListSchema,
-  parseCareerGoal,
-  parseCareerGoalList,
-  parseDevelopmentPlan,
-  parseDevelopmentPlanList,
-  parseSkill,
-  parseSkillList
-} from './career.js';
-
 // Person schemas
 export {
   PersonSchema,
@@ -102,8 +86,6 @@ export {
  * 
  * DREAMS & GOALS
  * - parseDreamList(data) → Dream[]
- * - parseCareerGoalList(data) → CareerGoal[]
- * - parseDevelopmentPlanList(data) → DevelopmentPlan[]
  * 
  * PEOPLE & TEAMS
  * - parsePersonList(data) → Person[]

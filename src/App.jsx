@@ -15,7 +15,6 @@ const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard" */ './pages
 const DreamBook = lazy(() => import(/* webpackChunkName: "dream-book" */ './pages/DreamBook'));
 // DreamsWeekAhead removed - redundant with Dashboard (simplified weeks tracking)
 const DreamConnect = lazy(() => import(/* webpackChunkName: "dream-connect" */ './pages/dream-connect/DreamConnectLayout'));
-const CareerBook = lazy(() => import(/* webpackChunkName: "career-book" */ './pages/career/CareerBookLayout'));
 const Scorecard = lazy(() => import(/* webpackChunkName: "scorecard" */ './pages/Scorecard'));
 const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin-dashboard" */ './pages/AdminDashboard'));
 const DreamTeam = lazy(() => import(/* webpackChunkName: "dream-team" */ './pages/DreamTeam'));
@@ -56,7 +55,6 @@ function AppContent() {
               <Route path="/dream-book" element={<DreamBook />} />
               {/* /dreams-week-ahead removed - redundant with Dashboard */}
               <Route path="/dream-connect" element={<DreamConnect />} />
-              <Route path="/career-book" element={<CareerBook />} />
               <Route path="/scorecard" element={<Scorecard />} />
               <Route path="/dream-team" element={<DreamTeam />} />
               <Route path="/people" element={<PeopleDashboard />} />

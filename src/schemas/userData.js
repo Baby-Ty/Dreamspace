@@ -1,7 +1,6 @@
 // DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { z } from 'zod';
 import { DreamListSchema, parseDreamList } from './dream.js';
-import { CareerGoalListSchema, DevelopmentPlanListSchema, parseCareerGoalList, parseDevelopmentPlanList } from './career.js';
 import { ConnectListSchema, WeeklyGoalListSchema, parseConnectList, parseWeeklyGoalList } from './person.js';
 
 /**
@@ -36,10 +35,6 @@ export const UserDataSchema = z.object({
   dreamCategories: z.array(z.string()).default([]),
   dreamsCount: z.number().default(0),
   
-  // Career data (optional for v2 - stored in items container)
-  careerGoals: CareerGoalListSchema.optional().default([]),
-  developmentPlan: DevelopmentPlanListSchema.optional().default([]),
-  
   // Connections (optional for v2 - stored in items container)
   connects: ConnectListSchema.optional().default([]),
   connectsCount: z.number().default(0),
@@ -68,8 +63,6 @@ export function parseUserData(data) {
       dreamBook: [],
       dreamCategories: [],
       dreamsCount: 0,
-      careerGoals: [],
-      developmentPlan: [],
       connects: [],
       connectsCount: 0,
       weeklyGoals: [],
@@ -93,8 +86,6 @@ export function parseUserData(data) {
       dreamBook: parseDreamList(data.dreamBook || []),
       dreamCategories: Array.isArray(data.dreamCategories) ? data.dreamCategories : [],
       dreamsCount: typeof data.dreamsCount === 'number' ? data.dreamsCount : (data.dreamBook?.length || 0),
-      careerGoals: parseCareerGoalList(data.careerGoals || []),
-      developmentPlan: parseDevelopmentPlanList(data.developmentPlan || []),
       connects: parseConnectList(data.connects || []),
       connectsCount: typeof data.connectsCount === 'number' ? data.connectsCount : (data.connects?.length || 0),
       weeklyGoals: parseWeeklyGoalList(data.weeklyGoals || []),
