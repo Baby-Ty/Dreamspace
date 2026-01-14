@@ -220,18 +220,34 @@ function createApiHandler(options, handler) {
 }
 
 /**
+ * Check if running in production environment
+ * In production, we hide error details to prevent information leakage
+ */
+function isProduction() {
+  return process.env.NODE_ENV === 'production' || 
+         process.env.AZURE_FUNCTIONS_ENVIRONMENT === 'Production' ||
+         process.env.REQUIRE_AUTH === 'true';
+}
+
+/**
  * Handle errors and format error responses
  * Supports both standard Error objects and custom error objects with status codes
+ * 
+ * SECURITY: In production, internal error details are hidden to prevent information leakage
  */
 function handleError(context, error, headers) {
-  // Check if it's a custom error with status code
+  const isProd = isProduction();
+  
+  // Check if it's a custom error with status code (intentional user-facing errors)
   if (error.status) {
     const statusCode = error.status;
     const errorBody = {
-      error: error.message || 'Request failed'
+      error: error.message || 'Request failed',
+      requestId: context.invocationId
     };
     
-    if (error.details) {
+    // Only include details for 4xx errors (client errors) or in non-production
+    if (error.details && (statusCode < 500 || !isProd)) {
       errorBody.details = error.details;
     }
 
@@ -251,20 +267,24 @@ function handleError(context, error, headers) {
       status: 404,
       body: JSON.stringify({
         error: 'Resource not found',
-        details: error.message
+        requestId: context.invocationId,
+        // Safe to include in 404s - just says "not found"
+        ...(isProd ? {} : { details: error.message })
       }),
       headers
     };
     return;
   }
 
-  // Handle standard errors
+  // Handle standard errors - NEVER expose internal details in production
   context.log.error('Internal server error:', error);
   context.res = {
     status: 500,
     body: JSON.stringify({
       error: 'Internal server error',
-      details: error.message || 'An unexpected error occurred'
+      requestId: context.invocationId,
+      // Only include details in non-production for debugging
+      ...(isProd ? {} : { details: error.message || 'An unexpected error occurred' })
     }),
     headers
   };

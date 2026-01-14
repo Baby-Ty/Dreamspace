@@ -1,6 +1,6 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
 const https = require('https');
-const http = require('http');
+// SECURITY: HTTP intentionally not imported - only HTTPS allowed for URL fetching
 const { createApiHandler } = require('../utils/apiWrapper');
 const { compressImage } = require('../utils/imageCompression');
 
@@ -43,10 +43,8 @@ function fetchImageFromUrl(url) {
   }
 
   return new Promise((resolve, reject) => {
-    const urlObj = new URL(url);
-    const client = urlObj.protocol === 'https:' ? https : http;
-    
-    client.get(url, (res) => {
+    // SECURITY: Only HTTPS is allowed (validated by isUrlAllowed)
+    https.get(url, (res) => {
       if (res.statusCode !== 200) {
         reject(new Error(`Failed to fetch image: ${res.statusCode} ${res.statusMessage}`));
         return;

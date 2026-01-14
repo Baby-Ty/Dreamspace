@@ -1,13 +1,23 @@
 /**
  * Simple Rate Limiter for Azure Functions
  * 
- * Uses in-memory storage for rate limiting. In a production multi-instance
- * deployment, consider using Azure Cache for Redis for distributed rate limiting.
+ * SECURITY NOTE: Uses in-memory storage for rate limiting.
  * 
- * For single-instance Azure Static Web Apps, in-memory is sufficient.
+ * LIMITATIONS:
+ * - State is lost on function restart (users can exceed limits temporarily)
+ * - State is NOT shared across multiple instances
+ * - Suitable for single-instance Azure Static Web Apps
+ * 
+ * For production multi-instance deployments, migrate to Azure Cache for Redis:
+ * - Install: npm install ioredis
+ * - Replace Map with Redis client
+ * - Use REDIS_CONNECTION_STRING environment variable
+ * 
+ * Current deployment model: Azure Static Web Apps (single instance) - in-memory is acceptable.
  */
 
 // In-memory store for rate limiting (clears on function restart)
+// WARNING: See security notes above about scaling limitations
 const rateLimitStore = new Map();
 
 // Default configuration
