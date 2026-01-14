@@ -64,11 +64,15 @@ export function useInitialUserSync(initialUser, state, dispatch) {
     initialUser?.name, 
     initialUser?.email, 
     initialUser?.office, 
-    initialUser?.yearVision, 
+    initialUser?.yearVision,
+    initialUser?.dreamBook,
+    initialUser?.connects,
     state.currentUser?.id, 
     state.currentUser?.name, 
     state.currentUser?.email, 
     state.currentUser?.office,
+    state.currentUser?.dreamBook,
+    state.currentUser?.connects,
     dispatch
   ]);
 }
