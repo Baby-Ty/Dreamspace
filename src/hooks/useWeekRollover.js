@@ -16,9 +16,13 @@ import { logger } from '../utils/logger';
  * 
  * This hook:
  * 1. Checks if currentWeek.weekId matches actual current week
- * 2. If mismatch detected, archives old week and reloads
+ * 2. If mismatch detected, calls syncCurrentWeek which handles rollover
  * 3. Only runs once per session (via ref)
  * 4. Fails silently to not block user
+ * 
+ * NOTE: The syncCurrentWeek endpoint handles both:
+ * - Full rollover (archives old week, creates new goals with decremented weeksRemaining)
+ * - Same-week sync (creates missing instances for new templates)
  */
 export function useWeekRollover() {
   const { currentUser } = useApp();
@@ -36,7 +40,7 @@ export function useWeekRollover() {
           userId: currentUser.id 
         });
         
-        // 1. Get current week document
+        // 1. Get current week document to check if rollover needed
         const result = await currentWeekService.getCurrentWeek(currentUser.id);
         
         if (!result.success || !result.data) {
@@ -58,46 +62,47 @@ export function useWeekRollover() {
         }
         
         // 3. WEEK MISMATCH - Rollover needed!
-        logger.warn('useWeekRollover', 'Week mismatch detected! Triggering rollover...', {
+        logger.warn('useWeekRollover', 'Week mismatch detected! Triggering sync/rollover...', {
           currentWeekDoc: currentWeekDoc.weekId,
           actualWeek: actualWeekId
         });
         
-        // Show notification to user (console only, no UI blocking)
-        console.log('🔄 New week detected! Updating your goals...');
-        
-        // 4. Calculate summary for archive
+        // Store old week info for event
+        const oldWeekId = currentWeekDoc.weekId;
         const summary = {
           totalGoals: currentWeekDoc.goals?.length || 0,
           completedGoals: currentWeekDoc.goals?.filter(g => g.completed).length || 0,
           skippedGoals: currentWeekDoc.goals?.filter(g => g.skipped).length || 0,
-          score: calculateScore(currentWeekDoc.goals || []),
-          weekStartDate: currentWeekDoc.weekStartDate,
-          weekEndDate: currentWeekDoc.weekEndDate
+          score: calculateScore(currentWeekDoc.goals || [])
         };
         
-        logger.info('useWeekRollover', 'Archiving old week', {
-          weekId: currentWeekDoc.weekId,
-          stats: summary
-        });
+        // Show notification to user (console only, no UI blocking)
+        console.log('🔄 New week detected! Updating your goals...');
         
-        // 5. Archive old week
-        const archiveResult = await currentWeekService.archiveWeek(
-          currentUser.id,
-          currentWeekDoc.weekId,
-          summary
-        );
+        // 4. Call syncCurrentWeek - it handles everything:
+        //    - Archives old week
+        //    - Creates new goals with properly decremented weeksRemaining
+        //    - Returns the new week data
+        const syncResult = await currentWeekService.syncCurrentWeek(currentUser.id);
         
-        if (!archiveResult.success) {
-          throw new Error(`Archive failed: ${archiveResult.error}`);
+        if (!syncResult.success) {
+          // If sync fails, try legacy archive approach
+          logger.warn('useWeekRollover', 'syncCurrentWeek failed, trying legacy archive', {
+            error: syncResult.error
+          });
+          
+          // Fall back to just archiving (dashboard loader will create goals)
+          const archiveResult = await currentWeekService.archiveWeek(
+            currentUser.id,
+            oldWeekId,
+            summary
+          );
+          
+          if (!archiveResult.success) {
+            throw new Error(`Archive failed: ${archiveResult.error}`);
+          }
         }
         
-        logger.info('useWeekRollover', 'Old week archived successfully', {
-          weekId: currentWeekDoc.weekId
-        });
-        
-        // 6. New week will be created by useDashboardData auto-instantiation
-        // Trigger refresh event instead of page reload to prevent reload loop
         logger.info('useWeekRollover', 'Rollover complete! Triggering dashboard refresh...');
         
         // Mark as checked before triggering refresh
@@ -106,7 +111,7 @@ export function useWeekRollover() {
         // Trigger dashboard refresh event (Dashboard will listen and refresh data)
         window.dispatchEvent(new CustomEvent('week-rolled-over', {
           detail: {
-            fromWeek: currentWeekDoc.weekId,
+            fromWeek: oldWeekId,
             toWeek: actualWeekId,
             stats: summary
           }
@@ -115,9 +120,6 @@ export function useWeekRollover() {
         // Optional: Show success message
         console.log(`✅ Week rollover complete! Welcome to ${actualWeekId}`);
         console.log(`📊 Last week: ${summary.completedGoals}/${summary.totalGoals} goals completed (${summary.score} points)`);
-        
-        // Note: Dashboard will listen to 'week-rolled-over' event and refresh data
-        // No page reload needed - prevents reload loop issue
         
       } catch (error) {
         logger.error('useWeekRollover', 'Rollover check failed', { 
@@ -157,4 +159,3 @@ function calculateScore(goals) {
 }
 
 export default useWeekRollover;
-

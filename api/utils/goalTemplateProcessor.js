@@ -56,15 +56,17 @@ function filterActiveTemplates(templates, dreams, context = null) {
     }
     
     // Skip if duration expired (monthly goals now tracked in weeks)
-    if (t.recurrence === 'weekly' && t.weeksRemaining !== undefined && t.weeksRemaining <= 0) {
+    // Note: weeksRemaining = 0 is the final week (should still show), < 0 means done
+    if (t.recurrence === 'weekly' && t.weeksRemaining !== undefined && t.weeksRemaining < 0) {
       return false;
     }
     if (t.recurrence === 'monthly') {
       // Check weeksRemaining if available, otherwise convert from targetMonths
+      // Note: weeksRemaining = 0 is the final week (should still show), < 0 means done
       const weeksRemaining = t.weeksRemaining !== undefined
         ? t.weeksRemaining
         : (t.targetWeeks || (t.targetMonths ? monthsToWeeks(t.targetMonths) : undefined));
-      if (weeksRemaining !== undefined && weeksRemaining <= 0) {
+      if (weeksRemaining !== undefined && weeksRemaining < 0) {
         return false;
       }
     }

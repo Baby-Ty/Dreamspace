@@ -3,7 +3,7 @@
  * Runs every Monday at 00:00 UTC
  * Archives previous week and creates new week for all users
  * 
- * Timer: "0 0 * * 1" (every Monday at midnight)
+ * Timer: "0 0 0 * * 1" (NCRONTAB 6-field: sec min hour day month weekday)
  */
 
 const { getCosmosProvider } = require('../utils/cosmosProvider');

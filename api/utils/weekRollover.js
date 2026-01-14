@@ -387,8 +387,226 @@ async function createGoalsFromTemplates(userId, weekId, previousGoals = [], cont
   return newGoals;
 }
 
+/**
+ * Create missing goal instances for the current week
+ * 
+ * This is a lighter version of createGoalsFromTemplates that:
+ * - Does NOT decrement weeksRemaining (same week, just missing instance)
+ * - Does NOT need previousInstance logic (not crossing weeks)
+ * - Only creates instances for templates/goals that don't have one yet
+ * 
+ * Used by syncCurrentWeek endpoint when user creates new templates/goals mid-week
+ * 
+ * @param {string} userId - User ID
+ * @param {string} weekId - Current ISO week string
+ * @param {object} currentWeekDoc - Existing current week document (may be null)
+ * @param {object} context - Azure Function context (for logging)
+ * @returns {Promise<{weekId: string, goals: Array, created: number, stats: object}>}
+ */
+async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null, context = null) {
+  const cosmosProvider = getCosmosProvider();
+  const log = context?.log || console.log;
+  
+  log(`📋 ${userId}: Creating missing goal instances for ${weekId}`);
+  
+  // 1. Get existing goals (or empty array if no doc)
+  const existingGoals = currentWeekDoc?.goals || [];
+  const existingGoalIds = new Set(existingGoals.map(g => g.id));
+  const existingTemplateIds = new Set(existingGoals.map(g => g.templateId).filter(Boolean));
+  
+  log(`📋 ${userId}: Found ${existingGoals.length} existing goals`);
+  
+  // 2. Get user's dreams and templates
+  const dreamsDoc = await cosmosProvider.getDreamsDocument(userId);
+  if (!dreamsDoc) {
+    log(`ℹ️ ${userId}: No dreams document found`);
+    return { 
+      weekId, 
+      goals: existingGoals, 
+      created: 0,
+      stats: { totalGoals: existingGoals.length, completedGoals: 0, score: 0 }
+    };
+  }
+  
+  const dreams = dreamsDoc.dreamBook || dreamsDoc.dreams || [];
+  const templates = dreamsDoc.weeklyGoalTemplates || [];
+  
+  log(`📋 ${userId}: Found ${dreams.length} dreams and ${templates.length} templates`);
+  
+  // 3. Find active templates that need instances
+  const newInstances = [];
+  const templateIds = new Set(templates.map(t => t.id));
+  
+  // Filter active templates
+  const activeTemplates = filterActiveTemplates(templates, dreams, context);
+  
+  for (const template of activeTemplates) {
+    const instanceId = `${template.id}_${weekId}`;
+    
+    // Skip if instance already exists
+    if (existingGoalIds.has(instanceId) || existingTemplateIds.has(template.id)) {
+      continue;
+    }
+    
+    const dream = dreams.find(d => d.id === template.dreamId);
+    
+    // Create instance WITHOUT decrementing weeksRemaining (same week)
+    // Use the template's current weeksRemaining value directly
+    const instance = {
+      id: instanceId,
+      templateId: template.id,
+      type: template.recurrence === 'monthly' ? 'monthly_goal' : 'weekly_goal',
+      title: template.title,
+      description: template.description || '',
+      dreamId: template.dreamId,
+      dreamTitle: dream?.title || template.dreamTitle || '',
+      dreamCategory: dream?.category || template.dreamCategory || '',
+      recurrence: template.recurrence,
+      completed: false,
+      completedAt: null,
+      skipped: false,
+      weekId: weekId,
+      createdAt: new Date().toISOString(),
+      targetWeeks: template.targetWeeks,
+      weeksRemaining: template.weeksRemaining !== undefined 
+        ? template.weeksRemaining 
+        : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined)),
+      frequency: template.frequency || (template.recurrence === 'monthly' ? 2 : 1),
+      completionCount: 0,
+      completionDates: [],
+    };
+    
+    // Add monthId for monthly goals
+    if (template.recurrence === 'monthly') {
+      instance.monthId = getMonthId(weekId);
+      instance.targetMonths = template.targetMonths;
+    }
+    
+    newInstances.push(instance);
+    log(`✨ ${userId}: Creating instance for template "${template.title}"`);
+  }
+  
+  // 4. Find active dream goals (deadline and consistency) that need instances
+  for (const dream of dreams) {
+    if (dream.completed) continue;
+    
+    for (const goal of (dream.goals || [])) {
+      // Skip completed or inactive goals
+      if (goal.completed || goal.active === false) continue;
+      
+      // Skip goals that already have templates (processed above)
+      if (templateIds.has(goal.id)) continue;
+      
+      const instanceId = `${goal.id}_${weekId}`;
+      
+      // Skip if instance already exists
+      if (existingGoalIds.has(instanceId) || existingTemplateIds.has(goal.id)) continue;
+      
+      // Handle deadline goals
+      if (goal.type === 'deadline' && goal.active === true) {
+        const weeksRemaining = goal.weeksRemaining !== undefined 
+          ? goal.weeksRemaining 
+          : (goal.targetWeeks !== undefined 
+              ? goal.targetWeeks 
+              : (goal.targetDate ? getWeeksUntilDate(goal.targetDate, weekId) : -1));
+        
+        // Only create if deadline hasn't passed
+        if (weeksRemaining >= 0) {
+          const instance = {
+            id: instanceId,
+            templateId: goal.id,
+            type: 'deadline',
+            title: goal.title,
+            description: goal.description || '',
+            dreamId: dream.id,
+            dreamTitle: dream.title,
+            dreamCategory: dream.category,
+            targetWeeks: goal.targetWeeks || weeksRemaining,
+            targetDate: goal.targetDate,
+            weeksRemaining: weeksRemaining,
+            completed: false,
+            completedAt: null,
+            skipped: false,
+            weekId: weekId,
+            createdAt: new Date().toISOString()
+          };
+          newInstances.push(instance);
+          log(`✨ ${userId}: Creating instance for deadline goal "${goal.title}"`);
+        }
+      }
+      
+      // Handle consistency goals
+      if (goal.type === 'consistency' && goal.recurrence) {
+        const weeksRemaining = goal.weeksRemaining !== undefined 
+          ? goal.weeksRemaining 
+          : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined));
+        
+        // Only create if not expired
+        if (weeksRemaining === undefined || weeksRemaining >= 0) {
+          const instance = {
+            id: instanceId,
+            templateId: goal.id,
+            type: goal.recurrence === 'monthly' ? 'monthly_goal' : 'weekly_goal',
+            title: goal.title,
+            description: goal.description || '',
+            dreamId: dream.id,
+            dreamTitle: dream.title,
+            dreamCategory: dream.category,
+            recurrence: goal.recurrence,
+            targetWeeks: goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : undefined),
+            targetMonths: goal.targetMonths,
+            weeksRemaining: weeksRemaining,
+            frequency: goal.frequency || (goal.recurrence === 'monthly' ? 2 : 1),
+            completionCount: 0,
+            completionDates: [],
+            completed: false,
+            completedAt: null,
+            skipped: false,
+            weekId: weekId,
+            createdAt: new Date().toISOString()
+          };
+          
+          if (goal.recurrence === 'monthly') {
+            instance.monthId = getMonthId(weekId);
+          }
+          
+          newInstances.push(instance);
+          log(`✨ ${userId}: Creating instance for consistency goal "${goal.title}"`);
+        }
+      }
+    }
+  }
+  
+  // 5. Combine existing and new goals
+  const allGoals = [...existingGoals, ...newInstances];
+  
+  // 6. Save if we created new instances
+  if (newInstances.length > 0) {
+    log(`💾 ${userId}: Saving ${newInstances.length} new instance(s)`);
+    await cosmosProvider.upsertCurrentWeek(userId, weekId, allGoals);
+  }
+  
+  // 7. Calculate stats
+  const stats = {
+    totalGoals: allGoals.length,
+    completedGoals: allGoals.filter(g => g.completed).length,
+    skippedGoals: allGoals.filter(g => g.skipped).length,
+    score: calculateScore(allGoals)
+  };
+  
+  log(`✅ ${userId}: Sync complete. ${newInstances.length} new, ${allGoals.length} total goals`);
+  
+  return { 
+    weekId, 
+    goals: allGoals, 
+    created: newInstances.length,
+    stats 
+  };
+}
+
 module.exports = {
   rolloverWeekForUser,
-  createGoalsFromTemplates
+  createGoalsFromTemplates,
+  createMissingGoalInstances
 };
 

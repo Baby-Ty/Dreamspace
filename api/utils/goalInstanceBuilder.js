@@ -18,9 +18,10 @@ const { getMonthId, monthsToWeeks, getWeeksUntilDate } = require('./weekDateUtil
 function buildWeeklyGoalInstance(template, dream, weekId, previousInstance) {
   const wasSkipped = previousInstance?.skipped || false;
   
+  // Decrement weeksRemaining; -1 means "done" (after final week)
   const newWeeksRemaining = wasSkipped 
     ? template.weeksRemaining // Don't decrement if skipped
-    : Math.max(0, (template.weeksRemaining || template.targetWeeks || 0) - 1);
+    : Math.max(-1, (template.weeksRemaining || template.targetWeeks || 0) - 1);
   
   const instance = {
     id: `${template.id}_${weekId}`,
@@ -99,11 +100,11 @@ function buildMonthlyGoalInstance(template, dream, weekId, previousInstance) {
     ? template.weeksRemaining
     : (template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : 0));
   
-  // Decrement weeks remaining weekly (not monthly)
+  // Decrement weeks remaining weekly (not monthly); -1 means "done"
   const wasSkipped = previousInstance?.skipped || false;
   const newWeeksRemaining = wasSkipped
     ? currentWeeksRemaining
-    : Math.max(0, currentWeeksRemaining - 1);
+    : Math.max(-1, currentWeeksRemaining - 1);
   
   instance.weeksRemaining = newWeeksRemaining;
   instance.targetWeeks = template.targetWeeks || (template.targetMonths ? monthsToWeeks(template.targetMonths) : undefined);
@@ -183,14 +184,14 @@ function buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstanc
     ? goal.weeksRemaining 
     : goal.targetWeeks;
   
-  // Decrement if previous goal wasn't skipped
+  // Decrement if previous goal wasn't skipped; -1 means "done"
   const wasSkipped = previousInstance?.skipped || false;
   const newWeeksRemaining = wasSkipped
     ? currentWeeksRemaining
-    : Math.max(0, currentWeeksRemaining - 1);
+    : Math.max(-1, currentWeeksRemaining - 1);
   
-  // Only create instance if weeks remaining > 0
-  if (newWeeksRemaining > 0) {
+  // Create instance if weeks remaining >= 0 (0 = final week, still shows)
+  if (newWeeksRemaining >= 0) {
     const instance = {
       id: `${goal.id}_${weekId}`,
       templateId: goal.id,
@@ -216,7 +217,7 @@ function buildWeeklyConsistencyGoalInstance(goal, dream, weekId, previousInstanc
     return { instance, weeksRemaining: newWeeksRemaining };
   }
   
-  // No instance created (weeks remaining <= 0), but return update info
+  // No instance created (weeks remaining < 0 means done), but return update info
   return { instance: null, weeksRemaining: newWeeksRemaining };
 }
 
@@ -238,14 +239,14 @@ function buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstan
     ? goal.weeksRemaining
     : (goal.targetWeeks || (goal.targetMonths ? monthsToWeeks(goal.targetMonths) : 0));
   
-  // Decrement weeks remaining weekly (not monthly)
+  // Decrement weeks remaining weekly (not monthly); -1 means "done"
   const wasSkipped = previousInstance?.skipped || false;
   const newWeeksRemaining = wasSkipped
     ? currentWeeksRemaining
-    : Math.max(0, currentWeeksRemaining - 1);
+    : Math.max(-1, currentWeeksRemaining - 1);
   
-  // Only create instance if weeks remaining > 0
-  if (newWeeksRemaining > 0) {
+  // Create instance if weeks remaining >= 0 (0 = final week, still shows)
+  if (newWeeksRemaining >= 0) {
     const instance = {
       id: `${goal.id}_${weekId}`,
       templateId: goal.id,
@@ -273,7 +274,7 @@ function buildMonthlyConsistencyGoalInstance(goal, dream, weekId, previousInstan
     return { instance, weeksRemaining: newWeeksRemaining };
   }
   
-  // No instance created (weeks remaining <= 0), but return update info
+  // No instance created (weeks remaining < 0 means done), but return update info
   return { instance: null, weeksRemaining: newWeeksRemaining };
 }
 

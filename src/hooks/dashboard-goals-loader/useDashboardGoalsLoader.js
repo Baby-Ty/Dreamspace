@@ -16,8 +16,10 @@ import {
 /**
  * useDashboardGoalsLoader - Handles loading and auto-instantiation of goals
  * 
- * Extracted from useDashboardGoals to reduce complexity
- * Handles: loading from currentWeek, auto-instantiating templates and dream goals
+ * This loader tries to use the new syncCurrentWeek endpoint (backend-only instance creation),
+ * but falls back to the legacy local creation pattern if the endpoint is unavailable.
+ * 
+ * Once syncCurrentWeek is deployed everywhere, the fallback can be removed.
  * 
  * @param {object} currentUser - Current user object
  * @param {array} weeklyGoals - Weekly goal templates from app context
@@ -28,8 +30,7 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
   const [isLoadingWeekGoals, setIsLoadingWeekGoals] = useState(true);
 
   /**
-   * Load current week's goals from currentWeek container
-   * Auto-instantiate templates that don't have instances yet
+   * Load current week's goals - tries new sync endpoint, falls back to legacy
    */
   const loadCurrentWeekGoals = useCallback(async () => {
     if (!currentUser?.id) return;
@@ -40,13 +41,34 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
     try {
       logger.debug('useDashboardGoalsLoader', 'Loading current week goals', { weekId: currentWeekIso });
       
-      // Load existing goals for current week
+      // Try new sync endpoint first (backend-only instance creation)
+      const syncResult = await currentWeekService.syncCurrentWeek(currentUser.id);
+      
+      if (syncResult.success && syncResult.data) {
+        const goals = syncResult.data.goals || [];
+        const weekId = syncResult.data.weekId || currentWeekIso;
+        
+        logger.debug('useDashboardGoalsLoader', 'Goals synced via new endpoint', { 
+          count: goals.length,
+          weekId
+        });
+        
+        setCurrentWeekGoals(filterExpiredGoals(goals, weekId));
+        return;
+      }
+      
+      // Fallback: syncCurrentWeek not available - use legacy pattern
+      logger.warn('useDashboardGoalsLoader', 'syncCurrentWeek unavailable, using legacy loader', {
+        error: syncResult.error
+      });
+      
+      // Load existing goals for current week (legacy)
       const result = await currentWeekService.getCurrentWeek(currentUser.id);
       let existingGoals = [];
       
       if (result.success && result.data) {
         existingGoals = result.data.goals || [];
-        logger.debug('useDashboardGoalsLoader', 'Loaded goals for current week', { count: existingGoals.length });
+        logger.debug('useDashboardGoalsLoader', 'Loaded goals for current week (legacy)', { count: existingGoals.length });
       } else {
         logger.debug('useDashboardGoalsLoader', 'No goals found for current week');
       }

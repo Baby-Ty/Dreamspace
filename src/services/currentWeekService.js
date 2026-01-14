@@ -53,6 +53,54 @@ export async function getCurrentWeek(userId) {
 }
 
 /**
+ * Sync current week for a user
+ * 
+ * This endpoint handles all goal instance creation on the backend:
+ * - If week has changed: triggers full rollover (archive + create new week)
+ * - If same week: creates any missing goal instances (new templates/goals added mid-week)
+ * 
+ * Frontend should call this instead of doing local instance creation.
+ * 
+ * @param {string} userId - User ID
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function syncCurrentWeek(userId) {
+  try {
+    logger.info('currentWeekService', 'Syncing current week', { userId });
+
+    const response = await apiClient.get(`/syncCurrentWeek/${userId}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      logger.error('currentWeekService', 'Failed to sync current week', { 
+        status: response.status,
+        error: errorData 
+      });
+      return fail(ErrorCodes.NETWORK, errorData.error || 'Failed to sync current week');
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      logger.error('currentWeekService', 'Sync current week returned unsuccessful', { result });
+      return fail(ErrorCodes.UNKNOWN, result.error || 'Failed to sync current week');
+    }
+
+    logger.info('currentWeekService', 'Current week synced', { 
+      weekId: result.data?.weekId,
+      goalsCount: result.data?.goals?.length || 0,
+      message: result.message
+    });
+
+    return ok(result.data);
+
+  } catch (error) {
+    logger.error('currentWeekService', 'Error syncing current week', { error: error.message });
+    return fail(ErrorCodes.NETWORK, 'Network error while syncing current week');
+  }
+}
+
+/**
  * Save/update current week document
  * @param {string} userId - User ID
  * @param {string} weekId - ISO week ID (e.g., "2025-W47")
@@ -349,6 +397,7 @@ export async function updateGoalBackground(userId, weekId, goalId, backgroundIma
 
 export default {
   getCurrentWeek,
+  syncCurrentWeek,
   saveCurrentWeek,
   archiveWeek,
   toggleGoalCompletion,
