@@ -110,7 +110,7 @@ export function useDreamTeam() {
   }, [currentUser]);
 
   // Enhance team members with avatars, dreams, and computed stats
-  const teamMembers = useTeamMemberEnhancer(teamData, currentUser);
+  const { teamMembers, isEnhancing } = useTeamMemberEnhancer(teamData, currentUser);
 
   // Determine if current user is the coach
   const isCoach = useMemo(() => {
@@ -166,6 +166,9 @@ export function useDreamTeam() {
   // Compute team statistics
   const teamStats = useTeamStats(teamData, teamMembers);
 
+  // Combined loading state: true if API is loading OR team members are being enhanced
+  const isTruelyLoading = isLoading || isEnhancing;
+
   return {
     // Data
     teamData,
@@ -174,7 +177,7 @@ export function useDreamTeam() {
     isCoach,
     
     // State
-    isLoading,
+    isLoading: isTruelyLoading,
     error,
     
     // Actions

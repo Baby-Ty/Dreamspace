@@ -1,19 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAccentColor, getActivityStatus, calculateCompletionStats, calculateWeeklyProgress } from './teamHelpers';
 
 /**
  * Hook to enhance team members with avatars, dreams, and computed stats
+ * Returns { teamMembers, isEnhancing } to track loading state
  */
 export function useTeamMemberEnhancer(teamData, currentUser) {
   const [enhancedMembers, setEnhancedMembers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  
+  // Track if we're expecting data to be enhanced
+  const pendingEnhancementRef = useRef(false);
 
   // Initial enhancement: load avatars and dreams
   useEffect(() => {
     const enhanceInitialMembers = async () => {
-      if (!teamData?.teamMembers) {
+      if (!teamData?.teamMembers || teamData.teamMembers.length === 0) {
         setEnhancedMembers([]);
+        setIsEnhancing(false);
+        pendingEnhancementRef.current = false;
         return;
       }
+
+      // Mark as enhancing when we have data to process
+      setIsEnhancing(true);
+      pendingEnhancementRef.current = true;
 
       const enhanced = await Promise.all(
         teamData.teamMembers.map(async (member) => {
@@ -77,12 +89,14 @@ export function useTeamMemberEnhancer(teamData, currentUser) {
   }, [teamData, currentUser]);
 
   // Second enhancement: compute stats
-  const [teamMembers, setTeamMembers] = useState([]);
-
   useEffect(() => {
     const enhanceWithStats = async () => {
       if (!enhancedMembers.length) {
         setTeamMembers([]);
+        // Only clear isEnhancing if we're not expecting data
+        if (!pendingEnhancementRef.current) {
+          setIsEnhancing(false);
+        }
         return;
       }
 
@@ -106,10 +120,13 @@ export function useTeamMemberEnhancer(teamData, currentUser) {
       );
 
       setTeamMembers(enhanced);
+      // Enhancement complete
+      setIsEnhancing(false);
+      pendingEnhancementRef.current = false;
     };
 
     enhanceWithStats();
   }, [enhancedMembers]);
 
-  return teamMembers;
+  return { teamMembers, isEnhancing };
 }
