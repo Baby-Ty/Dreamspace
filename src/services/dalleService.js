@@ -71,8 +71,8 @@ export const dalleService = {
         userSearchTerm: userSearchTerm.trim(),
         options: {
           size: options.size || '1024x1024',
-          quality: options.quality || 'hd',
-          model: options.model || 'dall-e-3',
+          quality: options.quality || 'medium',
+          model: options.model || 'gpt-image-1-mini',
           imageType: options.imageType || IMAGE_TYPES.DREAM,
           styleModifierId: options.styleModifierId || null,
           customStyle: options.customStyle || null

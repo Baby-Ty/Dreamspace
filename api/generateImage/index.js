@@ -133,12 +133,12 @@ module.exports = createApiHandler({
   }
 
   // Extract options with defaults
+  // Note: output_format/output_compression removed - not supported by OpenAI API
+  // Compression is handled server-side by Sharp in upload APIs
   const {
     size = '1024x1024',
-    quality = 'medium',
+    quality = 'high',
     model = 'gpt-image-1-mini',
-    output_format = 'webp',
-    output_compression = 70,
     imageType = 'dream',
     styleModifierId = null,
     customStyle = null
@@ -232,9 +232,7 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
       prompt,
       n: 1,
       size,
-      quality,
-      output_format,
-      output_compression
+      quality
     })
   });
 
@@ -249,9 +247,24 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
 
   const data = await response.json();
   
-  // Validate response structure
-  if (!data.data || !Array.isArray(data.data) || data.data.length === 0 || !data.data[0].url) {
+  // Validate response structure - gpt-image models return b64_json, dall-e returns url
+  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+    context.log.error('Invalid OpenAI response structure:', JSON.stringify(data).substring(0, 500));
     throw { status: 500, message: 'Invalid response from OpenAI Image API' };
+  }
+
+  const imageData = data.data[0];
+  
+  // Handle both URL and base64 responses
+  let imageUrl;
+  if (imageData.url) {
+    imageUrl = imageData.url;
+  } else if (imageData.b64_json) {
+    // Convert base64 to data URL for display
+    imageUrl = `data:image/png;base64,${imageData.b64_json}`;
+  } else {
+    context.log.error('No url or b64_json in response:', Object.keys(imageData));
+    throw { status: 500, message: 'Invalid response from OpenAI Image API - no image data' };
   }
 
   // Record successful usage for daily limits
@@ -262,13 +275,14 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
   
   context.log('✅ Image generated successfully', {
     dailyUserUsage: finalUserCount,
-    dailyTotalUsage: dailyUsage.total
+    dailyTotalUsage: dailyUsage.total,
+    responseType: imageData.url ? 'url' : 'b64_json'
   });
 
   return { 
     success: true,
-    url: data.data[0].url,
-    revisedPrompt: data.data[0].revised_prompt || prompt,
+    url: imageUrl,
+    revisedPrompt: imageData.revised_prompt || prompt,
     // Include usage info so frontend can show remaining
     usage: {
       dailyUserUsage: finalUserCount,
