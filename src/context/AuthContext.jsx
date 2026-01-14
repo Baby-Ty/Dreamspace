@@ -22,13 +22,14 @@ export const AuthProvider = ({ children }) => {
   // Use token management hook
   const { getToken, getApiToken } = useTokens();
 
-  // Wire up apiClient with token getter when user is authenticated
+  // Wire up apiClient when MSAL auth succeeds (accounts populated)
+  // This MUST run before fetchUserProfile so API calls are authenticated
   useEffect(() => {
-    if (user && getApiToken) {
+    if (accounts.length > 0 && getApiToken) {
       apiClient.setTokenGetter(getApiToken);
       console.log('🔐 API Client wired with authentication token');
     }
-  }, [user, getApiToken]);
+  }, [accounts.length, getApiToken]);
 
   // Create authenticated fetch and graph service
   const authedFetch = useAuthenticatedFetch(getToken);
