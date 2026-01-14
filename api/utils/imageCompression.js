@@ -1,7 +1,24 @@
-const sharp = require('sharp');
+// Lazy load Sharp to handle environments where native binaries may not work
+let sharp = null;
+let sharpLoadError = null;
+
+function loadSharp() {
+  if (sharp !== null || sharpLoadError !== null) {
+    return sharp;
+  }
+  try {
+    sharp = require('sharp');
+    console.log('Sharp loaded successfully');
+  } catch (error) {
+    sharpLoadError = error;
+    console.error('Sharp failed to load:', error.message);
+  }
+  return sharp;
+}
 
 /**
  * Compress image to target size using Sharp
+ * Falls back to returning original image if Sharp is unavailable
  * @param {Buffer} imageBuffer - Original image buffer
  * @param {Object} options - Compression options
  * @param {number} options.maxSizeKB - Target max size in KB (default: 300)
@@ -20,9 +37,23 @@ async function compressImage(imageBuffer, options = {}) {
   
   const targetBytes = maxSizeKB * 1024;
   
+  // Try to load Sharp - if it fails, return original image
+  const sharpLib = loadSharp();
+  if (!sharpLib) {
+    console.warn('Sharp unavailable, skipping compression. Error:', sharpLoadError?.message);
+    return {
+      buffer: imageBuffer,
+      contentType: 'image/png',
+      originalSize: imageBuffer.length,
+      compressedSize: imageBuffer.length,
+      quality: null,
+      error: 'Sharp not available in this environment'
+    };
+  }
+  
   try {
     let quality = initialQuality;
-    let compressed = await sharp(imageBuffer)
+    let compressed = await sharpLib(imageBuffer)
       .resize({ width: maxWidth, withoutEnlargement: true })
       .webp({ quality })
       .toBuffer();
@@ -30,7 +61,7 @@ async function compressImage(imageBuffer, options = {}) {
     // Reduce quality iteratively if still too large, but maintain minimum quality
     while (compressed.length > targetBytes && quality > minQuality) {
       quality -= 5;  // Smaller steps for better quality control
-      compressed = await sharp(imageBuffer)
+      compressed = await sharpLib(imageBuffer)
         .resize({ width: maxWidth, withoutEnlargement: true })
         .webp({ quality })
         .toBuffer();
