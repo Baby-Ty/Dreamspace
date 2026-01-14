@@ -53,13 +53,13 @@ module.exports = createApiHandler({
     title: profileData.title || existingDocument?.title || '',
     department: profileData.department || existingDocument?.department || '',
     manager: profileData.manager || existingDocument?.manager || '',
-    // Only save admin, coach, employee roles (people role removed as it was unused)
-    // IMPORTANT: Use ?? (nullish coalescing) not || (which treats false as falsy)
+    // SECURITY: Never trust client-supplied roles - they must be set via admin endpoints
+    // (promoteUserToCoach, assignUserToCoach, etc.) to prevent privilege escalation
+    // Only preserve existing roles from the database
     roles: {
-      admin: profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false,
-      coach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
-      employee: profileData.roles?.employee ?? existingDocument?.roles?.employee ?? true
-      // people: REMOVED - was completely unused in frontend and backend
+      admin: existingDocument?.roles?.admin ?? false,
+      coach: existingDocument?.roles?.coach ?? false,
+      employee: existingDocument?.roles?.employee ?? true
     },
     // Aggregates (no arrays, just counts)
     score: existingDocument?.score || 0,
@@ -72,12 +72,12 @@ module.exports = createApiHandler({
     dataStructureVersion: 3,
     // Metadata
     // Derive role from roles object (admin > coach > user)
-    // Use the NEW roles object we just built above
-    role: (profileData.roles?.admin ?? existingDocument?.roles?.admin ?? false) ? 'admin' 
-        : (profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false) ? 'coach' 
+    // SECURITY: Only use existing database roles, never client-supplied values
+    role: existingDocument?.roles?.admin ? 'admin' 
+        : existingDocument?.roles?.coach ? 'coach' 
         : 'user',
-    // Derive isCoach from roles object for backward compatibility
-    isCoach: profileData.roles?.coach ?? existingDocument?.roles?.coach ?? false,
+    // Derive isCoach from database roles for backward compatibility
+    isCoach: existingDocument?.roles?.coach ?? false,
     isActive: existingDocument?.isActive !== false,
     createdAt: existingDocument?.createdAt || new Date().toISOString(),
     lastUpdated: new Date().toISOString(),

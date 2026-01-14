@@ -1,12 +1,17 @@
 const { createApiHandler } = require('../utils/apiWrapper');
 
 module.exports = createApiHandler({
-  auth: 'user'
-}, async (context, req, { provider }) => {
+  auth: 'coach'
+}, async (context, req, { provider, user }) => {
   const managerId = context.bindingData.managerId;
 
   if (!managerId) {
     throw { status: 400, message: 'Manager ID is required' };
+  }
+
+  // SECURITY: Verify the authenticated coach is viewing their own alerts (or is admin)
+  if (user.userId !== managerId && !user.isAdmin) {
+    throw { status: 403, message: 'You can only view alerts for your own team' };
   }
 
   const usersContainer = provider.getContainer('users');

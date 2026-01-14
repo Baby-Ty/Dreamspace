@@ -3,11 +3,16 @@ const { createApiHandler } = require('../utils/apiWrapper');
 module.exports = createApiHandler({
   auth: 'coach',
   containerName: 'teams'
-}, async (context, req, { container: teamsContainer }) => {
+}, async (context, req, { container: teamsContainer, user }) => {
   const managerId = context.bindingData.managerId;
 
   if (!managerId) {
     throw { status: 400, message: 'Manager ID is required' };
+  }
+
+  // SECURITY: Verify the authenticated coach is modifying their own team (or is admin)
+  if (user.userId !== managerId && !user.isAdmin) {
+    throw { status: 403, message: 'You can only modify your own team' };
   }
 
   const { teamInterests, teamRegions, meetingDraft } = req.body || {};

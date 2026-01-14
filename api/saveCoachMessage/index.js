@@ -1,9 +1,10 @@
 const { createApiHandler } = require('../utils/apiWrapper');
+const { checkTeamMembership, getUserRole } = require('../utils/authMiddleware');
 
 module.exports = createApiHandler({
   auth: 'user',
   containerName: 'dreams'
-}, async (context, req, { container: dreamsContainer }) => {
+}, async (context, req, { container: dreamsContainer, user }) => {
   const { memberId, dreamId, message, coachId } = req.body || {};
 
   context.log('saveCoachMessage called:', { memberId, dreamId, coachId: coachId || 'user', messageLength: message?.length });
@@ -18,6 +19,21 @@ module.exports = createApiHandler({
 
   if (!message || !message.trim()) {
     throw { status: 400, message: 'message is required' };
+  }
+
+  // SECURITY: Verify caller is either the dream owner OR their coach (or admin)
+  // This allows bidirectional messaging between user and their coach
+  if (user.userId !== memberId) {
+    // Check if user is admin or coach of this member
+    const { isAdmin, isCoach } = await getUserRole(user.userId, context);
+    
+    if (!isAdmin) {
+      // Not admin - must be coach of this specific member
+      const isCoachOfMember = isCoach && await checkTeamMembership(user.userId, memberId, context);
+      if (!isCoachOfMember) {
+        throw { status: 403, message: 'You can only send messages to your own dreams or your team members\' dreams' };
+      }
+    }
   }
 
   const documentId = memberId;
