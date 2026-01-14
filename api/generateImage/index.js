@@ -1,6 +1,6 @@
 /**
- * Azure Function: Generate Image using DALL-E
- * Proxies requests to OpenAI DALL-E API to keep API key server-side
+ * Azure Function: Generate Image using OpenAI GPT Image
+ * Proxies requests to OpenAI Image API to keep API key server-side
  * 
  * Rate Limits (configurable via People Hub > AI Prompts Configuration):
  * - Per-minute: handled by rateLimiter.js
@@ -135,8 +135,10 @@ module.exports = createApiHandler({
   // Extract options with defaults
   const {
     size = '1024x1024',
-    quality = 'hd',
-    model = 'dall-e-3',
+    quality = 'medium',
+    model = 'gpt-image-1-mini',
+    output_format = 'webp',
+    output_compression = 70,
     imageType = 'dream',
     styleModifierId = null,
     customStyle = null
@@ -217,7 +219,7 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
   }
 
   context.log(`Using prompts from: ${promptsSource}`);
-  context.log('Calling OpenAI DALL-E API...');
+  context.log('Calling OpenAI Image API...');
 
   const response = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
@@ -228,15 +230,17 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
     body: JSON.stringify({
       model,
       prompt,
-      n: 1, // DALL-E 3 only supports n=1
+      n: 1,
       size,
-      quality
+      quality,
+      output_format,
+      output_compression
     })
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    context.log.error('OpenAI DALL-E API error:', response.status, errorData);
+    context.log.error('OpenAI Image API error:', response.status, errorData);
     throw { 
       status: response.status, 
       message: errorData.error?.message || `OpenAI API error: ${response.status}` 
@@ -247,7 +251,7 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
   
   // Validate response structure
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0 || !data.data[0].url) {
-    throw { status: 500, message: 'Invalid response from OpenAI DALL-E API' };
+    throw { status: 500, message: 'Invalid response from OpenAI Image API' };
   }
 
   // Record successful usage for daily limits
