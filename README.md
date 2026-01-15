@@ -178,7 +178,7 @@ dreamspace/
 
 ## Database Architecture
 
-### Cosmos DB - 6-Container Architecture
+### Cosmos DB - 7-Container Architecture
 
 | Container | Partition Key | Purpose |
 |-----------|--------------|---------|
@@ -187,11 +187,12 @@ dreamspace/
 | **connects** | `/userId` | Connection records |
 | **scoring** | `/userId` | Yearly scoring rollups |
 | **teams** | `/managerId` | Team relationships and coaching |
-| **weeks{year}** | `/userId` | Year-specific weekly goals (e.g., `weeks2025`) |
+| **currentweek** | `/userId` | Active week goals for each user |
+| **pastweeks** | `/userId` | Archived weekly goal history |
 
 ### Key Patterns
 - Always query with partition key for optimal performance
-- Week documents: `{userId}_{year}` format
+- Current week auto-rolls over to pastweeks weekly
 - Scoring documents: `{userId}_{year}_scoring` format
 
 ## Architecture Patterns
