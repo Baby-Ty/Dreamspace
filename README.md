@@ -178,7 +178,7 @@ dreamspace/
 
 ## Database Architecture
 
-### Cosmos DB - 7-Container Architecture
+### Cosmos DB - 10-Container Architecture
 
 | Container | Partition Key | Purpose |
 |-----------|--------------|---------|
@@ -187,13 +187,16 @@ dreamspace/
 | **connects** | `/userId` | Connection records |
 | **scoring** | `/userId` | Yearly scoring rollups |
 | **teams** | `/managerId` | Team relationships and coaching |
-| **currentweek** | `/userId` | Active week goals for each user |
-| **pastweeks** | `/userId` | Archived weekly goal history |
+| **coaching_alerts** | `/managerId` | Coaching alerts and notifications |
+| **currentWeek** | `/userId` | Active week goals (one doc per user) |
+| **pastWeeks** | `/userId` | Historical week summaries |
+| **meeting_attendance** | `/teamId` | Team meeting attendance records |
+| **prompts** | `/partitionKey` | AI prompt configurations and history |
 
 ### Key Patterns
 - Always query with partition key for optimal performance
-- Current week auto-rolls over to pastweeks weekly
-- Scoring documents: `{userId}_{year}_scoring` format
+- Current week auto-rolls over to pastWeeks weekly
+- Repository pattern for data access (`api/utils/repositories/`)
 
 ## Architecture Patterns
 
@@ -236,6 +239,11 @@ return fail(ErrorCodes.NETWORK, 'Message'); // Error
 - Generate visionary year statements from user input
 - Polish and improve existing vision text
 - Integrates with user's dream data for personalized content
+
+### Prompt Management (Admin)
+- Configurable AI prompts stored in Cosmos DB
+- Version history with restore capability
+- Test panel for validating prompt changes
 
 ## Security
 
