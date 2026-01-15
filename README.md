@@ -178,7 +178,7 @@ dreamspace/
 
 ## Database Architecture
 
-### Cosmos DB - 10-Container Architecture
+### Cosmos DB - 9-Container Architecture
 
 | Container | Partition Key | Purpose |
 |-----------|--------------|---------|
@@ -187,7 +187,6 @@ dreamspace/
 | **connects** | `/userId` | Connection records |
 | **scoring** | `/userId` | Yearly scoring rollups |
 | **teams** | `/managerId` | Team relationships and coaching |
-| **coaching_alerts** | `/managerId` | Coaching alerts and notifications |
 | **currentWeek** | `/userId` | Active week goals (one doc per user) |
 | **pastWeeks** | `/userId` | Historical week summaries |
 | **meeting_attendance** | `/teamId` | Team meeting attendance records |
