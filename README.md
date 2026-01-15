@@ -639,7 +639,7 @@ logger.error('module', 'Operation failed', { error, context });
 - **Deployment**: See `docs-deployment/` for Azure setup guides
 - **API Reference**: See `api/README.md` for endpoint documentation
 - **Architecture**: See repo rules (`.cursorrules`) for detailed patterns
-- **Schemas**: See `src/schemas/USAGE_EXAMPLES.md` for validation examples
+- **Schemas**: See `docs/SCHEMAS_USAGE_EXAMPLES.md` for validation examples
 - **Testing**: See `src/test/README.md` for testing guidelines
 
 ## 🔮 Future Enhancements
