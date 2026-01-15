@@ -8,7 +8,7 @@ This checklist ensures the AI Prompts feature works correctly in production.
 - [x] **Container Created**: `prompts` container exists in Cosmos DB
 - [x] **Partition Key**: `/partitionKey` configured correctly
 - [x] **Database**: `dreamspace` database exists
-- [x] **Account**: `cosmos-dreamspace-prod-20251013`
+- [x] **Account**: Your Cosmos DB account name (e.g., `cosmos-dreamspace-<env>-<date>`)
 
 **Status**: ✅ Container created successfully via setup script
 
@@ -16,7 +16,7 @@ This checklist ensures the AI Prompts feature works correctly in production.
 
 The Azure Function App (`func-dreamspace-prod`) needs these environment variables:
 
-- [ ] **COSMOS_ENDPOINT**: `https://cosmos-dreamspace-prod-20251013.documents.azure.com:443/`
+- [ ] **COSMOS_ENDPOINT**: `https://<your-cosmos-account>.documents.azure.com:443/`
 - [ ] **COSMOS_KEY**: Primary master key from Cosmos DB account
 - [ ] **OPENAI_API_KEY**: (Already configured for image/vision generation)
 
@@ -74,7 +74,7 @@ Expected response:
 
 ### 2. Verify Prompts Container Has Document
 
-1. Go to Azure Portal → Cosmos DB → `cosmos-dreamspace-prod-20251013`
+1. Go to Azure Portal → Cosmos DB → (your Cosmos DB account)
 2. Navigate to **Data Explorer** → `dreamspace` → `prompts` container
 3. Verify document with ID `ai-prompts` exists
 4. If missing, access People Hub → AI Prompts (will auto-create)
@@ -141,7 +141,7 @@ Expected response:
 |-----------|-------|
 | **Frontend URL** | `https://dreamspace.tylerstewart.co.za` |
 | **API Base URL** | `https://func-dreamspace-prod.azurewebsites.net/api` |
-| **Cosmos DB Account** | `cosmos-dreamspace-prod-20251013` |
+| **Cosmos DB Account** | (your Cosmos DB account name) |
 | **Database** | `dreamspace` |
 | **Container** | `prompts` |
 | **Partition Key** | `/partitionKey` |

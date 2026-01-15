@@ -1,9 +1,11 @@
 # Script to seed default prompts in Cosmos DB
-# Usage: .\scripts\seed-prompts.ps1
+# Usage: .\scripts\seed-prompts.ps1 -CosmosAccountName <your-cosmos-account> -ResourceGroupName <your-rg>
 
 param(
-    [string]$CosmosAccountName = "cosmos-dreamspace-prod-20251013",
-    [string]$ResourceGroupName = "rg_Dreams2025Dev"
+    [Parameter(Mandatory=$true)]
+    [string]$CosmosAccountName,
+    [Parameter(Mandatory=$true)]
+    [string]$ResourceGroupName
 )
 
 Write-Host "[INFO] Seeding default prompts in Cosmos DB..." -ForegroundColor Blue

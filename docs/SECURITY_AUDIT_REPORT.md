@@ -19,7 +19,7 @@ The security audit identified **4 CRITICAL** and **3 HIGH** severity vulnerabili
 **CVSS Score:** 9.1 (Critical)
 
 ```javascript
-clientId: import.meta.env.VITE_AZURE_CLIENT_ID || "ebe60b7a-93c9-4b12-8375-4ab3181000e8"
+clientId: import.meta.env.VITE_AZURE_CLIENT_ID || "<hardcoded-client-id-was-here>"
 ```
 
 **Issue:** The Azure AD Client ID is hardcoded as a fallback value. While client IDs are considered semi-public, hardcoding reduces security flexibility and makes credential rotation difficult.
@@ -91,7 +91,7 @@ if (isCoach) {
 **CVSS Score:** 7.8 (High)
 
 ```javascript
-const CLIENT_ID = process.env.AZURE_CLIENT_ID || 'ebe60b7a-93c9-4b12-8375-4ab3181000e8';
+const CLIENT_ID = process.env.AZURE_CLIENT_ID || '<hardcoded-client-id-was-here>';
 ```
 
 **Issue:** Same client ID is hardcoded in the API middleware, duplicating the risk.

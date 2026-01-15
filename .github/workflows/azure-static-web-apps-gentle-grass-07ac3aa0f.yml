@@ -35,7 +35,7 @@ jobs:
         run: npm run build
         env:
           VITE_APP_ENV: production
-          VITE_COSMOS_ENDPOINT: https://cosmos-dreamspace-prod-20251013.documents.azure.com:443/
+          VITE_COSMOS_ENDPOINT: ${{ secrets.VITE_COSMOS_ENDPOINT }}
           VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           VITE_AZURE_CLIENT_ID: ${{ secrets.VITE_AZURE_CLIENT_ID }}
           VITE_AZURE_TENANT_ID: ${{ secrets.VITE_AZURE_TENANT_ID }}

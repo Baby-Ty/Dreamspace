@@ -142,7 +142,7 @@
 
 3. **Check Dreams Document in Cosmos DB**
    - Navigate to Azure Portal
-   - Open cosmos-dreamspace-prod-20251013
+   - Open your Cosmos DB account
    - Check `dreams` container
    - Find your user document
    - Verify goal shows: `"completed": true, "active": false`

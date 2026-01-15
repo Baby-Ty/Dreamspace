@@ -15,11 +15,23 @@ if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
 const CONTAINER_NAME = 'user-backgrounds';
 
 // SSRF Protection: Allowlist of trusted image sources
+// Storage domain is derived from connection string to avoid hardcoding
+const getStorageDomain = () => {
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+  if (connectionString) {
+    const match = connectionString.match(/AccountName=([^;]+)/);
+    if (match) {
+      return `${match[1]}.blob.core.windows.net`;
+    }
+  }
+  return null;
+};
+
 const ALLOWED_DOMAINS = [
   'oaidalleapiprodscus.blob.core.windows.net', // DALL-E generated images
   'images.unsplash.com',                        // Unsplash images
-  'stdreamspace.blob.core.windows.net'          // Our own blob storage
-];
+  getStorageDomain()                            // Our own blob storage (from env)
+].filter(Boolean); // Remove null if storage not configured
 
 /**
  * Check if URL is from an allowed domain (SSRF protection)

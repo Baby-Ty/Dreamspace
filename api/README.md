@@ -42,9 +42,9 @@ See `local.settings.json.example` for the template.
 ## 🔑 Getting Credentials
 
 1. Go to [Azure Portal](https://portal.azure.com)
-2. Find **cosmos-dreamspace-prod-20251013**
+2. Find your Cosmos DB account
 3. Go to **Keys** → Copy URI and PRIMARY KEY
-4. Find **stdreamspace**
+4. Find your Storage Account
 5. Go to **Access keys** → Copy connection string
 
 For detailed instructions, see: `../FIRST_TIME_SETUP.md`
