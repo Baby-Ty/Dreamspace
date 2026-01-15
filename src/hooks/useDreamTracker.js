@@ -79,7 +79,7 @@ export function useDreamTracker(dream, onUpdate, isCoachViewing = false, teamMem
     totalGoals
   } = goalsHook;
 
-  const notesHook = useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachViewing, teamMember, currentUser, canEdit);
+  const notesHook = useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachViewing, teamMember, currentUser, canEdit, onUpdate);
   const {
     newNote,
     setNewNote,

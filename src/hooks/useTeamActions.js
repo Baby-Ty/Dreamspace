@@ -29,6 +29,7 @@ export function useTeamActions({ teamData, teamStats, refreshData }) {
   // Dream Tracker Coach View state
   const [selectedDreamForCoachView, setSelectedDreamForCoachView] = useState(null);
   const [selectedMemberForCoachView, setSelectedMemberForCoachView] = useState(null);
+  const [dreamWasModified, setDreamWasModified] = useState(false);
 
   // Team info editing handlers
   const handleEditTeamInfo = () => {
@@ -146,16 +147,27 @@ export function useTeamActions({ teamData, teamStats, refreshData }) {
   const handleViewDreamInCoachMode = (dream, member) => {
     setSelectedDreamForCoachView(dream);
     setSelectedMemberForCoachView(member);
+    setDreamWasModified(false); // Reset modification flag
   };
 
   const handleCloseDreamTrackerCoachView = () => {
+    // Only refresh if dream was actually modified during this session
+    if (dreamWasModified) {
+      console.log('🔄 Modal closing with changes, refreshing team data to get latest updates');
+      refreshData();
+    } else {
+      console.log('✅ Modal closing without changes, no refresh needed');
+    }
+    
     setSelectedDreamForCoachView(null);
     setSelectedMemberForCoachView(null);
+    setDreamWasModified(false);
   };
 
   const handleUpdateDreamInCoachView = async (updatedDream) => {
-    // Refresh team data after dream update
-    refreshData();
+    // Mark that dream was modified so we refresh on close
+    setDreamWasModified(true);
+    console.log('🔄 Dream updated, will refresh on modal close');
   };
 
   return {

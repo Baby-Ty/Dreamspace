@@ -55,15 +55,16 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
 
     setIsSending(true);
     try {
-      // Determine coachId - if coach is viewing, use their ID; if user is responding, null
-      const coachId = actualIsCoach ? actualCurrentUser?.id || actualCurrentUser?.userId : null;
+      // Determine coachId - if coach is viewing, use THEIR actual ID (appCurrentUser); if user is responding, null
+      const coachId = actualIsCoach ? appCurrentUser?.id || appCurrentUser?.userId : null;
       
       console.log('💬 CoachNotesTab: Sending message:', {
         message: newMessage.trim(),
         actualIsCoach,
         coachId,
         hasOnAddMessage: !!onAddMessage,
-        actualCurrentUserId: actualCurrentUser?.id || actualCurrentUser?.userId
+        appCurrentUserId: appCurrentUser?.id || appCurrentUser?.userId,
+        appCurrentUserName: appCurrentUser?.name
       });
       
       if (onAddMessage) {
@@ -123,9 +124,26 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
               {/* Messages for this date */}
               {messages.map((message) => {
                 const isCoachMessage = !!message.coachId;
+                // Check if message is from the actual logged-in user (appCurrentUser)
                 const isFromCurrentUser = actualIsCoach 
-                  ? isCoachMessage && (message.coachId === actualCurrentUser?.id || message.coachId === actualCurrentUser?.userId)
+                  ? isCoachMessage && (message.coachId === (appCurrentUser?.id || appCurrentUser?.userId))
                   : !isCoachMessage;
+
+                // Determine sender name to display
+                let senderName;
+                if (isCoachMessage) {
+                  // Coach message - show coach's name
+                  senderName = message.coachName || 'Coach';
+                } else {
+                  // User message - show team member name or "You"
+                  if (actualIsCoach) {
+                    // Coach viewing: show team member's name
+                    senderName = teamMember?.name || 'User';
+                  } else {
+                    // User viewing their own: show "You"
+                    senderName = 'You';
+                  }
+                }
 
                 return (
                   <div
@@ -148,9 +166,7 @@ export function CoachNotesTab({ coachNotes, formatDate, onAddMessage, currentUse
                         <span className={`text-xs font-medium ${
                           isFromCurrentUser ? 'text-white/90' : 'text-professional-gray-600'
                         }`}>
-                          {isCoachMessage 
-                            ? (teamMember?.name || 'Coach')
-                            : (actualCurrentUser?.name || 'You')}
+                          {senderName}
                         </span>
                       </div>
 

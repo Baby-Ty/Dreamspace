@@ -18,9 +18,10 @@ import { toast } from '../utils/toast';
  * @param {object} teamMember - Team member being viewed (in coach mode)
  * @param {object} currentUser - Current user
  * @param {boolean} canEdit - Whether editing is allowed
+ * @param {function} onUpdate - Callback to notify parent of dream updates
  * @returns {object} Note state and handlers
  */
-export function useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachViewing, teamMember, currentUser, canEdit) {
+export function useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachViewing, teamMember, currentUser, canEdit, onUpdate) {
   // Note state
   const [newNote, setNewNote] = useState('');
 
@@ -57,29 +58,43 @@ export function useCoachNotes(localDream, setLocalDream, setHasChanges, isCoachV
       );
 
       if (result.success) {
-        // Create message object
-        const newMessage = {
+        console.log('📦 Backend response:', result);
+        
+        // Use the message from backend response (already has correct structure)
+        const savedMessage = result.data?.message || {
           id: `note_${Date.now()}`,
-          text: message.trim(),
-          timestamp: new Date().toISOString(),
-          isCoachNote: true,
+          message: message.trim(),
           coachId: coachId,
-          coachName: isUserMessage ? null : (currentUser?.name || 'Coach')
+          coachName: isUserMessage ? null : (currentUser?.name || 'Coach'),
+          timestamp: new Date().toISOString()
         };
 
-        // Update local state
-        const updatedCoachNotes = [...(localDream.coachNotes || []), newMessage];
+        console.log('✅ Saved message structure:', savedMessage);
+        console.log('📝 Current coachNotes before update:', localDream.coachNotes);
+
+        // Update local state with the saved message
+        const updatedCoachNotes = [...(localDream.coachNotes || []), savedMessage];
+        console.log('📝 Updated coachNotes after adding:', updatedCoachNotes);
+        
         const updatedDream = {
           ...localDream,
           coachNotes: updatedCoachNotes
         };
+        
+        console.log('🔄 Setting updated dream with coachNotes count:', updatedCoachNotes.length);
         setLocalDream(updatedDream);
-        setHasChanges(true);
+        setHasChanges(false); // Message is saved to backend, no pending changes
+
+        // Notify parent that dream was modified (for refresh on close)
+        if (onUpdate) {
+          console.log('📢 Notifying parent that dream was modified');
+          onUpdate(updatedDream);
+        }
 
         // Clear input
         setNewNote('');
 
-        console.log('✅ Coach message added successfully');
+        console.log('✅ Coach message added successfully - should be visible now!');
       } else {
         console.error('❌ Failed to add coach message:', result.error);
         toast.error('Failed to send message. Please try again.');

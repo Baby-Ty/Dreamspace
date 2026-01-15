@@ -74,25 +74,31 @@ module.exports = createApiHandler({
 
   context.log(`Found dream: ${targetDream.title}`);
 
-  // Initialize coachMessages array if it doesn't exist
-  if (!targetDream.coachMessages) {
-    targetDream.coachMessages = [];
+  // Initialize coachNotes array if it doesn't exist
+  if (!targetDream.coachNotes) {
+    targetDream.coachNotes = [];
+  }
+
+  // Get sender's name (coach name if coachId provided, otherwise user's name)
+  let senderName = null;
+  if (coachId) {
+    // Coach is sending - use coach's name from authenticated user
+    senderName = user.name || user.displayName || null;
+    context.log(`Coach message from: ${senderName} (${user.userId})`);
   }
 
   // Add new message
   const newMessage = {
     id: `msg_${Date.now()}`,
-    text: message.trim(),
-    sender: coachId || 'user',
-    timestamp: new Date().toISOString(),
-    read: false
+    message: message.trim(),
+    coachId: coachId || null,
+    coachName: senderName,
+    timestamp: new Date().toISOString()
   };
 
-  targetDream.coachMessages.push(newMessage);
-  targetDream.lastMessageAt = new Date().toISOString();
-  targetDream.hasUnreadMessages = true;
+  targetDream.coachNotes.push(newMessage);
 
-  context.log(`Adding message to dream. Total messages: ${targetDream.coachMessages.length}`);
+  context.log(`Adding message to dream. Total messages: ${targetDream.coachNotes.length}`);
 
   // Save updated document
   const updatedDoc = {
@@ -109,6 +115,6 @@ module.exports = createApiHandler({
     success: true,
     message: newMessage,
     dreamId: targetDream.id,
-    totalMessages: targetDream.coachMessages.length
+    totalMessages: targetDream.coachNotes.length
   };
 });
