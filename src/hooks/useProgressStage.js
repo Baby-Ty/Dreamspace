@@ -73,7 +73,7 @@ export function useProgressStage(dream, handleProgressChange) {
     if (newStage !== selfProgressStage) {
       setSelfProgressStage(newStage);
     }
-  }, [dream?.progress, selfProgressStage]);
+  }, [dream?.progress]);
 
   // Handle stage change and map to numeric progress
   const handleStageChange = useCallback((newStage) => {
