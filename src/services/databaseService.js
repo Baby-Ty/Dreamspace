@@ -1,11 +1,10 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 // Database service for DreamSpace - handles Cosmos DB data persistence
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import itemService from './itemService.js';
 import { apiClient } from './apiClient.js';
+import { logger } from '../utils/logger.js';
 
 class DatabaseService {
   constructor() {
@@ -58,7 +57,7 @@ class DatabaseService {
 
   // Save user data
   async saveUserData(userId, userData) {
-    console.log('💾 Saving data for user ID:', userId, 'Data keys:', Object.keys(userData));
+    logger.info('database', 'Saving data for user', { userId, dataKeys: Object.keys(userData).join(', ') });
     try {
       if (this.useCosmosDB) {
         return await this.saveToCosmosDB(userId, userData);
@@ -66,7 +65,7 @@ class DatabaseService {
         return this.saveToLocalStorage(userId, userData);
       }
     } catch (error) {
-      console.error('Error saving user data:', error);
+      logger.error('database', 'Error saving user data', { userId, error: error.message });
       // In production, DO NOT silently fall back to localStorage - this causes data divergence
       // Only use localStorage fallback in development mode
       if (!this.useCosmosDB) {
@@ -79,12 +78,12 @@ class DatabaseService {
 
   // Load user data
   async loadUserData(userId) {
-    console.log('📂 Loading data for user ID:', userId);
+    logger.info('database', 'Loading data for user', { userId });
     try {
       if (this.useCosmosDB) {
         // For production, load from Cosmos DB
         const cosmosData = await this.loadFromCosmosDB(userId);
-        console.log('📂 Cosmos DB data loaded:', cosmosData ? 'Found data' : 'No data found');
+        logger.info('database', 'Cosmos DB data loaded', { userId, hasData: !!cosmosData });
         
         // Unwrap Cosmos DB response - it returns { success: true, data: {...} }
         if (cosmosData && cosmosData.success && cosmosData.data) {
@@ -95,7 +94,7 @@ class DatabaseService {
       } else {
         // For development, use localStorage (returns raw data, not wrapped)
         const localData = this.loadFromLocalStorage(userId);
-        console.log('📂 LocalStorage data loaded:', localData ? 'Found data' : 'No data found');
+        logger.info('database', 'LocalStorage data loaded', { userId, hasData: !!localData });
         // localStorage returns raw data directly
         return ok(localData);
       }

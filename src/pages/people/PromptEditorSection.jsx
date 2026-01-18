@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useState, useEffect } from 'react';
 import { 
   Sparkles, 
@@ -17,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../components/ConfirmModal';
 import { useFieldHistory } from './PromptFieldHistory';
 import GlobalHistoryPanel from './GlobalHistoryPanel';
-import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection, AILimitsSection } from './PromptFields';
+import { ImageGenerationSection, VisionGenerationSection, StyleModifiersSection, AILimitsSection } from './prompt-fields';
 
 /**
  * Prompt Editor Section Component
@@ -443,4 +442,3 @@ export default function PromptEditorSection() {
     </div>
   );
 }
-
