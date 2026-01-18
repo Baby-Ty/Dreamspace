@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { z } from 'zod';
 
 /**
@@ -171,4 +170,3 @@ export function parseConnectionSuggestionList(data) {
 
   return data.map(item => parseConnectionSuggestion(item)).filter(Boolean);
 }
-

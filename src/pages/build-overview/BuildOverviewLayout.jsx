@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Users2, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useBuildOverview } from '../../hooks/useBuildOverview';
@@ -131,6 +130,5 @@ function HeroPanel({ hero }) {
     </header>
   );
 }
-
 
 

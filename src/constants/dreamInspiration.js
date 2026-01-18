@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 /**
  * Dream inspiration templates and helper functions
@@ -119,7 +117,6 @@ export const buildTemplateFromInspiration = (item) => {
 
   return { category, description, milestones, notes };
 };
-
 
 
 

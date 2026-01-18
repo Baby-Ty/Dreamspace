@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { z } from 'zod';
 import { getIsoWeek } from '../utils/dateUtils.js';
 
@@ -97,7 +96,6 @@ export function validateConnect(data) {
     return { valid: false, errors };
   }
 }
-
 
 
 

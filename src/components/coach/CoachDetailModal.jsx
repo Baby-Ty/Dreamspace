@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useEffect, useRef, useCallback } from 'react';
 import { X, BarChart3, Users2, Target, MessageSquare, TrendingUp, Mail, MapPin } from 'lucide-react';
 import { useCoachDetail } from './useCoachDetail';
@@ -288,4 +287,3 @@ export default function CoachDetailModal({ coach, onClose }) {
     </div>
   );
 }
-

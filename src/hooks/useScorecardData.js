@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useMemo } from 'react';
 import { Trophy, Target, TrendingUp, Star, Medal } from 'lucide-react';
 
@@ -146,4 +145,3 @@ export function useScorecardData(currentUser, scoringHistory = [], allYearsScori
     sortedDates
   };
 }
-

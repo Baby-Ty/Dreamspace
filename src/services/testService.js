@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { env } from '../utils/env';
 import { logger } from '../utils/logger';
@@ -65,4 +63,3 @@ export async function testWeekRollover(userId, force = false) {
     };
   }
 }
-

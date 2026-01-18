@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 /**
  * Centralized action type constants for all contexts
@@ -57,7 +55,6 @@ export const actionTypes = {
 };
 
 export default actionTypes;
-
 
 
 

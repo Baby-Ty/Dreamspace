@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ERR } from '../constants/errors.js';
 
 /**
@@ -198,4 +197,3 @@ export function withErrorHandling(asyncFn, options = {}) {
 }
 
 export default handleServiceError;
-

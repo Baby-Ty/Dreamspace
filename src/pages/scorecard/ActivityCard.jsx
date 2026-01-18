@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
 
 /**
@@ -53,4 +52,3 @@ ActivityCard.propTypes = {
 };
 
 export default ActivityCard;
-

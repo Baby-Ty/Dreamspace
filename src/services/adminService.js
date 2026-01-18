@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 // Admin service for DreamSpace - handles admin analytics and user management data
 import { ok, fail } from '../utils/errorHandling.js';

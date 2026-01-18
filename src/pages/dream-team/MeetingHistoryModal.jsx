@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { X, Calendar, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';

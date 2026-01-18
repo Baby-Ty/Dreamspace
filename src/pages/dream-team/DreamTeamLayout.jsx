@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React from 'react';
 import { 
   Users2, 
@@ -180,5 +179,4 @@ export default function DreamTeamLayout() {
     </div>
   );
 }
-
 

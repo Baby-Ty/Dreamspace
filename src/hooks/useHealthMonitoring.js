@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useEffect, useCallback } from 'react';
 import healthService from '../services/healthService.js';
@@ -93,4 +92,3 @@ export function useHealthMonitoring(pollInterval = 60000) {
     refresh
   };
 }
-

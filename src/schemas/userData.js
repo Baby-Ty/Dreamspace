@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { z } from 'zod';
 import { DreamListSchema, parseDreamList } from './dream.js';
 import { ConnectListSchema, WeeklyGoalListSchema, parseConnectList, parseWeeklyGoalList } from './person.js';
@@ -135,4 +134,3 @@ export function validateUserData(data) {
     return { valid: false, errors };
   }
 }
-

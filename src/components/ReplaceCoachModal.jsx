@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState, useMemo } from 'react';
 import { X, Users2, AlertTriangle, Crown, Sparkles } from 'lucide-react';
 import { generateRandomTeamName } from '../utils/teamNameGenerator';

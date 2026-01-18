@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Layers3, GitBranch } from 'lucide-react';
 import SectionCard from './SectionCard';
 
@@ -129,5 +128,4 @@ function StandardsColumn({ title, items, testId }) {
     </div>
   );
 }
-
 

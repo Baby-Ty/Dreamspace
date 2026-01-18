@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
 import { AlertCircle, Clock, Target } from 'lucide-react';
 
@@ -133,4 +132,3 @@ CoachingAlerts.defaultProps = {
 };
 
 export default CoachingAlerts;
-

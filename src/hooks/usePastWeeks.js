@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useState, useEffect, useCallback } from 'react';
 import { getRecentWeeks } from '../services/weekHistoryService';
@@ -120,4 +118,3 @@ export function usePastWeeks(userId, weeksCount = 24) {
 }
 
 export default usePastWeeks;
-

@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Trophy, TrendingUp, MapPin, Heart, BookOpen, Target, Award } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -196,4 +195,3 @@ TeamStatsWidget.defaultProps = {
   teamStats: null,
   teamName: ''
 };
-

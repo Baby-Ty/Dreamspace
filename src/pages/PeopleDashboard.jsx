@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 // PeopleDashboard - Thin re-export of modular people components
 // All UI and logic have been moved to src/pages/people/
 // New files:

@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { CalendarDays, Compass } from 'lucide-react';
 import SectionCard from './SectionCard';
 
@@ -59,5 +58,4 @@ export default function StakeholderSection({ data }) {
     </SectionCard>
   );
 }
-
 

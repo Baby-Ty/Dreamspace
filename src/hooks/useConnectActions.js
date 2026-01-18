@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useCallback, useRef, useEffect } from 'react';
 import connectService from '../services/connectService';
@@ -152,4 +151,3 @@ export function useConnectActions(state, dispatch) {
     reloadConnects
   };
 }
-

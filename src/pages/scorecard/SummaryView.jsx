@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import PropTypes from 'prop-types';
 import { Users, Target, Calendar, Activity, PieChart } from 'lucide-react';
 import ActivityCard from './ActivityCard';
@@ -173,4 +172,3 @@ SummaryView.defaultProps = {
 };
 
 export default SummaryView;
-

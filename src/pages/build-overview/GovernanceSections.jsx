@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ShieldCheck, FileText, CalendarDays, BarChart3 } from 'lucide-react';
 import SectionCard from './SectionCard';
 
@@ -104,5 +103,4 @@ export function OperationsSection({ data }) {
     </SectionCard>
   );
 }
-
 

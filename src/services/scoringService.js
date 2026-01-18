@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 // Scoring service for managing scoring in the 6-container architecture
 import { ok, fail } from '../utils/errorHandling.js';
@@ -180,6 +178,5 @@ class ScoringService extends BaseService {
 // Create singleton instance
 const scoringService = new ScoringService();
 export default scoringService;
-
 
 

@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Clock, Loader2, History } from 'lucide-react';
 
 /**
@@ -156,4 +155,3 @@ export function useFieldHistory(history, loadHistory) {
 
 export { formatRelativeTime };
 export default { HistoryButton, FieldHistoryPanel, useFieldHistory, formatRelativeTime };
-

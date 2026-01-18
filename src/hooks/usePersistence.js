@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useEffect, useRef } from 'react';
 
 export function usePersistence(state, debounceMs = 500) {
@@ -41,4 +40,3 @@ export function loadPersistedState() {
   }
   return null;
 }
-

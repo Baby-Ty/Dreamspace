@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState } from 'react';
 import { Sparkles, X, Loader2, Image, RefreshCw, Check, ChevronDown } from 'lucide-react';
 import { dalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
@@ -319,4 +318,3 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
 };
 
 export default AIImageGenerator;
-

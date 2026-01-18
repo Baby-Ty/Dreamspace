@@ -1,6 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-// DoD: validated I/O with Zod; consistent error shape; unit tested; CI green; health check passing.
-
 /**
  * Environment Variable Validation
  * Validates all required environment variables using Zod
@@ -328,4 +325,3 @@ if (isDevelopment()) {
 }
 
 export default env;
-

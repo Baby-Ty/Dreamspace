@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import databaseService from '../services/databaseService.js';
 
@@ -63,4 +62,3 @@ export const loadUserData = async (userId) => {
     return null;
   }
 };
-

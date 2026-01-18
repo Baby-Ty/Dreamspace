@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useCallback } from 'react';
 import itemService from '../services/itemService';
@@ -394,4 +393,3 @@ export function useWeeklyGoalActions(state, dispatch) {
     toggleWeeklyGoal
   };
 }
-

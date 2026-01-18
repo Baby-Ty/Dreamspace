@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Component } from 'react';
 import { trackError } from '../config/appInsights';
 import AnimatedBackground from './AnimatedBackground';
@@ -49,5 +48,4 @@ class ErrorBoundary extends Component {
 }
 
 export default ErrorBoundary;
-
 

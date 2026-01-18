@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useMemo } from 'react';
 import { Calendar, X, Plus } from 'lucide-react';
 import { getIsoWeek } from '../../utils/dateUtils';

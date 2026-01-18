@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { useState } from 'react';
 import { Play, Loader2, X, Image as ImageIcon, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import promptService from '../../services/promptService';

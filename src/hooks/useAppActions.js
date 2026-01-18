@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { loading, setUser, error, setPrefs } from '../state/actions.js';
 
 export function useAppActions(dispatch) {
@@ -9,4 +8,3 @@ export function useAppActions(dispatch) {
     setPrefs: (prefs) => dispatch(setPrefs(prefs))
   };
 }
-

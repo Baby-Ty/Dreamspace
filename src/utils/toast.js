@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 /**
  * Simple toast notification system
@@ -159,4 +158,3 @@ export const toast = {
 };
 
 export default showToast;
-

@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-// DoD: validated I/O with Zod; consistent error shape; unit tested; CI green; health check passing.
 // Error code constants for consistent error handling across services
 
 /**
@@ -53,4 +51,3 @@ export const ErrorCodes = {
   LOAD_ERROR: ERR.UNKNOWN,
   DELETE_ERROR: ERR.UNKNOWN
 };
-

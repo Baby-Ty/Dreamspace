@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { forwardRef, useRef } from 'react';
 import PropTypes from 'prop-types';
 import * as ReactWindow from 'react-window';
@@ -109,4 +108,3 @@ VirtualList.propTypes = {
 };
 
 export default VirtualList;
-

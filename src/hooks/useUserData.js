@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 
 import { useEffect, useRef } from 'react';
 import connectService from '../services/connectService';
@@ -180,4 +179,3 @@ export function useUserData(initialUser, dispatch, state) {
     };
   }, [state.currentUser?.id, state.currentUser?.email, dispatch]);
 }
-

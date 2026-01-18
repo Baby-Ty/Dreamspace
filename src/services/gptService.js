@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
@@ -103,4 +102,3 @@ export const gptService = {
 export function GptService() {
   return gptService;
 }
-

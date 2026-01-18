@@ -1,5 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; 
-//      a11y roles/labels; minimal props; data-testid for key nodes.
 
 /**
  * Request cache with TTL and deduplication
@@ -109,7 +107,6 @@ export const requestCache = new RequestCache();
 
 // Also export class for testing
 export { RequestCache };
-
 
 
 

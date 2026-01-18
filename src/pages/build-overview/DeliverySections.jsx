@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Layers, Target, BarChart3 } from 'lucide-react';
 import SectionCard from './SectionCard';
 import StatusPill from './StatusPill';
@@ -89,5 +88,4 @@ export function ScopeRoadmapSection({ data }) {
     </SectionCard>
   );
 }
-
 

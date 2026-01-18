@@ -1,6 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
-// DoD: validated I/O with Zod; consistent error shape; unit tested; CI green; health check passing.
-
 /**
  * Lightweight logging utility
  * Wraps console methods with timestamps, module tags, and structured data
@@ -374,4 +371,3 @@ export function createLogger(module) {
 }
 
 export default logger;
-

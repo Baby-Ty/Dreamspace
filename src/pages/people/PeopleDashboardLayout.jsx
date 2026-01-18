@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import React, { useState } from 'react';
 import { ShieldAlert, Users2, Loader2, AlertCircle } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -284,4 +283,3 @@ export default function PeopleDashboardLayout() {
     </div>
   );
 }
-

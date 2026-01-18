@@ -1,4 +1,3 @@
-// DoD: no fetch in UI; <400 lines; early return for loading/error; a11y roles/labels; minimal props; data-testid for key nodes.
 import { Users2, TrendingUp, Activity, AlertCircle, Target, Award } from 'lucide-react';
 
 /**
@@ -117,4 +116,3 @@ function UserPlus({ className }) {
     </svg>
   );
 }
-
