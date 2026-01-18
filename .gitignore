@@ -83,6 +83,7 @@ demo-data/
 updated...
 
 # Documentation with sensitive info logs
+docs/
 docs-deployment/
 docs-implementation-history/
 docs-new-tenant-deployment/
