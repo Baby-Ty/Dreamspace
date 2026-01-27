@@ -295,6 +295,32 @@ export const config = {
   app: {
     version: env.VITE_APP_VERSION,
     buildTime: env.VITE_BUILD_TIME,
+  },
+
+  // Domain configuration - SINGLE SOURCE OF TRUTH
+  // To change domains, update these two values only:
+  domain: {
+    productionHostname: 'dreamspace.tylerstewart.co.za',
+    productionApiUrl: 'https://func-dreamspace-prod.azurewebsites.net/api',
+    
+    // Runtime detection (same logic as before, just centralized)
+    isProduction: () => {
+      if (typeof window === 'undefined') return false;
+      return window.location.hostname === config.domain.productionHostname;
+    },
+    
+    // Get the correct API URL based on environment
+    get apiUrl() {
+      return this.isProduction() 
+        ? this.productionApiUrl 
+        : '/api';
+    },
+    
+    // Get the app origin URL (for auth redirects)
+    get appUrl() {
+      if (typeof window === 'undefined') return 'http://localhost:5173';
+      return window.location.origin;
+    }
   }
 };
 

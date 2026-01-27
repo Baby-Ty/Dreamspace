@@ -3,24 +3,8 @@ import { config } from '../utils/env.js';
 // MSAL configuration - improved for better reliability
 // Determine the correct redirect URI based on environment
 const getRedirectUri = () => {
-  // Production domain
-  if (window.location.hostname === 'dreamspace.tylerstewart.co.za') {
-    return 'https://dreamspace.tylerstewart.co.za';
-  }
-  // Azure Static Web Apps domain
-  if (window.location.hostname.includes('azurestaticapps.net')) {
-    return window.location.origin;
-  }
-  // GitHub Pages domain  
-  if (window.location.hostname.includes('github.io')) {
-    return window.location.origin;
-  }
-  // Local development
-  if (window.location.hostname === 'localhost') {
-    return 'http://localhost:5173'; // Vite default port
-  }
-  // Fallback to current origin
-  return window.location.origin;
+  // Always use current origin - works for production, staging, and localhost
+  return config.domain.appUrl;
 };
 
 // Get authority URL based on tenant ID from environment

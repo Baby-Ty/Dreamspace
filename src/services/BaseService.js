@@ -2,6 +2,7 @@
 import { ok, fail } from '../utils/errorHandling.js';
 import { ErrorCodes } from '../constants/errors.js';
 import { apiClient } from './apiClient.js';
+import { config } from '../utils/env.js';
 
 /**
  * BaseService - Base class for all API services
@@ -20,10 +21,7 @@ import { apiClient } from './apiClient.js';
  */
 export class BaseService {
   constructor() {
-    const isLiveSite = typeof window !== 'undefined' && 
-      window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    
-    this.useCosmosDB = isLiveSite || !!(
+    this.useCosmosDB = config.domain.isProduction() || !!(
       import.meta.env.VITE_COSMOS_ENDPOINT && 
       import.meta.env.VITE_APP_ENV === 'production'
     );

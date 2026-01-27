@@ -10,14 +10,11 @@
  *   const response = await apiClient.post('/saveItem', { userId, type, itemData });
  */
 
+import { config } from '../utils/env.js';
+
 class ApiClient {
   constructor() {
-    const isLiveSite = typeof window !== 'undefined' && 
-      window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    
-    this.baseUrl = isLiveSite 
-      ? 'https://func-dreamspace-prod.azurewebsites.net/api' 
-      : '/api';
+    this.baseUrl = config.domain.apiUrl;
     
     this._getToken = null;
     

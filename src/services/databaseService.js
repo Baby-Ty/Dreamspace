@@ -5,20 +5,21 @@ import { ERR, ErrorCodes } from '../constants/errors.js';
 import itemService from './itemService.js';
 import { apiClient } from './apiClient.js';
 import { logger } from '../utils/logger.js';
+import { config } from '../utils/env.js';
 
 class DatabaseService {
   constructor() {
     // Always use Cosmos DB on the live site, regardless of environment variables
-    const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-    this.useCosmosDB = isLiveSite || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
+    const isProduction = config.domain.isProduction();
+    this.useCosmosDB = isProduction || !!(import.meta.env.VITE_COSMOS_ENDPOINT && import.meta.env.VITE_APP_ENV === 'production');
     
     // Set API base URL - use separate Function App
-    this.apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+    this.apiBase = config.domain.apiUrl;
     
     // Debug logging (no sensitive keys logged)
     console.log('🔍 Environment check:');
     console.log('Hostname:', window.location.hostname);
-    console.log('Is live site:', isLiveSite);
+    console.log('Is live site:', isProduction);
     console.log('VITE_APP_ENV:', import.meta.env.VITE_APP_ENV);
     console.log('Production mode:', import.meta.env.VITE_APP_ENV === 'production');
     

@@ -114,8 +114,7 @@ export function GraphService(authedFetch, getToken = null, getApiToken = null) {
 
         // Step 4: Upload to Azure Blob Storage via Azure Function
         const { config } = await import('../utils/env.js');
-        const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-        const apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : config.api.baseUrl;
+        const apiBase = config.domain.apiUrl;
         const uploadUrl = `${apiBase}/uploadProfilePicture/${encodeURIComponent(userId)}`;
         
         console.log('📤 Uploading profile picture to blob storage...');
@@ -219,8 +218,7 @@ export function GraphService(authedFetch, getToken = null, getApiToken = null) {
         }
 
         const { config } = await import('../utils/env.js');
-        const isLiveSite = window.location.hostname === 'dreamspace.tylerstewart.co.za';
-        const apiBase = isLiveSite ? 'https://func-dreamspace-prod.azurewebsites.net/api' : '/api';
+        const apiBase = config.domain.apiUrl;
         const scheduleUrl = `${apiBase}/scheduleMeetingWithCalendar/${encodeURIComponent(teamId)}`;
 
         const response = await fetch(scheduleUrl, {
