@@ -304,6 +304,7 @@ export const config = {
     // Add new domain here, remove old domain after cutover complete
     productionHostnames: [
       'dreamspace.tylerstewart.co.za',
+      'dreams.netsurit.com',
       // Add new domain here during migration:
       // 'new-domain.com',
     ],

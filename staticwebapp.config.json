@@ -19,7 +19,7 @@
     ".css": "text/css"
   },
   "globalHeaders": {
-    "Access-Control-Allow-Origin": "https://dreamspace.tylerstewart.co.za",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Credentials": "true",
