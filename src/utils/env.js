@@ -298,15 +298,21 @@ export const config = {
   },
 
   // Domain configuration - SINGLE SOURCE OF TRUTH
-  // To change domains, update these two values only:
+  // To change domains, update these values only:
   domain: {
-    productionHostname: 'dreamspace.tylerstewart.co.za',
+    // Production hostnames - supports multiple domains during migration
+    // Add new domain here, remove old domain after cutover complete
+    productionHostnames: [
+      'dreamspace.tylerstewart.co.za',
+      // Add new domain here during migration:
+      // 'new-domain.com',
+    ],
     productionApiUrl: 'https://func-dreamspace-prod.azurewebsites.net/api',
     
-    // Runtime detection (same logic as before, just centralized)
+    // Runtime detection - checks if current hostname is in production list
     isProduction: () => {
       if (typeof window === 'undefined') return false;
-      return window.location.hostname === config.domain.productionHostname;
+      return config.domain.productionHostnames.includes(window.location.hostname);
     },
     
     // Get the correct API URL based on environment
