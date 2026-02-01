@@ -22,7 +22,7 @@ const LoadingSpinner = () => {
               <div className="w-6 h-6 bg-white rounded-sm"></div>
             </div>
             <h1 className="text-3xl font-bold text-professional-gray-800">
-              <span className="text-netsurit-red">Dream</span><span className="text-professional-gray-700">Space</span>
+              <span className="text-netsurit-red">Dreams</span><span className="text-professional-gray-700"> Program</span>
             </h1>
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-netsurit-red mx-auto mb-4"></div>
