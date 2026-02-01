@@ -1,6 +1,6 @@
 /**
  * Azure Function: Generate Vision Statement using GPT
- * Proxies requests to OpenAI API to avoid CORS issues
+ * Proxies requests to Azure AI Foundry to avoid CORS issues
  */
 
 const { createApiHandler } = require('../utils/apiWrapper');
@@ -22,13 +22,16 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'userInput is required' };
   }
 
-  // Check if OpenAI API key is configured
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  // Check if Azure AI Foundry is configured
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+  const baseUrl = process.env.AZURE_OPENAI_BASE_URL;
+  const chatModel = process.env.AZURE_OPENAI_CHAT_MODEL || 'gpt-4.1-nano';
+  
+  if (!apiKey || !baseUrl) {
     throw { 
       status: 500, 
-      message: 'OpenAI API not configured',
-      details: 'OPENAI_API_KEY environment variable is required'
+      message: 'Azure AI Foundry not configured',
+      details: 'AZURE_OPENAI_API_KEY and AZURE_OPENAI_BASE_URL environment variables are required'
     };
   }
 
@@ -117,16 +120,16 @@ Make it sound more visionary and confident, but still authentically me.`
     .replace(/{dreamContext}/g, dreamContext);
 
   context.log(`Using prompts from: ${promptsSource}`);
-  context.log('Calling OpenAI API...');
+  context.log('Calling Azure AI Foundry API...');
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(`${baseUrl}/models/chat/completions?api-version=2024-05-01-preview`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'api-key': apiKey
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: chatModel,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -138,10 +141,10 @@ Make it sound more visionary and confident, but still authentically me.`
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    context.log.error('OpenAI API error:', response.status, errorData);
+    context.log.error('Azure AI Foundry API error:', response.status, errorData);
     throw { 
       status: response.status, 
-      message: errorData.error?.message || `OpenAI API error: ${response.status}` 
+      message: errorData.error?.message || `Azure AI Foundry API error: ${response.status}` 
     };
   }
 
@@ -151,7 +154,7 @@ Make it sound more visionary and confident, but still authentically me.`
   const generatedText = data.choices?.[0]?.message?.content?.trim();
   
   if (!generatedText) {
-    throw { status: 500, message: 'No text generated from OpenAI' };
+    throw { status: 500, message: 'No text generated from Azure AI Foundry' };
   }
 
   // Remove surrounding quotes if present

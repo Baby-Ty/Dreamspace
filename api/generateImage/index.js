@@ -1,6 +1,6 @@
 /**
- * Azure Function: Generate Image using OpenAI GPT Image
- * Proxies requests to OpenAI Image API to keep API key server-side
+ * Azure Function: Generate Image using Azure AI Foundry
+ * Proxies requests to Azure AI Foundry Image API to keep API key server-side
  * 
  * Rate Limits (configurable via People Hub > AI Prompts Configuration):
  * - Per-minute: handled by rateLimiter.js
@@ -122,13 +122,16 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'userSearchTerm is required' };
   }
 
-  // Check if OpenAI API key is configured
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  // Check if Azure AI Foundry is configured
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+  const baseUrl = process.env.AZURE_OPENAI_BASE_URL;
+  const imageModel = process.env.AZURE_OPENAI_IMAGE_MODEL || 'gpt-image-1-mini';
+  
+  if (!apiKey || !baseUrl) {
     throw { 
       status: 500, 
-      message: 'OpenAI API not configured',
-      details: 'OPENAI_API_KEY environment variable is required'
+      message: 'Azure AI Foundry not configured',
+      details: 'AZURE_OPENAI_API_KEY and AZURE_OPENAI_BASE_URL environment variables are required'
     };
   }
 
@@ -219,16 +222,18 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
   }
 
   context.log(`Using prompts from: ${promptsSource}`);
-  context.log('Calling OpenAI Image API...');
+  context.log('Calling Azure AI Foundry Image API...');
 
-  const response = await fetch('https://api.openai.com/v1/images/generations', {
+  // Use the model from env var, falling back to options model if needed
+  const deploymentModel = imageModel || model;
+  
+  const response = await fetch(`${baseUrl}/openai/deployments/${deploymentModel}/images/generations?api-version=2025-04-01-preview`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'api-key': apiKey
     },
     body: JSON.stringify({
-      model,
       prompt,
       n: 1,
       size,
@@ -238,19 +243,19 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    context.log.error('OpenAI Image API error:', response.status, errorData);
+    context.log.error('Azure AI Foundry Image API error:', response.status, errorData);
     throw { 
       status: response.status, 
-      message: errorData.error?.message || `OpenAI API error: ${response.status}` 
+      message: errorData.error?.message || `Azure AI Foundry API error: ${response.status}` 
     };
   }
 
   const data = await response.json();
   
-  // Validate response structure - gpt-image models return b64_json, dall-e returns url
+  // Validate response structure - gpt-image models return b64_json
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
-    context.log.error('Invalid OpenAI response structure:', JSON.stringify(data).substring(0, 500));
-    throw { status: 500, message: 'Invalid response from OpenAI Image API' };
+    context.log.error('Invalid Azure AI Foundry response structure:', JSON.stringify(data).substring(0, 500));
+    throw { status: 500, message: 'Invalid response from Azure AI Foundry Image API' };
   }
 
   const imageData = data.data[0];
@@ -264,7 +269,7 @@ Use scenery, objects, abstract shapes, or symbolic visuals — but no identifiab
     imageUrl = `data:image/png;base64,${imageData.b64_json}`;
   } else {
     context.log.error('No url or b64_json in response:', Object.keys(imageData));
-    throw { status: 500, message: 'Invalid response from OpenAI Image API - no image data' };
+    throw { status: 500, message: 'Invalid response from Azure AI Foundry Image API - no image data' };
   }
 
   // Record successful usage for daily limits
