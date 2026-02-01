@@ -1,5 +1,6 @@
 
 import { useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Plus, X } from 'lucide-react';
 import { useDreamBook } from '../../hooks/useDreamBook';
 import DreamGrid from './DreamGrid';
@@ -18,6 +19,9 @@ import { buildTemplateFromInspiration } from '../../constants/dreamInspiration';
  * Manages all modal states and composes child components
  */
 export default function DreamBookLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const hasProcessedState = useRef(false);
   const {
     // Data
     dreams,
@@ -95,6 +99,19 @@ export default function DreamBookLayout() {
   } = useDreamBook();
 
   const editTitleRef = useRef(null);
+
+  // Check if we should auto-open the create modal (e.g., from dashboard Add Dream card)
+  useEffect(() => {
+    if (location.state?.openCreateModal && !hasProcessedState.current && !isCreating && dreams.length < maxDreams) {
+      hasProcessedState.current = true;
+      // Clear the state immediately to prevent re-triggering
+      navigate(location.pathname, { replace: true, state: {} });
+      // Open the modal after a brief delay to ensure state is cleared
+      setTimeout(() => {
+        handleCreate();
+      }, 50);
+    }
+  }, [location.state?.openCreateModal, isCreating, dreams.length, maxDreams, handleCreate, location.pathname, navigate]);
 
   // Focus title input and scroll the editing card into view when editing starts
   useEffect(() => {

@@ -281,6 +281,7 @@ export default function DashboardLayout() {
                   {/* Add Dream Card */}
                   <Link
                     to="/dream-book"
+                    state={{ openCreateModal: true }}
                     className="group relative flex flex-col items-center justify-center h-full bg-white rounded-xl border-2 border-dashed border-netsurit-red/30 hover:border-netsurit-red/60 hover:bg-gradient-to-br hover:from-netsurit-red/5 hover:to-netsurit-coral/5 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.03] min-h-[280px]"
                     data-testid="add-dream-button"
                     aria-label="Add new dream"
