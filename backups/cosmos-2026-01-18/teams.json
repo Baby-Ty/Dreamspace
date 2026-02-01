@@ -1,0 +1,113 @@
+[
+  {
+    "id": "team_n14d61",
+    "type": "team_relationship",
+    "managerId": "CheneE@netsurit.com",
+    "teamMembers": [
+      "Ana.Melo@netsurit.com",
+      "Geraldine.Volkwyn@netsurit.com",
+      "Boetie.Mthombeni@netsurit.com"
+    ],
+    "teamName": "Chene's SA Dream Team",
+    "managerRole": "Dream Coach",
+    "createdAt": "2025-11-27T11:17:01.223Z",
+    "lastModified": "2026-01-07T08:24:04.711Z",
+    "isActive": true,
+    "createdBy": "system",
+    "_rid": "kU5BAKiQQ5MgAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAKiQQ5M=/docs/kU5BAKiQQ5MgAAAAAAAAAA==/",
+    "_etag": "\"6c0041d8-0000-0200-0000-695e18240000\"",
+    "_attachments": "attachments/",
+    "mission": "Empowering each team member to achieve their dreams through collaboration, support, and shared growth.  Let's do it",
+    "nextMeeting": {
+      "date": "2025-12-10",
+      "time": "14:30",
+      "location": "Microsoft Teams",
+      "agenda": null,
+      "updatedAt": "2025-11-27T11:51:33.033Z"
+    },
+    "teamId": "team_n14d61",
+    "migratedAt": "2025-12-20T09:07:18.403Z",
+    "previousId": "team_dc976c4b-51be-4bec-8ea2-effcae6331d4",
+    "previousTeamId": "team_dc976c4b-51be-4bec-8ea2-effcae6331d4",
+    "meetingDraft": {
+      "title": "",
+      "date": "2026-01-07",
+      "time": ""
+    },
+    "_ts": 1767774244
+  },
+  {
+    "id": "team_gzkaj9",
+    "type": "team_relationship",
+    "managerId": "LesediM@netsurit.com",
+    "teamMembers": [
+      "user5@netsurit.com",
+      "user4@netsurit.com"
+    ],
+    "teamName": "Lesedi's Dream Team",
+    "managerRole": "Dream Coach",
+    "createdAt": "2025-11-27T11:51:55.972Z",
+    "lastModified": "2026-01-12T17:25:12.740Z",
+    "isActive": true,
+    "createdBy": "system",
+    "_rid": "kU5BAKiQQ5MhAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAKiQQ5M=/docs/kU5BAKiQQ5MhAAAAAAAAAA==/",
+    "_etag": "\"8b00eb0a-0000-0200-0000-69652e7a0000\"",
+    "_attachments": "attachments/",
+    "teamId": "team_gzkaj9",
+    "migratedAt": "2025-12-20T09:07:19.038Z",
+    "previousId": "team_11a047f9-cd71-409e-b275-534c56bedbf8",
+    "previousTeamId": "team_11a047f9-cd71-409e-b275-534c56bedbf8",
+    "_ts": 1768238714
+  },
+  {
+    "id": "team_725fvb",
+    "type": "team_relationship",
+    "managerId": "VarityR@netsurit.com",
+    "teamMembers": [
+      "Tyler.Stewart@netsurit.com",
+      "coach2@netsurit.com",
+      "coach1@netsurit.com",
+      "VarityR@netsurit.com",
+      "user3@netsurit.com"
+    ],
+    "teamName": "Nova Crafters",
+    "managerRole": "Dream Coach",
+    "createdAt": "2025-11-20T18:24:37.778Z",
+    "lastModified": "2026-01-15T13:48:15.233Z",
+    "isActive": true,
+    "createdBy": "system",
+    "_rid": "kU5BAKiQQ5MoAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAKiQQ5M=/docs/kU5BAKiQQ5MoAAAAAAAAAA==/",
+    "_etag": "\"5a089769-0000-0200-0000-6968f0200000\"",
+    "_attachments": "attachments/",
+    "mission": "Team Interests: Adventrue, Fitness, Growth\n\nTeam Regions: Cape Town, Mexico, America",
+    "nextMeeting": {
+      "date": "2025-11-20",
+      "time": "10:14",
+      "location": "teanm",
+      "agenda": "tes",
+      "updatedAt": "2025-11-21T21:15:15.301Z"
+    },
+    "coachReplaced": {
+      "oldCoachId": "Tyler.Stewart@netsurit.com",
+      "newCoachId": "VarityR@netsurit.com",
+      "previousTeamName": "Horizon Hero",
+      "replacedAt": "2026-01-15T13:48:15.233Z",
+      "replacedBy": "system"
+    },
+    "teamId": "team_725fvb",
+    "migratedAt": "2025-12-20T09:07:19.467Z",
+    "previousId": "team_c69b38db-1fa3-4327-abfa-814e6a72d02a",
+    "previousTeamId": "team_c69b38db-1fa3-4327-abfa-814e6a72d02a",
+    "teamInterests": "Adventure & Fun, Family & Friends, Wellness & Fitness, Growth & Learning, Money & Wealth, Skills & Hobbies, Love & Relationships",
+    "teamRegions": "Remote, Mexico, Cape Town, Johannesburg",
+    "meetingDraft": {
+      "title": "",
+      "date": "2026-01-10",
+      "time": ""
+    },
+    "_ts": 1768484896
+  }
+]

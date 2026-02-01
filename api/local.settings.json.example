@@ -1,22 +1,32 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "",
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=your-storage-account;AccountKey=your-storage-account-key",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "COSMOS_ENDPOINT": "https://your-cosmos-account.documents.azure.com:443/",
-    "COSMOS_KEY": "your-cosmos-primary-key",
-    "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=your-account-key;EndpointSuffix=core.windows.net"
+    
+    "COSMOS_ENDPOINT": "https://cosmos-dreamspace-live.documents.azure.com:443/",
+    "COSMOS_KEY": "your-cosmos-primary-key-here",
+    
+    "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=your-storage-account;AccountKey=your-storage-account-key;BlobEndpoint=https://your-storage-account.blob.core.windows.net/;FileEndpoint=https://your-storage-account.file.core.windows.net/;QueueEndpoint=https://your-storage-account.queue.core.windows.net/;TableEndpoint=https://your-storage-account.table.core.windows.net/",
+    
+    "OPENAI_API_KEY": "sk-proj-your-openai-api-key-here",
+    
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": "InstrumentationKey=your-instrumentation-key;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=your-application-id",
+    
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=your-storage-account;AccountKey=your-storage-account-key",
+    "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
+    "FUNCTIONS_EXTENSION_VERSION": "~4",
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=your-storage-account;AccountKey=your-storage-account-key",
+    "WEBSITE_CONTENTSHARE": "func-dreamspace-prod",
+    "WEBSITE_NODE_DEFAULT_VERSION": "~18",
+    "WEBSITE_RUN_FROM_PACKAGE": "1",
+    
+    "AZURE_TENANT_ID": "your-azure-tenant-id-here",
+    "ALLOWED_ORIGIN": "http://localhost:5173",
+    "REQUIRE_AUTH": "true"
+  },
+  "ConnectionStrings": {},
+  "Host": {
+    "CORS": "*"
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-

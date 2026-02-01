@@ -1,0 +1,60 @@
+{
+  "exportDate": "2026-01-18T10:55:21.343Z",
+  "endpoint": "https://cosmos-dreamspace-prod-20251013.documents.azure.com:443/",
+  "database": "dreamspace",
+  "containers": [
+    {
+      "name": "users",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "dreams",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "connects",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "scoring",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "teams",
+      "partitionKey": "/managerId"
+    },
+    {
+      "name": "coaching_alerts",
+      "partitionKey": "/managerId"
+    },
+    {
+      "name": "currentWeek",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "pastWeeks",
+      "partitionKey": "/userId"
+    },
+    {
+      "name": "meeting_attendance",
+      "partitionKey": "/teamId"
+    },
+    {
+      "name": "prompts",
+      "partitionKey": "/partitionKey"
+    }
+  ],
+  "totalDocuments": 231,
+  "containerCounts": {
+    "users": 15,
+    "dreams": 14,
+    "connects": 118,
+    "scoring": 18,
+    "teams": 3,
+    "coaching_alerts": 0,
+    "currentWeek": 13,
+    "pastWeeks": 12,
+    "meeting_attendance": 18,
+    "prompts": 20
+  }
+}

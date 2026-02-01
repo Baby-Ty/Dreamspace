@@ -75,7 +75,7 @@ const Layout = ({ children }) => {
             <div className="flex items-center space-x-3">
               <img 
                 src="/logo.png" 
-                alt="DreamSpace Logo" 
+                alt="Dreams Program Logo" 
                 className="w-8 h-8 rounded-lg object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -85,7 +85,10 @@ const Layout = ({ children }) => {
               <div className="w-8 h-8 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded-lg items-center justify-center hidden">
                 <Star className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">DreamSpace</h1>
+              <div className="flex flex-col -space-y-1 ml-0.5">
+                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">netsurit</span>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Dreams Program</h1>
+              </div>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -245,7 +248,10 @@ const Layout = ({ children }) => {
               <div className="w-6 h-6 bg-gradient-to-br from-netsurit-red to-netsurit-coral rounded flex items-center justify-center">
                 <Star className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900">DreamSpace</h1>
+              <div className="flex flex-col -space-y-1 ml-0.5">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">netsurit</span>
+                <h1 className="text-lg font-bold text-gray-900 tracking-tight">Dreams Program</h1>
+              </div>
             </div>
           </div>
         </div>

@@ -1,0 +1,1047 @@
+[
+  {
+    "id": "ai-prompts",
+    "partitionKey": "config",
+    "imageGeneration": {
+      "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figure — no identifiable people or faces.",
+      "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+    },
+    "visionGeneration": {
+      "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+      "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+      "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+      "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+    },
+    "styleModifiers": {
+      "stylized_digital": {
+        "label": "Stylized Digital Painting",
+        "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+      },
+      "vibrant_coastal": {
+        "label": "Vibrant Coastal Illustration",
+        "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+      },
+      "semi_realistic": {
+        "label": "Semi-Realistic Landscape Art",
+        "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+      },
+      "photorealistic_cinematic": {
+        "label": "Photorealistic Cinematic",
+        "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+      }
+    },
+    "aiLimits": {
+      "imageGeneration": {
+        "dailyLimitPerUser": 25,
+        "dailyLimitTotal": 500,
+        "perMinuteLimit": 10,
+        "costPerRequest": 0.01,
+        "modelName": "gpt-image-1-mini"
+      },
+      "visionGeneration": {
+        "dailyLimitPerUser": 100,
+        "dailyLimitTotal": 2000,
+        "perMinuteLimit": 20,
+        "costPerRequest": 0.00015,
+        "modelName": "GPT-4o-mini"
+      }
+    },
+    "lastModified": "2026-01-15T14:25:38.598Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "_rid": "kU5BAJWFS-oBAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oBAAAAAAAAAA==/",
+    "_etag": "\"2800a5e3-0000-0200-0000-6968f8e20000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768487138
+  },
+  {
+    "id": "history_1766218040462",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1766218040462",
+    "timestamp": "2025-12-20T08:07:20.462Z",
+    "modifiedBy": "system",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oCAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oCAAAAAAAAAA==/",
+    "_etag": "\"0100d7a4-0000-0200-0000-6946593a0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766218042
+  },
+  {
+    "id": "history_1766414529667",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1766414529667",
+    "timestamp": "2025-12-22T14:42:09.667Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces. this is new",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oDAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oDAAAAAAAAAA==/",
+    "_etag": "\"0200edf5-0000-0200-0000-694958c10000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766414529
+  },
+  {
+    "id": "history_1766435463362",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1766435463362",
+    "timestamp": "2025-12-22T20:31:03.362Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oEAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oEAAAAAAAAAA==/",
+    "_etag": "\"0300a594-0000-0200-0000-6949aa880000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766435464
+  },
+  {
+    "id": "history_1768245348089",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768245348089",
+    "timestamp": "2026-01-12T19:15:48.089Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oFAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oFAAAAAAAAAA==/",
+    "_etag": "\"2200f518-0000-0200-0000-696548660000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768245350
+  },
+  {
+    "id": "history_1768245371709",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768245371709",
+    "timestamp": "2026-01-12T19:16:11.709Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oGAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oGAAAAAAAAAA==/",
+    "_etag": "\"2200ad19-0000-0200-0000-6965487d0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768245373
+  },
+  {
+    "id": "history_1768324792205",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768324792205",
+    "timestamp": "2026-01-13T17:19:52.205Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.  \nUse scenery, objects, environments, silhouettes, distant figures — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.  \nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement. \nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations. \nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oHAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oHAAAAAAAAAA==/",
+    "_etag": "\"26004a74-0000-0200-0000-69667ebb0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768324795
+  },
+  {
+    "id": "history_1768324795611",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768324795611",
+    "timestamp": "2026-01-13T17:19:55.611Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces. ",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oIAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oIAAAAAAAAAA==/",
+    "_etag": "\"26004c74-0000-0200-0000-69667ebf0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768324799
+  },
+  {
+    "id": "history_1768335692148",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768335692148",
+    "timestamp": "2026-01-13T20:21:32.148Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oJAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oJAAAAAAAAAA==/",
+    "_etag": "\"2600657f-0000-0200-0000-6966a94f0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768335695
+  },
+  {
+    "id": "history_1768336020259",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336020259",
+    "timestamp": "2026-01-13T20:27:00.259Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "costPerRequest": 0.01
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oKAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oKAAAAAAAAAA==/",
+    "_etag": "\"26007080-0000-0200-0000-6966aa970000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336023
+  },
+  {
+    "id": "history_1768336205010",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336205010",
+    "timestamp": "2026-01-13T20:30:05.010Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "costPerRequest": 0.01
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oLAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oLAAAAAAAAAA==/",
+    "_etag": "\"26001781-0000-0200-0000-6966ab500000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336208
+  },
+  {
+    "id": "history_1768336260845",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336260845",
+    "timestamp": "2026-01-13T20:31:00.845Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oMAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oMAAAAAAAAAA==/",
+    "_etag": "\"26007f81-0000-0200-0000-6966ab880000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336264
+  },
+  {
+    "id": "history_1768336389976",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336389976",
+    "timestamp": "2026-01-13T20:33:09.976Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3 HD"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oNAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oNAAAAAAAAAA==/",
+    "_etag": "\"2600e381-0000-0200-0000-6966ac090000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336393
+  },
+  {
+    "id": "history_1768336420545",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336420545",
+    "timestamp": "2026-01-13T20:33:40.545Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3 HD"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oOAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oOAAAAAAAAAA==/",
+    "_etag": "\"26000782-0000-0200-0000-6966ac280000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336424
+  },
+  {
+    "id": "history_1768336865964",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768336865964",
+    "timestamp": "2026-01-13T20:41:05.964Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3 HD"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oPAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oPAAAAAAAAAA==/",
+    "_etag": "\"26002e84-0000-0200-0000-6966ade50000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768336869
+  },
+  {
+    "id": "history_1768337125002",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768337125002",
+    "timestamp": "2026-01-13T20:45:25.002Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3 HD"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oQAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oQAAAAAAAAAA==/",
+    "_etag": "\"2600e984-0000-0200-0000-6966aee80000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768337128
+  },
+  {
+    "id": "history_1768485044680",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768485044680",
+    "timestamp": "2026-01-15T13:50:44.680Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "DALL-E 3"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oRAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oRAAAAAAAAAA==/",
+    "_etag": "\"2800ce9f-0000-0200-0000-6968f0b50000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768485045
+  },
+  {
+    "id": "history_1768487006185",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768487006185",
+    "timestamp": "2026-01-15T14:23:26.185Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "gpt-image-1-mini"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oSAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oSAAAAAAAAAA==/",
+    "_etag": "\"2800d6df-0000-0200-0000-6968f85e0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768487006
+  },
+  {
+    "id": "history_1768487030305",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768487030305",
+    "timestamp": "2026-01-15T14:23:50.305Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "gpt-image-1-mini"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oTAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oTAAAAAAAAAA==/",
+    "_etag": "\"280086e0-0000-0200-0000-6968f8760000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768487030
+  },
+  {
+    "id": "history_1768487138570",
+    "partitionKey": "history",
+    "type": "prompt-history",
+    "version": "history_1768487138570",
+    "timestamp": "2026-01-15T14:25:38.570Z",
+    "modifiedBy": "Tyler.Stewart@netsurit.com",
+    "changeDescription": "Snapshot before update by Tyler.Stewart@netsurit.com",
+    "prompts": {
+      "imageGeneration": {
+        "dreamPrompt": "Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figure — no identifiable people or faces.",
+        "backgroundCardPrompt": "Create a clean, visually appealing background image based on the theme: \"{userSearchTerm}\".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces."
+      },
+      "visionGeneration": {
+        "generateSystemPrompt": "You are a visionary life coach helping someone craft an inspiring personal vision statement.\nWrite in first person, present tense. Warm, authentic, aspirational — never corporate.\n\nThe tone should feel like a confident dreamer speaking from the heart.\nKeep it to around {maxWords} words. Make every word count.",
+        "generateUserPrompt": "Here's what I shared about my mindset, goals, and hopes:\n\"{userInput}\"\n\n{dreamContext}\n\nTransform this into a powerful, personal vision statement that captures my aspirations.\nMake it sound like ME - confident, inspired, and ready to make it happen.",
+        "polishSystemPrompt": "You are an editor refining a personal vision statement.\nKeep the same meaning and personal voice, but elevate clarity, confidence, and inspiration.\nWrite in first person. Around {maxWords} words.\nDo not add new concepts — just polish what's already there.",
+        "polishUserPrompt": "Please polish this vision statement while keeping my voice:\n\"{userInput}\"\n\n{dreamContext}\n\nMake it sound more visionary and confident, but still authentically me."
+      },
+      "styleModifiers": {
+        "stylized_digital": {
+          "label": "Stylized Digital Painting",
+          "modifier": "stylized digital painting, soft brush textures, warm lighting, smooth gradients, gentle color exaggeration, clean modern illustration style"
+        },
+        "vibrant_coastal": {
+          "label": "Vibrant Coastal Illustration",
+          "modifier": "vibrant illustrated scenery, warm daylight, smooth shading, gentle highlights, slightly stylized natural elements"
+        },
+        "semi_realistic": {
+          "label": "Semi-Realistic Landscape Art",
+          "modifier": "semi-realistic environment art, crisp edges, vibrant tones, atmospheric depth, painterly highlights, detailed but not photorealistic"
+        },
+        "photorealistic_cinematic": {
+          "label": "Photorealistic Cinematic",
+          "modifier": "photorealistic detail, cinematic lighting, shallow depth of field, soft film grain, high-contrast highlights"
+        }
+      },
+      "aiLimits": {
+        "imageGeneration": {
+          "dailyLimitPerUser": 25,
+          "dailyLimitTotal": 500,
+          "perMinuteLimit": 10,
+          "costPerRequest": 0.01,
+          "modelName": "gpt-image-1-mini"
+        },
+        "visionGeneration": {
+          "dailyLimitPerUser": 100,
+          "dailyLimitTotal": 2000,
+          "perMinuteLimit": 20,
+          "costPerRequest": 0.00015,
+          "modelName": "GPT-4o-mini"
+        }
+      }
+    },
+    "_rid": "kU5BAJWFS-oUAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJWFS-o=/docs/kU5BAJWFS-oUAAAAAAAAAA==/",
+    "_etag": "\"2800a4e3-0000-0200-0000-6968f8e20000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768487138
+  }
+]

@@ -11,7 +11,7 @@ const LoadingSpinner = () => {
           <div className="flex items-center justify-center space-x-3 mb-6">
             <img 
               src="/logo.png" 
-              alt="DreamSpace Logo" 
+              alt="Dreams Program Logo" 
               className="w-12 h-12 rounded-xl object-contain shadow-lg animate-spin"
               onError={(e) => {
                 e.target.style.display = 'none';

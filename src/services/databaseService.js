@@ -1,5 +1,5 @@
 
-// Database service for DreamSpace - handles Cosmos DB data persistence
+// Database service for the Dreams Program - handles Cosmos DB data persistence
 import { ok, fail } from '../utils/errorHandling.js';
 import { ERR, ErrorCodes } from '../constants/errors.js';
 import itemService from './itemService.js';

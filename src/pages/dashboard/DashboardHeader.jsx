@@ -22,7 +22,7 @@ function DashboardHeader({ userName, stats, onShowGuide }) {
               <button
                 onClick={onShowGuide}
                 className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold text-netsurit-red hover:text-white bg-white hover:bg-netsurit-red border-2 border-netsurit-red rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
-                aria-label="View DreamSpace guide"
+                aria-label="View Dreams Program guide"
                 data-testid="guide-button"
               >
                 <HelpCircle className="w-4 h-4" />

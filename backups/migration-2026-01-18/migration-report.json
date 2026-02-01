@@ -1,0 +1,158 @@
+{
+  "startTime": "2026-01-18T10:55:41.600Z",
+  "source": "https://cosmos-dreamspace-prod-20251013.documents.azure.com:443/",
+  "destination": "https://cosmos-dreamspace-live.documents.azure.com:443/",
+  "containers": {
+    "users": {
+      "success": true,
+      "migrated": 15,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "dreams": {
+      "success": true,
+      "migrated": 14,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "connects": {
+      "success": true,
+      "migrated": 118,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "scoring": {
+      "success": true,
+      "migrated": 18,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "teams": {
+      "success": true,
+      "migrated": 3,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "coaching_alerts": {
+      "success": false,
+      "migrated": 0,
+      "failed": 0,
+      "skipped": 0,
+      "error": {
+        "code": 404,
+        "substatus": 0,
+        "body": {
+          "code": "NotFound",
+          "message": "{\"code\":\"NotFound\",\"message\":\"Message: {\\\"Errors\\\":[\\\"Resource Not Found. Learn more: https://aka.ms/cosmosdb-tsg-not-found\\\"]}\\r\\nActivityId: ddce78b4-506a-46ee-a2a2-9d1a0398ba83, Request URI: /apps/649016ee-75df-4971-a9b2-1555d5181304/services/d75ddc41-d9e0-4306-9963-98f2bc28febe/partitions/b608cbd5-dfb6-450e-bf61-203580797309/replicas/134124718513522955s, RequestStats: , SDK: Microsoft.Azure.Documents.Common/2.14.0\"}\r\nRequestUri: https://cosmos-dreamspace-prod-20251013-eastus2.sql.cosmos.azure.com/dbs/dreamspace/colls/coaching_alerts;\r\nRequestMethod: GET;\r\nHeader: Authorization Length: 84;\r\nHeader: x-ms-date Length: 29;\r\nHeader: x-ms-activity-id Length: 36;\r\nHeader: Cache-Control Length: 8;\r\nHeader: User-Agent Length: 142;\r\nHeader: x-ms-cosmos-apitype Length: 3;\r\nHeader: x-ms-version Length: 10;\r\nHeader: x-ms-cosmos-sdk-supportedcapabilities Length: 1;\r\nHeader: Accept Length: 16;\r\nHeader: x-ms-cosmos-compute-hop-count Length: 1;\r\nHeader: x-ms-gateway-use-mtls Length: 1;\r\nHeader: traceparent Length: 55;\r\nHeader: tracestate Length: 6;\r\n, Request URI: /dbs/dreamspace/colls/coaching_alerts, RequestStats: Microsoft.Azure.Cosmos.Tracing.TraceData.ClientSideRequestStatisticsTraceDatum, SDK: Windows/10.0.20348 cosmos-netstandard-sdk/3.18.0"
+        },
+        "headers": {
+          "date": "Sun, 18 Jan 2026 10:55:58 GMT",
+          "transfer-encoding": "chunked",
+          "content-type": "application/json",
+          "x-ms-activity-id": "dca17f3b-6d76-4c89-ab9f-ec05d26a5bfa",
+          "x-ms-last-state-change-utc": "Fri, 09 Jan 2026 22:42:47.380 GMT",
+          "x-ms-schemaversion": "1.20",
+          "lsn": "70",
+          "x-ms-request-charge": "2",
+          "x-ms-xp-role": "1",
+          "x-ms-global-committed-lsn": "70",
+          "x-ms-number-of-read-regions": "0",
+          "x-ms-transport-request-id": "3385555",
+          "x-ms-cosmos-llsn": "70",
+          "x-ms-session-token": "0:-1#70",
+          "x-ms-request-duration-ms": "0.119",
+          "x-ms-serviceversion": "version=2.14.0.0",
+          "server": "Compute",
+          "x-ms-cosmos-internal-partition-id": "b608cbd5-dfb6-450e-bf61-203580797309",
+          "strict-transport-security": "max-age=31536000",
+          "x-ms-gatewayversion": "2.0.0",
+          "x-ms-substatus": "0",
+          "x-ms-cosmos-correlated-activityid": "b3af8dbe-905a-4973-81ab-63b66c505df2",
+          "x-ms-throttle-retry-count": 0,
+          "x-ms-throttle-retry-wait-time-ms": 0
+        },
+        "activityId": "dca17f3b-6d76-4c89-ab9f-ec05d26a5bfa",
+        "diagnostics": {
+          "clientSideRequestStatistics": {
+            "requestStartTimeUTCInMs": 1768733758298,
+            "requestDurationInMs": 210,
+            "totalRequestPayloadLengthInBytes": 54,
+            "totalResponsePayloadLengthInBytes": 3882,
+            "locationEndpointsContacted": [
+              "https://cosmos-dreamspace-prod-20251013-eastus2.documents.azure.com:443/"
+            ],
+            "metadataDiagnostics": {
+              "metadataLookups": [
+                {
+                  "activityId": "349e775b-9e7b-4ca6-863d-813cdc4bad32",
+                  "requestPayloadLengthInBytes": 27,
+                  "responsePayloadLengthInBytes": 2546,
+                  "startTimeUTCInMs": 1768733758298,
+                  "operationType": "read",
+                  "resourceType": "docs",
+                  "durationInMs": 209,
+                  "metaDataType": "QUERY_PLAN_LOOK_UP"
+                }
+              ]
+            },
+            "retryDiagnostics": {
+              "failedAttempts": []
+            },
+            "gatewayStatistics": [
+              {
+                "activityId": "dca17f3b-6d76-4c89-ab9f-ec05d26a5bfa",
+                "correlateActivityId": "b3af8dbe-905a-4973-81ab-63b66c505df2",
+                "startTimeUTCInMs": 1768733758298,
+                "durationInMs": 210,
+                "statusCode": 404,
+                "subStatusCode": 0,
+                "requestPayloadLengthInBytes": 27,
+                "responsePayloadLengthInBytes": 1336,
+                "operationType": "query",
+                "resourceType": "docs"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "currentWeek": {
+      "success": true,
+      "migrated": 13,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "pastWeeks": {
+      "success": true,
+      "migrated": 12,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "meeting_attendance": {
+      "success": true,
+      "migrated": 18,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    },
+    "prompts": {
+      "success": true,
+      "migrated": 20,
+      "failed": 0,
+      "skipped": 0,
+      "verified": true
+    }
+  },
+  "totalMigrated": 231,
+  "totalFailed": 0,
+  "totalSkipped": 0,
+  "success": false,
+  "endTime": "2026-01-18T10:56:07.967Z"
+}

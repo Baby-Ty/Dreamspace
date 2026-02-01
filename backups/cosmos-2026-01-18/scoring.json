@@ -1,0 +1,3797 @@
+[
+  {
+    "id": "VarityR@netsurit.com_2025_scoring",
+    "userId": "VarityR@netsurit.com",
+    "year": 2025,
+    "totalScore": 60,
+    "entries": [
+      {
+        "id": "score_1762438545022_3erklq5js",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1762438408279",
+        "points": 10,
+        "activity": "Added dream: \"Dream 1\"",
+        "createdAt": "2025-11-06T14:15:45.022Z"
+      },
+      {
+        "id": "score_1764149061202_zcu07uehw",
+        "date": "2025-11-26",
+        "source": "dream",
+        "dreamId": "dream_1764148591273",
+        "points": 10,
+        "activity": "Added dream: \"Vee Ramogayana\"",
+        "createdAt": "2025-11-26T09:24:21.202Z"
+      },
+      {
+        "id": "score_1764149442553_jjjtl8i3b",
+        "date": "2025-11-26",
+        "source": "dream",
+        "dreamId": "dream_1764149129052",
+        "points": 10,
+        "activity": "Added dream: \"I want to go to space \"",
+        "createdAt": "2025-11-26T09:30:42.553Z"
+      },
+      {
+        "id": "score_1764154715038_64npza10n",
+        "date": "2025-11-26",
+        "source": "dream",
+        "dreamId": "dream_1764154698874",
+        "points": 10,
+        "activity": "Added dream: \"dream\"",
+        "createdAt": "2025-11-26T10:58:35.038Z"
+      },
+      {
+        "id": "score_1764851299326_cfk17zujj",
+        "date": "2025-12-04",
+        "source": "dream",
+        "dreamId": "dream_1764850943559",
+        "points": 10,
+        "activity": "Added dream: \"Scuba dive \"",
+        "createdAt": "2025-12-04T12:28:19.326Z"
+      },
+      {
+        "id": "score_1764851512512_vvnae5pyc",
+        "date": "2025-12-04",
+        "source": "dream",
+        "dreamId": "dream_1764851306257",
+        "points": 10,
+        "activity": "Added dream: \"pass az 900\"",
+        "createdAt": "2025-12-04T12:31:52.512Z"
+      }
+    ],
+    "createdAt": "2025-11-06T14:15:45.579Z",
+    "updatedAt": "2025-12-04T12:31:54.906Z",
+    "_rid": "kU5BALv7w2QFAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QFAAAAAAAAAA==/",
+    "_etag": "\"b304cc83-0000-0200-0000-69317f3a0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764851514
+  },
+  {
+    "id": "Tyler.Stewart@netsurit.com_2025_scoring",
+    "userId": "Tyler.Stewart@netsurit.com",
+    "year": 2025,
+    "totalScore": 1149,
+    "entries": [
+      {
+        "id": "score_1763476167827_zj16gs0m2",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763476142062",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T14:29:27.827Z"
+      },
+      {
+        "id": "score_1763480693659_kanmyhlc2",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763480685018",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T15:44:53.659Z"
+      },
+      {
+        "id": "score_1763487549201_9yugr883r",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763487540895",
+        "points": 10,
+        "activity": "Added dream: \"Test Dream - Multiple Goal Types\"",
+        "createdAt": "2025-11-18T17:39:09.201Z"
+      },
+      {
+        "id": "score_1763487650574_a6kx6o1ih",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763487642161",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T17:40:50.574Z"
+      },
+      {
+        "id": "score_1763487777528_j2am5o9zx",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763487765859",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T17:42:57.528Z"
+      },
+      {
+        "id": "score_1763491347399_x4r01k8cn",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763491331730",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T18:42:27.399Z"
+      },
+      {
+        "id": "score_1763495704937_2oe67fkdi",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763495690171",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-18T19:55:04.937Z"
+      },
+      {
+        "id": "score_1763497631614_r4v6kiyso",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763497614460",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T20:27:11.614Z"
+      },
+      {
+        "id": "score_1763500450644_1khc41vtf",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763500436456",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-18T21:14:10.644Z"
+      },
+      {
+        "id": "score_1763537821522_s2e3fmchd",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763537813702",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T07:37:01.522Z"
+      },
+      {
+        "id": "score_1763537837018_7r33ygxra",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763537825803",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T07:37:17.018Z"
+      },
+      {
+        "id": "score_1763538454438_xv28q08e0",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763538445216",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T07:47:34.438Z"
+      },
+      {
+        "id": "score_1763539129366_0qk07sl46",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763539120760",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T07:58:49.366Z"
+      },
+      {
+        "id": "score_1763539184658_yv7qnhlwl",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763539177436",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T07:59:44.658Z"
+      },
+      {
+        "id": "score_1763539540131_jwzto0shd",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763539530063",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T08:05:40.131Z"
+      },
+      {
+        "id": "score_1763539548521_x7ouiplz0",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763539542791",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T08:05:48.521Z"
+      },
+      {
+        "id": "score_1763540094121_b75zboiqf",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763540085907",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T08:14:54.121Z"
+      },
+      {
+        "id": "score_1763540105448_jd9dzmkr6",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763540098786",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T08:15:05.448Z"
+      },
+      {
+        "id": "score_1763541105798_vbb392scj",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763541096284",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T08:31:45.798Z"
+      },
+      {
+        "id": "score_1763541119481_i1gd4wfoj",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763541112692",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T08:31:59.481Z"
+      },
+      {
+        "id": "score_1763546476192_ejvs0molk",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763546469162",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:01:16.192Z"
+      },
+      {
+        "id": "score_1763546492988_85wzm1a6a",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763546484642",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T10:01:32.988Z"
+      },
+      {
+        "id": "score_1763547210033_bh0jgbj9i",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763547203693",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:13:30.033Z"
+      },
+      {
+        "id": "score_1763547457159_lzmki6yzq",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763547449388",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:17:37.159Z"
+      },
+      {
+        "id": "score_1763547630410_axqgvxion",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763547623130",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2025-11-19T10:20:30.410Z"
+      },
+      {
+        "id": "score_1763548099168_mdy0yv2ft",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548086725",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:28:19.168Z"
+      },
+      {
+        "id": "score_1763548115303_av40ikfat",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548107251",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T10:28:35.303Z"
+      },
+      {
+        "id": "score_1763548137713_iz64h3u3y",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548119145",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T10:28:57.713Z"
+      },
+      {
+        "id": "score_1763548888325_dzz0eha2n",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548877393",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:41:28.325Z"
+      },
+      {
+        "id": "score_1763548900955_9vsb3b9y0",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548894187",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T10:41:40.955Z"
+      },
+      {
+        "id": "score_1763548919658_m2wdvdpkn",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763548904337",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T10:41:59.658Z"
+      },
+      {
+        "id": "score_1763549468000_1kzlcbncc",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763549456262",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:51:08.000Z"
+      },
+      {
+        "id": "score_1763549481857_j40y5pxa3",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763549471372",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T10:51:21.857Z"
+      },
+      {
+        "id": "score_1763549505675_eg83es414",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763549486170",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T10:51:45.675Z"
+      },
+      {
+        "id": "score_1763549629736_ha3iwchps",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763549615443",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T10:53:49.737Z"
+      },
+      {
+        "id": "score_1763549639538_92ozllmao",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763549632927",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T10:53:59.538Z"
+      },
+      {
+        "id": "score_1763550158425_vf548jy73",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550146430",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T11:02:38.425Z"
+      },
+      {
+        "id": "score_1763550175191_andzwj93n",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550162374",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T11:02:55.191Z"
+      },
+      {
+        "id": "score_1763550188848_s5cjb91yz",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550181969",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T11:03:08.848Z"
+      },
+      {
+        "id": "score_1763550650895_0xpza9hww",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550637332",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T11:10:50.895Z"
+      },
+      {
+        "id": "score_1763550660430_ofgkyb9le",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550655357",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T11:11:00.430Z"
+      },
+      {
+        "id": "score_1763550672836_9adzyuadp",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763550666055",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T11:11:12.836Z"
+      },
+      {
+        "id": "score_1763551201845_q5mv0gdj7",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763551187497",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T11:20:01.845Z"
+      },
+      {
+        "id": "score_1763551213151_tmrbnvo5m",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763551206407",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T11:20:13.151Z"
+      },
+      {
+        "id": "score_1763551815235_adbfpmvnw",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763551801252",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T11:30:15.235Z"
+      },
+      {
+        "id": "score_1763551827338_ic944fmje",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763551818794",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T11:30:27.338Z"
+      },
+      {
+        "id": "score_1763552018665_e1szj1nm7",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763552006799",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T11:33:38.665Z"
+      },
+      {
+        "id": "score_1763552737389_3eq3p2ntm",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763552723978",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2025-11-19T11:45:37.389Z"
+      },
+      {
+        "id": "score_1763552939679_g6ocxvu9s",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763552928962",
+        "points": 10,
+        "activity": "Added dream: \"Launch a Photography Portfolio\"",
+        "createdAt": "2025-11-19T11:48:59.679Z"
+      },
+      {
+        "id": "score_1763553235407_l2dz3yg6d",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763553224107",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T11:53:55.407Z"
+      },
+      {
+        "id": "score_1763554168686_n6syafbol",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763554160536",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T12:09:28.686Z"
+      },
+      {
+        "id": "score_1763554205016_5hjv0gnow",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763554194227",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T12:10:05.016Z"
+      },
+      {
+        "id": "score_1763554895577_4zw62f9mm",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763554875341",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T12:21:35.577Z"
+      },
+      {
+        "id": "score_1763556154564_qw1imwnfw",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763556140334",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T12:42:34.564Z"
+      },
+      {
+        "id": "score_1763557216116_fwaj9htvp",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763557208049",
+        "points": 10,
+        "activity": "Added dream: \"Test Deadline Goal Dream\"",
+        "createdAt": "2025-11-19T13:00:16.116Z"
+      },
+      {
+        "id": "score_1763557780727_gmm9v2jvj",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763557769219",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-11-19T13:09:40.727Z"
+      },
+      {
+        "id": "score_1763557940349_06z1pstl8",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763557929338",
+        "points": 10,
+        "activity": "Added dream: \"Fresh Test Dream\"",
+        "createdAt": "2025-11-19T13:12:20.349Z"
+      },
+      {
+        "id": "score_1763558453696_0wqs7675h",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763558436566",
+        "points": 10,
+        "activity": "Added dream: \"New Test Dream\"",
+        "createdAt": "2025-11-19T13:20:53.696Z"
+      },
+      {
+        "id": "score_1763558865727_c7zhljf5k",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763558856683",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T13:27:45.728Z"
+      },
+      {
+        "id": "score_1763559921299_nltaeeoxj",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763559881326",
+        "points": 10,
+        "activity": "Added dream: \"Test Deadline Goal Atomic\"",
+        "createdAt": "2025-11-19T13:45:21.299Z"
+      },
+      {
+        "id": "score_1763560375040_w93z2j929",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763560365448",
+        "points": 10,
+        "activity": "Added dream: \"Learn to Cook 10 Signature Dishes\"",
+        "createdAt": "2025-11-19T13:52:55.040Z"
+      },
+      {
+        "id": "score_1763560674678_8yrkoriih",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763560662474",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T13:57:54.678Z"
+      },
+      {
+        "id": "score_1763561037369_hwkmudmez",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763561017016",
+        "points": 10,
+        "activity": "Added dream: \"3 Week Expiration Test\"",
+        "createdAt": "2025-11-19T14:03:57.369Z"
+      },
+      {
+        "id": "score_1763561399377_djbgqzk4b",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763561380237",
+        "points": 10,
+        "activity": "Added dream: \"Fresh 3 Week Test\"",
+        "createdAt": "2025-11-19T14:09:59.377Z"
+      },
+      {
+        "id": "score_1763561598005_egy5jtyhf",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763561568632",
+        "points": 10,
+        "activity": "Added dream: \"Monthly Goal Test\"",
+        "createdAt": "2025-11-19T14:13:18.005Z"
+      },
+      {
+        "id": "score_1763565195660_kpk6av2ig",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763565179561",
+        "points": 10,
+        "activity": "Added dream: \"Spend a Month Working from a New Country\"",
+        "createdAt": "2025-11-19T15:13:15.660Z"
+      },
+      {
+        "id": "score_1763566443655_5dit75wfm",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763566429184",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-19T15:34:03.655Z"
+      },
+      {
+        "id": "score_1763566459727_h14gqmxy9",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763566447312",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-19T15:34:19.727Z"
+      },
+      {
+        "id": "score_1763566473644_8uh5lozxz",
+        "date": "2025-11-19",
+        "source": "dream",
+        "dreamId": "dream_1763566464838",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-19T15:34:33.644Z"
+      },
+      {
+        "id": "score_1763574838381_qj876xeqy",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763574837200",
+        "points": 3,
+        "activity": "Dream Connect with Louis de Klerk",
+        "createdAt": "2025-11-19T17:53:58.381Z"
+      },
+      {
+        "id": "score_1763574957995_jrp38u5x2",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763574957743",
+        "points": 3,
+        "activity": "Dream Connect with Louis de Klerk",
+        "createdAt": "2025-11-19T17:55:57.995Z"
+      },
+      {
+        "id": "score_1763575118252_pqmd98ze5",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763575117574",
+        "points": 3,
+        "activity": "Dream Connect with Louis de Klerk",
+        "createdAt": "2025-11-19T17:58:38.252Z"
+      },
+      {
+        "id": "score_1763580180613_gcl7frzb1",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763580180081",
+        "points": 3,
+        "activity": "Dream Connect with Louis de Klerk",
+        "createdAt": "2025-11-19T19:23:00.613Z"
+      },
+      {
+        "id": "score_1763639097146_8tksc293c",
+        "date": "2025-11-20",
+        "source": "dream",
+        "dreamId": "dream_1763639082831",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-20T11:44:57.146Z"
+      },
+      {
+        "id": "score_1763666688230_bzpevtiuj",
+        "date": "2025-11-20",
+        "source": "dream",
+        "dreamId": "dream_1763666678624",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-20T19:24:48.230Z"
+      },
+      {
+        "id": "score_1763674430250_b9owv1vwa",
+        "date": "2025-11-20",
+        "source": "connect",
+        "connectId": "connect_1763674429676",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-11-20T21:33:50.250Z"
+      },
+      {
+        "id": "score_1763674908921_ibd885r56",
+        "date": "2025-11-20",
+        "source": "connect",
+        "connectId": "connect_1763674908385",
+        "points": 3,
+        "activity": "Dream Connect with David Thompson",
+        "createdAt": "2025-11-20T21:41:48.921Z"
+      },
+      {
+        "id": "score_1763675184280_gckm0u28x",
+        "date": "2025-11-20",
+        "source": "connect",
+        "connectId": "connect_1763675183590",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-11-20T21:46:24.280Z"
+      },
+      {
+        "id": "score_1763720722692_ifxeeqqlt",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763720691232",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-21T10:25:22.692Z"
+      },
+      {
+        "id": "score_1763720735026_tlejeznm4",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763720726594",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-21T10:25:35.026Z"
+      },
+      {
+        "id": "score_1763720752100_p4to0wr0a",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763720737684",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-21T10:25:52.100Z"
+      },
+      {
+        "id": "score_1763727124284_19icdgd7e",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763727108171",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-21T12:12:04.284Z"
+      },
+      {
+        "id": "score_1763727147437_cqghy2dfb",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763727134928",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-21T12:12:27.437Z"
+      },
+      {
+        "id": "score_1763727171904_4ss8uo3a6",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763727158361",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-21T12:12:51.904Z"
+      },
+      {
+        "id": "score_1763727438642_3tqxhwuqu",
+        "date": "2025-11-21",
+        "source": "dream",
+        "dreamId": "dream_1763727414517",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2025-11-21T12:17:18.642Z"
+      },
+      {
+        "id": "score_1763739083638_tfuywd9ey",
+        "date": "2025-11-21",
+        "source": "connect",
+        "connectId": "connect_1763739083077",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-11-21T15:31:23.638Z"
+      },
+      {
+        "id": "score_1763791651395_ddioognz5",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763791634541",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-22T06:07:31.395Z"
+      },
+      {
+        "id": "score_1763791669106_801xzvoi2",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763791655631",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-22T06:07:49.106Z"
+      },
+      {
+        "id": "score_1763791690686_ojbc9ctl5",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763791672786",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-22T06:08:10.686Z"
+      },
+      {
+        "id": "score_1763791690685_789um3gzp",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763791672786",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-22T06:08:10.685Z"
+      },
+      {
+        "id": "score_1763791721308_llperi4e7",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763791704519",
+        "points": 10,
+        "activity": "Added dream: \"Cycle Across a Country\"",
+        "createdAt": "2025-11-22T06:08:41.308Z"
+      },
+      {
+        "id": "score_1763795747114_6cg27x92b",
+        "date": "2025-11-22",
+        "source": "dream",
+        "dreamId": "dream_1763795739089",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2025-11-22T07:15:47.114Z"
+      },
+      {
+        "id": "score_1763798036007_0hqe1t0qz",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763798034751",
+        "points": 3,
+        "activity": "Dream Connect with David Thompson",
+        "createdAt": "2025-11-22T07:53:56.007Z"
+      },
+      {
+        "id": "score_1763798248391_20wmw4183",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763798247422",
+        "points": 3,
+        "activity": "Dream Connect with James Wilson",
+        "createdAt": "2025-11-22T07:57:28.391Z"
+      },
+      {
+        "id": "score_1763799001438_psj51mmue",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763799000084",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-11-22T08:10:01.438Z"
+      },
+      {
+        "id": "score_1763799021468_ddkzket3q",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763799021224",
+        "points": 3,
+        "activity": "Dream Connect with Lisa Anderson",
+        "createdAt": "2025-11-22T08:10:21.468Z"
+      },
+      {
+        "id": "score_1763799032854_f598bilml",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763799032589",
+        "points": 3,
+        "activity": "Dream Connect with Emma Williams",
+        "createdAt": "2025-11-22T08:10:32.854Z"
+      },
+      {
+        "id": "score_1763799243004_46g7crjdj",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763799242322",
+        "points": 3,
+        "activity": "Dream Connect with David Thompson",
+        "createdAt": "2025-11-22T08:14:03.004Z"
+      },
+      {
+        "id": "score_1763799263772_xlhfoxjmv",
+        "date": "2025-11-22",
+        "source": "connect",
+        "connectId": "connect_1763799263532",
+        "points": 3,
+        "activity": "Dream Connect with Michael Chen",
+        "createdAt": "2025-11-22T08:14:23.772Z"
+      },
+      {
+        "id": "score_1763895941042_q5bhk3ed3",
+        "date": "2025-11-23",
+        "source": "dream",
+        "dreamId": "dream_1763895932951",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-23T11:05:41.042Z"
+      },
+      {
+        "id": "score_1763895971996_kqq86byxq",
+        "date": "2025-11-23",
+        "source": "dream",
+        "dreamId": "dream_1763895942651",
+        "points": 10,
+        "activity": "Added dream: \"move to cpt\"",
+        "createdAt": "2025-11-23T11:06:11.996Z"
+      },
+      {
+        "id": "score_1763895972041_vs0qkyldo",
+        "date": "2025-11-23",
+        "source": "dream",
+        "dreamId": "dream_1763895942651",
+        "points": 10,
+        "activity": "Added dream: \"move to cpt\"",
+        "createdAt": "2025-11-23T11:06:12.041Z"
+      },
+      {
+        "id": "score_1763896007484_ar4h3dtu4",
+        "date": "2025-11-23",
+        "source": "dream",
+        "dreamId": "dream_1763895990347",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-23T11:06:47.484Z"
+      },
+      {
+        "id": "score_1763896388545_9wbspk0m9",
+        "date": "2025-11-23",
+        "source": "connect",
+        "connectId": "connect_1763896387897",
+        "points": 3,
+        "activity": "Dream Connect with Emma Williams",
+        "createdAt": "2025-11-23T11:13:08.545Z"
+      },
+      {
+        "id": "score_1763932075482_h8v7cvc0g",
+        "date": "2025-11-23",
+        "source": "connect",
+        "connectId": "connect_1763932075004",
+        "points": 3,
+        "activity": "Dream Connect with Lisa Anderson",
+        "createdAt": "2025-11-23T21:07:55.482Z"
+      },
+      {
+        "id": "score_1763972662925_cfawjezl3",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763972654511",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-24T08:24:22.925Z"
+      },
+      {
+        "id": "score_1763974212242_fqi4d232v",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763974190675",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2025-11-24T08:50:12.242Z"
+      },
+      {
+        "id": "score_1763977801606_d3se5meek",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763977736000",
+        "points": 10,
+        "activity": "Added dream: \"Learn To Scuba\"",
+        "createdAt": "2025-11-24T09:50:01.606Z"
+      },
+      {
+        "id": "score_1763979593419_3ix6cstir",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763979529555",
+        "points": 10,
+        "activity": "Added dream: \"Hike table mountain\"",
+        "createdAt": "2025-11-24T10:19:53.419Z"
+      },
+      {
+        "id": "score_1763980054065_g4n882odo",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763980035592",
+        "points": 10,
+        "activity": "Added dream: \"table\"",
+        "createdAt": "2025-11-24T10:27:34.065Z"
+      },
+      {
+        "id": "score_1763980477544_yhh8gn6hl",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763980410333",
+        "points": 10,
+        "activity": "Added dream: \"Advanced Scuba Course\"",
+        "createdAt": "2025-11-24T10:34:37.545Z"
+      },
+      {
+        "id": "score_1763980551090_ij95koyjb",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763980493491",
+        "points": 10,
+        "activity": "Added dream: \"Hike Table Mountain\"",
+        "createdAt": "2025-11-24T10:35:51.090Z"
+      },
+      {
+        "id": "score_1763989957759_wczot91vj",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763989866891",
+        "points": 10,
+        "activity": "Added dream: \"Garden Route Trip\"",
+        "createdAt": "2025-11-24T13:12:37.759Z"
+      },
+      {
+        "id": "score_1763994122115_untp3yd7j",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1763994041565",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2025-11-24T14:22:02.115Z"
+      },
+      {
+        "id": "score_1763996791409_w61o9dz9k",
+        "date": "2025-11-24",
+        "source": "connect",
+        "connectId": "connect_1763996790852",
+        "points": 3,
+        "activity": "Dream Connect with Alex Brown",
+        "createdAt": "2025-11-24T15:06:31.409Z"
+      },
+      {
+        "id": "score_1764006311506_91h3r9pf7",
+        "date": "2025-11-24",
+        "source": "dream",
+        "dreamId": "dream_1764006296643",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2025-11-24T17:45:11.506Z"
+      },
+      {
+        "id": "score_1764082019822_oatj4iblz",
+        "date": "2025-11-25",
+        "source": "dream",
+        "dreamId": "dream_1764081950867",
+        "points": 10,
+        "activity": "Added dream: \"run two oceans\"",
+        "createdAt": "2025-11-25T14:46:59.822Z"
+      },
+      {
+        "id": "score_1764092297948_oy20ro6xo",
+        "date": "2025-11-25",
+        "source": "dream",
+        "dreamId": "dream_1764092005435",
+        "points": 10,
+        "activity": "Added dream: \"Advanced Scuba\"",
+        "createdAt": "2025-11-25T17:38:17.948Z"
+      },
+      {
+        "id": "score_1764093285538_uc60vwump",
+        "date": "2025-11-25",
+        "source": "dream",
+        "dreamId": "dream_1764093183442",
+        "points": 10,
+        "activity": "Added dream: \"Hike Table Mountain\"",
+        "createdAt": "2025-11-25T17:54:45.538Z"
+      },
+      {
+        "id": "score_1764093466849_ykznlwf98",
+        "date": "2025-11-25",
+        "source": "dream",
+        "dreamId": "dream_1764093287443",
+        "points": 10,
+        "activity": "Added dream: \"Stick to fitness plan\"",
+        "createdAt": "2025-11-25T17:57:46.849Z"
+      },
+      {
+        "id": "score_1764093548191_afgjupfwn",
+        "date": "2025-11-25",
+        "source": "dream",
+        "dreamId": "dream_1764093471465",
+        "points": 10,
+        "activity": "Added dream: \"Walk More\"",
+        "createdAt": "2025-11-25T17:59:08.191Z"
+      },
+      {
+        "id": "score_1764104531580_ehc39et3k",
+        "date": "2025-11-25",
+        "source": "connect",
+        "connectId": "connect_1764104531065",
+        "points": 3,
+        "activity": "Dream Connect with Michael Chen",
+        "createdAt": "2025-11-25T21:02:11.580Z"
+      },
+      {
+        "id": "score_1764141672710_x97kuskl8",
+        "date": "2025-11-26",
+        "source": "dream",
+        "dreamId": "dream_1764141559036",
+        "points": 10,
+        "activity": "Added dream: \"Eat Healthy\"",
+        "createdAt": "2025-11-26T07:21:12.710Z"
+      },
+      {
+        "id": "score_1764167431013_jblimub96",
+        "date": "2025-11-26",
+        "source": "connect",
+        "connectId": "connect_1764167430515",
+        "points": 3,
+        "activity": "Dream Connect with Varity Ramogayana",
+        "createdAt": "2025-11-26T14:30:31.013Z"
+      },
+      {
+        "id": "score_1764169803474_rr8dl3vls",
+        "date": "2025-11-26",
+        "source": "dream",
+        "dreamId": "dream_1764169722815",
+        "points": 10,
+        "activity": "Added dream: \"move to cape town\"",
+        "createdAt": "2025-11-26T15:10:03.476Z"
+      },
+      {
+        "id": "score_1764194945111_mraray786",
+        "date": "2025-11-26",
+        "source": "connect",
+        "connectId": "connect_1764194931798",
+        "points": 3,
+        "activity": "Dream Connect with James Wilson",
+        "createdAt": "2025-11-26T22:09:05.111Z"
+      },
+      {
+        "id": "score_1764227142840_vv5qzclyk",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764227034857",
+        "points": 10,
+        "activity": "Added dream: \"learn spanish\"",
+        "createdAt": "2025-11-27T07:05:42.840Z"
+      },
+      {
+        "id": "score_1764227287307_4266fyytg",
+        "date": "2025-11-27",
+        "source": "connect",
+        "connectId": "connect_1764227286767",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-11-27T07:08:07.307Z"
+      },
+      {
+        "id": "score_1764227427165_4hmc95n2y",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764227406829",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-27T07:10:27.165Z"
+      },
+      {
+        "id": "score_1764228351963_kqi7145bg",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764228248830",
+        "points": 10,
+        "activity": "Added dream: \"do a saffari\"",
+        "createdAt": "2025-11-27T07:25:51.964Z"
+      },
+      {
+        "id": "score_1764848915044_zdaaiq62l",
+        "date": "2025-12-04",
+        "source": "connect",
+        "connectId": "connect_1764848913231",
+        "points": 3,
+        "activity": "Dream Connect with Sarah Johnson",
+        "createdAt": "2025-12-04T11:48:35.044Z"
+      }
+    ],
+    "createdAt": "2025-11-18T14:29:28.271Z",
+    "updatedAt": "2025-12-04T11:48:36.809Z",
+    "_rid": "kU5BALv7w2QKAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QKAAAAAAAAAA==/",
+    "_etag": "\"b104c7c2-0000-0200-0000-693175140000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764848916
+  },
+  {
+    "id": "af103e6b-2c5d-4d9a-b080-227f08d33e73_2025_scoring",
+    "userId": "af103e6b-2c5d-4d9a-b080-227f08d33e73",
+    "year": 2025,
+    "totalScore": 10,
+    "entries": [
+      {
+        "id": "score_1763494711126_bzgqrvgsw",
+        "date": "2025-11-18",
+        "source": "dream",
+        "dreamId": "dream_1763494702126",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2025-11-18T19:38:31.126Z"
+      }
+    ],
+    "createdAt": "2025-11-18T19:38:31.555Z",
+    "updatedAt": "2025-11-18T19:38:31.555Z",
+    "_rid": "kU5BALv7w2QLAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QLAAAAAAAAAA==/",
+    "_etag": "\"9102af47-0000-0200-0000-691ccb380000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763494712
+  },
+  {
+    "id": "coach1@netsurit.com_2025_scoring",
+    "userId": "coach1@netsurit.com",
+    "year": 2025,
+    "totalScore": 182,
+    "entries": [
+      {
+        "id": "score_1763640490176_1fqj1rvht",
+        "date": "2025-09-22",
+        "source": "connect",
+        "connectId": "connect_1763639696304_ug90plnzk",
+        "dreamId": "dream_1763639688234_bxpizalra",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-09-22T11:54:56.304Z"
+      },
+      {
+        "id": "score_1763640490176_i6ghstsfo",
+        "date": "2025-09-22",
+        "source": "connect",
+        "connectId": "connect_1763640480559_jxp81xwip",
+        "dreamId": "dream_1763640472561_9frjqbrop",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-09-22T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_njqbihvhr",
+        "date": "2025-09-23",
+        "source": "connect",
+        "connectId": "connect_1763639696304_waullwy50",
+        "dreamId": "dream_1763639688234_36msdb1aq",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-09-23T11:54:56.304Z"
+      },
+      {
+        "id": "score_1763640490176_olk2lixg1",
+        "date": "2025-09-28",
+        "source": "connect",
+        "connectId": "connect_1763640480559_99fwcr8pn",
+        "dreamId": "dream_1763640472561_8npekhbqd",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-09-28T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_hzvrovhdy",
+        "date": "2025-09-29",
+        "source": "connect",
+        "connectId": "connect_1763640480559_548z2err0",
+        "dreamId": "dream_1763640472561_f4wd5szev",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-09-29T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_2fl1h8bsy",
+        "date": "2025-10-01",
+        "source": "connect",
+        "connectId": "connect_1763639311878_jc1wi0x1i",
+        "dreamId": "dream_1763639304359_c57i9xvdd",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-01T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490176_5x7l5x13q",
+        "date": "2025-10-05",
+        "source": "connect",
+        "connectId": "connect_1763639311878_68lwkgesp",
+        "dreamId": "dream_1763639304359_v18aw2nr3",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-05T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490176_f6hu4ebx5",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_xhleqhqr3",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_kddtfa057",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_i3injhgyd",
+        "date": "2025-10-15",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-15T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490175_2afpgoq81",
+        "date": "2025-10-16",
+        "source": "dream",
+        "dreamId": "dream_1763640472561_a5ycnklxf",
+        "points": 10,
+        "activity": "Added dream: Get Certified in AWS",
+        "createdAt": "2025-10-16T12:08:10.175Z"
+      },
+      {
+        "id": "score_1763640490176_p2kveipow",
+        "date": "2025-10-18",
+        "source": "connect",
+        "connectId": "connect_1763639311878_b6fk7vvp8",
+        "dreamId": "dream_1763639304359_c57i9xvdd",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-18T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490176_uzuz1l9oz",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_hkcscl9zk",
+        "date": "2025-10-22",
+        "source": "connect",
+        "connectId": "connect_1763639311878_dxqju9eex",
+        "dreamId": "dream_1763639304359_c57i9xvdd",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-10-22T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490175_ggxqqpmoc",
+        "date": "2025-10-23",
+        "source": "dream",
+        "dreamId": "dream_1763640472561_8npekhbqd",
+        "points": 10,
+        "activity": "Added dream: Learn Photography",
+        "createdAt": "2025-10-23T12:08:10.175Z"
+      },
+      {
+        "id": "score_1763640490176_xkfk31fdg",
+        "date": "2025-10-24",
+        "source": "connect",
+        "connectId": "connect_1763640480559_rl8au6n9b",
+        "dreamId": "dream_1763640472561_9frjqbrop",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-24T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_zma49tnkt",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_8gz4ewwoo",
+        "date": "2025-10-27",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-27T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_mw1fllyub",
+        "date": "2025-10-28",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-28T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_fuf3jxig1",
+        "date": "2025-10-29",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-29T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490175_9245irgt3",
+        "date": "2025-10-30",
+        "source": "dream",
+        "dreamId": "dream_1763640472561_f4wd5szev",
+        "points": 10,
+        "activity": "Added dream: Start a Blog",
+        "createdAt": "2025-10-30T12:08:10.175Z"
+      },
+      {
+        "id": "score_1763640490176_o74vsd8c0",
+        "date": "2025-10-30",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-30T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_un4o2kepm",
+        "date": "2025-11-01",
+        "source": "connect",
+        "connectId": "connect_1763639311878_z0b8zml6z",
+        "dreamId": "dream_1763639304359_vhtpex0ju",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-01T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490176_xcfjjky4i",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_7ve5jbnjh",
+        "date": "2025-11-03",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-03T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_1eho1k7o8",
+        "date": "2025-11-05",
+        "source": "connect",
+        "connectId": "connect_1763639311878_ic85f1gsk",
+        "dreamId": "dream_1763639304359_c57i9xvdd",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-05T11:48:31.878Z"
+      },
+      {
+        "id": "score_1763640490176_w9rlr012i",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640472561_9frjqbrop",
+        "points": 10,
+        "activity": "Added dream: Mentor Someone",
+        "createdAt": "2025-11-06T12:08:10.176Z"
+      },
+      {
+        "id": "score_1763640490176_zp738s1tf",
+        "date": "2025-11-08",
+        "source": "connect",
+        "connectId": "connect_1763640480559_pmx05uibg",
+        "dreamId": "dream_1763640472561_a5ycnklxf",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-08T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_a5gobm6cl",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_pnz2ygawi",
+        "date": "2025-11-10",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-10T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640490176_escir8tgj",
+        "date": "2025-11-11",
+        "source": "connect",
+        "connectId": "connect_1763639696304_6jaqe05to",
+        "dreamId": "dream_1763639688234_re0mbo3vq",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-11-11T11:54:56.304Z"
+      },
+      {
+        "id": "score_1763640490176_ox7c30us6",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640472561_i24cevb6c",
+        "points": 10,
+        "activity": "Added dream: Learn to Cook",
+        "createdAt": "2025-11-13T12:08:10.176Z"
+      },
+      {
+        "id": "score_1763640490176_pvztp0jpp",
+        "date": "2025-11-14",
+        "source": "connect",
+        "connectId": "connect_1763639696304_r5hdz3anm",
+        "dreamId": "dream_1763639688234_36msdb1aq",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-14T11:54:56.304Z"
+      },
+      {
+        "id": "score_1763640490176_x4keqcwlz",
+        "date": "2025-11-15",
+        "source": "connect",
+        "connectId": "connect_1763640480559_5tozod5lk",
+        "dreamId": "dream_1763640472561_i24cevb6c",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-15T12:08:00.559Z"
+      },
+      {
+        "id": "score_1763640490176_eoy7pmywu",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763639696304_iml0fmg77",
+        "dreamId": "dream_1763639688234_re0mbo3vq",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-19T11:54:56.304Z"
+      },
+      {
+        "id": "score_1763640490176_ter7taqmc",
+        "date": "2025-11-20",
+        "source": "connect",
+        "connectId": "connect_1763639696304_s1mdwjqi5",
+        "dreamId": "dream_1763639688234_bxpizalra",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-20T11:54:56.304Z"
+      }
+    ],
+    "createdAt": "2025-09-22T11:54:56.304Z",
+    "updatedAt": "2025-11-20T12:08:10.176Z",
+    "_rid": "kU5BALv7w2QMAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QMAAAAAAAAAA==/",
+    "_etag": "\"ef024a6a-0000-0200-0000-691f04ab0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640491
+  },
+  {
+    "id": "coach2@netsurit.com_2025_scoring",
+    "userId": "coach2@netsurit.com",
+    "year": 2025,
+    "totalScore": 169,
+    "entries": [
+      {
+        "id": "score_1763640491245_zhufvueg9",
+        "date": "2025-09-22",
+        "source": "connect",
+        "connectId": "connect_1763640482297_qsaglyqgo",
+        "dreamId": "dream_1763640472991_c9gey7lu4",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-09-22T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_a9w4494w4",
+        "date": "2025-09-27",
+        "source": "connect",
+        "connectId": "connect_1763639698025_fehwziaen",
+        "dreamId": "dream_1763639688671_8tj464c20",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-09-27T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_mmmginpvi",
+        "date": "2025-09-29",
+        "source": "connect",
+        "connectId": "connect_1763639698025_46q9z2fyv",
+        "dreamId": "dream_1763639688671_8tj464c20",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-09-29T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_uedi5uoza",
+        "date": "2025-09-29",
+        "source": "connect",
+        "connectId": "connect_1763640482297_qpck9b15b",
+        "dreamId": "dream_1763640472991_c9gey7lu4",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-09-29T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_7odi8w17j",
+        "date": "2025-10-04",
+        "source": "connect",
+        "connectId": "connect_1763640482297_ynudcxozw",
+        "dreamId": "dream_1763640472992_rdryf0ivp",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-10-04T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_nfi64aohs",
+        "date": "2025-10-07",
+        "source": "connect",
+        "connectId": "connect_1763639698025_cxuo5ry7b",
+        "dreamId": "dream_1763639688671_8tj464c20",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-07T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_cy2etkko2",
+        "date": "2025-10-08",
+        "source": "connect",
+        "connectId": "connect_1763639698025_lih9s22e0",
+        "dreamId": "dream_1763639688671_e47qeiai4",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-08T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_ilslb9iar",
+        "date": "2025-10-10",
+        "source": "connect",
+        "connectId": "connect_1763640482297_onlj5i1g6",
+        "dreamId": "dream_1763640472992_bm0qvo238",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-10T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_kepxti7on",
+        "date": "2025-10-11",
+        "source": "connect",
+        "connectId": "connect_1763639313585_j53ukec79",
+        "dreamId": "dream_1763639304796_tnab49icb",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-10-11T11:48:33.585Z"
+      },
+      {
+        "id": "score_1763640491245_amlu27tcj",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_8vgjcreny",
+        "date": "2025-10-13",
+        "source": "connect",
+        "connectId": "connect_1763640482297_vwlry1il3",
+        "dreamId": "dream_1763640472992_bm0qvo238",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-13T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_kzq1n6jos",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_01ohfgw5w",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_2llm05xhw",
+        "date": "2025-10-19",
+        "source": "connect",
+        "connectId": "connect_1763640482297_nahixtfad",
+        "dreamId": "dream_1763640472992_fcliczrml",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-19T12:08:02.297Z"
+      },
+      {
+        "id": "score_1763640491245_b545w4sca",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_6w5sycs70",
+        "date": "2025-10-20",
+        "source": "connect",
+        "connectId": "connect_1763639313585_v2mfnhwxe",
+        "dreamId": "dream_1763639304797_7dx6krhho",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-20T11:48:33.585Z"
+      },
+      {
+        "id": "score_1763640491245_rrfe76mxa",
+        "date": "2025-10-20",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-20T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_u4jl4pxm8",
+        "date": "2025-10-22",
+        "source": "connect",
+        "connectId": "connect_1763639313584_qqmhne6rv",
+        "dreamId": "dream_1763639304796_1pehaz1ot",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-22T11:48:33.584Z"
+      },
+      {
+        "id": "score_1763640491245_y2zu56xfe",
+        "date": "2025-10-23",
+        "source": "dream",
+        "dreamId": "dream_1763640472991_c9gey7lu4",
+        "points": 10,
+        "activity": "Added dream: Run 5km Weekly",
+        "createdAt": "2025-10-23T12:08:11.245Z"
+      },
+      {
+        "id": "score_1763640491245_obf8npxvv",
+        "date": "2025-10-25",
+        "source": "connect",
+        "connectId": "connect_1763639313585_kaniq4ftw",
+        "dreamId": "dream_1763639304796_tnab49icb",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-10-25T11:48:33.585Z"
+      },
+      {
+        "id": "score_1763640491245_r6h0x4qz3",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_mlyhbb0s9",
+        "date": "2025-10-27",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-27T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_u2t5or0nu",
+        "date": "2025-10-30",
+        "source": "dream",
+        "dreamId": "dream_1763640472992_fcliczrml",
+        "points": 10,
+        "activity": "Added dream: Read 50 Books",
+        "createdAt": "2025-10-30T12:08:11.245Z"
+      },
+      {
+        "id": "score_1763640491245_4wuzz49rk",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_5yk9kb7ds",
+        "date": "2025-11-03",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-03T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_cw5oxrqci",
+        "date": "2025-11-04",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-04T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_14yp45buz",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640472992_bm0qvo238",
+        "points": 10,
+        "activity": "Added dream: Save for Retirement",
+        "createdAt": "2025-11-06T12:08:11.245Z"
+      },
+      {
+        "id": "score_1763640491245_c64lkz63a",
+        "date": "2025-11-06",
+        "source": "connect",
+        "connectId": "connect_1763639698025_2igdllm95",
+        "dreamId": "dream_1763639688671_8tj464c20",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-06T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_9mg8uy073",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_4naddmyj1",
+        "date": "2025-11-10",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-10T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_6ticxo9yw",
+        "date": "2025-11-11",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-11T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640491245_rbxuvmjv6",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640472992_rdryf0ivp",
+        "points": 10,
+        "activity": "Added dream: Build an App",
+        "createdAt": "2025-11-13T12:08:11.245Z"
+      },
+      {
+        "id": "score_1763640491245_6vcjxiq51",
+        "date": "2025-11-16",
+        "source": "connect",
+        "connectId": "connect_1763639698025_zq0sz4v7z",
+        "dreamId": "dream_1763639688671_364bwlznn",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-16T11:54:58.025Z"
+      },
+      {
+        "id": "score_1763640491245_49dymfgxo",
+        "date": "2025-11-17",
+        "source": "connect",
+        "connectId": "connect_1763639313585_g3466io9x",
+        "dreamId": "dream_1763639304796_1pehaz1ot",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-17T11:48:33.585Z"
+      },
+      {
+        "id": "score_1763640491245_rx4teb0ke",
+        "date": "2025-11-18",
+        "source": "connect",
+        "connectId": "connect_1763639313585_vtm7fjieq",
+        "dreamId": "dream_1763639304796_2c34y4rh3",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-18T11:48:33.584Z"
+      }
+    ],
+    "createdAt": "2025-09-22T12:08:02.297Z",
+    "updatedAt": "2025-11-20T12:08:11.245Z",
+    "_rid": "kU5BALv7w2QNAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QNAAAAAAAAAA==/",
+    "_etag": "\"ef026d6a-0000-0200-0000-691f04ac0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640492
+  },
+  {
+    "id": "user1@netsurit.com_2025_scoring",
+    "userId": "user1@netsurit.com",
+    "year": 2025,
+    "totalScore": 163,
+    "entries": [
+      {
+        "id": "score_1763640492093_dau6wemqa",
+        "date": "2025-09-25",
+        "source": "connect",
+        "connectId": "connect_1763639315062_ld2psc7g6",
+        "dreamId": "dream_1763639305009_u8za27l05",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-09-25T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_g75o1kv4p",
+        "date": "2025-09-25",
+        "source": "connect",
+        "connectId": "connect_1763639699545_97zrbp92h",
+        "dreamId": "dream_1763639688892_9zv9u4nkq",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-09-25T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_2xvwwvrcl",
+        "date": "2025-09-26",
+        "source": "connect",
+        "connectId": "connect_1763639315062_1063k17f0",
+        "dreamId": "dream_1763639305009_779gsya3p",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-09-26T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_f8oadqnr4",
+        "date": "2025-10-02",
+        "source": "connect",
+        "connectId": "connect_1763639699545_9svr0u2xs",
+        "dreamId": "dream_1763639688892_9zv9u4nkq",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-10-02T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_l4rj9m4fh",
+        "date": "2025-10-09",
+        "source": "connect",
+        "connectId": "connect_1763640483774_fvg9dwp3q",
+        "dreamId": "dream_1763640473208_tt1ei1nm3",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-09T12:08:03.774Z"
+      },
+      {
+        "id": "score_1763640492093_shsw79os3",
+        "date": "2025-10-11",
+        "source": "connect",
+        "connectId": "connect_1763640483774_1osm4wrng",
+        "dreamId": "dream_1763640473208_peg6jlllj",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-11T12:08:03.774Z"
+      },
+      {
+        "id": "score_1763640492093_650ziwefj",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_rosq1s5nr",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_hyvrvvfwn",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_bkk2ocovl",
+        "date": "2025-10-15",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-15T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_1zvqa8wuz",
+        "date": "2025-10-19",
+        "source": "connect",
+        "connectId": "connect_1763639699545_lt00f36xu",
+        "dreamId": "dream_1763639688892_58puhive8",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-19T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_boua95x3s",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_24r72r397",
+        "date": "2025-10-21",
+        "source": "connect",
+        "connectId": "connect_1763640483774_z4fcm4z4w",
+        "dreamId": "dream_1763640473208_tt1ei1nm3",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-10-21T12:08:03.774Z"
+      },
+      {
+        "id": "score_1763640492093_ekug2owel",
+        "date": "2025-10-23",
+        "source": "dream",
+        "dreamId": "dream_1763640473208_zs5q3tmin",
+        "points": 10,
+        "activity": "Added dream: Run 5km Weekly",
+        "createdAt": "2025-10-23T12:08:12.093Z"
+      },
+      {
+        "id": "score_1763640492093_pgn0mttbh",
+        "date": "2025-10-24",
+        "source": "connect",
+        "connectId": "connect_1763639699545_ipapixhbg",
+        "dreamId": "dream_1763639688891_yu2qmehkk",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-10-24T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_iszv9okl9",
+        "date": "2025-10-26",
+        "source": "connect",
+        "connectId": "connect_1763639315062_7vumlkyev",
+        "dreamId": "dream_1763639305009_l8yfqbrin",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-26T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_0o8gfgaij",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_742kdw73z",
+        "date": "2025-10-27",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-27T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_ipy71vzxm",
+        "date": "2025-10-28",
+        "source": "connect",
+        "connectId": "connect_1763639699545_m0otiefj4",
+        "dreamId": "dream_1763639688892_58puhive8",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-28T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_cfk53h2ve",
+        "date": "2025-10-28",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-28T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_mx57ja6gs",
+        "date": "2025-10-29",
+        "source": "connect",
+        "connectId": "connect_1763640483774_0lg031w9x",
+        "dreamId": "dream_1763640473208_peg6jlllj",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-29T12:08:03.774Z"
+      },
+      {
+        "id": "score_1763640492093_8jbzaym7a",
+        "date": "2025-10-29",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-29T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_n24rf2kt3",
+        "date": "2025-10-30",
+        "source": "dream",
+        "dreamId": "dream_1763640473208_qk8mwhkgc",
+        "points": 10,
+        "activity": "Added dream: Read 50 Books",
+        "createdAt": "2025-10-30T12:08:12.093Z"
+      },
+      {
+        "id": "score_1763640492093_z22lxhmyw",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_bc3q93oy9",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640473208_tt1ei1nm3",
+        "points": 10,
+        "activity": "Added dream: Save for Retirement",
+        "createdAt": "2025-11-06T12:08:12.093Z"
+      },
+      {
+        "id": "score_1763640492093_1ybbxqwdq",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492093_s784d0i75",
+        "date": "2025-11-10",
+        "source": "connect",
+        "connectId": "connect_1763639315062_2qfrgz0ng",
+        "dreamId": "dream_1763639305009_f10y0qswq",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-10T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_8qwup1yg3",
+        "date": "2025-11-11",
+        "source": "connect",
+        "connectId": "connect_1763639699545_cqnj6kelv",
+        "dreamId": "dream_1763639688892_9zv9u4nkq",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-11-11T11:54:59.545Z"
+      },
+      {
+        "id": "score_1763640492093_qsy2jtg7c",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640473208_peg6jlllj",
+        "points": 10,
+        "activity": "Added dream: Build an App",
+        "createdAt": "2025-11-13T12:08:12.093Z"
+      },
+      {
+        "id": "score_1763640492093_8xfz9m428",
+        "date": "2025-11-17",
+        "source": "connect",
+        "connectId": "connect_1763639315062_o5loi12ca",
+        "dreamId": "dream_1763639305009_u8za27l05",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-11-17T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_95xle8op3",
+        "date": "2025-11-17",
+        "source": "connect",
+        "connectId": "connect_1763639315062_h392fz6sv",
+        "dreamId": "dream_1763639305009_f10y0qswq",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-11-17T11:48:35.062Z"
+      },
+      {
+        "id": "score_1763640492093_l34ve4i5w",
+        "date": "2025-11-17",
+        "source": "connect",
+        "connectId": "connect_1763640483774_i11izsei4",
+        "dreamId": "dream_1763640473208_peg6jlllj",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-17T12:08:03.774Z"
+      },
+      {
+        "id": "score_1763640492093_2lm4l794i",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763640483774_gb5808hw4",
+        "dreamId": "dream_1763640473208_tt1ei1nm3",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-11-19T12:08:03.774Z"
+      }
+    ],
+    "createdAt": "2025-09-25T11:48:35.062Z",
+    "updatedAt": "2025-11-20T12:08:12.093Z",
+    "_rid": "kU5BALv7w2QOAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QOAAAAAAAAAA==/",
+    "_etag": "\"ef029d6a-0000-0200-0000-691f04ad0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640493
+  },
+  {
+    "id": "user2@netsurit.com_2025_scoring",
+    "userId": "user2@netsurit.com",
+    "year": 2025,
+    "totalScore": 111,
+    "entries": [
+      {
+        "id": "score_1763640492976_df4wzoj4c",
+        "date": "2025-09-23",
+        "source": "connect",
+        "connectId": "connect_1763639316540_vbtw0xred",
+        "dreamId": "dream_1763639305221_ymire7f31",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-09-23T11:48:36.540Z"
+      },
+      {
+        "id": "score_1763640492976_m1m8w40ly",
+        "date": "2025-09-23",
+        "source": "connect",
+        "connectId": "connect_1763639701664_ss0lbvsrk",
+        "dreamId": "dream_1763639689107_gryifhmci",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-09-23T11:55:01.664Z"
+      },
+      {
+        "id": "score_1763640492976_355xyfh4a",
+        "date": "2025-09-26",
+        "source": "connect",
+        "connectId": "connect_1763639316540_dx0d49dmr",
+        "dreamId": "dream_1763639305221_ymire7f31",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-09-26T11:48:36.540Z"
+      },
+      {
+        "id": "score_1763640492976_0ux7oxw7n",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_y6l8c4cwd",
+        "date": "2025-10-18",
+        "source": "connect",
+        "connectId": "connect_1763639701664_2hdphz1g6",
+        "dreamId": "dream_1763639689107_gryifhmci",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-10-18T11:55:01.664Z"
+      },
+      {
+        "id": "score_1763640492976_hfupvu1ad",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_lmwgx5nxz",
+        "date": "2025-10-20",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-20T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_bt35pduhj",
+        "date": "2025-10-21",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-21T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_o8u7qf4ct",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_2jxkwx2a0",
+        "date": "2025-10-27",
+        "source": "connect",
+        "connectId": "connect_1763639316540_csl3fu66f",
+        "dreamId": "dream_1763639305221_s6h7mcu9n",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-10-27T11:48:36.540Z"
+      },
+      {
+        "id": "score_1763640492976_8bu0mnr12",
+        "date": "2025-10-29",
+        "source": "connect",
+        "connectId": "connect_1763639701664_hgh5360m7",
+        "dreamId": "dream_1763639689107_hthu1xql9",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-29T11:55:01.664Z"
+      },
+      {
+        "id": "score_1763640492975_6ubbzy2c7",
+        "date": "2025-10-30",
+        "source": "dream",
+        "dreamId": "dream_1763640473424_vk8bsewp0",
+        "points": 10,
+        "activity": "Added dream: Get Certified in AWS",
+        "createdAt": "2025-10-30T12:08:12.975Z"
+      },
+      {
+        "id": "score_1763640492976_06tfkbk0x",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_imxdghw2z",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640473425_cwz2wee39",
+        "points": 10,
+        "activity": "Added dream: Learn Photography",
+        "createdAt": "2025-11-06T12:08:12.976Z"
+      },
+      {
+        "id": "score_1763640492976_ooaqkj97p",
+        "date": "2025-11-08",
+        "source": "connect",
+        "connectId": "connect_1763639316540_q4shrcq9f",
+        "dreamId": "dream_1763639305221_tnim7zkb8",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-11-08T11:48:36.540Z"
+      },
+      {
+        "id": "score_1763640492976_u6g06lu2t",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640492976_4j4od824j",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640473425_kp4s11uiv",
+        "points": 10,
+        "activity": "Added dream: Start a Blog",
+        "createdAt": "2025-11-13T12:08:12.976Z"
+      },
+      {
+        "id": "score_1763640492976_tbo8gxbah",
+        "date": "2025-11-15",
+        "source": "connect",
+        "connectId": "connect_1763640485263_981whs0vq",
+        "dreamId": "dream_1763640473425_kp4s11uiv",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-15T12:08:05.263Z"
+      },
+      {
+        "id": "score_1763640492976_48jm8f7ub",
+        "date": "2025-11-16",
+        "source": "connect",
+        "connectId": "connect_1763640485263_ool64m1u4",
+        "dreamId": "dream_1763640473425_kp4s11uiv",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-16T12:08:05.263Z"
+      },
+      {
+        "id": "score_1763640492976_ml753kdfi",
+        "date": "2025-11-16",
+        "source": "connect",
+        "connectId": "connect_1763640485263_hpqanwnju",
+        "dreamId": "dream_1763640473424_vk8bsewp0",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-11-16T12:08:05.263Z"
+      },
+      {
+        "id": "score_1763640492976_miewpj8j2",
+        "date": "2025-11-17",
+        "source": "connect",
+        "connectId": "connect_1763640485263_lmt96gom3",
+        "dreamId": "dream_1763640473424_vk8bsewp0",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-17T12:08:05.263Z"
+      },
+      {
+        "id": "score_1763640492976_dxrfne889",
+        "date": "2025-11-19",
+        "source": "connect",
+        "connectId": "connect_1763639701664_kwtbpxc6j",
+        "dreamId": "dream_1763639689107_hthu1xql9",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-11-19T11:55:01.664Z"
+      }
+    ],
+    "createdAt": "2025-09-23T11:48:36.540Z",
+    "updatedAt": "2025-11-20T12:08:12.976Z",
+    "_rid": "kU5BALv7w2QPAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QPAAAAAAAAAA==/",
+    "_etag": "\"ef02b96a-0000-0200-0000-691f04ae0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640494
+  },
+  {
+    "id": "user3@netsurit.com_2025_scoring",
+    "userId": "user3@netsurit.com",
+    "year": 2025,
+    "totalScore": 138,
+    "entries": [
+      {
+        "id": "score_1763640493818_pckygtz3v",
+        "date": "2025-09-24",
+        "source": "connect",
+        "connectId": "connect_1763639702740_7eiuxdqhg",
+        "dreamId": "dream_1763639689324_xjr1diwvm",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-09-24T11:55:02.740Z"
+      },
+      {
+        "id": "score_1763640493818_tgrd3tcgs",
+        "date": "2025-10-08",
+        "source": "connect",
+        "connectId": "connect_1763639317616_rm76mhhaq",
+        "dreamId": "dream_1763639305437_aa10ox0p4",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-08T11:48:37.616Z"
+      },
+      {
+        "id": "score_1763640493818_qwmyphm3o",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_p7txxw3qk",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_xdgi6jvuv",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_gs1q6pj7d",
+        "date": "2025-10-15",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-15T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_nddp5f40i",
+        "date": "2025-10-16",
+        "source": "connect",
+        "connectId": "connect_1763640486321_7ryz952cv",
+        "dreamId": "dream_1763640473638_s12c35vhm",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-16T12:08:06.321Z"
+      },
+      {
+        "id": "score_1763640493818_qj0znj73r",
+        "date": "2025-10-16",
+        "source": "connect",
+        "connectId": "connect_1763640486321_vpgqwrjgb",
+        "dreamId": "dream_1763640473638_g88tzu2u3",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-16T12:08:06.321Z"
+      },
+      {
+        "id": "score_1763640493818_zn3ff1503",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_8p9r26ex5",
+        "date": "2025-10-20",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-20T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_6i5d3r5k2",
+        "date": "2025-10-22",
+        "source": "connect",
+        "connectId": "connect_1763639317616_3itfw9ay8",
+        "dreamId": "dream_1763639305437_t8ledmnhl",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-10-22T11:48:37.616Z"
+      },
+      {
+        "id": "score_1763640493818_yodrcv5bl",
+        "date": "2025-10-22",
+        "source": "connect",
+        "connectId": "connect_1763639702740_kudfp44ay",
+        "dreamId": "dream_1763639689324_0e5rdo6yy",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-22T11:55:02.740Z"
+      },
+      {
+        "id": "score_1763640493818_ojb6nagi1",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_yb3w5zna7",
+        "date": "2025-10-27",
+        "source": "connect",
+        "connectId": "connect_1763640486321_t7esdabwx",
+        "dreamId": "dream_1763640473638_s12c35vhm",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-10-27T12:08:06.321Z"
+      },
+      {
+        "id": "score_1763640493818_k6upolak6",
+        "date": "2025-10-28",
+        "source": "connect",
+        "connectId": "connect_1763639317616_6uq645hdj",
+        "dreamId": "dream_1763639305437_6hp4zxfii",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-10-28T11:48:37.616Z"
+      },
+      {
+        "id": "score_1763640493818_kyzqna1m9",
+        "date": "2025-10-30",
+        "source": "dream",
+        "dreamId": "dream_1763640473638_om74tsrbq",
+        "points": 10,
+        "activity": "Added dream: Complete a Triathlon",
+        "createdAt": "2025-10-30T12:08:13.818Z"
+      },
+      {
+        "id": "score_1763640493818_hvp3hfzrp",
+        "date": "2025-11-02",
+        "source": "connect",
+        "connectId": "connect_1763639317616_6qnn7o28g",
+        "dreamId": "dream_1763639305437_t8ledmnhl",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-02T11:48:37.616Z"
+      },
+      {
+        "id": "score_1763640493818_hyuspmckw",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_2sdnh8vdl",
+        "date": "2025-11-03",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-03T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_ky9p4qcpp",
+        "date": "2025-11-04",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-04T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_03lc3qnb5",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640473638_g88tzu2u3",
+        "points": 10,
+        "activity": "Added dream: Master Guitar",
+        "createdAt": "2025-11-06T12:08:13.818Z"
+      },
+      {
+        "id": "score_1763640493818_zz0zfvr58",
+        "date": "2025-11-07",
+        "source": "connect",
+        "connectId": "connect_1763639702740_yplwf6hje",
+        "dreamId": "dream_1763639689324_0e5rdo6yy",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-07T11:55:02.740Z"
+      },
+      {
+        "id": "score_1763640493818_aik8zre6z",
+        "date": "2025-11-09",
+        "source": "connect",
+        "connectId": "connect_1763639702740_g1a10m6uk",
+        "dreamId": "dream_1763639689324_0e5rdo6yy",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-11-09T11:55:02.740Z"
+      },
+      {
+        "id": "score_1763640493818_ewupx32d8",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640493818_ktbr42h4f",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640473638_s12c35vhm",
+        "points": 10,
+        "activity": "Added dream: Launch a Podcast",
+        "createdAt": "2025-11-13T12:08:13.818Z"
+      },
+      {
+        "id": "score_1763640493818_jn2xlrtl3",
+        "date": "2025-11-14",
+        "source": "connect",
+        "connectId": "connect_1763640486321_zm7dnladi",
+        "dreamId": "dream_1763640473638_s12c35vhm",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-11-14T12:08:06.321Z"
+      },
+      {
+        "id": "score_1763640493818_4dnuinl75",
+        "date": "2025-11-16",
+        "source": "connect",
+        "connectId": "connect_1763640486321_q5oglpsg7",
+        "dreamId": "dream_1763640473638_om74tsrbq",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-16T12:08:06.321Z"
+      },
+      {
+        "id": "score_1763640493818_jpvn07x47",
+        "date": "2025-11-18",
+        "source": "connect",
+        "connectId": "connect_1763639702740_cckyruufp",
+        "dreamId": "dream_1763639689324_0e5rdo6yy",
+        "points": 5,
+        "activity": "Connected with Michael Chen",
+        "createdAt": "2025-11-18T11:55:02.740Z"
+      },
+      {
+        "id": "score_1763640493818_htwyqrrb5",
+        "date": "2025-11-20",
+        "source": "connect",
+        "connectId": "connect_1763639317616_sr2jwi6br",
+        "dreamId": "dream_1763639305437_6hp4zxfii",
+        "points": 5,
+        "activity": "Connected with Rachel Martinez",
+        "createdAt": "2025-11-20T11:48:37.616Z"
+      }
+    ],
+    "createdAt": "2025-09-24T11:55:02.740Z",
+    "updatedAt": "2025-11-20T12:08:13.818Z",
+    "_rid": "kU5BALv7w2QQAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QQAAAAAAAAAA==/",
+    "_etag": "\"ef02e96a-0000-0200-0000-691f04ae0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640494
+  },
+  {
+    "id": "user4@netsurit.com_2025_scoring",
+    "userId": "user4@netsurit.com",
+    "year": 2025,
+    "totalScore": 98,
+    "entries": [
+      {
+        "id": "score_1763640494668_zs7ngmf6e",
+        "date": "2025-10-05",
+        "source": "connect",
+        "connectId": "connect_1763639318875_fph5ssf9l",
+        "dreamId": "dream_1763639305654_qxkcsnpx4",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-05T11:48:38.875Z"
+      },
+      {
+        "id": "score_1763640494668_l13b9hjkv",
+        "date": "2025-10-06",
+        "source": "connect",
+        "connectId": "connect_1763640487595_aq4u8efi5",
+        "dreamId": "dream_1763640473861_8vyvwff4d",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-10-06T12:08:07.595Z"
+      },
+      {
+        "id": "score_1763640494668_l6k5dykzn",
+        "date": "2025-10-08",
+        "source": "connect",
+        "connectId": "connect_1763639703998_budokl98d",
+        "dreamId": "dream_1763639689543_6khhylu5w",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-08T11:55:03.998Z"
+      },
+      {
+        "id": "score_1763640494668_24miz85pg",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_fe14o6iu6",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_riji2awwt",
+        "date": "2025-10-14",
+        "source": "connect",
+        "connectId": "connect_1763639318875_c2qs0qotz",
+        "dreamId": "dream_1763639305654_3i9qudky5",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-14T11:48:38.875Z"
+      },
+      {
+        "id": "score_1763640494668_q2cizbds7",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_0rlqb93gm",
+        "date": "2025-10-15",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-15T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_je7zmgnxq",
+        "date": "2025-10-16",
+        "source": "connect",
+        "connectId": "connect_1763639318875_etyc3a39l",
+        "dreamId": "dream_1763639305654_3i9qudky5",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-16T11:48:38.875Z"
+      },
+      {
+        "id": "score_1763640494668_oa657o2vy",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_cfrfx36vz",
+        "date": "2025-10-21",
+        "source": "connect",
+        "connectId": "connect_1763639703998_8syymqq2l",
+        "dreamId": "dream_1763639689543_6khhylu5w",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-10-21T11:55:03.998Z"
+      },
+      {
+        "id": "score_1763640494668_fjvpqzhxc",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_7fa0oiwh9",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_yaxcuydyq",
+        "date": "2025-11-03",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-03T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_q2o4s2lut",
+        "date": "2025-11-04",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-04T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_v9g80p4nw",
+        "date": "2025-11-05",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-05T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_gx6md75ah",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640473861_ziz6phl98",
+        "points": 10,
+        "activity": "Added dream: Get Certified in AWS",
+        "createdAt": "2025-11-06T12:08:14.668Z"
+      },
+      {
+        "id": "score_1763640494668_r76d178kw",
+        "date": "2025-11-07",
+        "source": "connect",
+        "connectId": "connect_1763639703998_f236kgzer",
+        "dreamId": "dream_1763639689543_62rjlufot",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-11-07T11:55:03.998Z"
+      },
+      {
+        "id": "score_1763640494668_jvrctv5sl",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640494668_sutohcydg",
+        "date": "2025-11-12",
+        "source": "connect",
+        "connectId": "connect_1763640487595_qjgpzimnk",
+        "dreamId": "dream_1763640473861_ziz6phl98",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-12T12:08:07.595Z"
+      },
+      {
+        "id": "score_1763640494668_gkrb6hdsb",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640473861_8vyvwff4d",
+        "points": 10,
+        "activity": "Added dream: Learn Photography",
+        "createdAt": "2025-11-13T12:08:14.668Z"
+      },
+      {
+        "id": "score_1763640494668_9whlwx12f",
+        "date": "2025-11-18",
+        "source": "connect",
+        "connectId": "connect_1763640487595_z6hgeig8g",
+        "dreamId": "dream_1763640473861_ziz6phl98",
+        "points": 5,
+        "activity": "Connected with Alex Brown",
+        "createdAt": "2025-11-18T12:08:07.595Z"
+      }
+    ],
+    "createdAt": "2025-10-05T11:48:38.875Z",
+    "updatedAt": "2025-11-20T12:08:14.668Z",
+    "_rid": "kU5BALv7w2QRAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QRAAAAAAAAAA==/",
+    "_etag": "\"ef02166b-0000-0200-0000-691f04af0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640495
+  },
+  {
+    "id": "user5@netsurit.com_2025_scoring",
+    "userId": "user5@netsurit.com",
+    "year": 2025,
+    "totalScore": 86,
+    "entries": [
+      {
+        "id": "score_1763640495517_834xz5nqv",
+        "date": "2025-09-22",
+        "source": "connect",
+        "connectId": "connect_1763639704838_8okseq80y",
+        "dreamId": "dream_1763639689758_srplq6pii",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-09-22T11:55:04.838Z"
+      },
+      {
+        "id": "score_1763640495517_br3fyxclk",
+        "date": "2025-09-29",
+        "source": "connect",
+        "connectId": "connect_1763639319727_bktu1r6q3",
+        "dreamId": "dream_1763639305866_h6ug3wbn0",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-09-29T11:48:39.727Z"
+      },
+      {
+        "id": "score_1763640495517_h7tebfp6v",
+        "date": "2025-10-01",
+        "source": "connect",
+        "connectId": "connect_1763639704838_jnvddk9rl",
+        "dreamId": "dream_1763639689758_srplq6pii",
+        "points": 5,
+        "activity": "Connected with David Thompson",
+        "createdAt": "2025-10-01T11:55:04.838Z"
+      },
+      {
+        "id": "score_1763640495517_qf74b1bbm",
+        "date": "2025-10-06",
+        "source": "connect",
+        "connectId": "connect_1763639319727_bh1h3e9r1",
+        "dreamId": "dream_1763639305866_h6ug3wbn0",
+        "points": 5,
+        "activity": "Connected with Lisa Anderson",
+        "createdAt": "2025-10-06T11:48:39.727Z"
+      },
+      {
+        "id": "score_1763640495517_00sgep8xl",
+        "date": "2025-10-06",
+        "source": "connect",
+        "connectId": "connect_1763640488452_naa6nk8vo",
+        "dreamId": "dream_1763640474075_5gu3jsenb",
+        "points": 5,
+        "activity": "Connected with Emma Williams",
+        "createdAt": "2025-10-06T12:08:08.452Z"
+      },
+      {
+        "id": "score_1763640495517_wtvkaaoke",
+        "date": "2025-10-12",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-12T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_zhbwek7md",
+        "date": "2025-10-13",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-13T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_dapllrshn",
+        "date": "2025-10-14",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-14T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_u9qi6ujhv",
+        "date": "2025-10-15",
+        "source": "week",
+        "weekId": "2025-W42",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-15T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_tv23465k6",
+        "date": "2025-10-19",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-19T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_r0n5aiwxw",
+        "date": "2025-10-20",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-20T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_fd5smy44k",
+        "date": "2025-10-21",
+        "source": "connect",
+        "connectId": "connect_1763640488452_99nqqtb91",
+        "dreamId": "dream_1763640474075_5gu3jsenb",
+        "points": 5,
+        "activity": "Connected with James Wilson",
+        "createdAt": "2025-10-21T12:08:08.452Z"
+      },
+      {
+        "id": "score_1763640495517_m339wx4yo",
+        "date": "2025-10-21",
+        "source": "week",
+        "weekId": "2025-W43",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-21T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_nonfc2nhv",
+        "date": "2025-10-26",
+        "source": "week",
+        "weekId": "2025-W44",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-10-26T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_jyyjo4g8e",
+        "date": "2025-11-02",
+        "source": "week",
+        "weekId": "2025-W45",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-02T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_cqlkyecoo",
+        "date": "2025-11-06",
+        "source": "dream",
+        "dreamId": "dream_1763640474075_kty9dnn9a",
+        "points": 10,
+        "activity": "Added dream: Complete a Triathlon",
+        "createdAt": "2025-11-06T12:08:15.517Z"
+      },
+      {
+        "id": "score_1763640495517_jbr4xu177",
+        "date": "2025-11-09",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-09T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_7oy4ntnsj",
+        "date": "2025-11-10",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-10T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_2s0fbonpk",
+        "date": "2025-11-11",
+        "source": "week",
+        "weekId": "2025-W46",
+        "points": 3,
+        "activity": "Completed weekly goal",
+        "createdAt": "2025-11-11T00:00:00.000Z"
+      },
+      {
+        "id": "score_1763640495517_fv8yc9zze",
+        "date": "2025-11-13",
+        "source": "dream",
+        "dreamId": "dream_1763640474075_5gu3jsenb",
+        "points": 10,
+        "activity": "Added dream: Master Guitar",
+        "createdAt": "2025-11-13T12:08:15.517Z"
+      }
+    ],
+    "createdAt": "2025-09-22T11:55:04.838Z",
+    "updatedAt": "2025-11-20T12:08:15.517Z",
+    "_rid": "kU5BALv7w2QSAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QSAAAAAAAAAA==/",
+    "_etag": "\"ef02446b-0000-0200-0000-691f04b00000\"",
+    "_attachments": "attachments/",
+    "_ts": 1763640496
+  },
+  {
+    "id": "CheneE@netsurit.com_2025_scoring",
+    "userId": "CheneE@netsurit.com",
+    "year": 2025,
+    "totalScore": 60,
+    "entries": [
+      {
+        "id": "score_1764241118479_nr87xe39f",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764237882485",
+        "points": 10,
+        "activity": "Added dream: \"Learn a new language\"",
+        "createdAt": "2025-11-27T10:58:38.479Z"
+      },
+      {
+        "id": "score_1764241168390_bqubhp5mh",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764241121809",
+        "points": 10,
+        "activity": "Added dream: \"My sisters 50th birthday\"",
+        "createdAt": "2025-11-27T10:59:28.390Z"
+      },
+      {
+        "id": "score_1764241833258_b1osnkzue",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764241735834",
+        "points": 10,
+        "activity": "Added dream: \"Move more\"",
+        "createdAt": "2025-11-27T11:10:33.258Z"
+      },
+      {
+        "id": "score_1764241936881_y9vuzoo57",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764241872001",
+        "points": 10,
+        "activity": "Added dream: \"Go meat free every 3 months\"",
+        "createdAt": "2025-11-27T11:12:16.881Z"
+      },
+      {
+        "id": "score_1764242012746_b6ogeb2v4",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764241943305",
+        "points": 10,
+        "activity": "Added dream: \"Cooking around the world\"",
+        "createdAt": "2025-11-27T11:13:32.747Z"
+      },
+      {
+        "id": "score_1766131694871_6dhf9zmlk",
+        "date": "2025-12-19",
+        "source": "dream",
+        "dreamId": "dream_1766131678388",
+        "points": 10,
+        "activity": "Added dream: \"Test Dream\"",
+        "createdAt": "2025-12-19T08:08:14.871Z"
+      }
+    ],
+    "createdAt": "2025-11-27T10:58:38.718Z",
+    "updatedAt": "2025-12-19T08:08:14.848Z",
+    "_rid": "kU5BALv7w2QTAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QTAAAAAAAAAA==/",
+    "_etag": "\"00005eca-0000-0200-0000-694507ee0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766131694
+  },
+  {
+    "id": "Chene.Emmerick@netsurit.com_2025_scoring",
+    "userId": "Chene.Emmerick@netsurit.com",
+    "year": 2025,
+    "totalScore": 9,
+    "entries": [
+      {
+        "id": "score_1764244363349_vftxglpkz",
+        "date": "2025-11-27",
+        "source": "connect",
+        "connectId": "connect_1764244362813",
+        "points": 3,
+        "activity": "Dream Connect with Lesedi Mohotloane",
+        "createdAt": "2025-11-27T11:52:43.349Z"
+      },
+      {
+        "id": "score_1764246764496_9psn74xm3",
+        "date": "2025-11-27",
+        "source": "connect",
+        "connectId": "connect_1764246763947",
+        "points": 3,
+        "activity": "Dream Connect with Tyler Stewart",
+        "createdAt": "2025-11-27T12:32:44.496Z"
+      },
+      {
+        "id": "score_1765278291175_q7y7o3bxx",
+        "date": "2025-12-09",
+        "source": "connect",
+        "connectId": "connect_1765278290681",
+        "points": 3,
+        "activity": "Dream Connect with Geraldine Volkwyn",
+        "createdAt": "2025-12-09T11:04:51.175Z"
+      }
+    ],
+    "createdAt": "2025-11-27T11:52:43.609Z",
+    "updatedAt": "2025-12-09T11:04:51.335Z",
+    "_rid": "kU5BALv7w2QUAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QUAAAAAAAAAA==/",
+    "_etag": "\"00003100-0000-0200-0000-693802530000\"",
+    "_attachments": "attachments/",
+    "_ts": 1765278291
+  },
+  {
+    "id": "Ana.Melo@netsurit.com_2025_scoring",
+    "userId": "Ana.Melo@netsurit.com",
+    "year": 2025,
+    "totalScore": 30,
+    "entries": [
+      {
+        "id": "score_1764251303362_2i53hgw1w",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764251175790",
+        "points": 10,
+        "activity": "Added dream: \"Savings for Japan\"",
+        "createdAt": "2025-11-27T13:48:23.362Z"
+      },
+      {
+        "id": "score_1764252153227_aui1qb8oa",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764251857749",
+        "points": 10,
+        "activity": "Added dream: \"Create My Emergency fund\"",
+        "createdAt": "2025-11-27T14:02:33.227Z"
+      },
+      {
+        "id": "score_1764252351602_yspetv6o4",
+        "date": "2025-11-27",
+        "source": "dream",
+        "dreamId": "dream_1764252292859",
+        "points": 10,
+        "activity": "Added dream: \"Drive\"",
+        "createdAt": "2025-11-27T14:05:51.602Z"
+      }
+    ],
+    "createdAt": "2025-11-27T13:48:23.089Z",
+    "updatedAt": "2025-11-27T14:05:51.336Z",
+    "_rid": "kU5BALv7w2QVAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QVAAAAAAAAAA==/",
+    "_etag": "\"9303c471-0000-0200-0000-69285abf0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764252351
+  },
+  {
+    "id": "Geraldine.Volkwyn@netsurit.com_2025_scoring",
+    "userId": "Geraldine.Volkwyn@netsurit.com",
+    "year": 2025,
+    "totalScore": 23,
+    "entries": [
+      {
+        "id": "score_1764760194116_uzjuyomfy",
+        "date": "2025-12-03",
+        "source": "dream",
+        "dreamId": "dream_1764759871479",
+        "points": 10,
+        "activity": "Added dream: \"Health\"",
+        "createdAt": "2025-12-03T11:09:54.116Z"
+      },
+      {
+        "id": "score_1764761187575_97sb94d83",
+        "date": "2025-12-03",
+        "source": "dream",
+        "dreamId": "dream_1764761139676",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2025-12-03T11:26:27.575Z"
+      },
+      {
+        "id": "score_1764761519214_08l60ec1t",
+        "date": "2025-12-03",
+        "source": "connect",
+        "connectId": "connect_1764761517783",
+        "points": 3,
+        "activity": "Dream Connect with Chené Emmerick",
+        "createdAt": "2025-12-03T11:31:59.214Z"
+      }
+    ],
+    "createdAt": "2025-12-03T11:09:52.544Z",
+    "updatedAt": "2025-12-03T11:31:57.644Z",
+    "_rid": "kU5BALv7w2QWAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QWAAAAAAAAAA==/",
+    "_etag": "\"680471e6-0000-0200-0000-69301fad0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764761517
+  },
+  {
+    "id": "Varity.Ramogayana@netsurit.com_2025_scoring",
+    "userId": "Varity.Ramogayana@netsurit.com",
+    "year": 2025,
+    "totalScore": 6,
+    "entries": [
+      {
+        "id": "score_1764849258848_o7kmr2lin",
+        "date": "2025-12-04",
+        "source": "connect",
+        "connectId": "connect_1764849258047",
+        "points": 3,
+        "activity": "Dream Connect with Tyler Stewart",
+        "createdAt": "2025-12-04T11:54:18.848Z"
+      },
+      {
+        "id": "score_1764852826415_5ius582qw",
+        "date": "2025-12-04",
+        "source": "connect",
+        "connectId": "connect_1764852825802",
+        "points": 3,
+        "activity": "Dream Connect with Lesedi Mohotloane",
+        "createdAt": "2025-12-04T12:53:46.415Z"
+      }
+    ],
+    "createdAt": "2025-12-04T11:54:21.406Z",
+    "updatedAt": "2025-12-04T12:53:48.886Z",
+    "_rid": "kU5BALv7w2QXAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QXAAAAAAAAAA==/",
+    "_etag": "\"b404097e-0000-0200-0000-6931845c0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764852828
+  },
+  {
+    "id": "Chene.Emmerick@netsurit.com_2026_scoring",
+    "userId": "Chene.Emmerick@netsurit.com",
+    "year": 2026,
+    "totalScore": 3,
+    "entries": [
+      {
+        "id": "score_1767774173563_ruxsqln1f",
+        "date": "2026-01-07",
+        "source": "connect",
+        "connectId": "connect_1767774173023",
+        "points": 3,
+        "activity": "Dream Connect with Rachel Martinez",
+        "createdAt": "2026-01-07T08:22:53.564Z"
+      }
+    ],
+    "createdAt": "2026-01-07T08:22:53.924Z",
+    "updatedAt": "2026-01-07T08:22:53.924Z",
+    "_rid": "kU5BALv7w2QYAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QYAAAAAAAAAA==/",
+    "_etag": "\"6c004cd7-0000-0200-0000-695e17dd0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767774173
+  },
+  {
+    "id": "VarityR@netsurit.com_2026_scoring",
+    "userId": "VarityR@netsurit.com",
+    "year": 2026,
+    "totalScore": 40,
+    "entries": [
+      {
+        "id": "score_1768247613918_ekifuj87e",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768247598035",
+        "points": 10,
+        "activity": "Added dream: \"Vee\"",
+        "createdAt": "2026-01-12T19:53:33.918Z"
+      },
+      {
+        "id": "score_1768248358374_5duf5kv1n",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768248226321",
+        "points": 10,
+        "activity": "Added dream: \"Dream 1\"",
+        "createdAt": "2026-01-12T20:05:58.374Z"
+      },
+      {
+        "id": "score_1768256306104_e9395j7vw",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768256300533",
+        "points": 10,
+        "activity": "Added dream: \"Backpack Through Patagonia\"",
+        "createdAt": "2026-01-12T22:18:26.104Z"
+      },
+      {
+        "id": "score_1768420684747_8wr9ietev",
+        "date": "2026-01-14",
+        "source": "dream",
+        "dreamId": "dream_1768420606917",
+        "points": 10,
+        "activity": "Added dream: \"gg\"",
+        "createdAt": "2026-01-14T19:58:04.747Z"
+      }
+    ],
+    "createdAt": "2026-01-12T19:53:34.813Z",
+    "updatedAt": "2026-01-14T19:58:06.031Z",
+    "_rid": "kU5BALv7w2QZAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QZAAAAAAAAAA==/",
+    "_etag": "\"520839c7-0000-0200-0000-6967f54e0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768420686
+  },
+  {
+    "id": "Tyler.Stewart@netsurit.com_2026_scoring",
+    "userId": "Tyler.Stewart@netsurit.com",
+    "year": 2026,
+    "totalScore": 230,
+    "entries": [
+      {
+        "id": "score_1768249641527_dxs4g23k3",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768249613628",
+        "points": 10,
+        "activity": "Added dream: \"dream 2\"",
+        "createdAt": "2026-01-12T20:27:21.527Z"
+      },
+      {
+        "id": "score_1768249881743_ry1011if5",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768249807957",
+        "points": 10,
+        "activity": "Added dream: \"elon\"",
+        "createdAt": "2026-01-12T20:31:21.743Z"
+      },
+      {
+        "id": "score_1768255553511_yd8j0k4dy",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768255542845",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2026-01-12T22:05:53.511Z"
+      },
+      {
+        "id": "score_1768262074398_az9ljo39a",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768262005655",
+        "points": 10,
+        "activity": "Added dream: \"blah blah\"",
+        "createdAt": "2026-01-12T23:54:34.398Z"
+      },
+      {
+        "id": "score_1768262102723_yz275x9ca",
+        "date": "2026-01-12",
+        "source": "dream",
+        "dreamId": "dream_1768262096469",
+        "points": 10,
+        "activity": "Added dream: \"Finish My Degree\"",
+        "createdAt": "2026-01-12T23:55:02.723Z"
+      },
+      {
+        "id": "score_1768305172085_1tghfdgwl",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768305122909",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-13T11:52:52.085Z"
+      },
+      {
+        "id": "score_1768305202646_84guoblgv",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768305199574",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2026-01-13T11:53:22.646Z"
+      },
+      {
+        "id": "score_1768307606902_2nxxfur1f",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768307475078",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-13T12:33:26.902Z"
+      },
+      {
+        "id": "score_1768318922438_r7bbjnq7u",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768318919964",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2026-01-13T15:42:02.438Z"
+      },
+      {
+        "id": "score_1768319388364_cwieik7nb",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768319384043",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2026-01-13T15:49:48.364Z"
+      },
+      {
+        "id": "score_1768319409829_o4xqwxyf3",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768319405866",
+        "points": 10,
+        "activity": "Added dream: \"Learn to Cook 10 Signature Dishes\"",
+        "createdAt": "2026-01-13T15:50:09.829Z"
+      },
+      {
+        "id": "score_1768323581088_hc3i3yv1n",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768323573496",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-13T16:59:41.088Z"
+      },
+      {
+        "id": "score_1768324502712_1k5ci6az0",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768324348424",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-13T17:15:02.712Z"
+      },
+      {
+        "id": "score_1768325030319_emuoahhby",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768325027264",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2026-01-13T17:23:50.319Z"
+      },
+      {
+        "id": "score_1768325673328_c304353ak",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768325671029",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2026-01-13T17:34:33.328Z"
+      },
+      {
+        "id": "score_1768327684014_431eoea7u",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768327681618",
+        "points": 10,
+        "activity": "Added dream: \"Get Fit — Gym 3x a Week\"",
+        "createdAt": "2026-01-13T18:08:04.014Z"
+      },
+      {
+        "id": "score_1768327807093_m7dcfg5ox",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768327698100",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-13T18:10:07.093Z"
+      },
+      {
+        "id": "score_1768345335321_hy14aklfb",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768345323562",
+        "points": 10,
+        "activity": "Added dream: \"Learn to Cook 10 Signature Dishes\"",
+        "createdAt": "2026-01-13T23:02:15.321Z"
+      },
+      {
+        "id": "score_1768345632878_pg4ou5wyx",
+        "date": "2026-01-13",
+        "source": "dream",
+        "dreamId": "dream_1768345628665",
+        "points": 10,
+        "activity": "Added dream: \"Read a Book a Month\"",
+        "createdAt": "2026-01-13T23:07:12.878Z"
+      },
+      {
+        "id": "score_1768400592133_p8wobt0li",
+        "date": "2026-01-14",
+        "source": "dream",
+        "dreamId": "dream_1768400516286",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-14T14:23:12.133Z"
+      },
+      {
+        "id": "score_1768403591302_y9e6ss955",
+        "date": "2026-01-14",
+        "source": "dream",
+        "dreamId": "dream_1768403529554",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-14T15:13:11.302Z"
+      },
+      {
+        "id": "score_1768404236788_5g6xaw0w2",
+        "date": "2026-01-14",
+        "source": "dream",
+        "dreamId": "dream_1768404177718",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-14T15:23:56.788Z"
+      },
+      {
+        "id": "score_1768404567741_gpfptsqvg",
+        "date": "2026-01-14",
+        "source": "dream",
+        "dreamId": "dream_1768404508589",
+        "points": 10,
+        "activity": "Added dream: \"test\"",
+        "createdAt": "2026-01-14T15:29:27.741Z"
+      }
+    ],
+    "createdAt": "2026-01-12T20:27:22.208Z",
+    "updatedAt": "2026-01-14T15:29:28.187Z",
+    "_rid": "kU5BALv7w2QaAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BALv7w2Q=/docs/kU5BALv7w2QaAAAAAAAAAA==/",
+    "_etag": "\"5008902d-0000-0200-0000-6967b65e0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768404574
+  }
+]

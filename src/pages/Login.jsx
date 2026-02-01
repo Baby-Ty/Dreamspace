@@ -18,7 +18,7 @@ const Login = () => {
           <div className="flex items-center justify-center mb-6">
             <img 
               src="/logo.png" 
-              alt="DreamSpace Logo" 
+              alt="Dreams Program Logo" 
               className="w-20 h-20 object-contain rounded-2xl"
               style={{ backgroundColor: 'transparent' }}
               onError={(e) => {

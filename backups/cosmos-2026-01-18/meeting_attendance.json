@@ -1,0 +1,778 @@
+[
+  {
+    "id": "meeting_team_c69b38db-1fa3-4327-abfa-814e6a72d02a_1766221308036",
+    "teamId": "team_c69b38db-1fa3-4327-abfa-814e6a72d02a",
+    "title": "team meeting",
+    "date": "2025-12-20",
+    "attendees": [
+      {
+        "id": "admin@netsurit.com",
+        "name": "Sarah Johnson",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user1@netsurit.com",
+        "name": "David Thompson",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "user3@netsurit.com",
+        "name": "James Wilson",
+        "present": false
+      },
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      }
+    ],
+    "completedAt": "2025-12-20T09:01:48.036Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "_rid": "kU5BAL9hpF4DAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4DAAAAAAAAAA==/",
+    "_etag": "\"0100fa50-0000-0200-0000-694665fd0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766221309
+  },
+  {
+    "id": "mtg_uxmh3uld",
+    "teamId": "team_n14d61",
+    "title": "December meeting",
+    "date": "2025-12-29",
+    "attendees": [
+      {
+        "id": "Ana.Melo@netsurit.com",
+        "name": "Ana Melo",
+        "present": true
+      },
+      {
+        "id": "Geraldine.Volkwyn@netsurit.com",
+        "name": "Geraldine Volkwyn",
+        "present": true
+      },
+      {
+        "id": "Boetie.Mthombeni@netsurit.com",
+        "name": "Bo Mthombeni",
+        "present": true
+      }
+    ],
+    "completedAt": "2025-12-29T06:45:17.968Z",
+    "completedBy": "CheneE@netsurit.com",
+    "_rid": "kU5BAL9hpF4EAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4EAAAAAAAAAA==/",
+    "_etag": "\"32006863-0000-0200-0000-6952237e0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1766990718
+  },
+  {
+    "id": "mtg_qur1bk94",
+    "teamId": "team_725fvb",
+    "title": "weekly",
+    "date": "2025-12-29",
+    "attendees": [
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": true
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      }
+    ],
+    "completedAt": "2025-12-29T13:06:08.310Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "_rid": "kU5BAL9hpF4FAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4FAAAAAAAAAA==/",
+    "_etag": "\"3300c606-0000-0200-0000-69527cc10000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767013569
+  },
+  {
+    "id": "mtg_zezl0gon",
+    "teamId": "team_725fvb",
+    "title": "nov",
+    "date": "2025-12-29",
+    "time": "13:25",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedAt": "2025-12-29T13:51:19.556Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": false,
+    "_rid": "kU5BAL9hpF4GAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4GAAAAAAAAAA==/",
+    "_etag": "\"3300851d-0000-0200-0000-695287580000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767016280
+  },
+  {
+    "id": "mtg_2sy5qf1s",
+    "teamId": "team_725fvb",
+    "title": "decemebr round 3",
+    "date": "2025-12-29",
+    "time": "12:35",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": true
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      }
+    ],
+    "completedAt": "2025-12-29T13:55:12.210Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": false,
+    "_rid": "kU5BAL9hpF4HAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4HAAAAAAAAAA==/",
+    "_etag": "\"3300e71f-0000-0200-0000-695288410000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767016513
+  },
+  {
+    "id": "mtg_8hsjj6mf",
+    "teamId": "team_725fvb",
+    "title": "jan",
+    "date": "2026-01-07",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedAt": "2026-01-07T18:47:29.813Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "_rid": "kU5BAL9hpF4IAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4IAAAAAAAAAA==/",
+    "_etag": "\"5901bd85-0000-0200-0000-695eaa410000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767811649
+  },
+  {
+    "id": "mtg_yq6u41e6",
+    "teamId": "team_725fvb",
+    "title": "team",
+    "date": "2026-01-10",
+    "time": "15:17",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": true
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      }
+    ],
+    "completedAt": "2026-01-10T10:18:54.851Z",
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIPKFrzAAA=",
+    "_rid": "kU5BAL9hpF4JAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4JAAAAAAAAAA==/",
+    "_etag": "\"60015381-0000-0200-0000-696227900000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768040336
+  },
+  {
+    "id": "mtg_z4mf3pu4",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 4",
+    "date": "2026-01-10",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIPKFr2AAA=",
+    "createdAt": "2026-01-13T23:03:22.013Z",
+    "updatedAt": "2026-01-13T23:03:22.013Z",
+    "_rid": "kU5BAL9hpF4KAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4KAAAAAAAAAA==/",
+    "_etag": "\"6e014f4f-0000-0200-0000-6966cf3d0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768345405
+  },
+  {
+    "id": "mtg_24x708u5",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 4",
+    "date": "2026-01-10",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      },
+      {
+        "present": true
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIQID7qAAA=",
+    "createdAt": "2026-01-13T23:03:28.508Z",
+    "updatedAt": "2026-01-13T23:03:28.508Z",
+    "_rid": "kU5BAL9hpF4LAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4LAAAAAAAAAA==/",
+    "_etag": "\"6e015a4f-0000-0200-0000-6966cf440000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768345412
+  },
+  {
+    "id": "mtg_9ietxu0o",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 5",
+    "date": "2026-01-14",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIQID7rAAA=",
+    "createdAt": "2026-01-13T23:03:16.699Z",
+    "updatedAt": "2026-01-13T23:03:16.699Z",
+    "_rid": "kU5BAL9hpF4MAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4MAAAAAAAAAA==/",
+    "_etag": "\"6e013f4f-0000-0200-0000-6966cf380000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768345400
+  },
+  {
+    "id": "mtg_iw8z2leq",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 6",
+    "date": "2026-01-15",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIQID7sAAA=",
+    "createdAt": "2026-01-13T23:03:13.068Z",
+    "updatedAt": "2026-01-13T23:03:13.068Z",
+    "_rid": "kU5BAL9hpF4NAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4NAAAAAAAAAA==/",
+    "_etag": "\"6e01374f-0000-0200-0000-6966cf350000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768345397
+  },
+  {
+    "id": "mtg_sdv6smob",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 8",
+    "date": "2026-01-15",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": true
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIQID7tAAA=",
+    "createdAt": "2026-01-12T22:08:24.461Z",
+    "updatedAt": "2026-01-13T01:04:57.030Z",
+    "_rid": "kU5BAL9hpF4OAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4OAAAAAAAAAA==/",
+    "_etag": "\"6a014e5f-0000-0200-0000-69659a3b0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768266299
+  },
+  {
+    "id": "mtg_2940n8ac",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 9",
+    "date": "2026-01-16",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": true
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIQID7uAAA=",
+    "createdAt": "2026-01-13T01:05:34.736Z",
+    "updatedAt": "2026-01-13T01:05:34.736Z",
+    "_rid": "kU5BAL9hpF4PAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4PAAAAAAAAAA==/",
+    "_etag": "\"6a01925f-0000-0200-0000-69659a610000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768266337
+  },
+  {
+    "id": "mtg_ffbm4z68",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 10",
+    "date": "2026-01-15",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIRSyGYAAA=",
+    "createdAt": "2026-01-13T17:19:29.923Z",
+    "updatedAt": "2026-01-13T17:19:29.923Z",
+    "_rid": "kU5BAL9hpF4QAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4QAAAAAAAAAA==/",
+    "_etag": "\"6d01222c-0000-0200-0000-69667ea50000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768324773
+  },
+  {
+    "id": "mtg_iruxqz7c",
+    "teamId": "team_725fvb",
+    "title": "Dream Test 11",
+    "date": "2026-01-16",
+    "time": "14:45",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user2@netsurit.com",
+        "name": "Lisa Anderson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIRSyGZAAA=",
+    "createdAt": "2026-01-13T18:11:48.268Z",
+    "updatedAt": "2026-01-13T18:11:48.268Z",
+    "_rid": "kU5BAL9hpF4RAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4RAAAAAAAAAA==/",
+    "_etag": "\"6d015e5b-0000-0200-0000-69668ae40000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768327908
+  },
+  {
+    "id": "mtg_9yrjlli9",
+    "teamId": "team_725fvb",
+    "title": "dream meeting test 3",
+    "date": "2026-01-14",
+    "time": "13:01",
+    "status": "completed",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": true
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": true
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": true
+      },
+      {
+        "id": "user3@netsurit.com",
+        "name": "James Wilson",
+        "present": true
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": true
+      }
+    ],
+    "completedBy": "Tyler.Stewart@netsurit.com",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIRSyGrAAA=",
+    "createdAt": "2026-01-14T20:01:29.787Z",
+    "updatedAt": "2026-01-14T20:01:29.787Z",
+    "_rid": "kU5BAL9hpF4SAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4SAAAAAAAAAA==/",
+    "_etag": "\"72012d0d-0000-0200-0000-6967f6190000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768420889
+  },
+  {
+    "id": "mtg_17025hhr",
+    "teamId": "team_725fvb",
+    "title": "Dreams App Final Session",
+    "date": "2026-01-15",
+    "time": "15:00",
+    "status": "scheduled",
+    "attendees": [
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user3@netsurit.com",
+        "name": "James Wilson",
+        "present": false
+      },
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      }
+    ],
+    "scheduledAt": "2026-01-15T10:55:12.677Z",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIRSyGsAAA=",
+    "_rid": "kU5BAL9hpF4TAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4TAAAAAAAAAA==/",
+    "_etag": "\"74019157-0000-0200-0000-6968c7900000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768474512
+  },
+  {
+    "id": "mtg_vkzoguxq",
+    "teamId": "team_725fvb",
+    "title": "Meet with louis",
+    "date": "2026-01-16",
+    "time": "15:00",
+    "status": "scheduled",
+    "attendees": [
+      {
+        "id": "VarityR@netsurit.com",
+        "name": "Varity Ramogayana",
+        "present": false
+      },
+      {
+        "id": "coach1@netsurit.com",
+        "name": "Michael Chen",
+        "present": false
+      },
+      {
+        "id": "coach2@netsurit.com",
+        "name": "Emma Williams",
+        "present": false
+      },
+      {
+        "id": "user3@netsurit.com",
+        "name": "James Wilson",
+        "present": false
+      },
+      {
+        "id": "Tyler.Stewart@netsurit.com",
+        "name": "Tyler Stewart",
+        "present": false
+      }
+    ],
+    "scheduledAt": "2026-01-15T14:17:17.101Z",
+    "isScheduledViaCalendar": true,
+    "calendarEventId": "AAMkAGYzMTY5MjkwLWQ2NzktNGM1Yy04Yjc5LTk1YzUwNTQ4ZmY0YgBGAAAAAAAkz9RITTyETJpJPCk6pkJ6BwCjJO5k1MWbQLqGSxqsTribAAAAAAENAACjJO5k1MWbQLqGSxqsTribAAIRSyGuAAA=",
+    "_rid": "kU5BAL9hpF4UAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAL9hpF4=/docs/kU5BAL9hpF4UAAAAAAAAAA==/",
+    "_etag": "\"75015b03-0000-0200-0000-6968f6ed0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768486637
+  }
+]

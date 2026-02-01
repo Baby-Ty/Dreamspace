@@ -16,7 +16,7 @@ if (import.meta.env.PROD) {
 }
 
 // These console.log calls will be stripped in production builds by esbuild
-console.log('🚀 Initializing DreamSpace App...');
+console.log('🚀 Initializing Dreams Program...');
 console.log('MSAL Config:', { 
   clientId: msalConfig.auth.clientId, 
   redirectUri: msalConfig.auth.redirectUri,

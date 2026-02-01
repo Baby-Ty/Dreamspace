@@ -6,12 +6,12 @@ const GuideModal = ({ onClose }) => {
 
   const steps = [
     {
-      title: 'Welcome to DreamSpace',
+      title: 'Welcome to the Dreams Program',
       icon: <CheckCircle className="w-12 h-12 text-netsurit-red" />,
       content: (
         <div className="space-y-4">
           <p className="text-lg text-professional-gray-700">
-            DreamSpace helps you document, track, and achieve your personal and professional dreams while connecting with colleagues.
+            The Dreams Program helps you document, track, and achieve your personal and professional dreams while connecting with colleagues.
           </p>
           <p className="text-base text-professional-gray-600">
             This quick guide will walk you through the key features and workflow.
@@ -144,7 +144,7 @@ const GuideModal = ({ onClose }) => {
             Start Your Journey
           </p>
           <p className="text-base text-professional-gray-600">
-            You now know how to use DreamSpace! Here's the recommended workflow:
+            You now know how to use the Dreams Program! Here's the recommended workflow:
           </p>
           <ol className="space-y-3 text-base text-professional-gray-600">
             <li className="flex items-start">

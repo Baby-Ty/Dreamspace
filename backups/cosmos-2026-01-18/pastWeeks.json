@@ -1,0 +1,1135 @@
+[
+  {
+    "id": "coach1@netsurit.com",
+    "userId": "coach1@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 6,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 3,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 6,
+        "completedGoals": 5,
+        "score": 15,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 6,
+        "completedGoals": 2,
+        "score": 6,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 6,
+        "completedGoals": 2,
+        "score": 6,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 4,
+        "completedGoals": 2,
+        "skippedGoals": 0,
+        "score": 6,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:02.581Z"
+      },
+      "2025-W48": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:15.475Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:16.130Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:16.629Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:17.309Z"
+      },
+      "2025-W52": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:36.674Z"
+      },
+      "2026-W01": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:33.193Z"
+      },
+      "2026-W02": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:19:50.908Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:57.964Z",
+    "updatedAt": "2026-01-12T09:19:50.908Z",
+    "_rid": "kU5BAJKcQZUEAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUEAAAAAAAAAA==/",
+    "_etag": "\"7b000c4c-0000-0200-0000-6964bcb80000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209592
+  },
+  {
+    "id": "coach2@netsurit.com",
+    "userId": "coach2@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 6,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 3,
+        "completedGoals": 2,
+        "score": 6,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 3,
+        "completedGoals": 2,
+        "score": 6,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 5,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 4,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:04.956Z"
+      },
+      "2025-W48": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:19.641Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:20.063Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:20.505Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:20.929Z"
+      },
+      "2025-W52": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:39.384Z"
+      },
+      "2026-W01": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:35.655Z"
+      },
+      "2026-W02": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:19:53.395Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:58.422Z",
+    "updatedAt": "2026-01-12T09:19:53.395Z",
+    "_rid": "kU5BAJKcQZUFAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUFAAAAAAAAAA==/",
+    "_etag": "\"7b00e34c-0000-0200-0000-6964bcbb0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209595
+  },
+  {
+    "id": "user1@netsurit.com",
+    "userId": "user1@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 5,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 6,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 4,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 4,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 5,
+        "completedGoals": 1,
+        "skippedGoals": 0,
+        "score": 3,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:06.632Z"
+      },
+      "2025-W48": {
+        "totalGoals": 9,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:22.840Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:23.276Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:23.702Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:24.127Z"
+      },
+      "2025-W52": {
+        "totalGoals": 9,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:41.389Z"
+      },
+      "2026-W01": {
+        "totalGoals": 9,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:37.367Z"
+      },
+      "2026-W02": {
+        "totalGoals": 9,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:19:55.130Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:58.635Z",
+    "updatedAt": "2026-01-12T09:19:55.130Z",
+    "_rid": "kU5BAJKcQZUGAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUGAAAAAAAAAA==/",
+    "_etag": "\"7b00164e-0000-0200-0000-6964bcbc0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209596
+  },
+  {
+    "id": "user2@netsurit.com",
+    "userId": "user2@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 6,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 6,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 5,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 4,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "skippedGoals": 0,
+        "score": 3,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:08.324Z"
+      },
+      "2025-W48": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:25.828Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:26.246Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:26.665Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:27.088Z"
+      },
+      "2025-W52": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:43.457Z"
+      },
+      "2026-W01": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:39.118Z"
+      },
+      "2026-W02": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:19:56.959Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:58.848Z",
+    "updatedAt": "2026-01-12T09:19:56.959Z",
+    "_rid": "kU5BAJKcQZUHAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUHAAAAAAAAAA==/",
+    "_etag": "\"7b00874e-0000-0200-0000-6964bcbe0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209598
+  },
+  {
+    "id": "user3@netsurit.com",
+    "userId": "user3@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 6,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 6,
+        "completedGoals": 2,
+        "score": 6,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 4,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 4,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 5,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 3,
+        "completedGoals": 1,
+        "skippedGoals": 0,
+        "score": 3,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:10.008Z"
+      },
+      "2025-W48": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:29.294Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:29.719Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:30.144Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:30.579Z"
+      },
+      "2025-W52": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:45.419Z"
+      },
+      "2026-W01": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:40.942Z"
+      },
+      "2026-W02": {
+        "totalGoals": 5,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:19:58.654Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:59.064Z",
+    "updatedAt": "2026-01-12T09:19:58.654Z",
+    "_rid": "kU5BAJKcQZUIAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUIAAAAAAAAAA==/",
+    "_etag": "\"7b00424f-0000-0200-0000-6964bcc00000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209600
+  },
+  {
+    "id": "user4@netsurit.com",
+    "userId": "user4@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 5,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 5,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 6,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 6,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 2,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:11.704Z"
+      },
+      "2025-W48": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:32.292Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:32.710Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:33.126Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:33.549Z"
+      },
+      "2025-W52": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:47.733Z"
+      },
+      "2026-W01": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:42.644Z"
+      },
+      "2026-W02": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:20:00.359Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:59.281Z",
+    "updatedAt": "2026-01-12T09:20:00.359Z",
+    "_rid": "kU5BAJKcQZUJAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUJAAAAAAAAAA==/",
+    "_etag": "\"7b000d50-0000-0200-0000-6964bcc10000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209601
+  },
+  {
+    "id": "user5@netsurit.com",
+    "userId": "user5@netsurit.com",
+    "weekHistory": {
+      "2025-W42": {
+        "totalGoals": 6,
+        "completedGoals": 4,
+        "score": 12,
+        "weekStartDate": "2025-10-12",
+        "weekEndDate": "2025-10-18"
+      },
+      "2025-W43": {
+        "totalGoals": 4,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-10-19",
+        "weekEndDate": "2025-10-25"
+      },
+      "2025-W44": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-10-26",
+        "weekEndDate": "2025-11-01"
+      },
+      "2025-W45": {
+        "totalGoals": 2,
+        "completedGoals": 1,
+        "score": 3,
+        "weekStartDate": "2025-11-02",
+        "weekEndDate": "2025-11-08"
+      },
+      "2025-W46": {
+        "totalGoals": 4,
+        "completedGoals": 3,
+        "score": 9,
+        "weekStartDate": "2025-11-09",
+        "weekEndDate": "2025-11-15"
+      },
+      "2025-W47": {
+        "totalGoals": 4,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-16",
+        "weekEndDate": "2025-11-22",
+        "archivedAt": "2025-11-23T22:00:13.371Z"
+      },
+      "2025-W48": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-23",
+        "weekEndDate": "2025-11-29",
+        "archivedAt": "2025-12-22T14:51:35.248Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:35.669Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:36.091Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:36.507Z"
+      },
+      "2025-W52": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:50.168Z"
+      },
+      "2026-W01": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:44.331Z"
+      },
+      "2026-W02": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:20:02.080Z"
+      }
+    },
+    "totalWeeksTracked": 13,
+    "createdAt": "2025-10-16T12:07:59.492Z",
+    "updatedAt": "2026-01-12T09:20:02.080Z",
+    "_rid": "kU5BAJKcQZUKAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUKAAAAAAAAAA==/",
+    "_etag": "\"7b00be51-0000-0200-0000-6964bcc30000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209603
+  },
+  {
+    "id": "CheneE@netsurit.com",
+    "userId": "CheneE@netsurit.com",
+    "weekHistory": {
+      "2025-W48": {
+        "totalGoals": 12,
+        "completedGoals": 11,
+        "skippedGoals": 0,
+        "score": 55,
+        "weekStartDate": "2025-11-24",
+        "weekEndDate": "2025-11-30",
+        "archivedAt": "2025-12-03T09:00:39.494Z"
+      },
+      "2025-W49": {
+        "totalGoals": 12,
+        "completedGoals": 12,
+        "skippedGoals": 0,
+        "score": 60,
+        "weekStartDate": "2025-12-01",
+        "weekEndDate": "2025-12-07",
+        "archivedAt": "2025-12-09T11:07:38.396Z"
+      },
+      "2025-W50": {
+        "totalGoals": 12,
+        "completedGoals": 8,
+        "skippedGoals": 1,
+        "score": 40,
+        "weekStartDate": "2025-12-08",
+        "weekEndDate": "2025-12-14",
+        "archivedAt": "2025-12-22T14:51:49.934Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:50.352Z"
+      },
+      "2025-W52": {
+        "totalGoals": 3,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:55.967Z"
+      },
+      "2026-W01": {
+        "totalGoals": 3,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T08:18:36.452Z"
+      },
+      "2026-W02": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-05",
+        "weekEndDate": "2026-01-11",
+        "archivedAt": "2026-01-07T19:24:48.980Z"
+      },
+      "2026-W03": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-11",
+        "weekEndDate": "2026-01-17",
+        "archivedAt": "2026-01-12T09:20:06.935Z"
+      },
+      "2026-W04": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-18",
+        "weekEndDate": "2026-01-24",
+        "archivedAt": "2026-01-14T09:13:14.698Z"
+      }
+    },
+    "totalWeeksTracked": 10,
+    "createdAt": "2025-12-03T08:51:23.817Z",
+    "updatedAt": "2026-01-14T09:13:14.698Z",
+    "_rid": "kU5BAJKcQZUOAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUOAAAAAAAAAA==/",
+    "_etag": "\"c6018f39-0000-0200-0000-69675e2a0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768381994
+  },
+  {
+    "id": "Ana.Melo@netsurit.com",
+    "userId": "Ana.Melo@netsurit.com",
+    "weekHistory": {
+      "2025-W48": {
+        "totalGoals": 7,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-24",
+        "weekEndDate": "2025-11-30",
+        "archivedAt": "2025-12-22T14:51:54.059Z"
+      },
+      "2025-W49": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-11-30",
+        "weekEndDate": "2025-12-06",
+        "archivedAt": "2025-12-22T14:51:54.479Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:54.910Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:55.334Z"
+      },
+      "2025-W52": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:42:58.145Z"
+      },
+      "2026-W01": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:50.445Z"
+      },
+      "2026-W02": {
+        "totalGoals": 6,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:20:08.397Z"
+      }
+    },
+    "totalWeeksTracked": 7,
+    "createdAt": "2025-12-22T14:51:54.059Z",
+    "updatedAt": "2026-01-12T09:20:08.397Z",
+    "_rid": "kU5BAJKcQZUPAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUPAAAAAAAAAA==/",
+    "_etag": "\"7b00ec54-0000-0200-0000-6964bcca0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209610
+  },
+  {
+    "id": "Geraldine.Volkwyn@netsurit.com",
+    "userId": "Geraldine.Volkwyn@netsurit.com",
+    "weekHistory": {
+      "2025-W49": {
+        "totalGoals": 2,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-01",
+        "weekEndDate": "2025-12-07",
+        "archivedAt": "2025-12-22T14:51:56.843Z"
+      },
+      "2025-W50": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-07",
+        "weekEndDate": "2025-12-13",
+        "archivedAt": "2025-12-22T14:51:57.263Z"
+      },
+      "2025-W51": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-14",
+        "weekEndDate": "2025-12-20",
+        "archivedAt": "2025-12-22T14:51:57.681Z"
+      },
+      "2025-W52": {
+        "totalGoals": 2,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-21",
+        "weekEndDate": "2025-12-27",
+        "archivedAt": "2025-12-29T12:43:00.039Z"
+      },
+      "2026-W01": {
+        "totalGoals": 2,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2025-12-28",
+        "weekEndDate": "2026-01-03",
+        "archivedAt": "2026-01-07T19:24:52.009Z"
+      },
+      "2026-W02": {
+        "totalGoals": 2,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-04",
+        "weekEndDate": "2026-01-10",
+        "archivedAt": "2026-01-12T09:20:09.870Z"
+      }
+    },
+    "totalWeeksTracked": 6,
+    "createdAt": "2025-12-22T14:51:56.843Z",
+    "updatedAt": "2026-01-12T09:20:09.870Z",
+    "_rid": "kU5BAJKcQZUQAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUQAAAAAAAAAA==/",
+    "_etag": "\"7b006655-0000-0200-0000-6964bccb0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209611
+  },
+  {
+    "id": "tyler.stewart@netsurit.com",
+    "userId": "tyler.stewart@netsurit.com",
+    "weekHistory": {
+      "2026-W03": {
+        "totalGoals": 0,
+        "completedGoals": 0,
+        "skippedGoals": 0,
+        "score": 0,
+        "weekStartDate": "2026-01-11",
+        "weekEndDate": "2026-01-17",
+        "archivedAt": "2026-01-14T16:09:14.581Z"
+      }
+    },
+    "totalWeeksTracked": 1,
+    "createdAt": "2026-01-14T16:09:14.581Z",
+    "updatedAt": "2026-01-14T16:09:14.581Z",
+    "_rid": "kU5BAJKcQZURAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZURAAAAAAAAAA==/",
+    "_etag": "\"fb012154-0000-0200-0000-6967bfb00000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768406960
+  },
+  {
+    "id": "Tyler.Stewart@netsurit.com",
+    "userId": "Tyler.Stewart@netsurit.com",
+    "weekHistory": {
+      "2026-W03": {
+        "totalGoals": 18,
+        "completedGoals": 12,
+        "skippedGoals": 1,
+        "score": 48,
+        "weekStartDate": "2026-01-12",
+        "weekEndDate": "2026-01-18",
+        "archivedAt": "2026-01-14T19:24:09.140Z"
+      }
+    },
+    "totalWeeksTracked": 1,
+    "createdAt": "2026-01-14T19:24:09.140Z",
+    "updatedAt": "2026-01-14T19:24:09.140Z",
+    "_rid": "kU5BAJKcQZUSAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAJKcQZU=/docs/kU5BAJKcQZUSAAAAAAAAAA==/",
+    "_etag": "\"14020803-0000-0200-0000-6967ed5f0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768418655
+  }
+]

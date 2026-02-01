@@ -1,0 +1,145 @@
+﻿{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#applications/$entity",
+  "addIns": [],
+  "api": {
+    "acceptMappedClaims": null,
+    "knownClientApplications": [],
+    "oauth2PermissionScopes": [],
+    "preAuthorizedApplications": [],
+    "requestedAccessTokenVersion": null
+  },
+  "appId": "ebe60b7a-93c9-4b12-8375-4ab3181000e8",
+  "appRoles": [
+    {
+      "allowedMemberTypes": [
+        "User"
+      ],
+      "description": "Access to team coaching features",
+      "displayName": "DreamSpace Coach",
+      "id": "e4a00859-4822-4a7c-9d2a-303e34be686a",
+      "isEnabled": true,
+      "origin": "Application",
+      "value": "DreamSpace.Coach"
+    },
+    {
+      "allowedMemberTypes": [
+        "User"
+      ],
+      "description": "Access to coaching and people management features",
+      "displayName": "DreamSpace Manager",
+      "id": "9c70f7df-650c-448f-81e0-731de1def3a1",
+      "isEnabled": true,
+      "origin": "Application",
+      "value": "DreamSpace.Manager"
+    },
+    {
+      "allowedMemberTypes": [
+        "User"
+      ],
+      "description": "Full access to all DreamSpace features including admin dashboard",
+      "displayName": "DreamSpace Admin",
+      "id": "f9e18ecc-8f65-4fe5-a512-b5e3b2585fe8",
+      "isEnabled": true,
+      "origin": "Application",
+      "value": "DreamSpace.Admin"
+    }
+  ],
+  "applicationTemplateId": null,
+  "certification": null,
+  "createdDateTime": "2025-09-20T19:05:18Z",
+  "defaultRedirectUri": null,
+  "deletedDateTime": null,
+  "description": null,
+  "disabledByMicrosoftStatus": null,
+  "displayName": "Dream Space",
+  "groupMembershipClaims": null,
+  "id": "81886e25-d583-4666-8498-07cb9a6eb542",
+  "identifierUris": [],
+  "info": {
+    "logoUrl": "https://aadcdn.msftauthimages.net/c1c6b6c8-m-0iloxlf2-z23lona2l6-gpwzxeq6hj0xhpggxnqrc/appbranding/5x7e67zi4ndugyjfeve0xap4jlmh-dihkebhyhsk7o/1033/bannerlogo?ts=638939965177936034",
+    "marketingUrl": null,
+    "privacyStatementUrl": null,
+    "supportUrl": null,
+    "termsOfServiceUrl": null
+  },
+  "isDeviceOnlyAuthSupported": null,
+  "isFallbackPublicClient": null,
+  "keyCredentials": [],
+  "nativeAuthenticationApisEnabled": null,
+  "notes": null,
+  "optionalClaims": null,
+  "parentalControlSettings": {
+    "countriesBlockedForMinors": [],
+    "legalAgeGroupRule": "Allow"
+  },
+  "passwordCredentials": [],
+  "publicClient": {
+    "redirectUris": []
+  },
+  "publisherDomain": "emailtylerstewartco.onmicrosoft.com",
+  "requestSignatureVerification": null,
+  "requiredResourceAccess": [
+    {
+      "resourceAccess": [
+        {
+          "id": "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0",
+          "type": "Scope"
+        },
+        {
+          "id": "37f7f235-527c-4136-accd-4a02d197296e",
+          "type": "Scope"
+        },
+        {
+          "id": "14dad69e-099b-42c9-810b-d002981feec1",
+          "type": "Scope"
+        },
+        {
+          "id": "469cd065-729e-4dee-b1fa-d92e0fab6310",
+          "type": "Scope"
+        },
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ],
+      "resourceAppId": "00000003-0000-0000-c000-000000000000"
+    }
+  ],
+  "samlMetadataUrl": null,
+  "serviceManagementReference": null,
+  "servicePrincipalLockConfiguration": {
+    "allProperties": true,
+    "credentialsWithUsageSign": true,
+    "credentialsWithUsageVerify": true,
+    "identifierUris": false,
+    "isEnabled": true,
+    "tokenEncryptionKeyId": true
+  },
+  "signInAudience": "AzureADMultipleOrgs",
+  "spa": {
+    "redirectUris": [
+      "https://dreams.netsurit.com",
+      "https://gentle-grass-07ac3aa0f.1.azurestaticapps.net",
+      "http://localhost:5173",
+      "https://dreamspace.tylerstewart.co.za"
+    ]
+  },
+  "tags": [],
+  "tokenEncryptionKeyId": null,
+  "uniqueName": null,
+  "verifiedPublisher": {
+    "addedDateTime": null,
+    "displayName": null,
+    "verifiedPublisherId": null
+  },
+  "web": {
+    "homePageUrl": null,
+    "implicitGrantSettings": {
+      "enableAccessTokenIssuance": true,
+      "enableIdTokenIssuance": true
+    },
+    "logoutUrl": "https://dreamspace.tylerstewart.co.za/",
+    "redirectUriSettings": [],
+    "redirectUris": []
+  }
+}

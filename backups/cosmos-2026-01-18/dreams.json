@@ -1,0 +1,2031 @@
+[
+  {
+    "id": "coach1@netsurit.com",
+    "userId": "coach1@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640472561_a5ycnklxf",
+        "title": "Get Certified in AWS",
+        "description": "I want to get certified in aws and make meaningful progress.",
+        "category": "Money & Wealth",
+        "progress": 49,
+        "goals": [
+          {
+            "id": "goal_1763640472561_mgs59wvog",
+            "title": "Complete milestone for Get Certified in AWS",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2025-12-02",
+            "targetWeeks": 2,
+            "startDate": "2025-10-04T04:39:32.063Z",
+            "weeksRemaining": 0,
+            "active": false,
+            "completed": false,
+            "completedAt": "2025-12-22T14:51:18.214Z",
+            "createdAt": "2025-10-04T04:39:32.063Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-04T04:39:32.063Z",
+        "updatedAt": "2025-11-20T12:07:52.561Z",
+        "coachMessages": [
+          {
+            "id": "msg_1768340460218",
+            "text": "ca",
+            "sender": "Tyler.Stewart@netsurit.com",
+            "timestamp": "2026-01-13T21:41:00.218Z",
+            "read": false
+          }
+        ],
+        "lastMessageAt": "2026-01-13T21:41:00.218Z",
+        "hasUnreadMessages": true
+      },
+      {
+        "id": "dream_1763640472561_8npekhbqd",
+        "title": "Learn Photography",
+        "description": "I want to learn photography and make meaningful progress.",
+        "category": "Skills & Hobbies",
+        "progress": 59,
+        "goals": [],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-01T19:14:22.157Z",
+        "updatedAt": "2025-11-20T12:07:52.561Z"
+      },
+      {
+        "id": "dream_1763640472561_f4wd5szev",
+        "title": "Start a Blog",
+        "description": "I want to start a blog and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 36,
+        "goals": [
+          {
+            "id": "goal_1763640472561_cj60fv02k",
+            "title": "Work on Start a Blog",
+            "description": "Weekly progress towards Start a Blog",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 8,
+            "startDate": "2025-09-26T02:29:31.039Z",
+            "weeksRemaining": 1,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-26T02:29:31.039Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-26T02:29:31.039Z",
+        "updatedAt": "2025-11-20T12:07:52.561Z"
+      },
+      {
+        "id": "dream_1763640472561_9frjqbrop",
+        "title": "Mentor Someone",
+        "description": "I want to mentor someone and make meaningful progress.",
+        "category": "Wellness & Fitness",
+        "progress": 39,
+        "goals": [
+          {
+            "id": "goal_1763640472561_jix8vpc8x",
+            "title": "Work on Mentor Someone",
+            "description": "Weekly progress towards Mentor Someone",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 8,
+            "startDate": "2025-10-26T06:10:59.932Z",
+            "weeksRemaining": 2,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-26T06:10:59.932Z"
+          },
+          {
+            "id": "goal_1763640472561_lg34qy9uu",
+            "title": "Complete milestone for Mentor Someone",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-02-24",
+            "targetWeeks": 14,
+            "startDate": "2025-10-26T06:10:59.932Z",
+            "weeksRemaining": 9,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-26T06:10:59.932Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-26T06:10:59.932Z",
+        "updatedAt": "2025-11-20T12:07:52.561Z"
+      },
+      {
+        "id": "dream_1763640472561_i24cevb6c",
+        "title": "Learn to Cook",
+        "description": "I want to learn to cook and make meaningful progress.",
+        "category": "Contribution & Giving Back",
+        "progress": 20,
+        "goals": [],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-16T02:15:12.522Z",
+        "updatedAt": "2025-11-20T12:07:52.561Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640472562_sh9m7cxpg",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Start a Blog",
+        "description": "Weekly progress towards Start a Blog",
+        "dreamId": "dream_1763640472561_f4wd5szev",
+        "dreamTitle": "Start a Blog",
+        "dreamCategory": "Family & Friends",
+        "goalId": "goal_1763640472561_cj60fv02k",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 8,
+        "targetWeeks": 8,
+        "weeksRemaining": 6,
+        "startDate": "2025-09-26",
+        "createdAt": "2025-09-26T02:29:31.039Z"
+      },
+      {
+        "id": "template_1763640472562_ypew7bopi",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Mentor Someone",
+        "description": "Weekly progress towards Mentor Someone",
+        "dreamId": "dream_1763640472561_9frjqbrop",
+        "dreamTitle": "Mentor Someone",
+        "dreamCategory": "Wellness & Fitness",
+        "goalId": "goal_1763640472561_jix8vpc8x",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 8,
+        "targetWeeks": 8,
+        "weeksRemaining": 7,
+        "startDate": "2025-10-26",
+        "createdAt": "2025-10-26T06:10:59.932Z"
+      }
+    ],
+    "createdAt": "2025-01-20T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:19:52.041Z",
+    "_rid": "kU5BAIny935sAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935sAAAAAAAAAA==/",
+    "_etag": "\"4908d05f-0000-0200-0000-6966bbef0000\"",
+    "_attachments": "attachments/",
+    "lastUpdated": "2026-01-13T21:41:00.218Z",
+    "_ts": 1768340463
+  },
+  {
+    "id": "coach2@netsurit.com",
+    "userId": "coach2@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640472991_c9gey7lu4",
+        "title": "Run 5km Weekly",
+        "description": "I want to run 5km weekly and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 23,
+        "goals": [
+          {
+            "id": "goal_1763640472992_10vz1us5m",
+            "title": "Work on Run 5km Weekly",
+            "description": "Weekly progress towards Run 5km Weekly",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "startDate": "2025-09-24T11:38:44.690Z",
+            "weeksRemaining": 0,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-24T11:38:44.690Z"
+          },
+          {
+            "id": "goal_1763640472992_85stufwyz",
+            "title": "Complete milestone for Run 5km Weekly",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-01-08",
+            "targetWeeks": 8,
+            "startDate": "2025-09-24T11:38:44.690Z",
+            "weeksRemaining": 3,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-24T11:38:44.690Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-24T11:38:44.690Z",
+        "updatedAt": "2025-11-20T12:07:52.992Z"
+      },
+      {
+        "id": "dream_1763640472992_fcliczrml",
+        "title": "Read 50 Books",
+        "description": "I want to read 50 books and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 61,
+        "goals": [],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-13T13:49:38.464Z",
+        "updatedAt": "2025-11-20T12:07:52.992Z"
+      },
+      {
+        "id": "dream_1763640472992_bm0qvo238",
+        "title": "Save for Retirement",
+        "description": "I want to save for retirement and make meaningful progress.",
+        "category": "Love & Relationships",
+        "progress": 17,
+        "goals": [
+          {
+            "id": "goal_1763640472992_5iw0kwinc",
+            "title": "Complete milestone for Save for Retirement",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-02-18",
+            "targetWeeks": 13,
+            "startDate": "2025-10-10T01:06:57.806Z",
+            "weeksRemaining": 8,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-10T01:06:57.806Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-10T01:06:57.806Z",
+        "updatedAt": "2025-11-20T12:07:52.992Z"
+      },
+      {
+        "id": "dream_1763640472992_rdryf0ivp",
+        "title": "Build an App",
+        "description": "I want to build an app and make meaningful progress.",
+        "category": "Growth & Learning",
+        "progress": 22,
+        "goals": [
+          {
+            "id": "goal_1763640472992_64a36h50m",
+            "title": "Complete milestone for Build an App",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-01-09",
+            "targetWeeks": 8,
+            "startDate": "2025-10-26T12:06:25.163Z",
+            "weeksRemaining": 3,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-26T12:06:25.163Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-26T12:06:25.163Z",
+        "updatedAt": "2025-11-20T12:07:52.992Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640472992_wrkcwonoq",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Run 5km Weekly",
+        "description": "Weekly progress towards Run 5km Weekly",
+        "dreamId": "dream_1763640472991_c9gey7lu4",
+        "dreamTitle": "Run 5km Weekly",
+        "dreamCategory": "Family & Friends",
+        "goalId": "goal_1763640472992_10vz1us5m",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 12,
+        "targetWeeks": 12,
+        "weeksRemaining": 5,
+        "startDate": "2025-09-24",
+        "createdAt": "2025-09-24T11:38:44.690Z"
+      }
+    ],
+    "createdAt": "2025-01-22T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:19:54.044Z",
+    "_rid": "kU5BAIny935tAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935tAAAAAAAAAA==/",
+    "_etag": "\"8900b59e-0000-0200-0000-6964bcbb0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209595
+  },
+  {
+    "id": "user1@netsurit.com",
+    "userId": "user1@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640473208_zs5q3tmin",
+        "title": "Run 5km Weekly",
+        "description": "I want to run 5km weekly and make meaningful progress.",
+        "category": "Money & Wealth",
+        "progress": 24,
+        "goals": [
+          {
+            "id": "goal_1763640473208_99sght1cg",
+            "title": "Work on Run 5km Weekly",
+            "description": "Weekly progress towards Run 5km Weekly",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "startDate": "2025-10-24T17:09:39.694Z",
+            "weeksRemaining": 0,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-24T17:09:39.694Z"
+          },
+          {
+            "id": "goal_1763640473208_fo8h3b1ho",
+            "title": "Complete milestone for Run 5km Weekly",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-01-28",
+            "targetWeeks": 10,
+            "startDate": "2025-10-24T17:09:39.694Z",
+            "weeksRemaining": 5,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-24T17:09:39.694Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-24T17:09:39.694Z",
+        "updatedAt": "2025-11-20T12:07:53.208Z"
+      },
+      {
+        "id": "dream_1763640473208_qk8mwhkgc",
+        "title": "Read 50 Books",
+        "description": "I want to read 50 books and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 49,
+        "goals": [
+          {
+            "id": "goal_1763640473208_j2w8npgrr",
+            "title": "Work on Read 50 Books",
+            "description": "Weekly progress towards Read 50 Books",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "startDate": "2025-10-22T05:08:54.120Z",
+            "weeksRemaining": 1,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-22T05:08:54.120Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-22T05:08:54.120Z",
+        "updatedAt": "2025-11-20T12:07:53.208Z"
+      },
+      {
+        "id": "dream_1763640473208_tt1ei1nm3",
+        "title": "Save for Retirement",
+        "description": "I want to save for retirement and make meaningful progress.",
+        "category": "Wellness & Fitness",
+        "progress": 32,
+        "goals": [
+          {
+            "id": "goal_1763640473208_la8ciah3g",
+            "title": "Work on Save for Retirement",
+            "description": "Weekly progress towards Save for Retirement",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 20,
+            "startDate": "2025-11-03T06:57:37.872Z",
+            "weeksRemaining": 14,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-03T06:57:37.872Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-03T06:57:37.872Z",
+        "updatedAt": "2025-11-20T12:07:53.208Z"
+      },
+      {
+        "id": "dream_1763640473208_peg6jlllj",
+        "title": "Build an App",
+        "description": "I want to build an app and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 35,
+        "goals": [
+          {
+            "id": "goal_1763640473208_kdkohmt0r",
+            "title": "Work on Build an App",
+            "description": "Weekly progress towards Build an App",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 8,
+            "startDate": "2025-11-08T18:57:32.958Z",
+            "weeksRemaining": 1,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-08T18:57:32.958Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-08T18:57:32.958Z",
+        "updatedAt": "2025-11-20T12:07:53.208Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640473208_lhfcczrz0",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Run 5km Weekly",
+        "description": "Weekly progress towards Run 5km Weekly",
+        "dreamId": "dream_1763640473208_zs5q3tmin",
+        "dreamTitle": "Run 5km Weekly",
+        "dreamCategory": "Money & Wealth",
+        "goalId": "goal_1763640473208_99sght1cg",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 12,
+        "targetWeeks": 12,
+        "weeksRemaining": 5,
+        "startDate": "2025-10-24",
+        "createdAt": "2025-10-24T17:09:39.694Z"
+      },
+      {
+        "id": "template_1763640473208_i6zsmu3r8",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Read 50 Books",
+        "description": "Weekly progress towards Read 50 Books",
+        "dreamId": "dream_1763640473208_qk8mwhkgc",
+        "dreamTitle": "Read 50 Books",
+        "dreamCategory": "Family & Friends",
+        "goalId": "goal_1763640473208_j2w8npgrr",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 12,
+        "targetWeeks": 12,
+        "weeksRemaining": 6,
+        "startDate": "2025-10-22",
+        "createdAt": "2025-10-22T05:08:54.120Z"
+      },
+      {
+        "id": "template_1763640473208_h4ycht3jn",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Save for Retirement",
+        "description": "Weekly progress towards Save for Retirement",
+        "dreamId": "dream_1763640473208_tt1ei1nm3",
+        "dreamTitle": "Save for Retirement",
+        "dreamCategory": "Wellness & Fitness",
+        "goalId": "goal_1763640473208_la8ciah3g",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 20,
+        "targetWeeks": 20,
+        "weeksRemaining": 19,
+        "startDate": "2025-11-03",
+        "createdAt": "2025-11-03T06:57:37.872Z"
+      },
+      {
+        "id": "template_1763640473208_vm012f4hx",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Build an App",
+        "description": "Weekly progress towards Build an App",
+        "dreamId": "dream_1763640473208_peg6jlllj",
+        "dreamTitle": "Build an App",
+        "dreamCategory": "Family & Friends",
+        "goalId": "goal_1763640473208_kdkohmt0r",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 8,
+        "targetWeeks": 8,
+        "weeksRemaining": 6,
+        "startDate": "2025-11-08",
+        "createdAt": "2025-11-08T18:57:32.958Z"
+      }
+    ],
+    "createdAt": "2025-02-01T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:19:55.777Z",
+    "_rid": "kU5BAIny935uAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935uAAAAAAAAAA==/",
+    "_etag": "\"8900ba9e-0000-0200-0000-6964bcbd0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209597
+  },
+  {
+    "id": "user2@netsurit.com",
+    "userId": "user2@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640473424_vk8bsewp0",
+        "title": "Get Certified in AWS",
+        "description": "I want to get certified in aws and make meaningful progress.",
+        "category": "Growth & Learning",
+        "progress": 26,
+        "goals": [],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-16T00:42:09.923Z",
+        "updatedAt": "2025-11-27T07:03:38.566Z",
+        "coachNotes": [
+          {
+            "id": "coach_note_1764227018566_wiqae55mu",
+            "coachId": "user2@netsurit.com",
+            "message": "coach notes",
+            "timestamp": "2025-11-27T07:03:38.566Z"
+          }
+        ]
+      },
+      {
+        "id": "dream_1763640473425_cwz2wee39",
+        "title": "Learn Photography",
+        "description": "I want to learn photography and make meaningful progress.",
+        "category": "Adventure & Fun",
+        "progress": 49,
+        "goals": [
+          {
+            "id": "goal_1763640473425_w0pntpe39",
+            "title": "Work on Learn Photography",
+            "description": "Weekly progress towards Learn Photography",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 20,
+            "startDate": "2025-09-20T13:17:12.782Z",
+            "weeksRemaining": 11,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-20T13:17:12.782Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-20T13:17:12.782Z",
+        "updatedAt": "2025-11-20T12:07:53.425Z"
+      },
+      {
+        "id": "dream_1763640473425_kp4s11uiv",
+        "title": "Start a Blog",
+        "description": "I want to start a blog and make meaningful progress.",
+        "category": "Spirituality & Mind",
+        "progress": 33,
+        "goals": [
+          {
+            "id": "goal_1763640473425_f9lmq0wke",
+            "title": "Work on Start a Blog",
+            "description": "Weekly progress towards Start a Blog",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 16,
+            "startDate": "2025-10-09T15:51:40.676Z",
+            "weeksRemaining": 11,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-09T15:51:40.676Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-09T15:51:40.676Z",
+        "updatedAt": "2025-11-20T12:07:53.425Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640473425_fezuhti7t",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Learn Photography",
+        "description": "Weekly progress towards Learn Photography",
+        "dreamId": "dream_1763640473425_cwz2wee39",
+        "dreamTitle": "Learn Photography",
+        "dreamCategory": "Adventure & Fun",
+        "goalId": "goal_1763640473425_w0pntpe39",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 20,
+        "targetWeeks": 20,
+        "weeksRemaining": 16,
+        "startDate": "2025-09-20",
+        "createdAt": "2025-09-20T13:17:12.782Z"
+      },
+      {
+        "id": "template_1763640473425_toxhe5sfz",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Start a Blog",
+        "description": "Weekly progress towards Start a Blog",
+        "dreamId": "dream_1763640473425_kp4s11uiv",
+        "dreamTitle": "Start a Blog",
+        "dreamCategory": "Spirituality & Mind",
+        "goalId": "goal_1763640473425_f9lmq0wke",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 16,
+        "targetWeeks": 16,
+        "weeksRemaining": 16,
+        "startDate": "2025-10-09",
+        "createdAt": "2025-10-09T15:51:40.676Z"
+      }
+    ],
+    "createdAt": "2025-02-05T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:19:57.597Z",
+    "_rid": "kU5BAIny935vAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935vAAAAAAAAAA==/",
+    "_etag": "\"8900c29e-0000-0200-0000-6964bcbf0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209599
+  },
+  {
+    "id": "user3@netsurit.com",
+    "userId": "user3@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640473638_om74tsrbq",
+        "title": "Complete a Triathlon",
+        "description": "I want to complete a triathlon and make meaningful progress.",
+        "category": "Family & Friends",
+        "progress": 25,
+        "goals": [
+          {
+            "id": "goal_1763640473638_ru59t2kqa",
+            "title": "Work on Complete a Triathlon",
+            "description": "Weekly progress towards Complete a Triathlon",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 16,
+            "startDate": "2025-11-04T06:27:01.229Z",
+            "weeksRemaining": 2,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-04T06:27:01.229Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-04T06:27:01.229Z",
+        "updatedAt": "2025-11-20T12:07:53.638Z"
+      },
+      {
+        "id": "dream_1763640473638_g88tzu2u3",
+        "title": "Master Guitar",
+        "description": "I want to master guitar and make meaningful progress.",
+        "category": "Adventure & Fun",
+        "progress": 17,
+        "goals": [],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-09T14:38:36.341Z",
+        "updatedAt": "2025-11-20T12:07:53.638Z"
+      },
+      {
+        "id": "dream_1763640473638_s12c35vhm",
+        "title": "Launch a Podcast",
+        "description": "I want to launch a podcast and make meaningful progress.",
+        "category": "Love & Relationships",
+        "progress": 11,
+        "goals": [
+          {
+            "id": "goal_1763640473638_4s0faogd7",
+            "title": "Work on Launch a Podcast",
+            "description": "Weekly progress towards Launch a Podcast",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 8,
+            "startDate": "2025-10-12T11:54:34.384Z",
+            "weeksRemaining": 1,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-10-12T11:54:34.384Z"
+          },
+          {
+            "id": "goal_1763640473638_k51one8g0",
+            "title": "Complete milestone for Launch a Podcast",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2025-12-17",
+            "targetWeeks": 4,
+            "startDate": "2025-10-12T11:54:34.384Z",
+            "weeksRemaining": 0,
+            "active": false,
+            "completed": false,
+            "completedAt": "2026-01-07T19:24:41.581Z",
+            "createdAt": "2025-10-12T11:54:34.384Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-10-12T11:54:34.384Z",
+        "updatedAt": "2025-11-20T12:07:53.638Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640473638_n2ice1mj3",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Complete a Triathlon",
+        "description": "Weekly progress towards Complete a Triathlon",
+        "dreamId": "dream_1763640473638_om74tsrbq",
+        "dreamTitle": "Complete a Triathlon",
+        "dreamCategory": "Family & Friends",
+        "goalId": "goal_1763640473638_ru59t2kqa",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 16,
+        "targetWeeks": 16,
+        "weeksRemaining": 7,
+        "startDate": "2025-11-04",
+        "createdAt": "2025-11-04T06:27:01.229Z"
+      },
+      {
+        "id": "template_1763640473638_nzhholaji",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Launch a Podcast",
+        "description": "Weekly progress towards Launch a Podcast",
+        "dreamId": "dream_1763640473638_s12c35vhm",
+        "dreamTitle": "Launch a Podcast",
+        "dreamCategory": "Love & Relationships",
+        "goalId": "goal_1763640473638_4s0faogd7",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 8,
+        "targetWeeks": 8,
+        "weeksRemaining": 6,
+        "startDate": "2025-10-12",
+        "createdAt": "2025-10-12T11:54:34.384Z"
+      }
+    ],
+    "createdAt": "2025-02-10T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:19:59.309Z",
+    "_rid": "kU5BAIny935wAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935wAAAAAAAAAA==/",
+    "_etag": "\"8900c99e-0000-0200-0000-6964bcc00000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209600
+  },
+  {
+    "id": "user4@netsurit.com",
+    "userId": "user4@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640473861_ziz6phl98",
+        "title": "Get Certified in AWS",
+        "description": "I want to get certified in aws and make meaningful progress.",
+        "category": "Skills & Hobbies",
+        "progress": 21,
+        "goals": [
+          {
+            "id": "goal_1763640473861_ze434nm6c",
+            "title": "Work on Get Certified in AWS",
+            "description": "Weekly progress towards Get Certified in AWS",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 16,
+            "startDate": "2025-11-12T01:05:36.254Z",
+            "weeksRemaining": 2,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-12T01:05:36.254Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-12T01:05:36.254Z",
+        "updatedAt": "2025-11-20T12:07:53.861Z"
+      },
+      {
+        "id": "dream_1763640473861_8vyvwff4d",
+        "title": "Learn Photography",
+        "description": "I want to learn photography and make meaningful progress.",
+        "category": "Skills & Hobbies",
+        "progress": 10,
+        "goals": [
+          {
+            "id": "goal_1763640473861_825owus1f",
+            "title": "Work on Learn Photography",
+            "description": "Weekly progress towards Learn Photography",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "startDate": "2025-09-23T06:21:25.749Z",
+            "weeksRemaining": 3,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-23T06:21:25.749Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-23T06:21:25.749Z",
+        "updatedAt": "2025-11-20T12:07:53.861Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640473861_y1v4fh80j",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Get Certified in AWS",
+        "description": "Weekly progress towards Get Certified in AWS",
+        "dreamId": "dream_1763640473861_ziz6phl98",
+        "dreamTitle": "Get Certified in AWS",
+        "dreamCategory": "Skills & Hobbies",
+        "goalId": "goal_1763640473861_ze434nm6c",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 16,
+        "targetWeeks": 16,
+        "weeksRemaining": 7,
+        "startDate": "2025-11-12",
+        "createdAt": "2025-11-12T01:05:36.254Z"
+      },
+      {
+        "id": "template_1763640473861_875pe136u",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Learn Photography",
+        "description": "Weekly progress towards Learn Photography",
+        "dreamId": "dream_1763640473861_8vyvwff4d",
+        "dreamTitle": "Learn Photography",
+        "dreamCategory": "Skills & Hobbies",
+        "goalId": "goal_1763640473861_825owus1f",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 12,
+        "targetWeeks": 12,
+        "weeksRemaining": 8,
+        "startDate": "2025-09-23",
+        "createdAt": "2025-09-23T06:21:25.749Z"
+      }
+    ],
+    "createdAt": "2025-02-15T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:20:01.016Z",
+    "_rid": "kU5BAIny935xAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935xAAAAAAAAAA==/",
+    "_etag": "\"8900d19e-0000-0200-0000-6964bcc20000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209602
+  },
+  {
+    "id": "user5@netsurit.com",
+    "userId": "user5@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1763640474075_kty9dnn9a",
+        "title": "Complete a Triathlon",
+        "description": "I want to complete a triathlon and make meaningful progress.",
+        "category": "Contribution & Giving Back",
+        "progress": 43,
+        "goals": [
+          {
+            "id": "goal_1763640474075_62ko1l4pa",
+            "title": "Work on Complete a Triathlon",
+            "description": "Weekly progress towards Complete a Triathlon",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 8,
+            "startDate": "2025-09-17T21:07:42.518Z",
+            "weeksRemaining": 0,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-17T21:07:42.518Z"
+          },
+          {
+            "id": "goal_1763640474075_xchzd7a1n",
+            "title": "Complete milestone for Complete a Triathlon",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2026-05-07",
+            "targetWeeks": 25,
+            "startDate": "2025-09-17T21:07:42.518Z",
+            "weeksRemaining": 20,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-09-17T21:07:42.518Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-09-17T21:07:42.518Z",
+        "updatedAt": "2025-11-20T12:07:54.075Z"
+      },
+      {
+        "id": "dream_1763640474075_5gu3jsenb",
+        "title": "Master Guitar",
+        "description": "I want to master guitar and make meaningful progress.",
+        "category": "Love & Relationships",
+        "progress": 22,
+        "goals": [
+          {
+            "id": "goal_1763640474075_343lfwxk5",
+            "title": "Work on Master Guitar",
+            "description": "Weekly progress towards Master Guitar",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 16,
+            "startDate": "2025-11-03T03:02:39.274Z",
+            "weeksRemaining": 9,
+            "active": true,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-03T03:02:39.274Z"
+          },
+          {
+            "id": "goal_1763640474075_zgvzwaqa2",
+            "title": "Complete milestone for Master Guitar",
+            "description": "Reach a key milestone",
+            "type": "deadline",
+            "targetDate": "2025-12-12",
+            "targetWeeks": 4,
+            "startDate": "2025-11-03T03:02:39.274Z",
+            "weeksRemaining": 0,
+            "active": false,
+            "completed": false,
+            "completedAt": "2026-01-07T19:24:44.980Z",
+            "createdAt": "2025-11-03T03:02:39.274Z"
+          }
+        ],
+        "notes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "image": "",
+        "createdAt": "2025-11-03T03:02:39.274Z",
+        "updatedAt": "2025-11-20T12:07:54.075Z"
+      }
+    ],
+    "weeklyGoalTemplates": [
+      {
+        "id": "template_1763640474075_qgxqlyq5v",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Complete a Triathlon",
+        "description": "Weekly progress towards Complete a Triathlon",
+        "dreamId": "dream_1763640474075_kty9dnn9a",
+        "dreamTitle": "Complete a Triathlon",
+        "dreamCategory": "Contribution & Giving Back",
+        "goalId": "goal_1763640474075_62ko1l4pa",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 8,
+        "targetWeeks": 8,
+        "weeksRemaining": 5,
+        "startDate": "2025-09-17",
+        "createdAt": "2025-09-17T21:07:42.518Z"
+      },
+      {
+        "id": "template_1763640474075_s9jka1r8b",
+        "type": "weekly_goal_template",
+        "goalType": "consistency",
+        "title": "Work on Master Guitar",
+        "description": "Weekly progress towards Master Guitar",
+        "dreamId": "dream_1763640474075_5gu3jsenb",
+        "dreamTitle": "Master Guitar",
+        "dreamCategory": "Love & Relationships",
+        "goalId": "goal_1763640474075_343lfwxk5",
+        "recurrence": "weekly",
+        "active": true,
+        "durationType": "weeks",
+        "durationWeeks": 16,
+        "targetWeeks": 16,
+        "weeksRemaining": 14,
+        "startDate": "2025-11-03",
+        "createdAt": "2025-11-03T03:02:39.274Z"
+      }
+    ],
+    "createdAt": "2025-02-20T10:00:00.000Z",
+    "updatedAt": "2026-01-12T09:20:02.723Z",
+    "_rid": "kU5BAIny935yAAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935yAAAAAAAAAA==/",
+    "_etag": "\"8900db9e-0000-0200-0000-6964bcc40000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209604
+  },
+  {
+    "id": "CheneE@netsurit.com",
+    "userId": "CheneE@netsurit.com",
+    "dreams": [],
+    "weeklyGoalTemplates": [],
+    "yearVision": "Do Better",
+    "createdAt": "2025-11-27T10:04:09.490Z",
+    "updatedAt": "2026-01-07T08:40:03.679Z",
+    "_rid": "kU5BAIny9353AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9353AAAAAAAAAA==/",
+    "_etag": "\"6c0049e9-0000-0200-0000-695e1be30000\"",
+    "_attachments": "attachments/",
+    "_ts": 1767775203
+  },
+  {
+    "id": "LesediM@netsurit.com",
+    "userId": "LesediM@netsurit.com",
+    "dreams": [],
+    "weeklyGoalTemplates": [],
+    "createdAt": "2025-11-27T11:46:59.089Z",
+    "updatedAt": "2025-11-27T11:46:59.089Z",
+    "_rid": "kU5BAIny9354AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9354AAAAAAAAAA==/",
+    "_etag": "\"93039f14-0000-0200-0000-69283a330000\"",
+    "_attachments": "attachments/",
+    "_ts": 1764244019
+  },
+  {
+    "id": "Ana.Melo@netsurit.com",
+    "userId": "Ana.Melo@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1764251175790",
+        "title": "Savings for Japan",
+        "description": "Save money to pay my trip to Japan and to enjoy my time there",
+        "category": "Adventure & Fun",
+        "goals": [
+          {
+            "id": "goal_1764251665929_ki4z162oh",
+            "title": "Savings to pay the Trip 🏯Jan",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 10,
+            "startDate": "2025-11-27T13:54:26.129Z",
+            "targetDate": "2026-01-31",
+            "weeksRemaining": 10,
+            "active": false,
+            "completed": false,
+            "completedAt": null,
+            "createdAt": "2025-11-27T13:54:26.129Z"
+          },
+          {
+            "id": "goal_1764251692360_m92ndau12",
+            "title": "Savings to Enjoy Japan",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 32,
+            "startDate": "2025-11-27T13:54:52.537Z",
+            "targetDate": "2026-06-30",
+            "weeksRemaining": 28,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T13:54:52.537Z"
+          },
+          {
+            "id": "goal_1764252474349",
+            "title": "Savings to pay Japan 🏯Feb",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 14,
+            "startDate": "2025-11-27T14:07:54.348Z",
+            "targetDate": "2026-02-28",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T14:07:54.348Z"
+          }
+        ],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Ana.Melo%40netsurit.com/dream_1764251175790_1764251249242.jpg",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2025-11-27T13:48:44.147Z",
+        "updatedAt": "2025-11-27T14:08:11.363Z"
+      },
+      {
+        "id": "dream_1764251857749",
+        "title": "Create My Emergency fund",
+        "description": "I’ve prioritized a few categories, and I’d like to save money throughout the year in each of them.",
+        "category": "Money & Wealth",
+        "goals": [
+          {
+            "id": "goal_1764252217086_spy5q19jo",
+            "title": "Emergency Fund 2026",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 32,
+            "startDate": "2025-11-27T14:03:37.288Z",
+            "targetDate": "2026-06-30",
+            "weeksRemaining": 28,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T14:03:37.288Z"
+          },
+          {
+            "id": "goal_1764252240770_vr9j19bja",
+            "title": "Doctors Fund",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 23,
+            "startDate": "2025-11-27T14:04:00.924Z",
+            "targetDate": "2026-04-30",
+            "weeksRemaining": 19,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T14:04:00.924Z"
+          },
+          {
+            "id": "goal_1764252259162_14ulxwdyi",
+            "title": "Medicine Fund",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 19,
+            "startDate": "2025-11-27T14:04:19.318Z",
+            "targetDate": "2026-03-31",
+            "weeksRemaining": 15,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T14:04:19.318Z"
+          },
+          {
+            "id": "goal_1764252284799_qzzb8mbaw",
+            "title": "Dentist Fund",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 14,
+            "startDate": "2025-11-27T14:04:44.951Z",
+            "targetDate": "2026-02-28",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-11-27T14:04:44.951Z"
+          }
+        ],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Ana.Melo%40netsurit.com/dream_1764251857749_1764251945213.jpg",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2025-11-27T14:02:32.804Z",
+        "updatedAt": "2025-11-27T14:08:11.363Z"
+      },
+      {
+        "id": "dream_1764252292859",
+        "title": "Drive",
+        "description": "I need to learn how to drive in SLP",
+        "category": "Skills & Hobbies",
+        "goals": [],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Ana.Melo%40netsurit.com/dream_1764252292859_1764252323043.jpg",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2025-11-27T14:06:23.438Z",
+        "updatedAt": "2025-11-27T14:08:11.363Z"
+      }
+    ],
+    "weeklyGoalTemplates": [],
+    "createdAt": "2025-11-27T13:46:02.786Z",
+    "updatedAt": "2026-01-12T09:20:08.817Z",
+    "_rid": "kU5BAIny9355AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9355AAAAAAAAAA==/",
+    "_etag": "\"8900f49e-0000-0200-0000-6964bcca0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209610
+  },
+  {
+    "id": "Geraldine.Volkwyn@netsurit.com",
+    "userId": "Geraldine.Volkwyn@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1764759871479",
+        "title": "Health",
+        "description": "Start off with Exercise at least twice a week ",
+        "category": "Wellness & Fitness",
+        "goals": [
+          {
+            "id": "goal_1764760192408",
+            "title": "Health",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 18,
+            "startDate": "2025-12-03T11:09:52.408Z",
+            "targetDate": "2026-03-31",
+            "weeksRemaining": 14,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-12-03T11:09:52.408Z"
+          }
+        ],
+        "progress": 100,
+        "image": "https://images.unsplash.com/photo-1633707236776-1188a396f223?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODc4NjN8MHwxfHNlYXJjaHwxMXx8RXhlcmNpc2V8ZW58MHx8fHwxNzY0NzU5OTU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2025-12-03T11:10:27.621Z",
+        "updatedAt": "2025-12-03T11:26:44.479Z"
+      },
+      {
+        "id": "dream_1764761139676",
+        "title": "Finish My Degree",
+        "description": "Finish My Degree — starter template. Customize goals, dates, and scope to fit your plan.",
+        "category": "Growth & Learning",
+        "goals": [
+          {
+            "id": "goal_1764761185962",
+            "title": "Finish My Degree",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 105,
+            "startDate": "2025-12-03T11:26:25.962Z",
+            "targetDate": "2027-11-30",
+            "weeksRemaining": 101,
+            "active": true,
+            "completed": false,
+            "createdAt": "2025-12-03T11:26:25.962Z"
+          }
+        ],
+        "progress": 50,
+        "image": "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history_1764761204077",
+            "type": "progress",
+            "action": "Progress updated to 50%",
+            "timestamp": "2025-12-03T11:26:44.077Z",
+            "oldValue": 25,
+            "newValue": 50
+          }
+        ],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2025-12-03T11:26:44.479Z",
+        "updatedAt": "2025-12-03T11:26:44.479Z"
+      }
+    ],
+    "weeklyGoalTemplates": [],
+    "yearVision": "I embrace each day as a vibrant opportunity to nurture my health and happiness. I am committed to moving with joy, fueling my body with nourishing choices, and surrounding myself with positivity. I cultivate balance in every moment, celebrating my progress and honoring my journey. I envision a life where my energy radiates, inspiring others and creating a ripple of wellness. This year, I embody resilience, joy, and purpose, knowing that my commitment to myself transforms my dreams into a beautiful reality. I am ready to thrive, and I embrace the adventure that unfolds.",
+    "createdAt": "2025-12-03T11:02:26.282Z",
+    "updatedAt": "2026-01-12T09:20:10.289Z",
+    "_rid": "kU5BAIny9356AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9356AAAAAAAAAA==/",
+    "_etag": "\"8900fa9e-0000-0200-0000-6964bccb0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768209611
+  },
+  {
+    "id": "Boetie.Mthombeni@netsurit.com",
+    "userId": "Boetie.Mthombeni@netsurit.com",
+    "dreams": [],
+    "weeklyGoalTemplates": [],
+    "yearVision": "",
+    "createdAt": "2025-12-17T16:04:33.172Z",
+    "updatedAt": "2025-12-17T16:04:33.172Z",
+    "_rid": "kU5BAIny9357AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9357AAAAAAAAAA==/",
+    "_etag": "\"00006200-0000-0200-0000-6942d4910000\"",
+    "_attachments": "attachments/",
+    "_ts": 1765987473
+  },
+  {
+    "id": "VarityR@netsurit.com",
+    "userId": "VarityR@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1768248226321",
+        "title": "Dream 1",
+        "description": "This is a dream",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [
+          {
+            "id": "goal_1768248356514",
+            "title": "The goal for dream 1",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 2,
+            "startDate": "2026-01-12T20:05:56.514Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-12T20:05:56.514Z"
+          },
+          {
+            "id": "goal_1768250579360_8ok22qtna",
+            "title": "Play lots of games ",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-12T20:43:00.003Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-12T20:43:00.003Z"
+          },
+          {
+            "id": "goal_1768486270611_5pixn1rya",
+            "title": "Got play soccer ",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 15,
+            "frequency": 2,
+            "startDate": "2026-01-15T14:11:11.245Z",
+            "weeksRemaining": 15,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-15T14:11:11.245Z"
+          }
+        ],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/VarityR%40netsurit.com/dream_1768248226321_1768485030299.jpg",
+        "notes": [],
+        "coachNotes": [
+          {
+            "id": "coach_note_1768248401217_n49xbocgz",
+            "coachId": "VarityR@netsurit.com",
+            "message": "to the moon",
+            "timestamp": "2026-01-12T20:06:41.217Z"
+          },
+          {
+            "id": "coach_note_1768248432625_r1xy8q1b9",
+            "coachId": null,
+            "message": "Lets Goooooo",
+            "timestamp": "2026-01-12T20:07:12.625Z"
+          },
+          {
+            "id": "coach_note_1768249700558_s54zk0p3w",
+            "coachId": "VarityR@netsurit.com",
+            "message": "test",
+            "timestamp": "2026-01-12T20:28:20.559Z"
+          },
+          {
+            "id": "msg_1768483562383",
+            "coachId": "Tyler.Stewart@netsurit.com",
+            "message": "choach notes",
+            "timestamp": "2026-01-15T13:26:02.383Z"
+          }
+        ],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2026-01-12T20:05:58.677Z",
+        "updatedAt": "2026-01-15T14:11:14.181Z",
+        "coachMessages": [
+          {
+            "id": "msg_1768505612554",
+            "text": "test",
+            "sender": "Tyler.Stewart@netsurit.com",
+            "timestamp": "2026-01-15T19:33:32.554Z",
+            "read": false
+          }
+        ],
+        "lastMessageAt": "2026-01-15T19:33:32.554Z",
+        "hasUnreadMessages": true
+      },
+      {
+        "id": "dream_1768256300533",
+        "title": "Backpack Through Patagonia gg",
+        "description": "Backpack through Patagonia (Chile & Argentina). Suggested route: Torres del Paine → El Calafate / Perito Moreno → El Chaltén → Bariloche. Tweak locations, dates, and budget to suit you.",
+        "motivation": "",
+        "approach": "",
+        "category": "Travel",
+        "goals": [
+          {
+            "id": "goal_1768256366124",
+            "title": "Gym",
+            "description": "Jim",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 1,
+            "frequency": 2,
+            "startDate": "2026-01-12T22:19:26.124Z",
+            "weeksRemaining": 1,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-12T22:19:26.124Z"
+          }
+        ],
+        "progress": 50,
+        "image": "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history_1768256371969",
+            "type": "progress",
+            "action": "Progress updated to 50%",
+            "timestamp": "2026-01-12T22:19:31.969Z",
+            "oldValue": 25,
+            "newValue": 50
+          }
+        ],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2026-01-12T22:19:35.827Z",
+        "updatedAt": "2026-01-15T14:11:14.181Z",
+        "coachMessages": [
+          {
+            "id": "msg_1768486895397",
+            "text": "test",
+            "sender": "Tyler.Stewart@netsurit.com",
+            "timestamp": "2026-01-15T14:21:35.397Z",
+            "read": false
+          }
+        ],
+        "lastMessageAt": "2026-01-15T14:21:35.397Z",
+        "hasUnreadMessages": true
+      },
+      {
+        "id": "dream_1768420606917",
+        "title": "gg 12345",
+        "description": "gg 1",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [
+          {
+            "id": "goal_1768420682959",
+            "title": "gg",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 2,
+            "startDate": "2026-01-14T19:58:02.959Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-14T19:58:02.959Z"
+          }
+        ],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/VarityR%40netsurit.com/dream_1768420606917_1768420660042.jpg",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2026-01-14T19:58:05.479Z",
+        "updatedAt": "2026-01-15T14:11:14.182Z"
+      }
+    ],
+    "weeklyGoalTemplates": [],
+    "yearVision": "I am a vibrant force of health and adventure, embracing each day with energy and joy. I nourish my body and mind, knowing that my well-being fuels every dream I chase. I envision myself backpacking through the breathtaking landscapes of Patagonia, feeling the thrill of discovery with every step. I am a confident dreamer, unafraid to explore the world and my own potential. With an open heart and a curious spirit, I create a life rich with experiences, connection, and growth. I am living my dreams, one inspiring adventure at a time.",
+    "createdAt": "2026-01-12T20:03:17.558Z",
+    "updatedAt": "2026-01-15T14:11:14.182Z",
+    "_rid": "kU5BAIny9359AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny9359AAAAAAAAAA==/",
+    "_etag": "\"5e0896d0-0000-0200-0000-6969410c0000\"",
+    "_attachments": "attachments/",
+    "lastUpdated": "2026-01-15T19:33:32.554Z",
+    "_ts": 1768505612
+  },
+  {
+    "id": "Tyler.Stewart@netsurit.com",
+    "userId": "Tyler.Stewart@netsurit.com",
+    "dreams": [
+      {
+        "id": "dream_1768325027264",
+        "title": "Get Fit — Gym 3x a Week",
+        "description": "Get Fit — Gym 3x a Week — starter template. Customize goals, dates, and scope to fit your plan.",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [
+          {
+            "id": "goal_1768325146922",
+            "title": "test",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T17:25:46.922Z",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-13T17:25:46.922Z"
+          },
+          {
+            "id": "goal_1768325582404_7sb6gzoa5",
+            "title": "goal",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T17:33:03.380Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": true,
+            "completedAt": "2026-01-13T22:49:49.978Z",
+            "createdAt": "2026-01-13T17:33:03.380Z"
+          },
+          {
+            "id": "goal_1768325604650",
+            "title": "new",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T17:33:24.650Z",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-13T17:33:24.650Z"
+          },
+          {
+            "id": "goal_1768327474126_7bmmx2enq",
+            "title": "live",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T18:04:34.622Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": true,
+            "completedAt": "2026-01-13T22:49:01.786Z",
+            "createdAt": "2026-01-13T18:04:34.622Z"
+          },
+          {
+            "id": "goal_1768412582453_zb5pzgty4",
+            "title": "new 2026",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-14T17:43:02.981Z",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-14T17:43:02.981Z"
+          }
+        ],
+        "progress": 50,
+        "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history-1768345605286",
+            "timestamp": "2026-01-13T23:06:45.286Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 50
+          },
+          {
+            "id": "history-1768484543036",
+            "timestamp": "2026-01-15T13:42:23.036Z",
+            "action": "Progress updated",
+            "from": 50,
+            "to": 75
+          },
+          {
+            "id": "history-1768484543976",
+            "timestamp": "2026-01-15T13:42:23.976Z",
+            "action": "Progress updated",
+            "from": 75,
+            "to": 50
+          },
+          {
+            "id": "history-1768484545503",
+            "timestamp": "2026-01-15T13:42:25.503Z",
+            "action": "Progress updated",
+            "from": 50,
+            "to": 25
+          },
+          {
+            "id": "history-1768484546512",
+            "timestamp": "2026-01-15T13:42:26.512Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 75
+          },
+          {
+            "id": "history-1768484547448",
+            "timestamp": "2026-01-15T13:42:27.448Z",
+            "action": "Progress updated",
+            "from": 75,
+            "to": 100
+          },
+          {
+            "id": "history-1768484548246",
+            "timestamp": "2026-01-15T13:42:28.246Z",
+            "action": "Progress updated",
+            "from": 100,
+            "to": 50
+          }
+        ],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-13T17:23:50.077Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768325671029",
+        "title": "Read a Book a Month",
+        "description": "Read a Book a Month — starter template. Customize goals, dates, and scope to fit your plan.",
+        "motivation": "",
+        "approach": "",
+        "category": "Learning",
+        "goals": [
+          {
+            "id": "goal_1768334238176",
+            "title": "test",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T19:57:18.176Z",
+            "weeksRemaining": 10,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-13T19:57:18.176Z"
+          },
+          {
+            "id": "goal_1768338687901_o5t506lb4",
+            "title": "test",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "monthly",
+            "targetWeeks": 26,
+            "targetMonths": 6,
+            "frequency": 2,
+            "startDate": "2026-01-13T21:11:28.434Z",
+            "weeksRemaining": 26,
+            "active": true,
+            "completed": true,
+            "completedAt": "2026-01-13T22:51:19.413Z",
+            "createdAt": "2026-01-13T21:11:28.434Z"
+          },
+          {
+            "id": "goal_1768338718679",
+            "title": "goal test",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 3,
+            "startDate": "2026-01-13T21:11:58.679Z",
+            "targetDate": "2026-01-29",
+            "weeksRemaining": -1,
+            "active": false,
+            "completed": true,
+            "completedAt": "2026-01-13T22:10:55.929Z",
+            "createdAt": "2026-01-13T21:11:58.679Z"
+          }
+        ],
+        "progress": 100,
+        "image": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [
+          {
+            "id": "msg_1768483628889",
+            "coachId": "Tyler.Stewart@netsurit.com",
+            "message": "notes",
+            "timestamp": "2026-01-15T13:27:08.889Z"
+          },
+          {
+            "id": "msg_1768483681644",
+            "coachId": null,
+            "message": "user note",
+            "timestamp": "2026-01-15T13:28:01.644Z"
+          },
+          {
+            "id": "msg_1768484028021",
+            "coachId": "Tyler.Stewart@netsurit.com",
+            "message": "coach",
+            "timestamp": "2026-01-15T13:33:48.021Z"
+          }
+        ],
+        "history": [
+          {
+            "id": "history-1768598278350",
+            "timestamp": "2026-01-16T21:17:58.350Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 100
+          }
+        ],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2026-01-13T17:34:33.083Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768327698100",
+        "title": "test",
+        "description": "test",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [
+          {
+            "id": "goal_1768339121602",
+            "title": "this is new",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "monthly",
+            "targetWeeks": 26,
+            "targetMonths": 6,
+            "frequency": 2,
+            "startDate": "2026-01-13T21:18:41.602Z",
+            "weeksRemaining": 24,
+            "active": true,
+            "completed": false,
+            "createdAt": "2026-01-13T21:18:41.602Z"
+          },
+          {
+            "id": "goal_1768339148182",
+            "title": "6m",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "monthly",
+            "targetWeeks": 26,
+            "targetMonths": 6,
+            "frequency": 2,
+            "startDate": "2026-01-13T21:19:08.182Z",
+            "weeksRemaining": 26,
+            "active": true,
+            "completed": true,
+            "completedAt": "2026-01-13T22:56:36.789Z",
+            "createdAt": "2026-01-13T21:19:08.182Z"
+          },
+          {
+            "id": "goal_1768341613699",
+            "title": "test rete",
+            "description": "",
+            "type": "consistency",
+            "recurrence": "weekly",
+            "targetWeeks": 12,
+            "frequency": 1,
+            "startDate": "2026-01-13T22:00:13.700Z",
+            "weeksRemaining": 12,
+            "active": true,
+            "completed": true,
+            "completedAt": "2026-01-13T22:58:03.868Z",
+            "createdAt": "2026-01-13T22:00:13.700Z"
+          }
+        ],
+        "progress": 100,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Tyler.Stewart%40netsurit.com/dream_1768327698100_1768404331398.webp",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history-1768598302674",
+            "timestamp": "2026-01-16T21:18:22.674Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 100
+          }
+        ],
+        "completed": false,
+        "isPublic": true,
+        "createdAt": "2026-01-13T18:10:10.334Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768345323562",
+        "title": "Learn to Cook 10 Signature Dishes",
+        "description": "Learn to Cook 10 Signature Dishes — starter template. Customize goals, dates, and scope to fit your plan.",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [],
+        "progress": 50,
+        "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history-1768345357271",
+            "timestamp": "2026-01-13T23:02:37.271Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 50
+          }
+        ],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-13T23:02:44.300Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768345628665",
+        "title": "Read a Book a Month",
+        "description": "Read a Book a Month — starter template. Customize goals, dates, and scope to fit your plan.",
+        "motivation": "",
+        "approach": "",
+        "category": "Learning",
+        "goals": [
+          {
+            "id": "goal_1768345652061",
+            "title": "xop",
+            "description": "",
+            "type": "deadline",
+            "targetWeeks": 3,
+            "startDate": "2026-01-13T23:07:32.061Z",
+            "targetDate": "2026-01-29",
+            "weeksRemaining": -1,
+            "active": false,
+            "completed": true,
+            "completedAt": "2026-01-13T23:07:40.182Z",
+            "createdAt": "2026-01-13T23:07:32.061Z"
+          }
+        ],
+        "progress": 50,
+        "image": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=60&auto=format&fit=crop",
+        "notes": [],
+        "coachNotes": [],
+        "history": [
+          {
+            "id": "history-1768482860960",
+            "timestamp": "2026-01-15T13:14:20.960Z",
+            "action": "Progress updated",
+            "from": 25,
+            "to": 50
+          }
+        ],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-13T23:07:44.172Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768400516286",
+        "title": "test",
+        "description": "test",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Tyler.Stewart%40netsurit.com/dream_1768400516286_1768400560263.png",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-14T14:23:11.664Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768404177718",
+        "title": "test",
+        "description": "test",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Tyler.Stewart%40netsurit.com/dream_1768404177718_1768404215601.webp",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-14T15:29:27.516Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      },
+      {
+        "id": "dream_1768404508589",
+        "title": "test",
+        "description": "test",
+        "motivation": "",
+        "approach": "",
+        "category": "Health",
+        "goals": [],
+        "progress": 25,
+        "image": "https://stdreamspace.blob.core.windows.net/dreams-pictures/Tyler.Stewart%40netsurit.com/dream_1768404508589_1768420610656.jpg",
+        "notes": [],
+        "coachNotes": [],
+        "history": [],
+        "completed": false,
+        "isPublic": false,
+        "createdAt": "2026-01-14T15:29:27.516Z",
+        "updatedAt": "2026-01-16T21:18:41.631Z"
+      }
+    ],
+    "weeklyGoalTemplates": [],
+    "yearVision": "I embrace each day with a vibrant spirit, nurturing my body and soul to become the healthiest version of myself. I am dedicated to my dreams, fueling my passion for wellness and balance. I envision a life filled with energy and joy, where I inspire others to embark on their own journeys of health. Every choice I make reflects my commitment to growth and self-care. I celebrate my progress, knowing that I am capable of turning my aspirations into reality. With each step I take, I am creating a vibrant future, full of possibility and purpose.",
+    "createdAt": "2026-01-13T16:59:40.858Z",
+    "updatedAt": "2026-01-16T21:18:41.631Z",
+    "_rid": "kU5BAIny935+AAAAAAAAAA==",
+    "_self": "dbs/kU5BAA==/colls/kU5BAIny934=/docs/kU5BAIny935+AAAAAAAAAA==/",
+    "_etag": "\"68082863-0000-0200-0000-696aab310000\"",
+    "_attachments": "attachments/",
+    "_ts": 1768598321
+  }
+]

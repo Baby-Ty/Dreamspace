@@ -178,7 +178,7 @@ dreamspace/
 
 ## Database Architecture
 
-### Cosmos DB - 9-Container Architecture
+### Cosmos DB - 10-Container Architecture
 
 | Container | Partition Key | Purpose |
 |-----------|--------------|---------|
@@ -187,15 +187,29 @@ dreamspace/
 | **connects** | `/userId` | Connection records |
 | **scoring** | `/userId` | Yearly scoring rollups |
 | **teams** | `/managerId` | Team relationships and coaching |
+| **coaching_alerts** | `/managerId` | Coaching alerts and notifications |
 | **currentWeek** | `/userId` | Active week goals (one doc per user) |
 | **pastWeeks** | `/userId` | Historical week summaries |
 | **meeting_attendance** | `/teamId` | Team meeting attendance records |
 | **prompts** | `/partitionKey` | AI prompt configurations and history |
 
+### Cost-Optimized Configuration
+- **Shared throughput**: All containers share 400 RU autoscale pool
+- **Scales automatically**: 40 RU (idle) to 400 RU (peak)
+- **Cost**: ~$24/month (or $0 with Azure free tier)
+- **Migration guide**: See `docs/MIGRATION_README.md`
+
 ### Key Patterns
 - Always query with partition key for optimal performance
 - Current week auto-rolls over to pastWeeks weekly
 - Repository pattern for data access (`api/utils/repositories/`)
+
+### Database Migration
+To migrate to a new cost-optimized Cosmos DB:
+1. See **[docs/MIGRATION_README.md](docs/MIGRATION_README.md)** for complete guide
+2. Scripts available in `scripts/` directory
+3. Estimated time: ~2 hours active work
+4. Estimated savings: $150-325/month (85-95% reduction)
 
 ## Architecture Patterns
 
