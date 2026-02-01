@@ -282,6 +282,136 @@ class UserManagementService extends BaseService {
     localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
     return true;
   }
+
+  /**
+   * Deactivate a user (sets isActive: false)
+   * @param {string} userId - User ID
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
+  async deactivateUser(userId) {
+    if (this.useCosmosDB) {
+      return this.handleApiRequest(`/updateUserProfile/${userId}`, {
+        method: 'POST',
+        body: { isActive: false },
+        successMessage: `User deactivated: ${userId}`,
+        errorMessage: 'Failed to deactivate user'
+      });
+    } else {
+      // Handle locally for development
+      try {
+        const users = await this.getLocalStorageUsers();
+        const userIndex = users.findIndex(u => u.id === userId || u.userId === userId);
+        
+        if (userIndex === -1) {
+          return fail(ErrorCodes.VALIDATION, 'User not found');
+        }
+
+        users[userIndex].isActive = false;
+        users[userIndex].lastUpdated = new Date().toISOString();
+        localStorage.setItem('dreamspace_all_users', JSON.stringify(users));
+        
+        console.log('📱 User deactivated in localStorage:', userId);
+        return ok({ success: true, id: userId });
+      } catch (error) {
+        console.error('❌ Error deactivating user:', error);
+        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to deactivate user');
+      }
+    }
+  }
+
+  /**
+   * Reactivate a user (sets isActive: true)
+   * @param {string} userId - User ID
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
+  async reactivateUser(userId) {
+    if (this.useCosmosDB) {
+      return this.handleApiRequest(`/updateUserProfile/${userId}`, {
+        method: 'POST',
+        body: { isActive: true },
+        successMessage: `User reactivated: ${userId}`,
+        errorMessage: 'Failed to reactivate user'
+      });
+    } else {
+      // Handle locally for development
+      try {
+        const users = await this.getLocalStorageUsers();
+        const userIndex = users.findIndex(u => u.id === userId || u.userId === userId);
+        
+        if (userIndex === -1) {
+          return fail(ErrorCodes.VALIDATION, 'User not found');
+        }
+
+        users[userIndex].isActive = true;
+        users[userIndex].lastUpdated = new Date().toISOString();
+        localStorage.setItem('dreamspace_all_users', JSON.stringify(users));
+        
+        console.log('📱 User reactivated in localStorage:', userId);
+        return ok({ success: true, id: userId });
+      } catch (error) {
+        console.error('❌ Error reactivating user:', error);
+        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to reactivate user');
+      }
+    }
+  }
+
+  /**
+   * Permanently delete a user and all their data
+   * @param {string} userId - User ID
+   * @returns {Promise<{success: boolean, data?: object, error?: object}>}
+   */
+  async deleteUser(userId) {
+    if (this.useCosmosDB) {
+      return this.handleApiRequest(`/deleteUser/${userId}`, {
+        method: 'DELETE',
+        successMessage: `User permanently deleted: ${userId}`,
+        errorMessage: 'Failed to delete user',
+        transform: (result) => result
+      });
+    } else {
+      // Handle locally for development
+      try {
+        const users = await this.getLocalStorageUsers();
+        const userIndex = users.findIndex(u => u.id === userId || u.userId === userId);
+        
+        if (userIndex === -1) {
+          return fail(ErrorCodes.VALIDATION, 'User not found');
+        }
+
+        const deletedUser = users[userIndex];
+        users.splice(userIndex, 1);
+        localStorage.setItem('dreamspace_all_users', JSON.stringify(users));
+        
+        // Remove from teams if assigned
+        const teams = await this.getLocalStorageTeams();
+        teams.forEach(team => {
+          if (team.teamMembers && team.teamMembers.includes(userId)) {
+            team.teamMembers = team.teamMembers.filter(id => id !== userId);
+          }
+        });
+        localStorage.setItem('dreamspace_team_relationships', JSON.stringify(teams));
+        
+        console.log('📱 User deleted in localStorage:', userId);
+        return ok({ 
+          success: true,
+          message: `User ${deletedUser.name} deleted`,
+          deletedDocuments: [{ container: 'users', id: userId }]
+        });
+      } catch (error) {
+        console.error('❌ Error deleting user:', error);
+        return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to delete user');
+      }
+    }
+  }
+
+  /**
+   * Get localStorage users helper
+   * @returns {Promise<array>}
+   */
+  async getLocalStorageUsers() {
+    const stored = localStorage.getItem('dreamspace_all_users');
+    return stored ? JSON.parse(stored) : [];
+  }
 }
 
 // Create and export singleton instance

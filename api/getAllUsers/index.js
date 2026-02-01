@@ -5,13 +5,16 @@ module.exports = createApiHandler({
   auth: 'user',
   containerName: 'users'
 }, async (context, req, { container: usersContainer, user, provider }) => {
+  // Check if inactive users should be included (admins only)
+  const includeInactive = req.query.includeInactive === 'true';
+  
   // Check caller's role to determine data access level
   // Coaches and admins get full user data; regular users get minimal data (for Dream Connect)
   let callerIsPrivileged = false;
   if (user && user.userId) {
     const { isCoach, isAdmin } = await getUserRole(user.userId, context);
     callerIsPrivileged = isCoach || isAdmin;
-    context.log(`Caller ${user.userId} privilege level: ${callerIsPrivileged ? 'coach/admin' : 'regular user'}`);
+    context.log(`Caller ${user.userId} privilege level: ${callerIsPrivileged ? 'coach/admin' : 'regular user'}, includeInactive: ${includeInactive}`);
   }
 
   // Query all users from users container
@@ -47,6 +50,13 @@ module.exports = createApiHandler({
     const bestName = currentUser.name || userData.name || userData.displayName || 'Unknown User';
     const bestOffice = currentUser.office || userData.office || userData.officeLocation || 'Unknown';
     const bestAvatar = currentUser.avatar || userData.avatar || userData.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(bestName)}&background=6366f1&color=fff&size=100`;
+    
+    // Skip inactive users by default (unless includeInactive=true)
+    // Note: isActive defaults to true if not set
+    const isActiveUser = userData.isActive !== false;
+    if (!includeInactive && !isActiveUser) {
+      return null; // Will be filtered out below
+    }
     
     // BASE fields returned to ALL authenticated users (for Dream Connect/Dream Team)
     // This includes what's needed to display user cards and find connection suggestions
@@ -118,9 +128,9 @@ module.exports = createApiHandler({
     };
     
     return extendedUser;
-  });
+  }).filter(Boolean); // Remove null entries (inactive users when includeInactive=false)
 
-  context.log(`Successfully retrieved ${formattedUsers.length} users from Cosmos DB (privileged: ${callerIsPrivileged})`);
+  context.log(`Successfully retrieved ${formattedUsers.length} users from Cosmos DB (privileged: ${callerIsPrivileged}, includeInactive: ${includeInactive})`);
 
   return {
     success: true,

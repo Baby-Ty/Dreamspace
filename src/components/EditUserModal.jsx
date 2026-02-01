@@ -8,7 +8,7 @@ import { getCountryCode, getSupportedRegions } from '../utils/regionUtils';
  * Edit User Modal for People Dashboard
  * Simpler admin-focused modal for editing user details
  */
-const EditUserModal = ({ user, coaches, onClose, onSave }) => {
+const EditUserModal = ({ user, coaches, onClose, onSave, onDeactivate, currentUserId }) => {
   const [formData, setFormData] = useState({
     displayName: user.name || '',
     title: user.title || '',
@@ -25,6 +25,9 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+
+  const isEditingSelf = user.id === currentUserId;
 
   const handleCheckboxChange = (role) => {
     setFormData(prev => ({
@@ -48,6 +51,13 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (onDeactivate) {
+      await onDeactivate(user.id);
+      setShowDeactivateConfirm(false);
     }
   };
 
@@ -258,11 +268,28 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
         {/* Action Buttons - Fixed at bottom */}
         <div className="border-t border-professional-gray-200 px-6 py-4 bg-white flex-shrink-0">
           <div className="flex items-center gap-3">
+            {/* Deactivate Button (left side, dangerous action) */}
+            {onDeactivate && !isEditingSelf && (
+              <button
+                type="button"
+                onClick={() => setShowDeactivateConfirm(true)}
+                disabled={isSaving}
+                className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium text-sm disabled:opacity-50 flex-shrink-0"
+                title={isEditingSelf ? "Cannot deactivate your own account" : "Deactivate user account"}
+              >
+                Deactivate User
+              </button>
+            )}
+            
+            {/* Spacer */}
+            <div className="flex-1"></div>
+            
+            {/* Cancel and Save buttons (right side) */}
             <button
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 px-4 py-2.5 bg-professional-gray-800 text-white rounded-lg hover:bg-professional-gray-900 transition-all duration-200 font-medium text-sm disabled:opacity-50"
+              className="px-4 py-2.5 bg-professional-gray-800 text-white rounded-lg hover:bg-professional-gray-900 transition-all duration-200 font-medium text-sm disabled:opacity-50"
             >
               Cancel
             </button>
@@ -270,7 +297,7 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
               type="submit"
               form="editUserForm"
               disabled={isSaving}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSaving ? (
                 <>
@@ -284,6 +311,33 @@ const EditUserModal = ({ user, coaches, onClose, onSave }) => {
           </div>
         </div>
       </div>
+      
+      {/* Deactivate Confirmation Dialog */}
+      {showDeactivateConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[1001]">
+          <div className="bg-white rounded-xl border-2 border-red-500 shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-professional-gray-900 mb-3">Deactivate User?</h3>
+            <p className="text-sm text-professional-gray-600 mb-4">
+              Are you sure you want to deactivate <span className="font-semibold">{user.name}</span>? 
+              The user will be unable to log in, but their data will be preserved. You can reactivate them later from the Deactivated users view.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeactivateConfirm(false)}
+                className="flex-1 px-4 py-2 bg-professional-gray-100 text-professional-gray-700 rounded-lg hover:bg-professional-gray-200 transition-all duration-200 font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeactivate}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium text-sm"
+              >
+                Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -308,7 +362,9 @@ EditUserModal.propTypes = {
   }).isRequired,
   coaches: PropTypes.arrayOf(PropTypes.object).isRequired,
   onClose: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired
+  onSave: PropTypes.func.isRequired,
+  onDeactivate: PropTypes.func,
+  currentUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
 };
 
 export default EditUserModal;

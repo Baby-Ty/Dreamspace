@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert, Users2, Loader2, AlertCircle } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import PromptEditorSection from './PromptEditorSection';
 import { usePeopleData } from '../../hooks/usePeopleData';
 import { usePeopleActions } from '../../hooks/usePeopleActions';
@@ -30,8 +31,8 @@ export default function PeopleDashboardLayout() {
     error,
     searchTerm,
     setSearchTerm,
-    showAllUsers,
-    setShowAllUsers,
+    userFilter,
+    setUserFilter,
     userSearchTerm,
     setUserSearchTerm,
     refreshData
@@ -47,6 +48,8 @@ export default function PeopleDashboardLayout() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Use people actions hook
   const {
@@ -64,6 +67,9 @@ export default function PeopleDashboardLayout() {
     confirmAssignUser,
     confirmUnassignUser,
     confirmReplaceCoach,
+    confirmDeactivateUser,
+    confirmReactivateUser,
+    confirmDeleteUser,
     clearSelectedUser,
     clearSelectedTeamMember,
     clearSelectedCoachToReplace
@@ -121,6 +127,32 @@ export default function PeopleDashboardLayout() {
   const handleAssignUser = (userToAssign) => {
     handleAssignUserAction(userToAssign);
     setShowAssignModal(true);
+  };
+
+  // Deactivate/Reactivate/Delete handlers
+  const handleDeactivateUser = async (userId) => {
+    const success = await confirmDeactivateUser(userId);
+    if (success) {
+      setShowEditModal(false);
+      clearSelectedUser();
+    }
+  };
+
+  const handleReactivateUser = async (userId) => {
+    await confirmReactivateUser(userId);
+  };
+
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async (userId) => {
+    const success = await confirmDeleteUser(userId);
+    if (success) {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+    }
   };
 
   // Wrapped confirm handlers that also close modals
@@ -217,13 +249,16 @@ export default function PeopleDashboardLayout() {
               {/* Right Panel: Users */}
               <UsersPanel
                 displayedUsers={displayedUsers}
-                showAllUsers={showAllUsers}
-                onToggleShowAll={() => setShowAllUsers(!showAllUsers)}
+                userFilter={userFilter}
+                onFilterChange={setUserFilter}
                 userSearchTerm={userSearchTerm}
                 onUserSearchChange={setUserSearchTerm}
                 onEditUser={handleEditUser}
                 onPromoteUser={handlePromoteUser}
                 onAssignUser={handleAssignUser}
+                onReactivateUser={handleReactivateUser}
+                onDeleteUser={handleDeleteUser}
+                currentUserId={user?.id}
               />
             </div>
           </div>
@@ -278,8 +313,23 @@ export default function PeopleDashboardLayout() {
           promote: handleConfirmPromoteUser,
           assign: handleConfirmAssignUser
         }}
+        onDeactivateUser={handleDeactivateUser}
+        currentUserId={user?.id}
         actionLoading={actionLoading}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && userToDelete && (
+        <DeleteConfirmationModal
+          user={userToDelete}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          isDeleting={actionLoading}
+        />
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ const EditUserModal = lazy(() => import(/* webpackChunkName: "edit-user-modal" *
 const PromoteUserModal = lazy(() => import(/* webpackChunkName: "promote-user-modal" */ '../../../components/PromoteUserModal'));
 const AssignUserModal = lazy(() => import(/* webpackChunkName: "assign-user-modal" */ '../../../components/AssignUserModal'));
 
-export function PeopleModals({ modals, selectedData, allUsers, coaches, teamRelationships, onClose, onConfirm, actionLoading }) {
+export function PeopleModals({ modals, selectedData, allUsers, coaches, teamRelationships, onClose, onConfirm, onDeactivateUser, currentUserId, actionLoading }) {
   return (
     <>
       {modals.showReportBuilder && (
@@ -33,7 +33,14 @@ export function PeopleModals({ modals, selectedData, allUsers, coaches, teamRela
 
       {modals.showEditModal && selectedData.user && (
         <Suspense fallback={<LoadingSpinner />}>
-          <EditUserModal user={selectedData.user} coaches={coaches} onClose={onClose.edit} onSave={onConfirm.saveUser} />
+          <EditUserModal 
+            user={selectedData.user} 
+            coaches={coaches} 
+            onClose={onClose.edit} 
+            onSave={onConfirm.saveUser}
+            onDeactivate={onDeactivateUser}
+            currentUserId={currentUserId}
+          />
         </Suspense>
       )}
 
@@ -77,6 +84,8 @@ PeopleModals.propTypes = {
   teamRelationships: PropTypes.array.isRequired,
   onClose: PropTypes.object.isRequired,
   onConfirm: PropTypes.object.isRequired,
+  onDeactivateUser: PropTypes.func,
+  currentUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   actionLoading: PropTypes.bool.isRequired
 };
 

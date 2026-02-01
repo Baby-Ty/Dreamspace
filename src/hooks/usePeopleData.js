@@ -18,7 +18,7 @@ export function usePeopleData() {
   const [filterOffice, setFilterOffice] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('performance');
-  const [showAllUsers, setShowAllUsers] = useState(false);
+  const [userFilter, setUserFilter] = useState('unassigned'); // 'unassigned' | 'all' | 'deactivated'
   const [userSearchTerm, setUserSearchTerm] = useState('');
 
   // Load data on mount
@@ -35,8 +35,9 @@ export function usePeopleData() {
       await peopleService.initializeLocalStorage();
 
       // Load users and team relationships
+      // Include inactive users to populate deactivated list
       const [usersResult, teamsResult] = await Promise.all([
-        peopleService.getAllUsers(),
+        peopleService.getAllUsers(true), // true = include inactive
         peopleService.getTeamRelationships()
       ]);
 
@@ -104,6 +105,15 @@ export function usePeopleData() {
     }).filter(coach => coach.id); // Filter out undefined coaches
   }, [teamRelationships, allUsers, teamMetricsCache, coachingAlertsCache]);
 
+  // Separate active and deactivated users
+  const activeUsers = useMemo(() => {
+    return allUsers.filter(user => user.isActive !== false);
+  }, [allUsers]);
+
+  const deactivatedUsers = useMemo(() => {
+    return allUsers.filter(user => user.isActive === false);
+  }, [allUsers]);
+
   // Filter and sort coaches
   const filteredCoaches = useMemo(() => {
     let filtered = coaches.filter(coach => {
@@ -127,19 +137,32 @@ export function usePeopleData() {
     });
   }, [coaches, filterOffice, searchTerm, sortBy]);
 
-  // Get unassigned users
+  // Get unassigned users (only from active users)
   const unassignedUsers = useMemo(() => {
     const coachIds = new Set(teamRelationships.map(team => team.managerId));
     const assignedUserIds = new Set(teamRelationships.flatMap(team => team.teamMembers || []));
     
-    return allUsers.filter(user => 
+    return activeUsers.filter(user => 
       !coachIds.has(user.id) && !assignedUserIds.has(user.id)
     );
-  }, [allUsers, teamRelationships]);
+  }, [activeUsers, teamRelationships]);
 
-  // Get displayed users based on toggle and search
+  // Get displayed users based on filter and search
   const displayedUsers = useMemo(() => {
-    let baseUsers = showAllUsers ? allUsers : unassignedUsers;
+    let baseUsers;
+    
+    switch (userFilter) {
+      case 'all':
+        baseUsers = activeUsers;
+        break;
+      case 'deactivated':
+        baseUsers = deactivatedUsers;
+        break;
+      case 'unassigned':
+      default:
+        baseUsers = unassignedUsers;
+        break;
+    }
     
     if (userSearchTerm.trim()) {
       baseUsers = baseUsers.filter(user => 
@@ -150,11 +173,11 @@ export function usePeopleData() {
     }
     
     return baseUsers;
-  }, [showAllUsers, allUsers, unassignedUsers, userSearchTerm]);
+  }, [userFilter, activeUsers, deactivatedUsers, unassignedUsers, userSearchTerm]);
 
-  // Calculate overall metrics
+  // Calculate overall metrics (use active users only)
   const overallMetrics = useMemo(() => {
-    const totalEmployees = allUsers.length;
+    const totalEmployees = activeUsers.length;
     const totalCoaches = coaches.length;
     const totalTeamMembers = coaches.reduce((sum, coach) => sum + (coach.teamMetrics?.teamSize || 0), 0);
     const totalUnassigned = unassignedUsers.length;
@@ -178,7 +201,7 @@ export function usePeopleData() {
         ? Math.round(((totalTeamMembers + totalCoaches) / totalEmployees) * 100)
         : 0
     };
-  }, [coaches, allUsers.length, unassignedUsers.length]);
+  }, [coaches, activeUsers.length, unassignedUsers.length]);
 
   // Get unique offices
   const offices = useMemo(
@@ -189,6 +212,8 @@ export function usePeopleData() {
   return {
     // Data
     allUsers,
+    activeUsers,
+    deactivatedUsers,
     coaches: filteredCoaches,
     unassignedUsers,
     displayedUsers,
@@ -207,8 +232,8 @@ export function usePeopleData() {
     setSearchTerm,
     sortBy,
     setSortBy,
-    showAllUsers,
-    setShowAllUsers,
+    userFilter,
+    setUserFilter,
     userSearchTerm,
     setUserSearchTerm,
     

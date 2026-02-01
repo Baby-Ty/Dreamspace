@@ -21,31 +21,35 @@ class PeopleService extends BaseService {
 
   /**
    * Get all users with their team assignments and roles
+   * @param {boolean} includeInactive - Whether to include deactivated users
    * @returns {Promise<{success: boolean, data?: array, error?: object}>}
    */
-  async getAllUsers() {
+  async getAllUsers(includeInactive = false) {
     try {
       if (this.useCosmosDB) {
-        const response = await apiClient.get('/getAllUsers');
+        const endpoint = includeInactive ? '/getAllUsers?includeInactive=true' : '/getAllUsers';
+        const response = await apiClient.get(endpoint);
 
         if (!response.ok) {
           return fail(ErrorCodes.NETWORK, `HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
-        console.log('✅ Retrieved users from Cosmos DB:', result.users?.length || 0);
+        console.log('✅ Retrieved users from Cosmos DB:', result.users?.length || 0, includeInactive ? '(including inactive)' : '(active only)');
         return ok(result.users || []);
       } else {
         // Fallback to localStorage for development
         const users = await this.getLocalStorageUsers();
-        console.log('📱 Retrieved users from localStorage:', users.length);
-        return ok(users);
+        const filteredUsers = includeInactive ? users : users.filter(u => u.isActive !== false);
+        console.log('📱 Retrieved users from localStorage:', filteredUsers.length, includeInactive ? '(including inactive)' : '(active only)');
+        return ok(filteredUsers);
       }
     } catch (error) {
       console.error('❌ Error fetching users:', error);
       // Fallback to localStorage on error
       const users = await this.getLocalStorageUsers();
-      return ok(users);
+      const filteredUsers = includeInactive ? users : users.filter(u => u.isActive !== false);
+      return ok(filteredUsers);
     }
   }
 

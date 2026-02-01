@@ -78,7 +78,9 @@ module.exports = createApiHandler({
         : 'user',
     // Derive isCoach from database roles for backward compatibility
     isCoach: existingDocument?.roles?.coach ?? false,
-    isActive: existingDocument?.isActive !== false,
+    // Allow isActive to be set from request (for deactivation/reactivation)
+    // If not provided in request, preserve existing value (defaults to true)
+    isActive: profileData.isActive !== undefined ? profileData.isActive : (existingDocument?.isActive !== false),
     createdAt: existingDocument?.createdAt || new Date().toISOString(),
     lastUpdated: new Date().toISOString(),
     profileUpdated: new Date().toISOString()

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import peopleService from '../services/peopleService';
+import userManagementService from '../services/userManagementService';
 import { showToast } from '../utils/toast';
 import { logger } from '../utils/logger';
 
@@ -250,6 +251,87 @@ export function usePeopleActions({ refreshData, user, refreshUserRole }) {
     setSelectedCoachToReplace(null);
   };
 
+  // Deactivate user
+  const confirmDeactivateUser = async (userId) => {
+    try {
+      setActionLoading(true);
+      const result = await userManagementService.deactivateUser(userId);
+      
+      if (result.success) {
+        logger.info('people-dashboard', 'Successfully deactivated user', { userId });
+        showToast('User deactivated successfully', 'success');
+        await refreshData();
+        return true;
+      } else {
+        logger.error('people-dashboard', 'Failed to deactivate user', { error: result.error, userId });
+        showToast('Failed to deactivate user. Please try again.', 'error');
+        return false;
+      }
+    } catch (err) {
+      logger.error('people-dashboard', 'Error deactivating user', { error: err.message, userId });
+      showToast('Error deactivating user. Please try again.', 'error');
+      return false;
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Reactivate user
+  const confirmReactivateUser = async (userId) => {
+    try {
+      setActionLoading(true);
+      const result = await userManagementService.reactivateUser(userId);
+      
+      if (result.success) {
+        logger.info('people-dashboard', 'Successfully reactivated user', { userId });
+        showToast('User reactivated successfully', 'success');
+        await refreshData();
+        return true;
+      } else {
+        logger.error('people-dashboard', 'Failed to reactivate user', { error: result.error, userId });
+        showToast('Failed to reactivate user. Please try again.', 'error');
+        return false;
+      }
+    } catch (err) {
+      logger.error('people-dashboard', 'Error reactivating user', { error: err.message, userId });
+      showToast('Error reactivating user. Please try again.', 'error');
+      return false;
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Delete user permanently
+  const confirmDeleteUser = async (userId) => {
+    try {
+      setActionLoading(true);
+      const result = await userManagementService.deleteUser(userId);
+      
+      if (result.success) {
+        logger.info('people-dashboard', 'Successfully deleted user', { userId, deletedDocuments: result.data?.deletedDocuments?.length });
+        showToast('User permanently deleted', 'success');
+        await refreshData();
+        return true;
+      } else {
+        logger.error('people-dashboard', 'Failed to delete user', { error: result.error, userId });
+        // Check if it's a coach with team members error
+        const errorMessage = result.error?.message || result.error || 'Failed to delete user';
+        if (errorMessage.includes('coach with')) {
+          showToast('Cannot delete: User is a coach with team members. Please replace the coach first.', 'error');
+        } else {
+          showToast(errorMessage, 'error');
+        }
+        return false;
+      }
+    } catch (err) {
+      logger.error('people-dashboard', 'Error deleting user', { error: err.message, userId });
+      showToast('Error deleting user. Please try again.', 'error');
+      return false;
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return {
     // State
     actionLoading,
@@ -272,6 +354,9 @@ export function usePeopleActions({ refreshData, user, refreshUserRole }) {
     confirmAssignUser,
     confirmUnassignUser,
     confirmReplaceCoach,
+    confirmDeactivateUser,
+    confirmReactivateUser,
+    confirmDeleteUser,
     
     // Clear handlers
     clearSelectedUser,
