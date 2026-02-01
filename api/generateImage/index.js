@@ -140,7 +140,7 @@ module.exports = createApiHandler({
   // Compression is handled server-side by Sharp in upload APIs
   const {
     size = '1024x1024',
-    quality = 'high',
+    quality = 'medium',
     model = 'gpt-image-1-mini',
     imageType = 'dream',
     styleModifierId = null,
