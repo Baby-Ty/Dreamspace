@@ -1,9 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users2, 
   Loader2, 
   AlertCircle, 
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 import { useDreamTeam } from '../../hooks/useDreamTeam';
 import { useTeamActions } from '../../hooks/useTeamActions';
@@ -20,6 +23,7 @@ import TeamModals from './components/TeamModals';
  */
 export default function DreamTeamLayout() {
   const { currentUser } = useApp();
+  const navigate = useNavigate();
   const {
     teamData,
     teamMembers,
@@ -27,6 +31,7 @@ export default function DreamTeamLayout() {
     isCoach,
     isLoading,
     error,
+    hasNoTeam,
     refreshData
   } = useDreamTeam();
 
@@ -95,18 +100,26 @@ export default function DreamTeamLayout() {
     );
   }
 
-  // Early return for no team
-  if (!teamData || !teamMembers || teamMembers.length === 0) {
+  // Early return for no team assigned
+  if (hasNoTeam || !teamData || !teamMembers || teamMembers.length === 0) {
     return (
       <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 py-3 sm:py-4">
         <div className="text-center py-20">
-          <Users2 className="h-12 w-12 text-professional-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-professional-gray-900 mb-2">
-            No Team Found
+          <Sparkles className="h-16 w-16 text-professional-gray-400 mx-auto mb-6" />
+          <h2 className="text-2xl font-semibold text-professional-gray-900 mb-3">
+            Not Part of a Team Yet
           </h2>
-          <p className="text-professional-gray-600 max-w-md mx-auto">
-            You're not currently assigned to a team. Please contact your administrator to be added to a team.
+          <p className="text-professional-gray-600 max-w-lg mx-auto mb-6 leading-relaxed">
+            It looks like you're not part of a team yet. You'll be added to one shortly! 
+            In the meantime, start creating your dreams and setting your goals.
           </p>
+          <button
+            onClick={() => navigate('/dream-book')}
+            className="bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white px-6 py-3 rounded-xl hover:from-netsurit-coral hover:to-netsurit-orange focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
+          >
+            <BookOpen className="w-5 h-5 mr-2" />
+            <span>Go to Dream Book</span>
+          </button>
         </div>
       </div>
     );

@@ -15,6 +15,7 @@ export function useDreamTeam() {
   const [teamData, setTeamData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasNoTeam, setHasNoTeam] = useState(false);
 
   // Load team data
   useEffect(() => {
@@ -36,6 +37,7 @@ export function useDreamTeam() {
 
     try {
       setError(null);
+      setHasNoTeam(false);
       setIsLoading(true);
 
       // Get team metrics - try as coach first
@@ -78,6 +80,15 @@ export function useDreamTeam() {
             const errorMsg = typeof metricsResult.error === 'string' 
               ? metricsResult.error 
               : (metricsResult.error?.message || metricsResult.error?.error || 'Team not found');
+            
+            // Check if this is a "no team" scenario vs actual error
+            if (errorMsg.includes('Team not found') || errorMsg.includes('404') || errorMsg.toLowerCase().includes('not found')) {
+              console.log('ℹ️ User has no team assigned yet');
+              setHasNoTeam(true);
+              setTeamData(null);
+              return;
+            }
+            
             throw new Error(errorMsg);
           }
           console.log('✅ DreamTeam: Loaded as team member', {
@@ -89,6 +100,15 @@ export function useDreamTeam() {
           const errorMsg = typeof metricsResult.error === 'string' 
             ? metricsResult.error 
             : (metricsResult.error?.message || metricsResult.error?.error || 'Team not found');
+          
+          // Check if this is a "no team" scenario vs actual error
+          if (errorMsg.includes('Team not found') || errorMsg.includes('404') || errorMsg.toLowerCase().includes('not found')) {
+            console.log('ℹ️ User has no team assigned yet');
+            setHasNoTeam(true);
+            setTeamData(null);
+            return;
+          }
+          
           throw new Error(errorMsg);
         }
       } else {
@@ -178,6 +198,7 @@ export function useDreamTeam() {
     // State
     isLoading: isTruelyLoading,
     error,
+    hasNoTeam,
     
     // Actions
     refreshData: loadTeamData
