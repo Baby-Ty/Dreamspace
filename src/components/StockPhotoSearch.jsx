@@ -320,7 +320,7 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
           <p className="text-xs text-gray-500 text-center">
             Images provided by{' '}
             <a 

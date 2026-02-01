@@ -204,7 +204,7 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
             </button>
           </form>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Generating images costs approximately $0.04 per image
+            Image generation is limited to 5 per day
           </p>
         </div>
 
@@ -298,18 +298,9 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
           <p className="text-xs text-gray-500 text-center">
-            Powered by{' '}
-            <a 
-              href="https://openai.com/dall-e-3" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-netsurit-red hover:underline"
-            >
-              OpenAI DALL-E 3
-            </a>
-            {' '}- AI-generated images with DreamSpace aesthetic
+            Powered by Netsurit
           </p>
         </div>
       </div>
