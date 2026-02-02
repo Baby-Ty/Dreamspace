@@ -155,7 +155,7 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
                 transform: 'rotate(-1deg)',
               }}
             >
-              My 2025 Vision
+              {hasVision ? `My ${new Date().getFullYear()} Vision` : 'My Vision'}
             </h2>
 
             {/* Content */}
