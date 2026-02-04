@@ -8,9 +8,9 @@ export const RADAR_CATEGORIES = [
   {
     id: 'growth',
     label: 'Growth',
-    sourceCategories: ['Learning', 'Personal Growth'],
+    sourceCategories: ['Learning', 'Personal Growth', 'Spiritual'],
     color: '#E53935', // netsurit-red
-    description: 'Personal development, learning new skills, and expanding your horizons.'
+    description: 'Personal development, learning new skills, spiritual growth, and expanding your horizons.'
   },
   {
     id: 'relationships',

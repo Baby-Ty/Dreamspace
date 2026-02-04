@@ -14,6 +14,7 @@ export const DEFAULT_DREAM_CATEGORIES = [
   'Creative',
   'Community',
   'Personal Growth',
+  'Spiritual',
   'Other'
 ];
 
