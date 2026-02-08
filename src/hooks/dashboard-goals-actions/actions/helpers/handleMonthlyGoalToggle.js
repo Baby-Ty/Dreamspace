@@ -32,11 +32,18 @@ export async function handleMonthlyGoalToggle(goal, goalId, currentWeekGoals, se
   
   // Persist to server
   try {
+    // Fetch the FULL goals array from database (including already-skipped goals)
+    // to prevent losing previously skipped goals when we save
+    const weekResult = await currentWeekService.getCurrentWeek(userId);
+    const fullGoalsArray = weekResult.success && weekResult.data?.goals 
+      ? weekResult.data.goals 
+      : currentWeekGoals;
+    
     const result = await currentWeekService.incrementMonthlyGoal(
       userId,
       currentWeekIso,
       goalId,
-      currentWeekGoals
+      fullGoalsArray
     );
     
     if (!result.success) {
