@@ -6,9 +6,10 @@ import { logger } from '../../../utils/logger';
  * 
  * @param {Object} currentUser - Current user object with dreamBook
  * @param {string} currentWeekIso - Current ISO week string
+ * @param {Set} skippedTemplateIds - Set of template IDs that are skipped this week
  * @returns {Array} Filtered dream goals ready for instantiation
  */
-export function filterActiveDreamGoals(currentUser, currentWeekIso) {
+export function filterActiveDreamGoals(currentUser, currentWeekIso, skippedTemplateIds = new Set()) {
   logger.debug('filterActiveDreamGoals', 'Checking dreams for goals', {
     dreamsCount: currentUser?.dreamBook?.length || 0
   });
@@ -22,6 +23,12 @@ export function filterActiveDreamGoals(currentUser, currentWeekIso) {
   
   const dreamGoals = (currentUser?.dreamBook || []).flatMap(dream => 
     (dream.goals || []).filter(goal => {
+      // Skip goals that are already skipped this week (don't recreate skipped goals)
+      if (skippedTemplateIds.has(goal.id)) {
+        logger.debug('filterActiveDreamGoals', 'Skipping goal - already skipped this week', { title: goal.title });
+        return false;
+      }
+      
       if (goal.completed) {
         logger.debug('filterActiveDreamGoals', 'Skipping completed goal', { title: goal.title });
         return false;

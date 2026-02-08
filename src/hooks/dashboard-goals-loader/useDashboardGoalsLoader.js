@@ -76,6 +76,13 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
       const existingGoalIds = new Set(existingGoals.map(g => g.id));
       const existingTemplateIds = new Set(existingGoals.map(g => g.templateId).filter(Boolean));
       
+      // Build set of skipped template IDs to prevent recreating skipped goals
+      const skippedTemplateIds = new Set(
+        existingGoals
+          .filter(g => g.skipped === true && g.templateId)
+          .map(g => g.templateId)
+      );
+      
       // Filter templates for existing dreams only
       const activeTemplates = (weeklyGoals || []).filter(g => 
         g.type === 'weekly_goal_template' && 
@@ -89,11 +96,12 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
         activeTemplates, 
         existingDreamIds, 
         existingTemplateIds, 
-        existingGoalIds
+        existingGoalIds,
+        skippedTemplateIds
       );
       
       // Step 2: Filter active dream goals (deadline and consistency)
-      const dreamGoalsToInstantiate = filterActiveDreamGoals(currentUser, currentWeekIso);
+      const dreamGoalsToInstantiate = filterActiveDreamGoals(currentUser, currentWeekIso, skippedTemplateIds);
       
       // Step 3: Create instances from templates
       const templateInstances = createTemplateInstances(templatesToInstantiate, currentWeekIso);
@@ -137,7 +145,7 @@ export function useDashboardGoalsLoader(currentUser, weeklyGoals) {
     } finally {
       setIsLoadingWeekGoals(false);
     }
-  }, [currentUser?.id, currentUser?.dreamBook, weeklyGoals]);
+  }, [currentUser?.id]); // Only depend on user ID - currentUser and weeklyGoals are read fresh from parameters
 
   return {
     currentWeekGoals,

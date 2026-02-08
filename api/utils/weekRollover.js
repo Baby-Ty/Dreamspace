@@ -367,6 +367,15 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
       continue;
     }
     
+    // Skip if goal is already skipped for this week (don't recreate skipped goals)
+    const existingSkippedGoal = existingGoals.find(g => 
+      g.templateId === template.id && g.skipped === true
+    );
+    if (existingSkippedGoal) {
+      log(`⏭️ ${userId}: Skipping instance creation for "${template.title}" (already skipped this week)`);
+      continue;
+    }
+    
     const dream = dreams.find(d => d.id === template.dreamId);
     
     // Use builders with decrementWeeksRemaining: false (same week, no decrement)
@@ -398,6 +407,15 @@ async function createMissingGoalInstances(userId, weekId, currentWeekDoc = null,
       
       // Skip if instance already exists
       if (existingGoalIds.has(instanceId) || existingTemplateIds.has(goal.id)) continue;
+      
+      // Skip if goal is already skipped for this week (don't recreate skipped goals)
+      const existingSkippedGoal = existingGoals.find(g => 
+        g.templateId === goal.id && g.skipped === true
+      );
+      if (existingSkippedGoal) {
+        log(`⏭️ ${userId}: Skipping instance creation for "${goal.title}" (already skipped this week)`);
+        continue;
+      }
       
       // Handle deadline goals
       if (goal.type === 'deadline' && goal.active === true) {

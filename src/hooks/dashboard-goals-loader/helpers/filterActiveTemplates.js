@@ -8,9 +8,10 @@ import { logger } from '../../../utils/logger';
  * @param {Set} existingDreamIds - Set of existing dream IDs
  * @param {Set} existingTemplateIds - Set of template IDs that already have instances
  * @param {Set} existingGoalIds - Set of existing goal IDs
+ * @param {Set} skippedTemplateIds - Set of template IDs that are skipped this week
  * @returns {Array} Filtered templates ready for instantiation
  */
-export function filterActiveTemplates(templates, existingDreamIds, existingTemplateIds, existingGoalIds) {
+export function filterActiveTemplates(templates, existingDreamIds, existingTemplateIds, existingGoalIds, skippedTemplateIds = new Set()) {
   const activeTemplates = [];
   
   for (const template of templates) {
@@ -39,6 +40,12 @@ export function filterActiveTemplates(templates, existingDreamIds, existingTempl
         title: template.title,
         weeksRemaining: templateWeeksRemaining
       });
+      continue;
+    }
+    
+    // Skip templates that are already skipped this week (don't recreate skipped goals)
+    if (skippedTemplateIds.has(template.id)) {
+      logger.debug('filterActiveTemplates', 'Skipping template - already skipped this week', { title: template.title });
       continue;
     }
     
