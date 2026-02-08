@@ -273,7 +273,7 @@ export default function DreamBookLayout() {
           aria-labelledby="create-dream-title"
           data-testid="create-dream-modal"
         >
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-professional-gray-200">
               <h3 
                 id="create-dream-title"
@@ -291,7 +291,7 @@ export default function DreamBookLayout() {
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto flex-1">
               <DreamForm
                 formData={formData}
                 setFormData={setFormData}
