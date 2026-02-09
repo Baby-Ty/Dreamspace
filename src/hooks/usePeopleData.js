@@ -172,7 +172,10 @@ export function usePeopleData() {
       );
     }
     
-    return baseUsers;
+    // Sort alphabetically by name
+    return baseUsers.sort((a, b) => 
+      (a.name || '').localeCompare(b.name || '')
+    );
   }, [userFilter, activeUsers, deactivatedUsers, unassignedUsers, userSearchTerm]);
 
   // Calculate overall metrics (use active users only)
