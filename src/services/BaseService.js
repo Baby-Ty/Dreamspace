@@ -123,7 +123,17 @@ export class BaseService {
       ? `${errorData.error || defaultMessage}: ${errorDetails}`
       : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
 
-    return fail(ErrorCodes.NETWORK, errorMessage);
+    // Map HTTP status codes to appropriate error categories
+    let errorCode;
+    if (response.status === 401 || response.status === 403) {
+      errorCode = ErrorCodes.AUTH;  // Authentication/authorization error
+    } else if (response.status >= 500) {
+      errorCode = ErrorCodes.UNKNOWN;  // Server error
+    } else {
+      errorCode = ErrorCodes.NETWORK;  // Other network/client errors
+    }
+
+    return fail(errorCode, errorMessage);
   }
 
   /**

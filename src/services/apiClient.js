@@ -17,6 +17,7 @@ class ApiClient {
     this.baseUrl = config.domain.apiUrl;
     
     this._getToken = null;
+    this._refreshToken = null;
     
     console.log('🔐 API Client initialized:', { baseUrl: this.baseUrl });
   }
@@ -31,10 +32,20 @@ class ApiClient {
   }
 
   /**
+   * Set the token refresher function (called from AuthContext)
+   * @param {Function} refreshToken - Async function that refreshes and returns success boolean
+   */
+  setTokenRefresher(refreshToken) {
+    this._refreshToken = refreshToken;
+    console.log('🔐 API Client: Token refresher configured');
+  }
+
+  /**
    * Clear the token getter (called on logout)
    */
   clearTokenGetter() {
     this._getToken = null;
+    this._refreshToken = null;
     console.log('🔐 API Client: Token getter cleared');
   }
 
@@ -64,17 +75,16 @@ class ApiClient {
   }
 
   /**
-   * Make an authenticated fetch request
-   * @param {string} endpoint - API endpoint (e.g., '/getUserData/user@example.com')
-   * @param {object} options - Fetch options (method, body, headers, etc.)
+   * Internal method to make a request (used by fetch with retry logic)
+   * @param {string} endpoint - API endpoint
+   * @param {object} options - Fetch options
    * @returns {Promise<Response>} Fetch response
    */
-  async fetch(endpoint, options = {}) {
+  async _makeRequest(endpoint, options = {}) {
     const authHeaders = await this._getAuthHeaders();
-    
     const url = `${this.baseUrl}${endpoint}`;
     
-    const response = await fetch(url, {
+    return await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -82,10 +92,38 @@ class ApiClient {
         ...(options.headers || {})
       }
     });
+  }
+
+  /**
+   * Make an authenticated fetch request with automatic token refresh on 401
+   * @param {string} endpoint - API endpoint (e.g., '/getUserData/user@example.com')
+   * @param {object} options - Fetch options (method, body, headers, etc.)
+   * @returns {Promise<Response>} Fetch response
+   */
+  async fetch(endpoint, options = {}) {
+    // First attempt
+    let response = await this._makeRequest(endpoint, options);
     
-    // Log auth failures for debugging
-    if (response.status === 401) {
-      console.warn('🔐 API Client: 401 Unauthorized -', endpoint);
+    // If 401 and we have a token refresher, try to refresh and retry once
+    if (response.status === 401 && this._refreshToken) {
+      console.warn('🔐 API Client: 401 Unauthorized, attempting token refresh -', endpoint);
+      
+      try {
+        const refreshed = await this._refreshToken();
+        
+        if (refreshed) {
+          console.log('🔐 API Client: Token refreshed, retrying request -', endpoint);
+          // Retry the request with the new token
+          response = await this._makeRequest(endpoint, options);
+        } else {
+          console.warn('🔐 API Client: Token refresh failed, returning 401 -', endpoint);
+        }
+      } catch (error) {
+        console.error('🔐 API Client: Error during token refresh:', error.message);
+        // Return original 401 response
+      }
+    } else if (response.status === 401) {
+      console.warn('🔐 API Client: 401 Unauthorized (no token refresher) -', endpoint);
     } else if (response.status === 403) {
       console.warn('🔐 API Client: 403 Forbidden -', endpoint);
     }

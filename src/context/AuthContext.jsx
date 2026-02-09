@@ -20,16 +20,24 @@ export const AuthProvider = ({ children }) => {
   const [loginError, setLoginError] = useState(null);
 
   // Use token management hook
-  const { getToken, getApiToken } = useTokens();
+  const { getToken, getApiToken, refreshApiToken, setLogoutCallback } = useTokens();
 
   // Wire up apiClient when MSAL auth succeeds (accounts populated)
   // This MUST run before fetchUserProfile so API calls are authenticated
   useEffect(() => {
-    if (accounts.length > 0 && getApiToken) {
+    if (accounts.length > 0 && getApiToken && refreshApiToken && setLogoutCallback) {
       apiClient.setTokenGetter(getApiToken);
-      console.log('🔐 API Client wired with authentication token');
+      apiClient.setTokenRefresher(refreshApiToken);
+      
+      // Set logout callback for when token refresh fails completely
+      setLogoutCallback(() => {
+        console.warn('🔐 Session expired and token refresh failed. Logging out...');
+        logout();
+      });
+      
+      console.log('🔐 API Client wired with authentication token and refresh capability');
     }
-  }, [accounts.length, getApiToken]);
+  }, [accounts.length, getApiToken, refreshApiToken, setLogoutCallback]);
 
   // Create authenticated fetch and graph service
   const authedFetch = useAuthenticatedFetch(getToken);
@@ -109,15 +117,44 @@ export const AuthProvider = ({ children }) => {
 
   // Logout handler
   const logout = async () => {
+    // Always clear local state first
+    apiClient.clearTokenGetter();
+    setUser(null);
+    setUserRole(null);
+    
     try {
-      apiClient.clearTokenGetter();
+      // Try popup logout to properly clear Azure AD session
       await instance.logoutPopup({
         postLogoutRedirectUri: window.location.origin
       });
-      setUser(null);
-      setUserRole(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Popup logout failed:', error.message);
+      
+      // If popup is blocked, just clear local state and reload
+      // (The Azure AD session is already expired anyway)
+      if (error.errorCode === 'popup_window_error' || error.message?.includes('popup')) {
+        console.log('Popup blocked during logout. Clearing local session...');
+        
+        // Clear all MSAL cache from sessionStorage
+        const keysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && key.startsWith('msal.')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => sessionStorage.removeItem(key));
+        
+        // Clear active account
+        instance.setActiveAccount(null);
+        
+        console.log('Local session cleared. Reloading...');
+        
+        // Reload page to show login screen
+        setTimeout(() => {
+          window.location.href = window.location.origin;
+        }, 100);
+      }
     }
   };
 
