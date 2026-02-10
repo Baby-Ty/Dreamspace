@@ -10,7 +10,7 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'Team ID is required' };
   }
 
-  const { title, date, time, accessToken, teamMembers } = req.body || {};
+  const { title, date, time, accessToken, teamMembers, timezone } = req.body || {};
 
   if (!title || !date || !time || !accessToken) {
     throw { 
@@ -19,6 +19,9 @@ module.exports = createApiHandler({
       details: 'title, date, time, and accessToken are required'
     };
   }
+
+  // Use provided timezone or fallback to EST (Windows format required by Microsoft Graph)
+  const meetingTimezone = timezone || 'Eastern Standard Time';
 
   if (!teamMembers || !Array.isArray(teamMembers) || teamMembers.length === 0) {
     throw { 
@@ -37,8 +40,7 @@ module.exports = createApiHandler({
     };
   }
 
-  // Parse date and time to create ISO datetime string
-  const meetingDate = new Date(date);
+  // Validate time format and parse
   const [hours, minutes] = time.split(':');
   const hourInt = parseInt(hours, 10);
   const minuteInt = parseInt(minutes, 10);
@@ -52,15 +54,15 @@ module.exports = createApiHandler({
     };
   }
   
-  meetingDate.setHours(hourInt, minuteInt, 0, 0);
+  // Format datetime as LOCAL time (not UTC) for the specified timezone
+  // Microsoft Graph expects datetime in local time with timezone separately
+  // Format: YYYY-MM-DDTHH:MM:SS (no Z suffix, no timezone offset)
+  const startDateTime = `${date}T${time}:00`;
   
-  // End time: 1 hour after start (default duration)
-  const endDate = new Date(meetingDate);
-  endDate.setHours(endDate.getHours() + 1);
-
-  // Format dates for Graph API (ISO 8601)
-  const startDateTime = meetingDate.toISOString();
-  const endDateTime = endDate.toISOString();
+  // Calculate end time (1 hour later)
+  const endHour = (hourInt + 1) % 24;
+  const endTime = `${String(endHour).padStart(2, '0')}:${minutes}`;
+  const endDateTime = `${date}T${endTime}:00`;
 
   // Extract email addresses from team members (including coach)
   const attendeeEmails = teamMembers
@@ -82,11 +84,11 @@ module.exports = createApiHandler({
     subject: title,
     start: {
       dateTime: startDateTime,
-      timeZone: 'UTC'
+      timeZone: meetingTimezone
     },
     end: {
       dateTime: endDateTime,
-      timeZone: 'UTC'
+      timeZone: meetingTimezone
     },
     attendees: attendeeEmails.map(email => ({
       emailAddress: {
@@ -95,7 +97,7 @@ module.exports = createApiHandler({
       },
       type: 'required'
     })),
-    isOnlineMeeting: false,
+    isOnlineMeeting: true,
     body: {
       contentType: 'HTML',
       content: `<p>Meeting scheduled via DreamSpace</p>`
@@ -161,6 +163,7 @@ module.exports = createApiHandler({
     title: title.trim(),
     date: date,
     time: time,
+    timezone: meetingTimezone,
     status: 'scheduled',
     attendees: teamMembers.map(member => ({
       id: member.id,

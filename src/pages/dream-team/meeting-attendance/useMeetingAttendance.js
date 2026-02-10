@@ -5,11 +5,19 @@ import { useAuth } from '../../../context/AuthContext';
 import { showToast } from '../../../utils/toast';
 
 /**
+ * Get fallback timezone - using Windows format for Microsoft Graph compatibility
+ * @returns {string} Windows timezone format (e.g., "Eastern Standard Time")
+ */
+function getFallbackTimezone() {
+  return 'Eastern Standard Time';
+}
+
+/**
  * Hook for managing meeting attendance state and operations
  */
 export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete }) {
   const { currentUser } = useApp();
-  const { getToken } = useAuth();
+  const { getToken, graph } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -17,12 +25,33 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
     title: '',
     date: new Date().toISOString().split('T')[0],
     time: '',
+    timezone: getFallbackTimezone(),
   });
   const [attendance, setAttendance] = useState({});
   const [isScheduledViaCalendar, setIsScheduledViaCalendar] = useState(false);
   const [calendarEventId, setCalendarEventId] = useState(null);
   const [currentMeetingId, setCurrentMeetingId] = useState(null);
   const [isLoadingScheduled, setIsLoadingScheduled] = useState(false);
+
+  // Fetch user's timezone from Microsoft 365 mailbox settings on mount
+  useEffect(() => {
+    const fetchUserTimezone = async () => {
+      if (!isCoach || !graph) return;
+      
+      try {
+        const result = await graph.getMailboxSettings();
+        
+        if (result.success && result.data) {
+          // Graph API returns Windows timezone format - store directly
+          setMeetingData(prev => ({ ...prev, timezone: result.data }));
+        }
+      } catch (error) {
+        console.error('Error fetching user timezone:', error);
+      }
+    };
+    
+    fetchUserTimezone();
+  }, [isCoach, graph]);
 
   // Load most recent scheduled meeting on mount
   useEffect(() => {
@@ -36,12 +65,12 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
           const scheduledMeeting = result.data.find(m => (m.status || 'completed') === 'scheduled');
           
           if (scheduledMeeting) {
-            console.log('📅 Loading scheduled meeting:', scheduledMeeting);
-            setMeetingData({
+            setMeetingData(prev => ({
               title: scheduledMeeting.title || '',
               date: scheduledMeeting.date || new Date().toISOString().split('T')[0],
-              time: scheduledMeeting.time || ''
-            });
+              time: scheduledMeeting.time || '',
+              timezone: scheduledMeeting.timezone || prev.timezone // Keep current timezone if not in meeting
+            }));
             setCurrentMeetingId(scheduledMeeting.id);
             setIsScheduledViaCalendar(scheduledMeeting.isScheduledViaCalendar || false);
             setCalendarEventId(scheduledMeeting.calendarEventId || null);
@@ -141,6 +170,7 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
         title: meetingData.title.trim(),
         date: meetingData.date,
         time: meetingData.time,
+        timezone: meetingData.timezone,
         teamMembers: teamMembersWithEmails,
         accessToken: token
       });
@@ -206,11 +236,12 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
           };
         });
         setAttendance(resetAttendance);
-        setMeetingData({
+        setMeetingData(prev => ({
           title: '',
           date: new Date().toISOString().split('T')[0],
-          time: ''
-        });
+          time: '',
+          timezone: prev.timezone // Keep the user's timezone
+        }));
         setIsScheduledViaCalendar(false);
         setCalendarEventId(null);
         setCurrentMeetingId(null);
@@ -226,12 +257,12 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
             if (historyResult.success && historyResult.data?.length > 0) {
               const nextScheduled = historyResult.data.find(m => (m.status || 'completed') === 'scheduled');
               if (nextScheduled) {
-                console.log('📅 Loading next scheduled meeting:', nextScheduled);
-                setMeetingData({
+                setMeetingData(prev => ({
                   title: nextScheduled.title || '',
                   date: nextScheduled.date || new Date().toISOString().split('T')[0],
-                  time: nextScheduled.time || ''
-                });
+                  time: nextScheduled.time || '',
+                  timezone: nextScheduled.timezone || prev.timezone // Keep current timezone if not in meeting
+                }));
                 setCurrentMeetingId(nextScheduled.id);
                 setIsScheduledViaCalendar(nextScheduled.isScheduledViaCalendar || false);
                 setCalendarEventId(nextScheduled.calendarEventId || null);

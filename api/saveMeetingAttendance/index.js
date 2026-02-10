@@ -10,7 +10,7 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'Team ID is required' };
   }
 
-  const { id, title, date, time, attendees, completedBy, isScheduledViaCalendar, calendarEventId, status } = req.body || {};
+  const { id, title, date, time, timezone, attendees, completedBy, isScheduledViaCalendar, calendarEventId, status } = req.body || {};
 
   if (!title || !date) {
     throw { 
@@ -66,6 +66,7 @@ module.exports = createApiHandler({
     title: title.trim(),
     date: date,
     time: time || null,
+    timezone: timezone || null,
     status: meetingStatus,
     attendees: attendees || [],
     completedBy: completedBy || null,

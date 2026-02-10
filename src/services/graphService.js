@@ -31,6 +31,31 @@ export function GraphService(authedFetch, getToken = null, getApiToken = null) {
     },
 
     /**
+     * Get current user's mailbox settings (includes timezone)
+     * Returns timezone string in Windows timezone format (e.g., "South Africa Standard Time")
+     */
+    async getMailboxSettings() {
+      try {
+        const result = await authedFetch(`${GRAPH_API_BASE}/me/mailboxSettings`);
+        
+        if (!result.success) {
+          return ok(null);
+        }
+
+        // Extract timezone from mailbox settings
+        const timezone = result.data?.timeZone;
+        if (timezone && typeof timezone === 'string') {
+          return ok(timezone);
+        }
+
+        return ok(null);
+      } catch (error) {
+        console.error('Error fetching mailbox settings:', error.message);
+        return ok(null);
+      }
+    },
+
+    /**
      * Get current user's profile photo
      * Returns a blob URL for the photo, or null if not available
      * NOTE: This returns a temporary blob URL. Use uploadMyPhotoToStorage() for permanent storage.

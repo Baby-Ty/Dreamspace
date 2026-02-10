@@ -28,6 +28,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
+    "react-select": "^5.10.2",
+    "react-timezone-select": "^3.2.8",
     "react-window": "^2.2.0",
     "zod": "^3.22.4"
   },
