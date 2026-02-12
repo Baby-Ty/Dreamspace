@@ -10,7 +10,7 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'Team ID is required' };
   }
 
-  const { id, title, date, time, timezone, attendees, completedBy, isScheduledViaCalendar, calendarEventId, status } = req.body || {};
+  const { id, title, date, time, timezone, duration, attendees, completedBy, isScheduledViaCalendar, calendarEventId, status } = req.body || {};
 
   if (!title || !date) {
     throw { 
@@ -67,6 +67,7 @@ module.exports = createApiHandler({
     date: date,
     time: time || null,
     timezone: timezone || null,
+    duration: duration || 60, // Store duration in minutes (default 60 for legacy meetings)
     status: meetingStatus,
     attendees: attendees || [],
     completedBy: completedBy || null,

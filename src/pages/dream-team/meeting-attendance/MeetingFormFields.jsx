@@ -109,7 +109,7 @@ export default function MeetingFormFields({
   }
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style={{ marginBottom: '28px' }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" style={{ marginBottom: '28px' }}>
       {/* Title */}
       <div>
         <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
@@ -186,6 +186,33 @@ export default function MeetingFormFields({
               }
             }}
           />
+        </div>
+      </div>
+
+      {/* Duration */}
+      <div>
+        <p className="text-sm font-semibold text-[#5c5030] font-hand" style={{ lineHeight: '28px' }}>
+          Duration
+        </p>
+        <div className="relative">
+          <Clock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a7a50] pointer-events-none z-10" aria-hidden="true" />
+          <select
+            id="meeting-duration"
+            value={meetingData.duration || 60}
+            onChange={(e) => setMeetingData({ ...meetingData, duration: parseInt(e.target.value, 10) })}
+            disabled={!isCoach}
+            className={`w-full pl-8 pr-2 border-2 border-[#8a7a50] bg-white/50 rounded-lg text-[#4a3b22] font-hand text-base ${
+              isCoach 
+                ? 'focus:outline-none focus:ring-2 focus:ring-[#8a7a50] cursor-pointer' 
+                : 'opacity-60 cursor-not-allowed'
+            }`}
+            style={{ height: '28px', lineHeight: '28px' }}
+            data-testid="meeting-duration-select"
+          >
+            <option value="30">30 mins</option>
+            <option value="45">45 mins</option>
+            <option value="60">60 mins</option>
+          </select>
         </div>
       </div>
 

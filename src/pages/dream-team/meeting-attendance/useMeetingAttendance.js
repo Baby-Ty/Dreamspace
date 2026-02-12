@@ -26,6 +26,7 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
     date: new Date().toISOString().split('T')[0],
     time: '',
     timezone: getFallbackTimezone(),
+    duration: 60, // Default duration in minutes
   });
   const [attendance, setAttendance] = useState({});
   const [isScheduledViaCalendar, setIsScheduledViaCalendar] = useState(false);
@@ -69,7 +70,8 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
               title: scheduledMeeting.title || '',
               date: scheduledMeeting.date || new Date().toISOString().split('T')[0],
               time: scheduledMeeting.time || '',
-              timezone: scheduledMeeting.timezone || prev.timezone // Keep current timezone if not in meeting
+              timezone: scheduledMeeting.timezone || prev.timezone, // Keep current timezone if not in meeting
+              duration: scheduledMeeting.duration || 60 // Default to 60 mins for legacy meetings
             }));
             setCurrentMeetingId(scheduledMeeting.id);
             setIsScheduledViaCalendar(scheduledMeeting.isScheduledViaCalendar || false);
@@ -171,6 +173,7 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
         date: meetingData.date,
         time: meetingData.time,
         timezone: meetingData.timezone,
+        duration: meetingData.duration || 60, // Include duration (default 60 mins)
         teamMembers: teamMembersWithEmails,
         accessToken: token
       });
@@ -215,6 +218,8 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
         title: meetingData.title.trim(),
         date: meetingData.date,
         time: meetingData.time || undefined,
+        timezone: meetingData.timezone || undefined,
+        duration: meetingData.duration || 60, // Include duration (default 60 mins)
         attendees: attendees,
         completedBy: currentUser?.id || currentUser?.userId,
         isScheduledViaCalendar: isScheduledViaCalendar,
@@ -240,7 +245,8 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
           title: '',
           date: new Date().toISOString().split('T')[0],
           time: '',
-          timezone: prev.timezone // Keep the user's timezone
+          timezone: prev.timezone, // Keep the user's timezone
+          duration: 60 // Reset to default duration
         }));
         setIsScheduledViaCalendar(false);
         setCalendarEventId(null);
@@ -261,7 +267,8 @@ export function useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete 
                   title: nextScheduled.title || '',
                   date: nextScheduled.date || new Date().toISOString().split('T')[0],
                   time: nextScheduled.time || '',
-                  timezone: nextScheduled.timezone || prev.timezone // Keep current timezone if not in meeting
+                  timezone: nextScheduled.timezone || prev.timezone, // Keep current timezone if not in meeting
+                  duration: nextScheduled.duration || 60 // Default to 60 mins for legacy meetings
                 }));
                 setCurrentMeetingId(nextScheduled.id);
                 setIsScheduledViaCalendar(nextScheduled.isScheduledViaCalendar || false);

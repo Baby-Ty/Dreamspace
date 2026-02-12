@@ -17,7 +17,7 @@ class MeetingService extends BaseService {
   /**
    * Save meeting attendance
    * @param {string} teamId - Stable Team ID (persists across coach changes, NOT managerId)
-   * @param {object} meetingData - Meeting data { title, date, attendees: [{id, name, present}], completedBy }
+   * @param {object} meetingData - Meeting data { title, date, time, timezone, duration, attendees: [{id, name, present}], completedBy, status }
    * @returns {Promise<{success: boolean, data?: object, error?: string}>}
    */
   async saveMeetingAttendance(teamId, meetingData) {
@@ -143,7 +143,7 @@ class MeetingService extends BaseService {
   /**
    * Schedule meeting with Office 365 calendar invite
    * @param {string} teamId - Stable Team ID
-   * @param {object} meetingData - Meeting data { title, date, time, teamMembers, accessToken }
+   * @param {object} meetingData - Meeting data { title, date, time, timezone, duration, teamMembers, accessToken }
    * @returns {Promise<{success: boolean, data?: object, error?: string}>}
    */
   async scheduleMeetingWithCalendar(teamId, meetingData) {

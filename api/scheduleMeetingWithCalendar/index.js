@@ -10,7 +10,7 @@ module.exports = createApiHandler({
     throw { status: 400, message: 'Team ID is required' };
   }
 
-  const { title, date, time, accessToken, teamMembers, timezone } = req.body || {};
+  const { title, date, time, accessToken, teamMembers, timezone, duration } = req.body || {};
 
   if (!title || !date || !time || !accessToken) {
     throw { 
@@ -22,6 +22,18 @@ module.exports = createApiHandler({
 
   // Use provided timezone or fallback to EST (Windows format required by Microsoft Graph)
   const meetingTimezone = timezone || 'Eastern Standard Time';
+  
+  // Use provided duration or fallback to 60 minutes
+  const meetingDuration = duration || 60;
+  
+  // Validate duration is one of the allowed values
+  if (![30, 45, 60].includes(meetingDuration)) {
+    throw {
+      status: 400,
+      message: 'Invalid duration',
+      details: 'Duration must be 30, 45, or 60 minutes'
+    };
+  }
 
   if (!teamMembers || !Array.isArray(teamMembers) || teamMembers.length === 0) {
     throw { 
@@ -59,10 +71,30 @@ module.exports = createApiHandler({
   // Format: YYYY-MM-DDTHH:MM:SS (no Z suffix, no timezone offset)
   const startDateTime = `${date}T${time}:00`;
   
-  // Calculate end time (1 hour later)
-  const endHour = (hourInt + 1) % 24;
-  const endTime = `${String(endHour).padStart(2, '0')}:${minutes}`;
-  const endDateTime = `${date}T${endTime}:00`;
+  // Calculate end time using timezone-safe date arithmetic
+  // IMPORTANT: Parse as UTC to avoid server timezone affecting calculation, then extract components
+  // Microsoft Graph interprets the datetime string in the context of the specified timezone
+  const [year, month, day] = date.split('-').map(Number);
+  const startTotalMinutes = hourInt * 60 + minuteInt; // Convert to total minutes
+  const endTotalMinutes = startTotalMinutes + meetingDuration; // Add duration
+  
+  // Calculate end time components
+  const endHour = Math.floor(endTotalMinutes / 60);
+  const endMinute = endTotalMinutes % 60;
+  
+  // Handle day overflow (e.g., 23:30 + 45 mins = 00:15 next day)
+  const daysToAdd = Math.floor(endHour / 24);
+  const finalEndHour = endHour % 24;
+  
+  // Use Date.UTC to safely calculate the end date (handles month/year boundaries)
+  const endDateUTC = new Date(Date.UTC(year, month - 1, day + daysToAdd));
+  const endYear = endDateUTC.getUTCFullYear();
+  const endMonth = String(endDateUTC.getUTCMonth() + 1).padStart(2, '0');
+  const endDay = String(endDateUTC.getUTCDate()).padStart(2, '0');
+  const endHours = String(finalEndHour).padStart(2, '0');
+  const endMinutesStr = String(endMinute).padStart(2, '0');
+  
+  const endDateTime = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutesStr}:00`;
 
   // Extract email addresses from team members (including coach)
   const attendeeEmails = teamMembers
@@ -164,6 +196,7 @@ module.exports = createApiHandler({
     date: date,
     time: time,
     timezone: meetingTimezone,
+    duration: meetingDuration, // Store duration in minutes
     status: 'scheduled',
     attendees: teamMembers.map(member => ({
       id: member.id,
