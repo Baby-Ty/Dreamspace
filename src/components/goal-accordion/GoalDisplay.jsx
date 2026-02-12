@@ -57,133 +57,84 @@ export default function GoalDisplay({
         
         <div className="flex-1 min-w-0">
           {/* Goal Title and Badges */}
-          <div className="flex items-start justify-between mb-2 gap-2">
-            <div className="flex-1">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <p className={`font-medium ${
-                  isChecked 
-                    ? 'text-professional-gray-700 line-through' 
-                    : 'text-professional-gray-900'
+          <div className="flex items-start justify-between gap-3">
+            {/* Title and badges inline */}
+            <div className="flex items-start flex-wrap gap-2 flex-1 min-w-0">
+              <p className={`font-medium ${
+                isChecked 
+                  ? 'text-professional-gray-700 line-through' 
+                  : 'text-professional-gray-900'
+              }`}>
+                {goal.title}
+              </p>
+              
+              {/* Type-specific Badges inline with title */}
+              {isConsistency && (
+                <>
+                  <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
+                    <Repeat className="w-3 h-3" aria-hidden="true" />
+                    <span>Consistency</span>
+                  </span>
+                  {goal.recurrence && (
+                    <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium capitalize">
+                      {goal.recurrence}
+                    </span>
+                  )}
+                </>
+              )}
+              
+              {isDeadline && (
+                <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
+                  <Calendar className="w-3 h-3" aria-hidden="true" />
+                  <span>Deadline</span>
+                </span>
+              )}
+            </div>
+            
+            {/* Weeks remaining - top right */}
+            {isConsistency && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
+              <div className="flex items-center space-x-1 flex-shrink-0">
+                <Clock className={`w-3.5 h-3.5 ${
+                  goal.weeksRemaining === 0 ? 'text-netsurit-orange' :
+                  goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
+                  'text-professional-gray-500'
+                }`} aria-hidden="true" />
+                <span className={`text-xs font-medium whitespace-nowrap ${
+                  goal.weeksRemaining === 0 ? 'text-netsurit-orange font-semibold' :
+                  goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
+                  'text-professional-gray-600'
                 }`}>
-                  {goal.title}
-                </p>
-                
-                {/* Weeks remaining - top right */}
-                {isConsistency && goal.weeksRemaining !== undefined && goal.weeksRemaining >= 0 && (
-                  <div className="flex items-center space-x-1 flex-shrink-0">
-                    <Clock className={`w-3.5 h-3.5 ${
-                      goal.weeksRemaining === 0 ? 'text-netsurit-orange' :
-                      goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
-                      'text-professional-gray-500'
-                    }`} aria-hidden="true" />
-                    <span className={`text-xs font-medium whitespace-nowrap ${
-                      goal.weeksRemaining === 0 ? 'text-netsurit-orange font-semibold' :
-                      goal.weeksRemaining === 1 ? 'text-netsurit-coral' :
-                      'text-professional-gray-600'
-                    }`}>
-                      {goal.weeksRemaining === 0 ? 'Final week!' :
-                       goal.weeksRemaining === 1 ? '1 week left' :
-                       `${goal.weeksRemaining} weeks left`}
-                    </span>
-                  </div>
-                )}
-                
-                {isDeadline && goal.targetDate && (
-                  <div className="flex items-center space-x-1 flex-shrink-0">
-                    <Clock className={`w-3.5 h-3.5 ${
-                      weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-600' :
-                      weeksUntilDeadline === 0 ? 'text-netsurit-orange' :
-                      weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
-                      'text-professional-gray-500'
-                    }`} aria-hidden="true" />
-                    <span className={`text-xs font-medium whitespace-nowrap ${
-                      weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-700 font-semibold' :
-                      weeksUntilDeadline === 0 ? 'text-netsurit-orange font-semibold' :
-                      weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
-                      'text-professional-gray-600'
-                    }`}>
-                      {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                )}
+                  {goal.weeksRemaining === 0 ? 'Final week!' :
+                   goal.weeksRemaining === 1 ? '1 week left' :
+                   `${goal.weeksRemaining} weeks left`}
+                </span>
               </div>
-              
-              {goal.description && (
-                <p className="text-xs text-professional-gray-600 mt-1">{goal.description}</p>
-              )}
-              
-              {/* Type-specific Badges */}
-              <div className="flex items-center flex-wrap gap-2 mt-2">
-                {isConsistency && (
-                  <>
-                    <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
-                      <Repeat className="w-3 h-3" aria-hidden="true" />
-                      <span>Consistency</span>
-                    </span>
-                    {goal.recurrence && (
-                      <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium capitalize">
-                        {goal.recurrence}
-                      </span>
-                    )}
-                    {goal.targetWeeks && (
-                      <span className="text-xs bg-netsurit-orange/10 text-netsurit-orange px-2 py-1 rounded-full font-medium">
-                        Target: {goal.targetWeeks} {goal.recurrence === 'weekly' ? 'weeks' : 'months'}
-                      </span>
-                    )}
-                  </>
-                )}
-                
-                {isDeadline && (
-                  <>
-                    <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
-                      <Calendar className="w-3 h-3" aria-hidden="true" />
-                      <span>Deadline</span>
-                    </span>
-                    {goal.targetDate && (
-                      <span className="text-xs bg-professional-gray-100 text-professional-gray-700 px-2 py-1 rounded-full font-medium">
-                        {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                    )}
-                  </>
-                )}
+            )}
+            
+            {isDeadline && goal.targetDate && (
+              <div className="flex items-center space-x-1 flex-shrink-0">
+                <Clock className={`w-3.5 h-3.5 ${
+                  weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-600' :
+                  weeksUntilDeadline === 0 ? 'text-netsurit-orange' :
+                  weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
+                  'text-professional-gray-500'
+                }`} aria-hidden="true" />
+                <span className={`text-xs font-medium whitespace-nowrap ${
+                  weeksUntilDeadline !== null && weeksUntilDeadline < 0 ? 'text-red-700 font-semibold' :
+                  weeksUntilDeadline === 0 ? 'text-netsurit-orange font-semibold' :
+                  weeksUntilDeadline === 1 ? 'text-netsurit-coral' :
+                  'text-professional-gray-600'
+                }`}>
+                  {new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
-              {/* Edit Button */}
-              {onStartEditing && canEdit && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onStartEditing(goal);
-                  }}
-                  className="flex-shrink-0 p-2 hover:bg-professional-gray-100 rounded-lg transition-colors"
-                  aria-label="Edit goal"
-                  title="Edit goal"
-                >
-                  <Edit2 className="w-4 h-4 text-professional-gray-600" aria-hidden="true" />
-                </button>
-              )}
-              
-              {/* Delete Button */}
-              {onDeleteGoal && canEdit && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete goal "${goal.title}"?`)) {
-                      onDeleteGoal(goal.id);
-                    }
-                  }}
-                  className="flex-shrink-0 p-2 hover:bg-red-100 rounded-lg transition-colors"
-                  aria-label="Delete goal"
-                  title="Delete goal"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600" aria-hidden="true" />
-                </button>
-              )}
-            </div>
+            )}
           </div>
+          
+          {/* Description */}
+          {goal.description && (
+            <p className="text-xs text-professional-gray-600 mt-2">{goal.description}</p>
+          )}
 
           {/* Consistency Progress Bar */}
           {isConsistency && goal.targetWeeks && !isChecked && (
@@ -209,6 +160,41 @@ export default function GoalDisplay({
                 ></div>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-2 flex-shrink-0">
+          {/* Edit Button */}
+          {onStartEditing && canEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartEditing(goal);
+              }}
+              className="flex-shrink-0 p-2 hover:bg-professional-gray-100 rounded-lg transition-colors"
+              aria-label="Edit goal"
+              title="Edit goal"
+            >
+              <Edit2 className="w-4 h-4 text-professional-gray-600" aria-hidden="true" />
+            </button>
+          )}
+          
+          {/* Delete Button */}
+          {onDeleteGoal && canEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(`Delete goal "${goal.title}"?`)) {
+                  onDeleteGoal(goal.id);
+                }
+              }}
+              className="flex-shrink-0 p-2 hover:bg-red-100 rounded-lg transition-colors"
+              aria-label="Delete goal"
+              title="Delete goal"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" aria-hidden="true" />
+            </button>
           )}
         </div>
       </div>
