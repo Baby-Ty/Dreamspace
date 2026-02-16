@@ -17,10 +17,10 @@ function ConnectionCard({ item, onInvite, onPreview, rovingProps = {} }) {
 
   if (!item) return null;
 
-  // Filter public dreams from item's dreamBook
+  // Filter public dreams from item's dreamBook (exclude system dreams)
   const publicDreams = useMemo(() => {
     if (!item.dreamBook || !Array.isArray(item.dreamBook)) return [];
-    return item.dreamBook.filter(dream => dream.isPublic === true);
+    return item.dreamBook.filter(dream => dream.isPublic === true && !dream.isSystem);
   }, [item.dreamBook]);
 
   const handleFlip = (e) => {

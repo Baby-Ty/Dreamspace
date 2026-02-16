@@ -11,10 +11,10 @@ export default function TeamMemberCard({ member, currentUserId, isCoach, onGener
   const navigate = useNavigate();
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Filter public dreams from member's dreamBook
+  // Filter public dreams from member's dreamBook (exclude system dreams)
   const publicDreams = useMemo(() => {
     if (!member.dreamBook || !Array.isArray(member.dreamBook)) return [];
-    return member.dreamBook.filter(dream => dream.isPublic === true);
+    return member.dreamBook.filter(dream => dream.isPublic === true && !dream.isSystem);
   }, [member.dreamBook]);
 
   const handleConnect = () => {

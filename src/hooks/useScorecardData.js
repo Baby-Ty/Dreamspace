@@ -41,7 +41,7 @@ export function useScorecardData(currentUser, scoringHistory = [], allYearsScori
     }));
   }, [allYearsScoring]);
 
-  // Calculate dream progress statistics
+  // Calculate dream progress statistics (exclude system dreams)
   const dreamProgressStats = useMemo(() => {
     if (!currentUser?.dreamBook) {
       return {
@@ -52,12 +52,14 @@ export function useScorecardData(currentUser, scoringHistory = [], allYearsScori
       };
     }
 
-    const totalDreams = currentUser.dreamBook.length;
+    // Filter out system dreams
+    const userDreams = currentUser.dreamBook.filter(dream => !dream.isSystem);
+    const totalDreams = userDreams.length;
     const averageProgress = totalDreams > 0
-      ? Math.round(currentUser.dreamBook.reduce((sum, dream) => sum + dream.progress, 0) / totalDreams)
+      ? Math.round(userDreams.reduce((sum, dream) => sum + dream.progress, 0) / totalDreams)
       : 0;
-    const completedDreams = currentUser.dreamBook.filter(dream => dream.progress === 100).length;
-    const activeDreams = currentUser.dreamBook.filter(dream => dream.progress > 0 && dream.progress < 100).length;
+    const completedDreams = userDreams.filter(dream => dream.progress === 100).length;
+    const activeDreams = userDreams.filter(dream => dream.progress > 0 && dream.progress < 100).length;
 
     return {
       totalDreams,

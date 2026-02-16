@@ -28,6 +28,9 @@ export default function DashboardLayout() {
   // Week rollover check (fallback - primary is server-side timer)
   useWeekRollover();
   
+  // Filter out system dreams for display
+  const visibleDreams = (currentUser?.dreamBook || []).filter(dream => !dream.isSystem);
+  
   const {
     isLoadingWeekGoals,
     currentWeekGoals,
@@ -222,7 +225,7 @@ export default function DashboardLayout() {
           weekRange={getCurrentWeekRange()}
           showAddGoal={showAddGoal}
           newGoal={newGoal}
-          dreamBook={currentUser.dreamBook}
+          dreamBook={visibleDreams}
           isLoading={isLoadingWeekGoals}
           onToggleGoal={handleToggleGoal}
           onDecrementGoal={handleDecrementGoal}
@@ -253,7 +256,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="p-4">
-            {currentUser.dreamBook.length === 0 ? (
+            {visibleDreams.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="w-16 h-16 text-professional-gray-300 mx-auto mb-4" />
                 <p className="text-xl font-bold text-professional-gray-800 mb-2">No dreams yet!</p>
@@ -270,7 +273,7 @@ export default function DashboardLayout() {
                 {/* Grid of Dream Cards - 2 columns, up to 2 rows */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" data-testid="dreams-grid">
                   {/* Existing Dreams (show up to 3) */}
-                  {currentUser.dreamBook.slice(0, 3).map((dream) => (
+                  {visibleDreams.slice(0, 3).map((dream) => (
                     <DashboardDreamCard
                       key={dream.id}
                       dream={dream}
@@ -297,13 +300,13 @@ export default function DashboardLayout() {
                 </div>
 
                 {/* Show link to view more if there are more than 3 dreams */}
-                {currentUser.dreamBook.length > 3 && (
+                {visibleDreams.length > 3 && (
                   <Link
                     to="/dream-book"
                     className="block text-center py-3 text-netsurit-red hover:text-netsurit-coral font-semibold transition-colors"
                     data-testid="view-more-dreams"
                   >
-                    View {currentUser.dreamBook.length - 3} more dreams →
+                    View {visibleDreams.length - 3} more dreams →
                   </Link>
                 )}
               </div>

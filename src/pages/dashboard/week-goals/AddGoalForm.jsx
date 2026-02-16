@@ -42,19 +42,28 @@ export default function AddGoalForm({
       />
       
       {/* Dream Selection */}
-      <select
-        value={newGoal.dreamId}
-        onChange={(e) => onChange({ ...newGoal, dreamId: e.target.value })}
-        className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
-        aria-label="Select dream"
-      >
-        <option value="">Select a dream (optional)</option>
-        {dreamBook.map((dream) => (
-          <option key={dream.id} value={dream.id}>
-            {dream.title}
-          </option>
-        ))}
-      </select>
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-professional-gray-600">
+          Link to Dream <span className="text-netsurit-red">*</span>
+        </label>
+        <select
+          value={newGoal.dreamId}
+          onChange={(e) => onChange({ ...newGoal, dreamId: e.target.value })}
+          className="w-full px-4 py-2.5 border-2 border-professional-gray-300 rounded-lg focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red bg-white shadow-sm text-sm font-medium"
+          aria-label="Select dream"
+          required
+        >
+          <option value="">Select a dream</option>
+          {dreamBook.filter(dream => !dream.isSystem).map((dream) => (
+            <option key={dream.id} value={dream.id}>
+              {dream.title}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-professional-gray-500">
+          Goals must be linked to a dream
+        </p>
+      </div>
 
       {/* Consistency Selector */}
       <div className="space-y-2">
@@ -295,7 +304,7 @@ export default function AddGoalForm({
       <div className="flex space-x-2 pt-1">
         <button
           type="submit"
-          disabled={!newGoal.title.trim() || (newGoal.consistency === 'deadline' && !newGoal.targetDate)}
+          disabled={!newGoal.title.trim() || !newGoal.dreamId || (newGoal.consistency === 'deadline' && !newGoal.targetDate)}
           className="flex-1 px-4 py-2.5 bg-gradient-to-r from-netsurit-red to-netsurit-coral text-white rounded-lg hover:from-netsurit-coral hover:to-netsurit-orange transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Goal

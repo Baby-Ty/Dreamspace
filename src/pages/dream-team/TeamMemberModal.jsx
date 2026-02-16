@@ -22,9 +22,9 @@ export default function TeamMemberModal({ member, onClose, isCoach }) {
 
   if (!member) return null;
 
-  // Get public dreams (only show dreams explicitly marked as public)
+  // Get public dreams (only show dreams explicitly marked as public, exclude system dreams)
   const publicDreams = (member.dreamBook || []).filter(dream => 
-    dream.isPublic === true
+    dream.isPublic === true && !dream.isSystem
   );
 
   // Debug logging

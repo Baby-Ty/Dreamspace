@@ -20,7 +20,7 @@ export function useDreamBook() {
   const { currentUser, dreamCategories, addDream, updateDream, deleteDream, reorderDreams, weeklyGoals, deleteWeeklyGoal } = useApp();
   
   const maxDreams = 10;
-  const dreams = currentUser?.dreamBook || [];
+  const dreams = (currentUser?.dreamBook || []).filter(d => !d.isSystem);
 
   // Year vision state with optimistic updates
   const [localYearVision, setLocalYearVision] = useState(() => {
