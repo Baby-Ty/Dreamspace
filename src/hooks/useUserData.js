@@ -54,10 +54,6 @@ export function useUserData(initialUser, dispatch, state) {
           const weeklyGoalsData = persistedData.weeklyGoals || userData.weeklyGoals || [];
           const scoringHistoryData = persistedData.scoringHistory || userData.scoringHistory || [];
           
-          // #region agent log
-          fetch('http://127.0.0.1:7704/ingest/e75213ad-3612-4b22-b4c9-9c008803f475',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'109e04'},body:JSON.stringify({sessionId:'109e04',location:'useUserData.js:loadData-branch1',message:'useUserData branch1: comparing dreamBook sources',data:{serverDreamBookLen:userData.dreamBook?.length,initialUserDreamBookLen:currentInitialUser.dreamBook?.length,usingServerData:!!(userData.dreamBook)},timestamp:Date.now(),hypothesisId:'staleBook'})}).catch(()=>{});
-          // #endregion
-
           const migratedUser = {
             ...createEmptyUser(currentInitialUser),
             ...currentInitialUser,

@@ -27,9 +27,6 @@ export function useInitialUserSync(initialUser, state, dispatch) {
     const newYearVision = initialUser.yearVision;
     
     if (existingYearVision && !newYearVision) {
-      // #region agent log
-      fetch('http://127.0.0.1:7704/ingest/e75213ad-3612-4b22-b4c9-9c008803f475',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'109e04'},body:JSON.stringify({sessionId:'109e04',location:'useInitialUserSync.js:branch-noVision',message:'dispatch branch: no newYearVision',data:{initialBookLen:initialUser.dreamBook?.length,stateBookLen:state.currentUser.dreamBook?.length},timestamp:Date.now(),hypothesisId:'staleBook'})}).catch(()=>{});
-      // #endregion
       dispatch({
         type: actionTypes.SET_USER_DATA,
         payload: {
@@ -51,14 +48,7 @@ export function useInitialUserSync(initialUser, state, dispatch) {
       (initialUser.dreamBook && JSON.stringify(initialUser.dreamBook) !== JSON.stringify(state.currentUser.dreamBook)) ||
       (initialUser.connects && JSON.stringify(initialUser.connects) !== JSON.stringify(state.currentUser.connects));
     
-    // #region agent log
-    fetch('http://127.0.0.1:7704/ingest/e75213ad-3612-4b22-b4c9-9c008803f475',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'109e04'},body:JSON.stringify({sessionId:'109e04',location:'useInitialUserSync.js:hasChanges-check',message:'hasChanges evaluated',data:{hasChanges,initialBookLen:initialUser.dreamBook?.length,stateBookLen:state.currentUser.dreamBook?.length,bookDiverged:initialUser.dreamBook?.length!==state.currentUser.dreamBook?.length},timestamp:Date.now(),hypothesisId:'staleBook'})}).catch(()=>{});
-    // #endregion
-
     if (hasChanges) {
-      // #region agent log
-      fetch('http://127.0.0.1:7704/ingest/e75213ad-3612-4b22-b4c9-9c008803f475',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'109e04'},body:JSON.stringify({sessionId:'109e04',location:'useInitialUserSync.js:dispatch',message:'DISPATCHING SET_USER_DATA - dreamBook source',data:{usingStateBook:true,initialBookLen:initialUser.dreamBook?.length,stateBookLen:state.currentUser.dreamBook?.length},timestamp:Date.now(),hypothesisId:'staleBook'})}).catch(()=>{});
-      // #endregion
       dispatch({
         type: actionTypes.SET_USER_DATA,
         payload: {
