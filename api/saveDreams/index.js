@@ -16,6 +16,7 @@ module.exports = createApiHandler({
   const { userId, dreams, weeklyGoalTemplates } = validation.data;
 
   context.log('saveDreams called:', { userId, dreamsCount: dreams?.length, templatesCount: weeklyGoalTemplates?.length });
+
   const documentId = userId;
   
   context.log(`Saving dreams document for user: ${userId}`);
@@ -47,6 +48,7 @@ module.exports = createApiHandler({
       motivation: dream.motivation || '',
       approach: dream.approach || '',
       category: dream.category,
+      isSystem: dream.isSystem,
       goals: (dream.goals || []).map(goal => ({
         id: goal.id,
         title: goal.title,

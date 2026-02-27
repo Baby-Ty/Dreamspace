@@ -44,19 +44,19 @@ const IsoWeekSchema = z.string().regex(/^\d{4}-W\d{2}$/, 'Invalid ISO week forma
 const GoalSchema = z.object({
   id: IdSchema,
   title: z.string().min(1, 'Goal title is required'),
-  description: z.string().optional(),
-  type: z.enum(['consistency', 'deadline']).default('consistency'),
-  recurrence: z.enum(['weekly', 'monthly']).optional(),
-  targetWeeks: z.number().int().positive().optional(),
-  targetMonths: z.number().int().positive().optional(),
-  startDate: z.string().optional(),
-  targetDate: z.string().optional(),
-  weeksRemaining: z.number().int().optional(),
-  monthsRemaining: z.number().int().optional(),
+  description: z.string().optional().nullable(),
+  type: z.enum(['consistency', 'deadline', 'general']).default('consistency'),
+  recurrence: z.enum(['weekly', 'monthly']).optional().nullable(),
+  targetWeeks: z.number().int().positive().optional().nullable(),
+  targetMonths: z.number().int().positive().optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  targetDate: z.string().optional().nullable(),
+  weeksRemaining: z.number().int().optional().nullable(),
+  monthsRemaining: z.number().int().optional().nullable(),
   active: z.boolean().default(true),
   completed: z.boolean().default(false),
-  completedAt: z.string().optional(),
-  createdAt: z.string().optional()
+  completedAt: z.string().optional().nullable(),
+  createdAt: z.string().optional().nullable()
 }).passthrough();
 
 /**
@@ -64,10 +64,10 @@ const GoalSchema = z.object({
  */
 const NoteSchema = z.object({
   id: IdSchema,
-  text: z.string().optional(),
-  note: z.string().optional(),
-  timestamp: z.string().optional(),
-  createdAt: z.string().optional()
+  text: z.string().optional().nullable(),
+  note: z.string().optional().nullable(),
+  timestamp: z.string().optional().nullable(),
+  createdAt: z.string().optional().nullable()
 }).passthrough();
 
 /**
@@ -87,15 +87,15 @@ const DreamSchema = z.object({
   id: IdSchema,
   title: z.string().min(1, 'Dream title is required'),
   category: z.string().min(1, 'Dream category is required'),
-  description: z.string().optional().default(''),
+  description: z.string().optional().nullable().default(''),
   progress: z.number().min(0).max(100).default(0),
-  image: z.string().url().optional().or(z.literal('')),
+  image: z.string().url().optional().nullable().or(z.literal('')),
   goals: z.array(GoalSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   coachNotes: z.array(CoachNoteMessageSchema).default([]),
   isPublic: z.boolean().default(false),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional()
+  createdAt: z.string().optional().nullable(),
+  updatedAt: z.string().optional().nullable()
 }).passthrough();
 
 /**
@@ -103,25 +103,25 @@ const DreamSchema = z.object({
  */
 const WeeklyGoalTemplateSchema = z.object({
   id: z.string().min(1),
-  type: z.literal('weekly_goal_template').optional(),
-  goalType: z.enum(['consistency', 'deadline']).optional(),
+  type: z.literal('weekly_goal_template').optional().nullable(),
+  goalType: z.enum(['consistency', 'deadline']).optional().nullable(),
   title: z.string().min(1, 'Template title is required'),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   dreamId: z.string().min(1, 'Dream ID is required'),
-  dreamTitle: z.string().optional(),
-  dreamCategory: z.string().optional(),
-  goalId: IdSchema.optional(),
-  milestoneId: IdSchema.optional(), // @deprecated - use goalId
+  dreamTitle: z.string().optional().nullable(),
+  dreamCategory: z.string().optional().nullable(),
+  goalId: IdSchema.optional().nullable(),
+  milestoneId: IdSchema.optional().nullable(), // @deprecated - use goalId
   recurrence: z.enum(['weekly', 'monthly']).default('weekly'),
-  durationType: z.enum(['unlimited', 'weeks', 'milestone']).optional(),
-  durationWeeks: z.number().int().positive().optional(),
-  targetWeeks: z.number().int().positive().optional(),
-  targetMonths: z.number().int().positive().optional(),
-  weeksRemaining: z.number().int().optional(),
-  monthsRemaining: z.number().int().optional(),
-  startDate: z.string().optional(),
+  durationType: z.enum(['unlimited', 'weeks', 'milestone']).optional().nullable(),
+  durationWeeks: z.number().int().positive().optional().nullable(),
+  targetWeeks: z.number().int().positive().optional().nullable(),
+  targetMonths: z.number().int().positive().optional().nullable(),
+  weeksRemaining: z.number().int().optional().nullable(),
+  monthsRemaining: z.number().int().optional().nullable(),
+  startDate: z.string().optional().nullable(),
   active: z.boolean().default(true),
-  createdAt: z.string().optional()
+  createdAt: z.string().optional().nullable()
 }).passthrough();
 
 /**
@@ -243,7 +243,7 @@ function validateRequest(body, schema) {
     return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map(err => {
+      const errors = error.issues.map(err => {
         const path = err.path.join('.');
         return path ? `${path}: ${err.message}` : err.message;
       });

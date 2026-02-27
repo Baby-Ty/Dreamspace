@@ -30,6 +30,7 @@ export function useDreamActions(state, dispatch) {
     const updatedDreams = state.currentUser.dreamBook.map(d => 
       d.id === dream.id ? dream : d
     );
+
     
     // Update dreamTitle in templates if title changed
     const templates = (state.weeklyGoals?.filter(g => 
@@ -96,6 +97,7 @@ export function useDreamActions(state, dispatch) {
     
     // Get updated dreamBook from state (after dispatch)
     const updatedDreams = [...state.currentUser.dreamBook, dream];
+
     
     // Preserve all existing weekly goal templates
     const templates = state.weeklyGoals?.filter(g => 
