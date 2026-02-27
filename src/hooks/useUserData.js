@@ -15,6 +15,16 @@ export function useUserData(initialUser, dispatch, state) {
   const hasLoadedRef = useRef(false);
   const userId = initialUser ? (initialUser.id || initialUser.userId) : null;
 
+  // Keep a ref to the latest initialUser so the load effect doesn't need it as a dep
+  // (prevents re-loading on every focus-triggered AuthContext identity refresh)
+  const initialUserRef = useRef(initialUser);
+  initialUserRef.current = initialUser;
+
+  // Reset the load flag ONLY when userId changes (different user logs in)
+  useEffect(() => {
+    hasLoadedRef.current = false;
+  }, [userId]);
+
   // Load persisted data on mount
   useEffect(() => {
     if (!userId) return;
@@ -32,8 +42,11 @@ export function useUserData(initialUser, dispatch, state) {
       return;
     }
     
-    // If initialUser already has dreams from AuthContext, use those instead of loading
-    if (initialUser?.dreamBook && initialUser.dreamBook.length > 0) {
+    // If initialUser already has dreams from AuthContext, use those as a fallback
+    // but always prefer fresh data from the server (userData.dreamBook) to avoid
+    // using a stale login-time snapshot that doesn't include dreams added later
+    const currentInitialUser = initialUserRef.current;
+    if (currentInitialUser?.dreamBook && currentInitialUser.dreamBook.length > 0) {
       const loadData = async () => {
         const persistedData = await loadUserData(userId);
         if (persistedData) {
@@ -41,13 +54,18 @@ export function useUserData(initialUser, dispatch, state) {
           const weeklyGoalsData = persistedData.weeklyGoals || userData.weeklyGoals || [];
           const scoringHistoryData = persistedData.scoringHistory || userData.scoringHistory || [];
           
+          // #region agent log
+          fetch('http://127.0.0.1:7704/ingest/e75213ad-3612-4b22-b4c9-9c008803f475',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'109e04'},body:JSON.stringify({sessionId:'109e04',location:'useUserData.js:loadData-branch1',message:'useUserData branch1: comparing dreamBook sources',data:{serverDreamBookLen:userData.dreamBook?.length,initialUserDreamBookLen:currentInitialUser.dreamBook?.length,usingServerData:!!(userData.dreamBook)},timestamp:Date.now(),hypothesisId:'staleBook'})}).catch(()=>{});
+          // #endregion
+
           const migratedUser = {
-            ...createEmptyUser(initialUser),
-            ...initialUser,
+            ...createEmptyUser(currentInitialUser),
+            ...currentInitialUser,
             ...userData,
-            dreamBook: initialUser.dreamBook,
-            yearVision: initialUser.yearVision || userData.yearVision || '',
-            connects: initialUser.connects || userData.connects || [],
+            // Prefer fresh server data over stale login-time snapshot
+            dreamBook: userData.dreamBook || currentInitialUser.dreamBook || [],
+            yearVision: currentInitialUser.yearVision || userData.yearVision || '',
+            connects: currentInitialUser.connects || userData.connects || [],
           };
           
           dispatch({
@@ -132,9 +150,11 @@ export function useUserData(initialUser, dispatch, state) {
     loadData();
     
     return () => {
-      hasLoadedRef.current = false;
+      // Only reset the load flag when userId changes (i.e. a different user logs in),
+      // NOT on every initialUser reference change (e.g. focus-triggered role refresh).
+      // The initialUserRef keeps the latest initialUser available without making it a dep.
     };
-  }, [userId, initialUser, dispatch]);
+  }, [userId, dispatch]);
 
   // Load connects from API on mount and when user changes
   const currentUserIdRef = useRef(null);
