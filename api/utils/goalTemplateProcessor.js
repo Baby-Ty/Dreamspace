@@ -206,7 +206,7 @@ async function processDreamGoalUpdates(userId, dreams, dreamGoalUpdates, dreamsD
     // Update dreams document with new goal values
     // Use the same field name as the original document (dreams or dreamBook)
     const dreamsFieldName = dreamsDoc.dreamBook ? 'dreamBook' : 'dreams';
-    
+
     // Verify updates were applied
     for (const dream of updatedDreams) {
       const goalUpdates = dreamGoalUpdates.get(dream.id);
