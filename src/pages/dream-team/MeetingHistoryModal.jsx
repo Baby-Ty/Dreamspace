@@ -1,4 +1,4 @@
-import { X, Calendar, Loader2 } from 'lucide-react';
+import { X, Calendar, Loader2, CalendarPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../utils/toast';
 import { MeetingHistoryItem } from './meeting-history';
+import MeetingFormFields from './meeting-attendance/MeetingFormFields';
 
 /**
  * Meeting History Modal Component
@@ -27,6 +28,9 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false, 
     duration: 60
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isSchedulingNew, setIsSchedulingNew] = useState(false);
+  const [newMeetingData, setNewMeetingData] = useState({ title: '', date: '', time: '', duration: 60, timezone: 'Eastern Standard Time' });
+  const [isSchedulingLoading, setIsSchedulingLoading] = useState(false);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -303,6 +307,80 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false, 
     }
   };
 
+  const handleScheduleNewMeeting = async () => {
+    if (!isCoach) return;
+
+    if (!newMeetingData.title?.trim()) {
+      showToast('Please enter a meeting title', 'error');
+      return;
+    }
+    if (!newMeetingData.date) {
+      showToast('Please select a meeting date', 'error');
+      return;
+    }
+    if (!newMeetingData.time) {
+      showToast('Please enter a meeting time', 'error');
+      return;
+    }
+
+    setIsSchedulingLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        showToast('Authentication required. Please sign in again.', 'error');
+        return;
+      }
+
+      const teamMembersWithEmails = (teamMembers || []).map(member => ({
+        id: member.id,
+        name: member.name,
+        email: member.email || member.userPrincipalName || member.mail
+      })).filter(m => m.email);
+
+      if (teamMembersWithEmails.length === 0) {
+        showToast('No team members with email addresses found', 'error');
+        return;
+      }
+
+      const result = await coachingService.scheduleMeetingWithCalendar(teamId, {
+        title: newMeetingData.title.trim(),
+        date: newMeetingData.date,
+        time: newMeetingData.time,
+        timezone: newMeetingData.timezone,
+        duration: newMeetingData.duration || 60,
+        teamMembers: teamMembersWithEmails,
+        accessToken: token
+      });
+
+      if (result.success) {
+        showToast('Meeting scheduled! Calendar invites sent to all team members.', 'success');
+        setIsSchedulingNew(false);
+        setNewMeetingData({ title: '', date: '', time: '', duration: 60, timezone: 'Eastern Standard Time' });
+
+        // Reload meeting list to include the new scheduled meeting
+        try {
+          const historyResult = await coachingService.getMeetingAttendanceHistory(teamId);
+          if (historyResult.success) {
+            const allMeetings = historyResult.data || [];
+            setMeetings(allMeetings.filter(m => m.status !== 'cancelled'));
+          }
+        } catch (reloadErr) {
+          console.warn('⚠️ Failed to reload meetings after scheduling:', reloadErr);
+        }
+      } else {
+        const errMsg = typeof result.error === 'string'
+          ? result.error
+          : (result.error?.message || 'Failed to schedule meeting');
+        showToast(errMsg, 'error');
+      }
+    } catch (err) {
+      console.error('❌ Error scheduling meeting:', err);
+      showToast('Error scheduling meeting', 'error');
+    } finally {
+      setIsSchedulingLoading(false);
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
@@ -335,16 +413,67 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false, 
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              aria-label="Close modal"
-              data-testid="close-history-modal-button"
-              className="p-2 text-[#5c5030] hover:text-[#4a3b22] hover:bg-[#8a7a50]/20 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6" aria-hidden="true" />
-            </button>
+            <div className="flex items-center gap-2">
+              {isCoach && (
+                <button
+                  onClick={() => setIsSchedulingNew(prev => !prev)}
+                  aria-label="Schedule new meeting"
+                  data-testid="schedule-new-meeting-button"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4a3b22] text-[#fef9c3] rounded-lg font-hand text-sm hover:bg-[#5c4a2a] transition-colors"
+                >
+                  <CalendarPlus className="w-4 h-4" aria-hidden="true" />
+                  Schedule Meeting
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                aria-label="Close modal"
+                data-testid="close-history-modal-button"
+                className="p-2 text-[#5c5030] hover:text-[#4a3b22] hover:bg-[#8a7a50]/20 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Schedule New Meeting Form */}
+        {isSchedulingNew && (
+          <div className="p-4 sm:p-6 border-b border-[#8a7a50]/30 bg-[#fef9c3] flex-shrink-0">
+            <h3 className="text-base font-bold text-[#4a3b22] font-hand mb-3">New Meeting</h3>
+            <MeetingFormFields
+              meetingData={newMeetingData}
+              setMeetingData={setNewMeetingData}
+              isCoach={isCoach}
+              isLoadingScheduled={isSchedulingLoading}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleScheduleNewMeeting}
+                disabled={isSchedulingLoading}
+                data-testid="confirm-schedule-meeting-button"
+                className="flex items-center gap-2 px-4 py-2 bg-[#4a3b22] text-[#fef9c3] rounded-lg font-hand text-sm hover:bg-[#5c4a2a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSchedulingLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  : <CalendarPlus className="w-4 h-4" aria-hidden="true" />
+                }
+                {isSchedulingLoading ? 'Scheduling...' : 'Confirm & Send Invites'}
+              </button>
+              <button
+                onClick={() => {
+                  setIsSchedulingNew(false);
+                  setNewMeetingData({ title: '', date: '', time: '', duration: 60, timezone: 'Eastern Standard Time' });
+                }}
+                disabled={isSchedulingLoading}
+                data-testid="cancel-schedule-meeting-button"
+                className="px-4 py-2 border-2 border-[#8a7a50] text-[#5c5030] rounded-lg font-hand text-sm hover:bg-[#8a7a50]/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gradient-to-br from-[#fef9c3] to-[#fef08a]">
