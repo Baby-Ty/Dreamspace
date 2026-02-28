@@ -293,6 +293,16 @@ class CoachingService extends BaseService {
   async scheduleMeetingWithCalendar(teamId, meetingData) {
     return meetingService.scheduleMeetingWithCalendar(teamId, meetingData);
   }
+
+  /**
+   * Update existing scheduled meeting and its calendar event - delegates to meetingService
+   * @param {string} teamId - Stable Team ID
+   * @param {object} updateData - { meetingId, calendarEventId, title, date, time, timezone, duration, teamMembers, accessToken }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateMeetingWithCalendar(teamId, updateData) {
+    return meetingService.updateMeetingWithCalendar(teamId, updateData);
+  }
 }
 
 // Create and export singleton instance

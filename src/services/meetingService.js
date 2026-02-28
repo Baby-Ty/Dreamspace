@@ -108,21 +108,18 @@ class MeetingService extends BaseService {
         
         let meetings = result.meetings || (result.success ? result.data : []) || [];
         
-        // Sort meetings: scheduled first (by date DESC), then completed (by completedAt DESC)
+        // Sort meetings: scheduled first (by date ASC, closest first), then completed (by date ASC)
         meetings = meetings.sort((a, b) => {
           const aStatus = a.status || 'completed';
           const bStatus = b.status || 'completed';
-          
-          if (aStatus === 'scheduled' && bStatus === 'completed') return -1;
-          if (aStatus === 'completed' && bStatus === 'scheduled') return 1;
-          
-          if (aStatus === 'scheduled' && bStatus === 'scheduled') {
-            return new Date(b.date) - new Date(a.date);
-          }
-          
-          const aDate = new Date(a.completedAt || a.date);
-          const bDate = new Date(b.completedAt || b.date);
-          return bDate - aDate;
+
+          if (aStatus === 'scheduled' && bStatus !== 'scheduled') return -1;
+          if (aStatus !== 'scheduled' && bStatus === 'scheduled') return 1;
+
+          // Within the same group, sort by date ascending (closest first)
+          const aDate = new Date(a.date || a.completedAt || 0);
+          const bDate = new Date(b.date || b.completedAt || 0);
+          return aDate - bDate;
         });
         
         console.log('✅ Retrieved meeting attendance history:', meetings.length, {
@@ -137,6 +134,56 @@ class MeetingService extends BaseService {
     } catch (error) {
       console.error('❌ Error fetching meeting attendance history:', error);
       return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to fetch meeting attendance history');
+    }
+  }
+
+  /**
+   * Update an existing scheduled meeting and its Office 365 calendar event
+   * @param {string} teamId - Stable Team ID
+   * @param {object} updateData - { meetingId, calendarEventId, title, date, time, timezone, duration, teamMembers, accessToken }
+   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   */
+  async updateMeetingWithCalendar(teamId, updateData) {
+    try {
+      if (!teamId || typeof teamId !== 'string' || !teamId.trim()) {
+        return fail(ErrorCodes.VALIDATION, 'Invalid team ID provided');
+      }
+
+      if (!updateData.meetingId) {
+        return fail(ErrorCodes.VALIDATION, 'meetingId is required');
+      }
+
+      if (!updateData.title || !updateData.date || !updateData.time) {
+        return fail(ErrorCodes.VALIDATION, 'Title, date, and time are required');
+      }
+
+      if (!updateData.accessToken) {
+        return fail(ErrorCodes.VALIDATION, 'Access token is required for calendar operations');
+      }
+
+      const response = await apiClient.post(`/updateMeetingCalendar/${encodeURIComponent(teamId)}`, updateData);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          error: `HTTP ${response.status}: ${response.statusText}`,
+          details: 'Failed to update meeting'
+        }));
+        const errorMessage = errorData.details
+          ? `${errorData.error}: ${errorData.details}`
+          : (errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        return fail(ErrorCodes.NETWORK, errorMessage);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ Meeting updated successfully with calendar sync');
+        return ok(result.data);
+      } else {
+        return fail(ErrorCodes.NETWORK, result.error || 'Failed to update meeting');
+      }
+    } catch (error) {
+      console.error('❌ Error updating meeting:', error);
+      return fail(ErrorCodes.UNKNOWN, error.message || 'Failed to update meeting');
     }
   }
 

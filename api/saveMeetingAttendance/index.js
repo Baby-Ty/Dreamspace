@@ -22,15 +22,15 @@ module.exports = createApiHandler({
 
   // Validate status field if provided
   const meetingStatus = status || 'completed'; // Default to 'completed' for backwards compatibility
-  if (!['scheduled', 'completed'].includes(meetingStatus)) {
+  if (!['scheduled', 'completed', 'cancelled'].includes(meetingStatus)) {
     throw { 
       status: 400, 
       message: 'Invalid status',
-      details: 'status must be either "scheduled" or "completed"'
+      details: 'status must be "scheduled", "completed", or "cancelled"'
     };
   }
 
-  // For scheduled meetings, attendees are optional (will be filled in later)
+  // For scheduled/cancelled meetings, attendees are optional (will be filled in later)
   // For completed meetings, require attendees
   if (meetingStatus === 'completed' && (!Array.isArray(attendees) || attendees.length === 0)) {
     throw { 

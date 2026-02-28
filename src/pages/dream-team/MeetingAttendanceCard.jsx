@@ -18,10 +18,15 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
     isLoadingScheduled,
     showHistory,
     setShowHistory,
+    currentMeetingId,
     handleToggleAttendance,
+    handleNewMeeting,
     handleScheduleMeeting,
+    handleUpdateMeeting,
     handleCompleteMeeting
   } = useMeetingAttendance({ teamId, teamMembers, isCoach, onComplete });
+
+  const hasActiveMeeting = Boolean(currentMeetingId);
 
   const allMembers = teamMembers || [];
   const membersArray = Object.values(attendance);
@@ -62,7 +67,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
       {isCoach && (
         <div className="flex gap-2">
           <button
-            onClick={handleScheduleMeeting}
+            onClick={hasActiveMeeting ? handleUpdateMeeting : handleScheduleMeeting}
             disabled={isScheduling || !meetingData.title || !meetingData.date || !meetingData.time || allMembers.length === 0}
             className="flex-1 px-3 bg-[#8a7a50] text-[#fef9c3] rounded-lg hover:bg-[#9a8a60] transition-all duration-200 shadow-sm hover:shadow-md font-medium text-base font-hand disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ height: '28px', lineHeight: '28px' }}
@@ -71,12 +76,12 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
             {isScheduling ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                Scheduling...
+                {hasActiveMeeting ? 'Updating...' : 'Scheduling...'}
               </>
             ) : (
               <>
                 <Calendar className="w-4 h-4" aria-hidden="true" />
-                Schedule Meeting
+                {hasActiveMeeting ? 'Update Meeting' : 'Schedule Meeting'}
               </>
             )}
           </button>
@@ -110,6 +115,19 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
           </button>
         </div>
       )}
+
+      {/* Schedule another meeting — shown below buttons when an active meeting is loaded */}
+      {isCoach && hasActiveMeeting && (
+        <div className="text-center">
+          <button
+            onClick={handleNewMeeting}
+            className="text-sm text-[#5c5030] underline font-hand hover:text-[#4a3b22] transition-colors bg-transparent border-none cursor-pointer"
+            data-testid="schedule-another-button"
+          >
+            Schedule another meeting
+          </button>
+        </div>
+      )}
       
       {/* History Modal */}
       {showHistory && teamId && (
@@ -117,6 +135,7 @@ export default function MeetingAttendanceCard({ teamId, teamMembers, isCoach, on
           teamId={teamId}
           onClose={() => setShowHistory(false)}
           isCoach={isCoach}
+          teamMembers={teamMembers}
         />
       )}
       

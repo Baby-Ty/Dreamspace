@@ -3,21 +3,29 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { coachingService } from '../../services/coachingService';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../utils/toast';
 import { MeetingHistoryItem } from './meeting-history';
 
 /**
  * Meeting History Modal Component
  * Displays detailed attendance history for a team
- * Allows coaches to edit attendance after submission
+ * Allows coaches to edit meeting details, attendance, cancel, and complete meetings
  */
-export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }) {
+export default function MeetingHistoryModal({ teamId, onClose, isCoach = false, teamMembers = [] }) {
   const { currentUser } = useApp();
+  const { getToken } = useAuth();
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingMeetingId, setEditingMeetingId] = useState(null);
   const [editedAttendees, setEditedAttendees] = useState({});
+  const [editedMeetingDetails, setEditedMeetingDetails] = useState({
+    title: '',
+    date: '',
+    time: '',
+    duration: 60
+  });
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -47,9 +55,11 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
         console.log('📥 Meeting history result:', result);
         
         if (result.success) {
-          const meetings = result.data || [];
-          console.log('✅ Loaded meetings:', meetings.length);
-          setMeetings(meetings);
+          const allMeetings = result.data || [];
+          // Filter out cancelled meetings from the display list
+          const visibleMeetings = allMeetings.filter(m => m.status !== 'cancelled');
+          console.log('✅ Loaded meetings:', visibleMeetings.length);
+          setMeetings(visibleMeetings);
         } else {
           let errorMsg = 'Failed to load meeting history';
           if (result.error) {
@@ -89,12 +99,19 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
       };
     });
     setEditedAttendees(attendeesMap);
+    setEditedMeetingDetails({
+      title: meeting.title || '',
+      date: meeting.date || '',
+      time: meeting.time || '',
+      duration: meeting.duration || 60
+    });
     setEditingMeetingId(meeting.id);
   };
 
   const handleCancelEdit = () => {
     setEditingMeetingId(null);
     setEditedAttendees({});
+    setEditedMeetingDetails({ title: '', date: '', time: '', duration: 60 });
   };
 
   const handleToggleAttendance = (attendeeId) => {
@@ -109,44 +126,178 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
     }));
   };
 
-  const handleSaveAttendance = async (meeting) => {
+  const handleMeetingDetailsChange = (field, value) => {
+    setEditedMeetingDetails(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveMeeting = async (meeting) => {
     if (!isCoach || !editingMeetingId || editingMeetingId !== meeting.id) return;
 
     setIsSaving(true);
     try {
       const attendees = Object.values(editedAttendees);
-      
+      const isCompleted = (meeting.status || 'completed') === 'completed';
+      const resolvedTitle = editedMeetingDetails.title || meeting.title;
+      const resolvedDate = editedMeetingDetails.date || meeting.date;
+      const resolvedTime = editedMeetingDetails.time || meeting.time || undefined;
+      const resolvedDuration = editedMeetingDetails.duration || meeting.duration || 60;
+
       const result = await coachingService.saveMeetingAttendance(teamId, {
         id: meeting.id,
-        title: meeting.title,
-        date: meeting.date,
-        time: meeting.time || undefined,
-        attendees: attendees,
-        completedBy: currentUser?.id || currentUser?.userId,
+        title: resolvedTitle,
+        date: resolvedDate,
+        time: resolvedTime,
+        timezone: meeting.timezone || undefined,
+        duration: resolvedDuration,
+        attendees: isCompleted ? attendees : (attendees.length > 0 ? attendees : undefined),
+        completedBy: meeting.completedBy || currentUser?.id || currentUser?.userId,
         isScheduledViaCalendar: meeting.isScheduledViaCalendar || false,
         calendarEventId: meeting.calendarEventId || undefined,
         status: meeting.status || 'completed'
       });
 
       if (result.success) {
-        showToast('Attendance updated successfully!', 'success');
-        
-        setMeetings(prev => prev.map(m => 
-          m.id === meeting.id 
-            ? { ...m, attendees: attendees }
+        showToast('Meeting updated successfully!', 'success');
+
+        setMeetings(prev => prev.map(m =>
+          m.id === meeting.id
+            ? {
+                ...m,
+                title: resolvedTitle,
+                date: resolvedDate,
+                time: resolvedTime,
+                duration: resolvedDuration,
+                attendees: attendees.length > 0 ? attendees : m.attendees
+              }
             : m
         ));
-        
+
         handleCancelEdit();
+
+        // Best-effort calendar sync if this meeting has a calendar event
+        if (meeting.isScheduledViaCalendar && meeting.calendarEventId) {
+          try {
+            const token = await getToken();
+            if (token) {
+              const teamMembersWithEmails = (teamMembers || []).map(member => ({
+                id: member.id,
+                name: member.name,
+                email: member.email || member.userPrincipalName || member.mail
+              })).filter(m => m.email);
+
+              await coachingService.updateMeetingWithCalendar(teamId, {
+                meetingId: meeting.id,
+                calendarEventId: meeting.calendarEventId,
+                title: resolvedTitle,
+                date: resolvedDate,
+                time: resolvedTime || meeting.time,
+                timezone: meeting.timezone || undefined,
+                duration: resolvedDuration,
+                teamMembers: teamMembersWithEmails,
+                accessToken: token
+              });
+            }
+          } catch (calendarErr) {
+            console.warn('⚠️ Calendar sync failed after history save (details saved):', calendarErr);
+          }
+        }
       } else {
-        const errorMsg = typeof result.error === 'string' 
-          ? result.error 
-          : (result.error?.message || 'Failed to update attendance');
+        const errorMsg = typeof result.error === 'string'
+          ? result.error
+          : (result.error?.message || 'Failed to update meeting');
         showToast(errorMsg, 'error');
       }
     } catch (err) {
-      console.error('❌ Error updating attendance:', err);
-      showToast('Error updating attendance', 'error');
+      console.error('❌ Error updating meeting:', err);
+      showToast('Error updating meeting', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelMeeting = async (meeting) => {
+    if (!isCoach) return;
+
+    setIsSaving(true);
+    try {
+      const result = await coachingService.saveMeetingAttendance(teamId, {
+        id: meeting.id,
+        title: meeting.title,
+        date: meeting.date,
+        time: meeting.time || undefined,
+        timezone: meeting.timezone || undefined,
+        duration: meeting.duration || 60,
+        attendees: meeting.attendees || [],
+        isScheduledViaCalendar: meeting.isScheduledViaCalendar || false,
+        calendarEventId: meeting.calendarEventId || undefined,
+        status: 'cancelled'
+      });
+
+      if (result.success) {
+        showToast('Meeting cancelled.', 'success');
+        setMeetings(prev => prev.filter(m => m.id !== meeting.id));
+      } else {
+        const errorMsg = typeof result.error === 'string'
+          ? result.error
+          : (result.error?.message || 'Failed to cancel meeting');
+        showToast(errorMsg, 'error');
+      }
+    } catch (err) {
+      console.error('❌ Error cancelling meeting:', err);
+      showToast('Error cancelling meeting', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCompleteMeetingFromHistory = async (meeting) => {
+    if (!isCoach) return;
+
+    // When completing from history without editing, use the meeting's existing attendees
+    const attendees = editingMeetingId === meeting.id
+      ? Object.values(editedAttendees)
+      : (meeting.attendees || []);
+
+    if (!attendees || attendees.length === 0) {
+      showToast('No attendees found for this meeting', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await coachingService.saveMeetingAttendance(teamId, {
+        id: meeting.id,
+        title: editingMeetingId === meeting.id ? (editedMeetingDetails.title || meeting.title) : meeting.title,
+        date: editingMeetingId === meeting.id ? (editedMeetingDetails.date || meeting.date) : meeting.date,
+        time: editingMeetingId === meeting.id ? (editedMeetingDetails.time || meeting.time) : meeting.time || undefined,
+        timezone: meeting.timezone || undefined,
+        duration: editingMeetingId === meeting.id ? (editedMeetingDetails.duration || meeting.duration) : meeting.duration || 60,
+        attendees: attendees,
+        completedBy: currentUser?.id || currentUser?.userId,
+        isScheduledViaCalendar: meeting.isScheduledViaCalendar || false,
+        calendarEventId: meeting.calendarEventId || undefined,
+        status: 'completed'
+      });
+
+      if (result.success) {
+        showToast('Meeting marked as complete!', 'success');
+        setMeetings(prev => prev.map(m =>
+          m.id === meeting.id
+            ? { ...m, status: 'completed', attendees }
+            : m
+        ));
+        if (editingMeetingId === meeting.id) {
+          handleCancelEdit();
+        }
+      } else {
+        const errorMsg = typeof result.error === 'string'
+          ? result.error
+          : (result.error?.message || 'Failed to complete meeting');
+        showToast(errorMsg, 'error');
+      }
+    } catch (err) {
+      console.error('❌ Error completing meeting:', err);
+      showToast('Error completing meeting', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -221,12 +372,16 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
                   meeting={meeting}
                   isEditing={editingMeetingId === meeting.id}
                   editedAttendees={editedAttendees}
+                  editedMeetingDetails={editedMeetingDetails}
                   isSaving={isSaving}
                   isCoach={isCoach}
                   onEdit={handleEditMeeting}
                   onToggleAttendance={handleToggleAttendance}
-                  onSave={handleSaveAttendance}
+                  onMeetingDetailsChange={handleMeetingDetailsChange}
+                  onSave={handleSaveMeeting}
                   onCancelEdit={handleCancelEdit}
+                  onCancelMeeting={handleCancelMeeting}
+                  onCompleteMeeting={handleCompleteMeetingFromHistory}
                 />
               ))}
             </div>
@@ -240,9 +395,15 @@ export default function MeetingHistoryModal({ teamId, onClose, isCoach = false }
 MeetingHistoryModal.propTypes = {
   teamId: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
-  isCoach: PropTypes.bool
+  isCoach: PropTypes.bool,
+  teamMembers: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    email: PropTypes.string
+  }))
 };
 
 MeetingHistoryModal.defaultProps = {
-  isCoach: false
+  isCoach: false,
+  teamMembers: []
 };
