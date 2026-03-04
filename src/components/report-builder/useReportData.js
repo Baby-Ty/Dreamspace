@@ -30,59 +30,13 @@ export function useReportData({
     });
   }, [teamRelationships, allUsers]);
 
-  // Helper: Get meeting attendance count for a user's team within date range
-  const getMeetingAttendanceCount = useCallback(async (userId, teamId) => {
-    if (!teamId) {
-      console.log(`⚠️ No teamId for user ${userId}, skipping meeting attendance`);
-      return 0;
-    }
-    
-    try {
-      console.log(`📅 Fetching meeting attendance for user ${userId}, team ${teamId}`);
-      const response = await coachingService.getMeetingAttendanceHistory(teamId);
-      
-      if (!response.success) {
-        console.warn(`⚠️ Failed to fetch meeting attendance for team ${teamId}:`, response.error);
-        return 0;
-      }
-      
-      const meetings = response.data || [];
-      const startDateStr = dateRange.startDate;
-      const endDateStr = dateRange.endDate;
-      const userIdStr = String(userId);
-      
-      // Filter meetings within date range
-      const filteredMeetings = meetings.filter(meeting => {
-        const meetingDateStr = meeting.date ? meeting.date.split('T')[0] : null;
-        if (!meetingDateStr) return false;
-        return meetingDateStr >= startDateStr && meetingDateStr <= endDateStr;
-      });
-      
-      // Count user's attendance
-      const attendanceCount = filteredMeetings.reduce((count, meeting) => {
-        const attendee = meeting.attendees?.find(a => String(a.id) === userIdStr);
-        return attendee?.present ? count + 1 : count;
-      }, 0);
-      
-      return attendanceCount;
-    } catch (error) {
-      console.error(`❌ Error fetching meeting attendance for user ${userId}, team ${teamId}:`, error);
-      return 0;
-    }
-  }, [dateRange]);
-
   // Helper: Get active weeks count (weeks with score > 0%)
   const getActiveWeeksCount = useCallback(async (userId) => {
     try {
       const response = await getPastWeeks(userId);
-      
-      if (!response.success) {
-        return 0;
-      }
-      
+      if (!response.success) return 0;
       const weekHistory = response.data?.weekHistory || {};
-      const activeWeeks = Object.values(weekHistory).filter(week => week.score > 0);
-      return activeWeeks.length;
+      return Object.values(weekHistory).filter(week => week.score > 0).length;
     } catch (error) {
       console.error(`❌ Error fetching past weeks for user ${userId}:`, error);
       return 0;
@@ -92,57 +46,99 @@ export function useReportData({
   // Generate report data from real sources
   const generateReportData = useCallback(async () => {
     setIsLoadingData(true);
-    
-    try {
-      const reportPromises = allUsers.map(async (user) => {
-        const userIdStr = String(user.id);
-        const userTeam = teamRelationships.find(team => 
-          team.teamMembers && team.teamMembers.some(memberId => String(memberId) === userIdStr)
-        );
-        
-        // Apply team filter
-        if (selectedTeams[0] !== 'all') {
-          if (!userTeam) return null;
-          
-          const userTeamManagerId = String(userTeam.managerId);
-          const selectedTeamIds = selectedTeams.map(id => String(id));
-          
-          if (!selectedTeamIds.includes(userTeamManagerId)) return null;
-        }
 
-        // Fetch dreams if not already in user object
-        let dreams = user.dreamBook || [];
-        
-        if (!dreams || dreams.length === 0) {
+    try {
+      // Step 1: Resolve each user's team upfront
+      const userTeamMap = new Map();
+      allUsers.forEach(user => {
+        const userIdStr = String(user.id);
+        const userTeam = teamRelationships.find(team =>
+          team.teamMembers && team.teamMembers.some(memberId => String(memberId) === userIdStr)
+        ) || teamRelationships.find(team => String(team.managerId) === userIdStr);
+        userTeamMap.set(user.id, userTeam);
+      });
+
+      // Step 2: Apply team filter
+      const filteredUsers = allUsers.filter(user => {
+        if (selectedTeams[0] === 'all') return true;
+        const userTeam = userTeamMap.get(user.id);
+        if (!userTeam) return false;
+        return selectedTeams.map(String).includes(String(userTeam.managerId));
+      });
+
+      // Step 3: Pre-fetch meeting data ONCE per unique team (avoids N duplicate calls)
+      const uniqueTeamIds = [
+        ...new Set(
+          filteredUsers
+            .map(user => {
+              const userTeam = userTeamMap.get(user.id);
+              return userTeam?.teamId || userTeam?.id;
+            })
+            .filter(Boolean)
+        )
+      ];
+
+      const meetingsByTeam = {};
+      await Promise.all(
+        uniqueTeamIds.map(async (teamId) => {
+          try {
+            console.log(`📅 Pre-fetching meetings for team ${teamId}`);
+            const response = await coachingService.getMeetingAttendanceHistory(teamId);
+            meetingsByTeam[teamId] = response.success ? (response.data || []) : [];
+          } catch (err) {
+            console.warn(`⚠️ Failed to fetch meetings for team ${teamId}:`, err);
+            meetingsByTeam[teamId] = [];
+          }
+        })
+      );
+
+      // Step 4: Process users in batches to avoid overwhelming the API
+      // (getPastWeeks is still 1 call per user, batching keeps concurrency manageable)
+      const BATCH_SIZE = 8;
+      const startDateStr = dateRange.startDate;
+      const endDateStr = dateRange.endDate;
+
+      const processUser = async (user) => {
+        const userTeam = userTeamMap.get(user.id);
+        const teamId = userTeam?.teamId || userTeam?.id;
+        const userIdStr = String(user.id);
+
+        // Count meetings from pre-fetched cache (no extra API call)
+        const teamMeetings = meetingsByTeam[teamId] || [];
+        const meetingsAttended = teamMeetings.filter(meeting => {
+          const meetingDateStr = meeting.date ? meeting.date.split('T')[0] : null;
+          if (!meetingDateStr) return false;
+          if (meetingDateStr < startDateStr || meetingDateStr > endDateStr) return false;
+          return meeting.attendees?.some(a => String(a.id) === userIdStr && a.present);
+        }).length;
+
+        // Only fetch dreams from API if dreamBook is not present on the user object at all
+        // (getAllUsers returns dreamBook for privileged callers, even if empty array)
+        let dreams = user.dreamBook != null ? user.dreamBook : null;
+        if (dreams === null) {
           try {
             const userDataResult = await databaseService.loadFromCosmosDB(user.id);
             if (userDataResult.success && userDataResult.data) {
               dreams = userDataResult.data.dreamBook || [];
             }
-          } catch (dreamError) {
+          } catch {
             dreams = [];
           }
         }
+        dreams = dreams || [];
 
         const publicDreams = dreams.filter(d => d.isPublic);
         const completedDreams = dreams.filter(d => d.completed);
         const allGoals = dreams.flatMap(d => d.goals || []);
         const completedGoals = allGoals.filter(g => g.completed);
-        
-        // Group dreams by category
+
         const categoryBreakdown = dreams.reduce((acc, dream) => {
           const category = dream.category || 'Uncategorized';
           acc[category] = (acc[category] || 0) + 1;
           return acc;
         }, {});
 
-        const teamId = userTeam?.teamId || userTeam?.id;
-        
-        // Fetch async data
-        const [meetingsAttended, engagementWeeksActive] = await Promise.all([
-          getMeetingAttendanceCount(user.id, teamId),
-          getActiveWeeksCount(user.id)
-        ]);
+        const engagementWeeksActive = await getActiveWeeksCount(user.id);
 
         return {
           userId: user.id,
@@ -159,9 +155,14 @@ export function useReportData({
           goalsCompleted: completedGoals.length,
           engagementWeeksActive
         };
-      });
+      };
 
-      const results = await Promise.all(reportPromises);
+      const results = [];
+      for (let i = 0; i < filteredUsers.length; i += BATCH_SIZE) {
+        const batch = filteredUsers.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(batch.map(processUser));
+        results.push(...batchResults);
+      }
       return results.filter(Boolean);
     } catch (error) {
       console.error('Error generating report data:', error);
@@ -169,12 +170,14 @@ export function useReportData({
     } finally {
       setIsLoadingData(false);
     }
-  }, [allUsers, teamRelationships, selectedTeams, getMeetingAttendanceCount, getActiveWeeksCount]);
+  }, [allUsers, teamRelationships, selectedTeams, dateRange, getActiveWeeksCount]);
 
-  // Load report data when filters change
+  // Load report data when filters change — skip if no team has been selected yet
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && selectedTeams.length > 0) {
       generateReportData().then(setReportData);
+    } else if (!isOpen || selectedTeams.length === 0) {
+      setReportData([]);
     }
   }, [isOpen, dateRange, selectedTeams, generateReportData]);
 

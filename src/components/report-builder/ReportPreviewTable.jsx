@@ -4,10 +4,19 @@
 export default function ReportPreviewTable({
   reportData,
   selectedMetrics,
-  isLoading
+  isLoading,
+  hasSelection
 }) {
   const previewData = reportData.slice(0, 3);
   const selectedMetricsCount = Object.values(selectedMetrics).filter(Boolean).length;
+
+  if (!hasSelection) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <p className="text-sm">Select a team above to load report data.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

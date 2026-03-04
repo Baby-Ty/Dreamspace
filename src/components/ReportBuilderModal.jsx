@@ -28,8 +28,8 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
     userEngagement: true
   });
 
-  // Filter state
-  const [selectedTeams, setSelectedTeams] = useState(['all']);
+  // Filter state — empty means no selection yet (data won't load until user picks a team)
+  const [selectedTeams, setSelectedTeams] = useState([]);
   const [exportFormat, setExportFormat] = useState('csv');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMetricsCollapsed, setIsMetricsCollapsed] = useState(true);
@@ -58,8 +58,8 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
       setSelectedTeams(prev => {
         const filtered = prev.filter(t => t !== 'all');
         if (filtered.includes(teamId)) {
-          const newSelection = filtered.filter(t => t !== teamId);
-          return newSelection.length === 0 ? ['all'] : newSelection;
+          // Deselecting a team — allow empty selection (no auto-fallback to 'all')
+          return filtered.filter(t => t !== teamId);
         }
         return [...filtered, teamId];
       });
@@ -131,6 +131,7 @@ const ReportBuilderModal = ({ isOpen, onClose, allUsers = [], teamRelationships 
               reportData={reportData}
               selectedMetrics={selectedMetrics}
               isLoading={isLoadingData}
+              hasSelection={selectedTeams.length > 0}
             />
           </div>
         </div>
