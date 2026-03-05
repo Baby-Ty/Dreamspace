@@ -13,7 +13,7 @@ module.exports = createApiHandler({
     context.log.warn('Cosmos DB provider not initialized, returning default prompts');
     const defaultPrompts = {
       imageGeneration: {
-        dreamPrompt: `Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nUse scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`,
+        dreamPrompt: `Create an inspiring, symbolic image that represents the dream: {userSearchTerm}\n\nMake the image visually strong, motivating, and emotionally uplifting.\nFocus on scenery, landscapes, objects, environments, and symbolic or abstract visuals. No identifiable people or faces.`,
         backgroundCardPrompt: `Create a clean, visually appealing background image based on the theme: "{userSearchTerm}".\n\nMake the image expressive but not distracting, with a subtle composition that works behind UI text.\nUse scenery, objects, abstract shapes, or symbolic visuals — but no identifiable people or faces.`
       },
       visionGeneration: {
@@ -79,6 +79,19 @@ module.exports = createApiHandler({
           }
         }
       };
+
+      // Auto-migrate: if the stored dream prompt still has the old "hands-only shots" text,
+      // replace it with the fixed version and persist back to Cosmos DB (non-blocking)
+      if (prompts.imageGeneration?.dreamPrompt?.includes('hands-only shots')) {
+        context.log('🔧 Auto-migrating stale dreamPrompt (removing "hands-only shots")');
+        prompts.imageGeneration.dreamPrompt = defaultPrompts.imageGeneration.dreamPrompt;
+        try {
+          await provider.upsertPrompts(prompts, 'system-migration');
+          context.log('✅ dreamPrompt auto-migration saved to Cosmos DB');
+        } catch (migrationError) {
+          context.log.warn('⚠️ dreamPrompt auto-migration failed (non-blocking):', migrationError.message);
+        }
+      }
     }
   } catch (promptError) {
     context.log.warn('Failed to load/create prompts from Cosmos DB, using defaults:', promptError.message);

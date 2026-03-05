@@ -80,8 +80,8 @@ class PromptsRepository extends BaseRepository {
       imageGeneration: {
         dreamPrompt: `Create an inspiring, symbolic image that represents the dream: {userSearchTerm}
 
-Make the image visually strong, motivating, and emotionally uplifting.  
-Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`,
+Make the image visually strong, motivating, and emotionally uplifting.
+Focus on scenery, landscapes, objects, environments, and symbolic or abstract visuals. No identifiable people or faces.`,
         backgroundCardPrompt: `Create a clean, visually appealing background image based on the theme: "{userSearchTerm}".
 
 Make the image expressive but not distracting, with a subtle composition that works behind UI text.  

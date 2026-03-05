@@ -163,6 +163,20 @@ module.exports = createApiHandler({
       } else {
         promptsSource = 'cosmos-db';
         context.log('✅ Loaded prompts from Cosmos DB');
+
+        // Auto-migrate: if the stored dream prompt still contains the old "hands-only shots" text,
+        // update Cosmos DB with the fixed prompt (one-time background fix, non-blocking)
+        if (prompts.imageGeneration?.dreamPrompt?.includes('hands-only shots')) {
+          context.log('🔧 Auto-migrating stale dreamPrompt (removing "hands-only shots")');
+          try {
+            const defaultImageGen = provider.getDefaultPrompts().imageGeneration;
+            prompts.imageGeneration.dreamPrompt = defaultImageGen.dreamPrompt;
+            await provider.upsertPrompts(prompts, 'system-migration');
+            context.log('✅ dreamPrompt auto-migration saved to Cosmos DB');
+          } catch (migrationError) {
+            context.log.warn('⚠️ dreamPrompt auto-migration failed (non-blocking):', migrationError.message);
+          }
+        }
       }
     }
   } catch (promptError) {
@@ -179,8 +193,8 @@ module.exports = createApiHandler({
         imageGeneration: {
           dreamPrompt: `Create an inspiring, symbolic image that represents the dream: {userSearchTerm}
 
-Make the image visually strong, motivating, and emotionally uplifting.  
-Use scenery, objects, environments, silhouettes, distant figures, or hands-only shots — no identifiable people or faces.`,
+Make the image visually strong, motivating, and emotionally uplifting.
+Focus on scenery, landscapes, objects, environments, and symbolic or abstract visuals. No identifiable people or faces.`,
           backgroundCardPrompt: `Create a clean, visually appealing background image based on the theme: "{userSearchTerm}".
 
 Make the image expressive but not distracting, with a subtle composition that works behind UI text.  
