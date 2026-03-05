@@ -1,5 +1,6 @@
 
 import { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Plus, X } from 'lucide-react';
 import { useDreamBook } from '../../hooks/useDreamBook';
@@ -265,7 +266,7 @@ export default function DreamBookLayout() {
       />
 
       {/* Create Dream Modal */}
-      {isCreating && (
+      {isCreating && createPortal(
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           role="dialog"
@@ -308,7 +309,8 @@ export default function DreamBookLayout() {
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Dream Tracker Modal */}

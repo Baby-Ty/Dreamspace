@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, Download, X, Loader2, Image } from 'lucide-react';
 import { UnsplashService } from '../services/unsplashService';
 import { ErrorCodes } from '../constants/errors';
@@ -200,7 +201,7 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
@@ -335,7 +336,8 @@ const StockPhotoSearch = ({ searchTerm = '', onSelectImage, onClose }) => {
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

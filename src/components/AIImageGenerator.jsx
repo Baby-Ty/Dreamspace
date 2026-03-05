@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Sparkles, X, Loader2, Image, RefreshCw, Check, ChevronDown } from 'lucide-react';
 import { dalleService, STYLE_MODIFIERS, IMAGE_TYPES } from '../services/dalleService';
 
@@ -63,7 +64,7 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
     handleGenerate();
   };
 
-  return (
+  return createPortal(
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       role="dialog"
@@ -304,7 +305,8 @@ const AIImageGenerator = ({ onSelectImage, onClose, imageType = IMAGE_TYPES.DREA
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { useDreamTracker } from '../../hooks/useDreamTracker';
 import { useProgressStage } from '../../hooks/useProgressStage';
@@ -95,7 +96,7 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
     }
   }, [localDream?.title, dream?.title, isEditingTitle]);
 
-  return (
+  return createPortal(
     <>
       {/* Image Lightbox Modal */}
       <ImageLightbox
@@ -202,7 +203,8 @@ export function DreamTrackerLayout({ dream, onClose, onUpdate, isCoachViewing, t
         </div>
       </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 

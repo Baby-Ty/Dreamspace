@@ -53,7 +53,7 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden relative">
+    <div className="flex h-screen overflow-hidden">
       <AnimatedBackground />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
@@ -236,7 +236,7 @@ const Layout = ({ children }) => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Top bar for mobile */}
-        <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+        <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3 relative z-30">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -257,7 +257,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto overscroll-contain scrollbar-clean relative z-0">
+        <main className="flex-1 overflow-y-auto overscroll-contain scrollbar-clean scroll-auto">
           {children}
         </main>
       </div>

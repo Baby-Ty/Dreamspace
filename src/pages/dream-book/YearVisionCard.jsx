@@ -1,5 +1,6 @@
 
 import { memo, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Sparkles, Wand2, X, Save, Edit3, Loader2 } from 'lucide-react';
 import { gptService } from '../../services/gptService';
@@ -197,7 +198,7 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
       </div>
 
       {/* Edit Modal */}
-      {isEditing && (
+      {isEditing && createPortal(
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           role="dialog"
@@ -332,7 +333,8 @@ function YearVisionCard({ vision, dreams = [], onSaveVision }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

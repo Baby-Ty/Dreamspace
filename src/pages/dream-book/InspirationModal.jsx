@@ -1,5 +1,6 @@
 
 import { memo } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
 import { inspirationCategories } from '../../constants/dreamInspiration';
@@ -21,7 +22,7 @@ function InspirationModal({
 }) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div 
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       role="dialog"
@@ -149,7 +150,8 @@ function InspirationModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
