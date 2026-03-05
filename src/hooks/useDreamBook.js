@@ -87,7 +87,9 @@ export function useDreamBook() {
           await addGoalToCurrentWeek(goal, form.formData, form.tempDreamId, currentUser?.id);
         }
 
-        await addDream(newDream);
+        const saved = await addDream(newDream);
+        if (!saved) return;
+
         setTimeout(() => window.dispatchEvent(new CustomEvent('dreams-updated')), 100);
         
         form.setIsCreating(false);

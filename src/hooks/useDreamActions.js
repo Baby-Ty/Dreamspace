@@ -105,14 +105,10 @@ export function useDreamActions(state, dispatch) {
    * Add a new dream and preserve all weekly goal templates
    */
   const addDream = useCallback(async (dream) => {
-    if (!state.currentUser?.id) return;
+    if (!state.currentUser?.id) return false;
     
-    // Add to local state first
-    dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
-    
-    // Get updated dreamBook from state (after dispatch)
+    // Build the updated list to persist (local state is NOT updated yet)
     const updatedDreams = [...state.currentUser.dreamBook, dream];
-
     
     // Preserve all existing weekly goal templates
     const templates = state.weeklyGoals?.filter(g => 
@@ -122,22 +118,12 @@ export function useDreamActions(state, dispatch) {
     const result = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
     if (!result.success) {
       console.error('Failed to save dreams document:', result.error);
-      toast.errorWithRetry(
-        'Dream not saved — please check your connection.',
-        async () => {
-          const retryResult = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
-          if (!retryResult.success) {
-            dispatch({ type: actionTypes.DELETE_DREAM, payload: dream.id });
-            toast.error('Still couldn\'t save. Your dream has been removed — please try again.', 8000);
-          }
-        },
-        () => {
-          // User dismissed without retrying — revert so UI matches the database
-          dispatch({ type: actionTypes.DELETE_DREAM, payload: dream.id });
-        }
-      );
-      return;
+      toast.error('Dream not saved — please check your connection and try again.');
+      return false;
     }
+    
+    // Save confirmed — now update local state so UI reflects what is actually persisted
+    dispatch({ type: actionTypes.ADD_DREAM, payload: dream });
     
     // Add scoring entry for new dream
     const currentYear = new Date().getFullYear();
@@ -154,6 +140,8 @@ export function useDreamActions(state, dispatch) {
     
     const newScore = state.currentUser.score + points;
     dispatch({ type: actionTypes.UPDATE_USER_SCORE, payload: newScore });
+    
+    return true;
   }, [state.currentUser?.id, state.currentUser?.dreamBook, state.currentUser?.score, state.weeklyGoals, dispatch]);
 
   /**
