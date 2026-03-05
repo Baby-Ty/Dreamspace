@@ -35,13 +35,17 @@ module.exports = createApiHandler({
   }
 
   // Prepare the document - preserve existing data, add/update yearVision
+  // IMPORTANT: Handle legacy 'dreamBook' field - some older documents store dreams there.
+  // Use hasOwnProperty to distinguish "field doesn't exist" (undefined) from "field exists but is empty" ([]).
+  // We only fall back to dreamBook if the 'dreams' field is completely absent from the document.
+  // Do NOT delete dreamBook here — saveDreams handles that migration when the user next saves their dreams.
+  const hasDreamsField = existingDoc != null && Object.prototype.hasOwnProperty.call(existingDoc, 'dreams');
   const document = {
     ...(existingDoc || {}),
     id: documentId,
     userId: userId,
     yearVision: yearVision,
-    // Preserve existing fields or set defaults
-    dreams: existingDoc?.dreams || [],
+    dreams: hasDreamsField ? existingDoc.dreams : (existingDoc?.dreamBook || []),
     weeklyGoalTemplates: existingDoc?.weeklyGoalTemplates || [],
     createdAt: existingDoc?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()

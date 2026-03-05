@@ -6,6 +6,7 @@ import currentWeekService from '../services/currentWeekService';
 import { getCurrentIsoWeek } from '../utils/dateUtils';
 import { actionTypes } from '../state/appReducer';
 import { EVENT_DISPATCH_DEBOUNCE } from '../constants/timing';
+import { toast } from '../utils/toast';
 
 /**
  * Custom hook for dream CRUD operations
@@ -45,6 +46,20 @@ export function useDreamActions(state, dispatch) {
     const result = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
     if (!result.success) {
       console.error('Failed to save dreams document:', result.error);
+      toast.errorWithRetry(
+        'Dream not saved — please check your connection.',
+        async () => {
+          const retryResult = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
+          if (!retryResult.success) {
+            if (oldDream) dispatch({ type: actionTypes.UPDATE_DREAM, payload: oldDream });
+            toast.error('Still couldn\'t save. Your changes have been undone — please try again.', 8000);
+          }
+        },
+        () => {
+          // User dismissed without retrying — revert so UI matches the database
+          if (oldDream) dispatch({ type: actionTypes.UPDATE_DREAM, payload: oldDream });
+        }
+      );
       return;
     }
     
@@ -107,6 +122,20 @@ export function useDreamActions(state, dispatch) {
     const result = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
     if (!result.success) {
       console.error('Failed to save dreams document:', result.error);
+      toast.errorWithRetry(
+        'Dream not saved — please check your connection.',
+        async () => {
+          const retryResult = await itemService.saveDreams(state.currentUser.id, updatedDreams, templates);
+          if (!retryResult.success) {
+            dispatch({ type: actionTypes.DELETE_DREAM, payload: dream.id });
+            toast.error('Still couldn\'t save. Your dream has been removed — please try again.', 8000);
+          }
+        },
+        () => {
+          // User dismissed without retrying — revert so UI matches the database
+          dispatch({ type: actionTypes.DELETE_DREAM, payload: dream.id });
+        }
+      );
       return;
     }
     
@@ -133,6 +162,9 @@ export function useDreamActions(state, dispatch) {
   const deleteDream = useCallback(async (dreamId) => {
     if (!state.currentUser?.id) return;
     
+    // Capture before deleting so we can revert on failure
+    const dreamToDelete = state.currentUser.dreamBook.find(d => d.id === dreamId);
+
     // Delete from local state first
     dispatch({ type: actionTypes.DELETE_DREAM, payload: dreamId });
     
@@ -144,29 +176,45 @@ export function useDreamActions(state, dispatch) {
       g.type === 'weekly_goal_template' && g.dreamId !== dreamId
     ) || [];
     
+    // Extracted so both the first attempt and retry can clean up currentWeek goals
+    const cleanupCurrentWeekGoals = async () => {
+      const currentWeekIso = getCurrentIsoWeek();
+      const currentWeekResult = await currentWeekService.getCurrentWeek(state.currentUser.id);
+      if (currentWeekResult.success && currentWeekResult.data?.goals) {
+        const existingGoals = currentWeekResult.data.goals;
+        const filteredGoals = existingGoals.filter(g => g.dreamId !== dreamId);
+        if (filteredGoals.length < existingGoals.length) {
+          await currentWeekService.saveCurrentWeek(state.currentUser.id, currentWeekIso, filteredGoals);
+          existingGoals.filter(g => g.dreamId === dreamId).forEach(goal => {
+            dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
+          });
+        }
+      }
+    };
+
     const result = await itemService.saveDreams(state.currentUser.id, updatedDreams, remainingTemplates);
     if (!result.success) {
       console.error('Failed to save dreams document after delete:', result.error);
+      toast.errorWithRetry(
+        'Couldn\'t delete dream — please check your connection.',
+        async () => {
+          const retryResult = await itemService.saveDreams(state.currentUser.id, updatedDreams, remainingTemplates);
+          if (!retryResult.success) {
+            if (dreamToDelete) dispatch({ type: actionTypes.ADD_DREAM, payload: dreamToDelete });
+            toast.error('Still couldn\'t delete. Your dream has been restored — please try again.', 8000);
+          } else {
+            await cleanupCurrentWeekGoals();
+          }
+        },
+        () => {
+          // User dismissed without retrying — restore the dream so UI matches the database
+          if (dreamToDelete) dispatch({ type: actionTypes.ADD_DREAM, payload: dreamToDelete });
+        }
+      );
       return;
     }
 
-    // Remove goals for deleted dream from current week only
-    const currentWeekIso = getCurrentIsoWeek();
-    const currentWeekResult = await currentWeekService.getCurrentWeek(state.currentUser.id);
-    
-    if (currentWeekResult.success && currentWeekResult.data?.goals) {
-      const existingGoals = currentWeekResult.data.goals;
-      const filteredGoals = existingGoals.filter(g => g.dreamId !== dreamId);
-      
-      if (filteredGoals.length < existingGoals.length) {
-        await currentWeekService.saveCurrentWeek(state.currentUser.id, currentWeekIso, filteredGoals);
-        
-        // Update local state - dispatch DELETE for each removed goal
-        existingGoals.filter(g => g.dreamId === dreamId).forEach(goal => {
-          dispatch({ type: actionTypes.DELETE_WEEKLY_GOAL, payload: goal.id });
-        });
-      }
-    }
+    await cleanupCurrentWeekGoals();
   }, [state.currentUser?.id, state.currentUser?.dreamBook, state.weeklyGoals, dispatch]);
 
   /**

@@ -48,7 +48,8 @@ export function useAutosave(state) {
     state.currentUser?.id, 
     state.currentUser?.name, 
     state.currentUser?.email, 
-    state.currentUser?.office, 
-    state.currentUser?.score
+    state.currentUser?.office
+    // Intentionally excludes score — managed by scoringService directly
+    // Intentionally excludes dreamBook, weeklyGoals, connects — managed by itemService
   ]);
 }
