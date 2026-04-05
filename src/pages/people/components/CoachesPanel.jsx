@@ -12,7 +12,7 @@ export function CoachesPanel({ coaches, searchTerm, onSearchChange, onViewCoach,
           <div className="flex-1">
             <div className="relative">
               <Search className="w-4 h-4 text-professional-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" aria-hidden="true" />
-              <input type="text" placeholder="Search coaches or teams..." value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm" aria-label="Search coaches or teams" />
+              <input type="text" placeholder="Search coaches, teams or members..." value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-professional-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-netsurit-red focus:border-netsurit-red transition-all duration-200 text-sm" aria-label="Search coaches, teams or members" />
             </div>
           </div>
         </div>

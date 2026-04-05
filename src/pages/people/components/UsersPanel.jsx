@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Search, X, Edit3, Crown, ArrowRight, UserPlus, RotateCcw, Trash2 } from 'lucide-react';
-import FlagIcon from '../../../components/FlagIcon';
-import { getCountryCode } from '../../../utils/regionUtils';
+import { Search, X, Edit3, Crown, ArrowRight, UserPlus, RotateCcw, Trash2, UserCheck } from 'lucide-react';
 
 export function UsersPanel({ 
   displayedUsers, 
@@ -15,7 +13,8 @@ export function UsersPanel({
   onAssignUser,
   onReactivateUser,
   onDeleteUser,
-  currentUserId
+  currentUserId,
+  userCoachMap
 }) {
   const isDeactivatedView = userFilter === 'deactivated';
   
@@ -159,20 +158,22 @@ export function UsersPanel({
                     {user.email && (
                       <span className="truncate">{user.email}</span>
                     )}
-                    {user.office && (
-                      <span className="flex items-center gap-1.5">
-                        <FlagIcon countryCode={getCountryCode(user.office)} className="w-4 h-4" />
-                        {user.office}
+                    {!isDeactivatedView && userCoachMap?.[user.id] && (
+                      <span className="flex items-center gap-1 text-professional-gray-500">
+                        <UserCheck className="w-3.5 h-3.5 text-netsurit-red flex-shrink-0" aria-hidden="true" />
+                        {userCoachMap[user.id].name}
                       </span>
                     )}
-                    {!isDeactivatedView && (
-                      <>
-                        <span className="text-professional-gray-700">{user.score || 0}pts</span>
-                        <span className="text-professional-gray-700">{user.dreamsCount || 0} dreams</span>
-                        <span className="text-professional-gray-700">{user.connectsCount || 0} connects</span>
-                      </>
+                    {!isDeactivatedView && !userCoachMap?.[user.id] && userFilter === 'all' && (
+                      <span className="text-professional-gray-400 italic text-xs">No coach assigned</span>
                     )}
                   </div>
+                  {!isDeactivatedView && (
+                    <div className="flex items-center gap-3 text-xs text-professional-gray-500 mt-0.5">
+                      <span>{user.dreamsCount || 0} dreams</span>
+                      <span>{user.connectsCount || 0} connects</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -264,7 +265,8 @@ UsersPanel.propTypes = {
   onAssignUser: PropTypes.func.isRequired,
   onReactivateUser: PropTypes.func.isRequired,
   onDeleteUser: PropTypes.func.isRequired,
-  currentUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  currentUserId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  userCoachMap: PropTypes.object
 };
 
 export default UsersPanel;

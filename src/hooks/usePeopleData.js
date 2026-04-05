@@ -116,11 +116,17 @@ export function usePeopleData() {
 
   // Filter and sort coaches
   const filteredCoaches = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     let filtered = coaches.filter(coach => {
       const matchesOffice = filterOffice === 'all' || coach.office === filterOffice;
-      const matchesSearch = coach.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           coach.teamName?.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesOffice && matchesSearch;
+      const matchesCoach = coach.name?.toLowerCase().includes(term) ||
+                           coach.teamName?.toLowerCase().includes(term);
+      const matchesMember = !matchesCoach && term.length > 0 &&
+        (coach.teamData?.teamMembers || []).some(memberId => {
+          const member = allUsers.find(u => u.id === memberId);
+          return member?.name?.toLowerCase().includes(term);
+        });
+      return matchesOffice && (matchesCoach || matchesMember);
     });
 
     return filtered.sort((a, b) => {
@@ -135,7 +141,7 @@ export function usePeopleData() {
           return (b.performanceScore || 0) - (a.performanceScore || 0);
       }
     });
-  }, [coaches, filterOffice, searchTerm, sortBy]);
+  }, [coaches, allUsers, filterOffice, searchTerm, sortBy]);
 
   // Get unassigned users (only from active users)
   const unassignedUsers = useMemo(() => {

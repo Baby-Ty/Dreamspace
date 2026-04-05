@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ShieldAlert, Users2, Loader2, AlertCircle } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
@@ -37,6 +37,20 @@ export default function PeopleDashboardLayout() {
     setUserSearchTerm,
     refreshData
   } = usePeopleData();
+
+  // Map each user id -> their assigned coach (name + id)
+  const userCoachMap = useMemo(() => {
+    const map = {};
+    teamRelationships.forEach(team => {
+      const coach = allUsers.find(u => u.id === team.managerId);
+      if (coach && team.teamMembers) {
+        team.teamMembers.forEach(memberId => {
+          map[memberId] = { name: coach.name, id: coach.id };
+        });
+      }
+    });
+    return map;
+  }, [teamRelationships, allUsers]);
 
   // View state
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' or 'prompts'
@@ -259,6 +273,7 @@ export default function PeopleDashboardLayout() {
                 onReactivateUser={handleReactivateUser}
                 onDeleteUser={handleDeleteUser}
                 currentUserId={user?.id}
+                userCoachMap={userCoachMap}
               />
             </div>
           </div>
