@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Search, X, Edit3, Crown, ArrowRight, UserPlus, RotateCcw, Trash2, UserCheck } from 'lucide-react';
+import { Search, X, Edit3, Crown, ArrowRight, UserPlus, RotateCcw, Trash2 } from 'lucide-react';
 
 export function UsersPanel({ 
   displayedUsers, 
@@ -155,13 +155,9 @@ export function UsersPanel({
                     )}
                   </div>
                   <div className="flex items-center gap-3 flex-wrap text-sm text-professional-gray-600 mt-1">
-                    {user.email && (
-                      <span className="truncate">{user.email}</span>
-                    )}
                     {!isDeactivatedView && userCoachMap?.[user.id] && (
-                      <span className="flex items-center gap-1 text-professional-gray-500">
-                        <UserCheck className="w-3.5 h-3.5 text-netsurit-red flex-shrink-0" aria-hidden="true" />
-                        {userCoachMap[user.id].name}
+                      <span className="text-professional-gray-500">
+                        <span className="font-medium text-professional-gray-600">Coach:</span> {userCoachMap[user.id].name}
                       </span>
                     )}
                     {!isDeactivatedView && !userCoachMap?.[user.id] && userFilter === 'all' && (
